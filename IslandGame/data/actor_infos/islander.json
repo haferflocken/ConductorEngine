@@ -1,0 +1,9 @@
+{
+  "components": [
+  { "type": "scene_transform_component" },
+  { "type": "islander_component" }
+  ],
+  "behaviour_trees": [
+	"islander_tree.json"
+  ]
+}

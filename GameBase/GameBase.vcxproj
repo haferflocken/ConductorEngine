@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1579652B-0C60-4C45-8131-1D5F9BB59108}</ProjectGuid>
+    <RootNamespace>GameBase</RootNamespace>
+    <ProjectName>GameBase</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)GameBase;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)GameBase;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link />
+    <Link>
+      <AdditionalLibraryDirectories>C:\Users\John\Documents\GitHub\ConcurrentGame\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MemoryPools.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\Users\John\Documents\GitHub\ConcurrentGame\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MemoryPools.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\behave\Actor.cpp" />
+    <ClCompile Include="src\behave\ActorComponentFactory.cpp" />
+    <ClCompile Include="src\behave\ActorComponentGroupVector.cpp" />
+    <ClCompile Include="src\behave\ActorComponentInfoFactory.cpp" />
+    <ClCompile Include="src\behave\ActorComponentVector.cpp" />
+    <ClCompile Include="src\behave\ActorInfoManager.cpp" />
+    <ClCompile Include="src\behave\ActorManager.cpp" />
+    <ClCompile Include="src\behave\BehaviourNode.cpp" />
+    <ClCompile Include="src\behave\BehaviourNodeFactory.cpp" />
+    <ClCompile Include="src\behave\BehaviourTree.cpp" />
+    <ClCompile Include="src\behave\BehaviourTreeEvaluator.cpp" />
+    <ClCompile Include="src\behave\BehaviourTreeManager.cpp" />
+    <ClCompile Include="src\behave\Blackboard.cpp" />
+    <ClCompile Include="src\behave\components\BlackboardComponent.cpp" />
+    <ClCompile Include="src\behave\components\BlackboardComponentInfo.cpp" />
+    <ClCompile Include="src\behave\components\SceneTransformComponent.cpp" />
+    <ClCompile Include="src\behave\components\SceneTransformComponentInfo.cpp" />
+    <ClCompile Include="src\behave\nodes\CallNode.cpp" />
+    <ClCompile Include="src\behave\nodes\ConditionalNode.cpp" />
+    <ClCompile Include="src\behave\nodes\DomainNode.cpp" />
+    <ClCompile Include="src\behave\nodes\LogNode.cpp" />
+    <ClCompile Include="src\behave\nodes\ReturnNode.cpp" />
+    <ClCompile Include="src\behave\nodes\SelectorNode.cpp" />
+    <ClCompile Include="src\gamebase\ClientWorld.cpp" />
+    <ClCompile Include="src\gamebase\HostWorld.cpp" />
+    <ClCompile Include="src\json\JSONPrintVisitor.cpp" />
+    <ClCompile Include="src\json\JSONTypes.cpp" />
+    <ClCompile Include="src\dev\Dev.cpp" />
+    <ClCompile Include="src\file\JSONReader.cpp" />
+    <ClCompile Include="src\gamebase\BaseManager.cpp" />
+    <ClCompile Include="src\file\FullFileReader.cpp" />
+    <ClCompile Include="src\util\StringHash.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="behave\Actor.h" />
+    <ClInclude Include="behave\ActorComponent.h" />
+    <ClInclude Include="behave\ActorComponentFactory.h" />
+    <ClInclude Include="behave\ActorComponentGroup.h" />
+    <ClInclude Include="behave\ActorComponentGroupVector.h" />
+    <ClInclude Include="behave\ActorComponentID.h" />
+    <ClInclude Include="behave\ActorComponentInfo.h" />
+    <ClInclude Include="behave\ActorComponentVector.h" />
+    <ClInclude Include="behave\ActorID.h" />
+    <ClInclude Include="behave\ActorInfo.h" />
+    <ClInclude Include="behave\ActorInfoManager.h" />
+    <ClInclude Include="behave\ActorManager.h" />
+    <ClInclude Include="behave\BehaviourTreeContext.h" />
+    <ClInclude Include="behave\BehaviourCondition.h" />
+    <ClInclude Include="behave\BehaviourNodeFactory.h" />
+    <ClInclude Include="behave\BehaviourNodeState.h" />
+    <ClInclude Include="behave\BehaviourSystem.h" />
+    <ClInclude Include="behave\BehaviourTree.h" />
+    <ClInclude Include="behave\BehaviourTreeEvaluator.h" />
+    <ClInclude Include="behave\BehaviourTreeManager.h" />
+    <ClInclude Include="behave\BehaviourNode.h" />
+    <ClInclude Include="behave\Blackboard.h" />
+    <ClInclude Include="behave\components\BlackboardComponent.h" />
+    <ClInclude Include="behave\components\BlackboardComponentInfo.h" />
+    <ClInclude Include="behave\components\SceneTransformComponent.h" />
+    <ClInclude Include="behave\components\SceneTransformComponentInfo.h" />
+    <ClInclude Include="behave\nodes\CallNode.h" />
+    <ClInclude Include="behave\nodes\ConditionalNode.h" />
+    <ClInclude Include="behave\nodes\DomainNode.h" />
+    <ClInclude Include="behave\ActorComponentInfoFactory.h" />
+    <ClInclude Include="behave\nodes\LogNode.h" />
+    <ClInclude Include="behave\nodes\ReturnNode.h" />
+    <ClInclude Include="behave\nodes\SelectorNode.h" />
+    <ClInclude Include="behave\nodes\SequenceNode.h" />
+    <ClInclude Include="collection\ArrayView.h" />
+    <ClInclude Include="collection\IndexIterator.h" />
+    <ClInclude Include="collection\Pair.h" />
+    <ClInclude Include="collection\Variant.h" />
+    <ClInclude Include="gamebase\ClientWorld.h" />
+    <ClInclude Include="gamebase\ConnectedClient.h" />
+    <ClInclude Include="gamebase\ConnectedHost.h" />
+    <ClInclude Include="gamebase\HostWorld.h" />
+    <ClInclude Include="gamebase\IClient.h" />
+    <ClInclude Include="gamebase\IHost.h" />
+    <ClInclude Include="math\Matrix4x4.h" />
+    <ClInclude Include="math\Vector2.h" />
+    <ClInclude Include="math\Vector3.h" />
+    <ClInclude Include="math\Vector4.h" />
+    <ClInclude Include="mem\UniquePtr.h" />
+    <ClInclude Include="unit\CountUnits.h" />
+    <ClInclude Include="collection\PolyStack.h" />
+    <ClInclude Include="collection\PolyBuffer.h" />
+    <ClInclude Include="collection\VectorMap.h" />
+    <ClInclude Include="util\StringHash.h" />
+    <ClInclude Include="json\JSONPrintVisitor.h" />
+    <ClInclude Include="json\JSONTypes.h" />
+    <ClInclude Include="collection\Vector.h" />
+    <ClInclude Include="dev\Dev.h" />
+    <ClInclude Include="file\JSONReader.h" />
+    <ClInclude Include="gamebase\BaseManager.h" />
+    <ClInclude Include="collection\Array2D.h" />
+    <ClInclude Include="collection\IntegralRange.h" />
+    <ClInclude Include="collection\ProgramParameters.h" />
+    <ClInclude Include="file\FullFileReader.h" />
+    <ClInclude Include="file\Path.h" />
+    <ClInclude Include="gamebase\IRenderInstance.h" />
+    <ClInclude Include="gamebase\Looper.h" />
+    <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
+    <ClInclude Include="unit\Time.h" />
+    <ClInclude Include="unit\UnitTempl.h" />
+    <ClInclude Include="util\UniqueID.h" />
+    <ClInclude Include="util\VariadicUtil.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\behave\nodes\SequenceNode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="unit\UnitTempl.natvis" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

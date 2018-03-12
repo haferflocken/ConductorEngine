@@ -1,0 +1,27 @@
+{
+  "type": "selector",
+  "children": [
+    {
+      "type": "sequence",
+      "children": [
+        {
+          "type": "log",
+          "message": "Hello, world!"
+        },
+        {
+          "type": "log",
+          "message": "Sequence in action!"
+        }
+      ]
+    },
+    {
+      "type": "sequence",
+      "children": [
+        {
+          "type": "log",
+          "message": "Nope, nope, nope!"
+        }
+      ]
+    }
+  ]
+}
