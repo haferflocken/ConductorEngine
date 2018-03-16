@@ -67,7 +67,7 @@ int main(const int argc, const char* argv[])
 	{
 		using namespace Behave;
 
-		class TestSystem : public BehaviourSystemTempl<Util::TypeList<Components::SceneTransformComponent>, Util::TypeList<>>
+		class TestSystem : public BehaviourSystemTempl<Util::TypeList<Behave::Components::SceneTransformComponent>, Util::TypeList<>>
 		{
 		public:
 			void Update(const Collection::ArrayView<ComponentGroupType>& components) const {}
