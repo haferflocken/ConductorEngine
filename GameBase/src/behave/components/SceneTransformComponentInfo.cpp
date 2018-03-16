@@ -11,5 +11,5 @@ const Util::StringHash SceneTransformComponentInfo::sk_typeHash =
 Mem::UniquePtr<Behave::ActorComponentInfo> SceneTransformComponentInfo::LoadFromJSON(
 	const JSON::JSONObject& jsonObject)
 {
-	return Mem::UniquePtr<SceneTransformComponentInfo>();
+	return Mem::MakeUnique<SceneTransformComponentInfo>();
 }
