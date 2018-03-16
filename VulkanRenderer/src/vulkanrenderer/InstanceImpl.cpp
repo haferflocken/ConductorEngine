@@ -4,20 +4,18 @@
 
 #include <file/Path.h>
 
-namespace
+namespace Internal_InstanceImpl
 {
 constexpr int32_t k_desiredWidth = 1280;
 constexpr int32_t k_desiredHeight = 720;
 }
 
-using namespace VulkanRenderer;
-
-InstanceImpl::InstanceImpl(const char* const applicationName, const File::Path& vertexShaderFile,
+VulkanRenderer::InstanceImpl::InstanceImpl(const char* const applicationName, const File::Path& vertexShaderFile,
 	const File::Path& fragmentShaderFile)
 	: m_status(Status::Initializing)
 	, m_applicationInfo({ applicationName, 1, "ConcurrentGame", 1 })
 	, m_instanceInfo(Utils::MakeInstanceInfo())
-	, m_windowInfo(Utils::MakeWindowInfo(k_desiredWidth, k_desiredHeight))
+	, m_windowInfo(Utils::MakeWindowInfo(Internal_InstanceImpl::k_desiredWidth, Internal_InstanceImpl::k_desiredHeight))
 	, m_instance(m_applicationInfo, m_instanceInfo)
 	, m_window(m_instance.Get(), m_applicationInfo, m_windowInfo)
 	, m_physicalDevicesInfo(Utils::MakePhysicalDevicesInfo(m_instance.Get(), m_window.GetSurface()))
@@ -36,7 +34,7 @@ InstanceImpl::InstanceImpl(const char* const applicationName, const File::Path& 
 	m_status = Status::Initialized;
 }
 
-InstanceImpl::Status InstanceImpl::Update()
+VulkanRenderer::InstanceImpl::Status VulkanRenderer::InstanceImpl::Update()
 {
 	m_status = Status::Running;
 

@@ -17,24 +17,23 @@ static android_app* Android_application = nullptr;
 
 #include <assert.h>
 
-using namespace VulkanRenderer;
+const vk::ComponentMapping VulkanRenderer::Utils::k_colorImageComponentMapping =
+	vk::ComponentMapping(vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB,
+		vk::ComponentSwizzle::eA);
 
-const vk::ComponentMapping Utils::k_colorImageComponentMapping = vk::ComponentMapping(vk::ComponentSwizzle::eR,
-	vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA);
-
-const vk::ImageSubresourceRange Utils::k_colorSubresourceRange =
+const vk::ImageSubresourceRange VulkanRenderer::Utils::k_colorSubresourceRange =
 	vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
-const vk::ImageSubresourceRange Utils::k_depthSubresourceRange =
+const vk::ImageSubresourceRange VulkanRenderer::Utils::k_depthSubresourceRange =
 	vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1);
 
-const vk::Format Utils::k_depthFormat = vk::Format::eD16Unorm;
+const vk::Format VulkanRenderer::Utils::k_depthFormat = vk::Format::eD16Unorm;
 
-const vk::SampleCountFlagBits Utils::k_numSamples = vk::SampleCountFlagBits::e1;
+const vk::SampleCountFlagBits VulkanRenderer::Utils::k_numSamples = vk::SampleCountFlagBits::e1;
 
-const size_t Utils::k_numDescriptorSets = 1;
+const size_t VulkanRenderer::Utils::k_numDescriptorSets = 1;
 
-VulkanObjects::InstanceInfo Utils::MakeInstanceInfo()
+VulkanRenderer::VulkanObjects::InstanceInfo VulkanRenderer::Utils::MakeInstanceInfo()
 {
 	VulkanObjects::InstanceInfo instanceInfo;
 
@@ -56,7 +55,7 @@ VulkanObjects::InstanceInfo Utils::MakeInstanceInfo()
 	return instanceInfo;
 }
 
-VulkanObjects::WindowInfo Utils::MakeWindowInfo(const int32_t desiredWidth, const int32_t desiredHeight)
+VulkanRenderer::VulkanObjects::WindowInfo VulkanRenderer::Utils::MakeWindowInfo(const int32_t desiredWidth, const int32_t desiredHeight)
 {
 	VulkanObjects::WindowInfo windowInfo;
 
@@ -70,7 +69,7 @@ VulkanObjects::WindowInfo Utils::MakeWindowInfo(const int32_t desiredWidth, cons
 	return windowInfo;
 }
 
-VulkanObjects::PhysicalDevicesInfo Utils::MakePhysicalDevicesInfo(const vk::Instance& instance,
+VulkanRenderer::VulkanObjects::PhysicalDevicesInfo VulkanRenderer::Utils::MakePhysicalDevicesInfo(const vk::Instance& instance,
 	const vk::SurfaceKHR& surface)
 {
 	VulkanObjects::PhysicalDevicesInfo physicalDevicesInfo;
@@ -146,8 +145,8 @@ VulkanObjects::PhysicalDevicesInfo Utils::MakePhysicalDevicesInfo(const vk::Inst
 	return physicalDevicesInfo;
 }
 
-uint32_t Utils::FindMemoryType(const VulkanObjects::PhysicalDevicesInfo& physicalDevicesInfo, uint32_t typeBits,
-	const vk::MemoryPropertyFlags requirementsMask)
+uint32_t VulkanRenderer::Utils::FindMemoryType(const VulkanObjects::PhysicalDevicesInfo& physicalDevicesInfo,
+	uint32_t typeBits, const vk::MemoryPropertyFlags requirementsMask)
 {
 	// Search memtypes to find first index with those properties
 	for (uint32_t i = 0; i < physicalDevicesInfo.memoryProperties.memoryTypeCount; ++i)
@@ -166,7 +165,7 @@ uint32_t Utils::FindMemoryType(const VulkanObjects::PhysicalDevicesInfo& physica
 	return std::numeric_limits<uint32_t>::max();
 }
 
-void Utils::SetImageLayout(const vk::CommandBuffer& commandBuffer, const vk::Image& image,
+void VulkanRenderer::Utils::SetImageLayout(const vk::CommandBuffer& commandBuffer, const vk::Image& image,
 	const vk::ImageAspectFlags aspectMask, const vk::ImageLayout oldImageLayout, const vk::ImageLayout newImageLayout)
 {
 	// Depends on the graphics queue being initialized.
@@ -370,14 +369,15 @@ EShLanguage FindLanguage(const vk::ShaderStageFlagBits shaderType)
 }
 #endif
 
-void Utils::InitShaderCompiler()
+void VulkanRenderer::Utils::InitShaderCompiler()
 {
 #ifndef __ANDROID__
 	glslang::InitializeProcess();
 #endif
 }
 
-std::vector<unsigned int> Utils::CompileShader(const vk::ShaderStageFlagBits shaderType, const std::string& shaderSource)
+std::vector<unsigned int> VulkanRenderer::Utils::CompileShader(
+	const vk::ShaderStageFlagBits shaderType, const std::string& shaderSource)
 {
 	std::vector<unsigned int> spirv;
 
@@ -437,7 +437,7 @@ std::vector<unsigned int> Utils::CompileShader(const vk::ShaderStageFlagBits sha
 	return spirv;
 }
 
-void Utils::FinalizeShaderCompiler()
+void VulkanRenderer::Utils::FinalizeShaderCompiler()
 {
 #ifndef __ANDROID__
 	glslang::FinalizeProcess();
