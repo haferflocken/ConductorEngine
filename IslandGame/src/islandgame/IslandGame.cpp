@@ -1,5 +1,12 @@
 #include <islandgame/IslandGameData.h>
 
+#include <behave/ActorInfoManager.h>
+#include <behave/ActorManager.h>
+#include <behave/BehaviourSystem.h>
+#include <behave/BehaviourTreeContext.h>
+#include <behave/components/SceneTransformComponent.h>
+#include <behave/components/SceneTransformComponentInfo.h>
+
 #include <collection/ProgramParameters.h>
 
 #include <file/Path.h>
@@ -50,9 +57,27 @@ int main(const int argc, const char* argv[])
 	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
 
 	// TODO(refactor) Create and run a host and client.
-	HostWorld::HostFactory hostFactory = []() { return Mem::UniquePtr<IHost>(); };
+	/*HostWorld::HostFactory hostFactory = []() { return Mem::UniquePtr<IHost>(); };
 	ClientWorld::ClientFactory clientFactory = [](ConnectedHost&) { return Mem::UniquePtr<IClient>(); };
 
 	HostWorld hostWorld{ std::move(hostFactory) };
-	ClientWorld clientWorld{ std::move(clientFactory) };
+	ClientWorld clientWorld{ std::move(clientFactory) };*/
+
+	{
+		using namespace Behave;
+
+		class TestSystem : public BehaviourSystemTempl<Util::TypeList<Components::SceneTransformComponent>, Util::TypeList<>>
+		{
+		public:
+			void Update(const Collection::ArrayView<ComponentGroupType>& components) const {}
+		};
+		
+		ActorManager actorManager{ gameData.GetActorComponentFactory() };
+		actorManager.RegisterBehaviourSystem(Mem::MakeUnique<TestSystem>());
+
+		actorManager.CreateActor(*gameData.GetActorInfoManager().FindActorInfo(Util::CalcHash("islander.json")));
+		
+		const BehaviourTreeContext context{ gameData.GetBehaviourTreeManager() };
+		actorManager.Update(context);
+	}
 }
