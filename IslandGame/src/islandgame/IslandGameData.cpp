@@ -8,29 +8,28 @@
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourTreeManager.h>
 
-using namespace IslandGame;
-using namespace IslandGame::Components;
-
-IslandGameData::IslandGameData()
+IslandGame::IslandGameData::IslandGameData()
 	: m_behaviourNodeFactory(Mem::MakeUnique<Behave::BehaviourNodeFactory>())
 	, m_behaviourTreeManager(Mem::MakeUnique<Behave::BehaviourTreeManager>(*m_behaviourNodeFactory))
 	, m_actorComponentInfoFactory(Mem::MakeUnique<Behave::ActorComponentInfoFactory>())
 	, m_actorInfoManager(Mem::MakeUnique<Behave::ActorInfoManager>(*m_actorComponentInfoFactory, *m_behaviourTreeManager))
 	, m_actorComponentFactory(Mem::MakeUnique<Behave::ActorComponentFactory>())
 {
+	using namespace IslandGame::Components;
+
 	m_actorComponentInfoFactory->RegisterFactoryFunction<IslanderComponentInfo>();
 	m_actorComponentFactory->RegisterComponentType<IslanderComponent>();
 }
 
-IslandGameData::~IslandGameData()
+IslandGame::IslandGameData::~IslandGameData()
 {}
 
-void IslandGameData::LoadBehaviourTreesInDirectory(const File::Path& directory)
+void IslandGame::IslandGameData::LoadBehaviourTreesInDirectory(const File::Path& directory)
 {
 	m_behaviourTreeManager->LoadTreesInDirectory(directory);
 }
 
-void IslandGameData::LoadActorInfosInDirectory(const File::Path& directory)
+void IslandGame::IslandGameData::LoadActorInfosInDirectory(const File::Path& directory)
 {
 	m_actorInfoManager->LoadActorInfosInDirectory(directory);
 }

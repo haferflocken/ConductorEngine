@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-namespace
+namespace Internal_IslandGame
 {
 constexpr char* k_dataDirectoryParameter = "-datapath";
 
@@ -33,6 +33,7 @@ constexpr char* k_actorInfosPath = "actor_infos";
 
 int main(const int argc, const char* argv[])
 {
+	using namespace Internal_IslandGame;
 	using namespace IslandGame;
 	using namespace GameBase;
 

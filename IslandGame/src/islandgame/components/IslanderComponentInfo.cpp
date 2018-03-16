@@ -2,12 +2,11 @@
 
 #include <mem/UniquePtr.h>
 
-using namespace IslandGame;
-using namespace IslandGame::Components;
+const Util::StringHash IslandGame::Components::IslanderComponentInfo::sk_typeHash =
+	Util::CalcHash(IslanderComponentInfo::sk_typeName);
 
-const Util::StringHash IslanderComponentInfo::sk_typeHash = Util::CalcHash(IslanderComponentInfo::sk_typeName);
-
-Mem::UniquePtr<Behave::ActorComponentInfo> IslanderComponentInfo::LoadFromJSON(const JSON::JSONObject& jsonObject)
+Mem::UniquePtr<Behave::ActorComponentInfo> IslandGame::Components::IslanderComponentInfo::LoadFromJSON(
+	const JSON::JSONObject& jsonObject)
 {
 	return Mem::MakeUnique<IslanderComponentInfo>();
 }
