@@ -2,13 +2,10 @@
 
 #include <mem/UniquePtr.h>
 
-using namespace Behave;
-using namespace Behave::Components;
-
-const Util::StringHash BlackboardComponentInfo::sk_typeHash =
+const Util::StringHash Behave::Components::BlackboardComponentInfo::sk_typeHash =
 	Util::CalcHash(BlackboardComponentInfo::sk_typeName);
 
-Mem::UniquePtr<Behave::ActorComponentInfo> BlackboardComponentInfo::LoadFromJSON(
+Mem::UniquePtr<Behave::ActorComponentInfo> Behave::Components::BlackboardComponentInfo::LoadFromJSON(
 	const JSON::JSONObject& jsonObject)
 {
 	return Mem::MakeUnique<BlackboardComponentInfo>();

@@ -1,8 +1,6 @@
 #include <behave/Blackboard.h>
 
-using namespace Behave;
-
-bool Blackboard::TryGetFloat(const Util::StringHash& key, float& out) const
+bool Behave::Blackboard::TryGetFloat(const Util::StringHash& key, float& out) const
 {
 	const auto* const entry = m_map.Find(key);
 	if (entry == nullptr || entry->second.type != ValueType::Float)
@@ -14,7 +12,7 @@ bool Blackboard::TryGetFloat(const Util::StringHash& key, float& out) const
 	return true;
 }
 
-bool Blackboard::TryRemove(const Util::StringHash& key)
+bool Behave::Blackboard::TryRemove(const Util::StringHash& key)
 {
 	const auto* const entry = m_map.Find(key);
 	if (entry == nullptr)
@@ -26,7 +24,7 @@ bool Blackboard::TryRemove(const Util::StringHash& key)
 	return true;
 }
 
-void Blackboard::Set(const Util::StringHash& key, float value)
+void Behave::Blackboard::Set(const Util::StringHash& key, float value)
 {
 	TaggedValue& taggedValue = m_map[key];
 	taggedValue.type = ValueType::Float;

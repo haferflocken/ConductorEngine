@@ -1,20 +1,18 @@
 #include <gamebase/BaseManager.h>
 //#include <gamebase/GameWorld.h>
 
-using namespace GameBase;
-
-void BaseManager::StartThread()
+void GameBase::BaseManager::StartThread()
 {
 	m_thread = std::thread(&BaseManager::ThreadFunction, this);
 }
 
-void BaseManager::StopThread()
+void GameBase::BaseManager::StopThread()
 {
 	m_thread.join();
 	Teardown();
 }
 
-void BaseManager::ThreadFunction()
+void GameBase::BaseManager::ThreadFunction()
 {
 	// Initialize the thread-local environment.
 	Initialize();
@@ -26,7 +24,7 @@ void BaseManager::ThreadFunction()
 	});
 }
 
-LoopStatus BaseManager::LoopBody(Unit::Time::Millisecond deltaTime)
+GameBase::LoopStatus GameBase::BaseManager::LoopBody(Unit::Time::Millisecond deltaTime)
 {
 	/*LoopStatus status;
 

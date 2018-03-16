@@ -6,21 +6,20 @@
 #include <dev/Dev.h>
 #include <json/JSONTypes.h>
 
-using namespace Behave;
-
-namespace
+namespace Internal_ActorComponentInfoFactory
 {
 const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 }
 
-ActorComponentInfoFactory::ActorComponentInfoFactory()
+Behave::ActorComponentInfoFactory::ActorComponentInfoFactory()
 	: m_factoryFunctions()
 {
 	RegisterFactoryFunction<Components::BlackboardComponentInfo>();
 	RegisterFactoryFunction<Components::SceneTransformComponentInfo>();
 }
 
-void ActorComponentInfoFactory::RegisterFactoryFunction(const char* const componentTypeName, FactoryFunction fn)
+void Behave::ActorComponentInfoFactory::RegisterFactoryFunction(
+	const char* const componentTypeName, FactoryFunction fn)
 {
 	const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeName);
 	Dev::FatalAssert(m_factoryFunctions.find(componentTypeHash) == m_factoryFunctions.end(),
@@ -28,10 +27,11 @@ void ActorComponentInfoFactory::RegisterFactoryFunction(const char* const compon
 	m_factoryFunctions[componentTypeHash] = std::move(fn);
 }
 
-Mem::UniquePtr<ActorComponentInfo> ActorComponentInfoFactory::MakeComponentInfo(
+Mem::UniquePtr<Behave::ActorComponentInfo> Behave::ActorComponentInfoFactory::MakeComponentInfo(
 	const JSON::JSONObject& jsonObject) const
 {
-	const JSON::JSONString* const jsonTypeName = jsonObject.FindString(k_typeKeyHash);
+	const JSON::JSONString* const jsonTypeName =
+		jsonObject.FindString(Internal_ActorComponentInfoFactory::k_typeKeyHash);
 	if (jsonTypeName == nullptr)
 	{
 		Dev::LogWarning("Failed to find a type name.");

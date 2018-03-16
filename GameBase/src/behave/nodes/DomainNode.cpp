@@ -7,11 +7,11 @@
 
 #include <json/JSONTypes.h>
 
+namespace Internal_DomainNode
+{
 using namespace Behave;
 using namespace Behave::Nodes;
 
-namespace
-{
 class DomainBehaviourState final : public BehaviourNodeState
 {
 public:
@@ -71,9 +71,11 @@ const Util::StringHash k_conditionHash = Util::CalcHash("condition");
 const Util::StringHash k_childHash = Util::CalcHash("child");
 }
 
-Mem::UniquePtr<BehaviourNode> DomainNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::DomainNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
 	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
 {
+	using namespace Internal_DomainNode;
+
 	const JSON::JSONObject* const domain = jsonObject.FindObject(k_conditionHash);
 	if (domain == nullptr)
 	{
@@ -93,16 +95,16 @@ Mem::UniquePtr<BehaviourNode> DomainNode::LoadFromJSON(const BehaviourNodeFactor
 	return node;
 }
 
-DomainNode::DomainNode(const BehaviourTree& tree)
+Behave::Nodes::DomainNode::DomainNode(const BehaviourTree& tree)
 	: BehaviourNode(tree)
 	, m_condition()
 	, m_child()
 {}
 
-DomainNode::~DomainNode()
+Behave::Nodes::DomainNode::~DomainNode()
 {}
 
-void DomainNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
+void Behave::Nodes::DomainNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
 {
-	treeEvaluator.GetCallStack().Emplace<DomainBehaviourState>(*this);
+	treeEvaluator.GetCallStack().Emplace<Internal_DomainNode::DomainBehaviourState>(*this);
 }

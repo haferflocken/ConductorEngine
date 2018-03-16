@@ -5,19 +5,17 @@
 #include <file/JSONReader.h>
 #include <json/JSONTypes.h>
 
-using namespace Behave;
-
-BehaviourTreeManager::BehaviourTreeManager(const BehaviourNodeFactory& nodeFactory)
+Behave::BehaviourTreeManager::BehaviourTreeManager(const BehaviourNodeFactory& nodeFactory)
 	: m_nodeFactory(nodeFactory)
 	, m_trees()
 {
 }
 
-BehaviourTreeManager::~BehaviourTreeManager()
+Behave::BehaviourTreeManager::~BehaviourTreeManager()
 {
 }
 
-void BehaviourTreeManager::LoadTreesInDirectory(const File::Path& directory)
+void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& directory)
 {
 	if (!File::IsDirectory(directory))
 	{
@@ -59,7 +57,7 @@ void BehaviourTreeManager::LoadTreesInDirectory(const File::Path& directory)
 	});
 }
 
-const BehaviourTree* BehaviourTreeManager::FindTree(const Util::StringHash treeNameHash) const
+const Behave::BehaviourTree* Behave::BehaviourTreeManager::FindTree(const Util::StringHash treeNameHash) const
 {
 	const auto itr = m_trees.find(treeNameHash);
 	return (itr != m_trees.end()) ? &itr->second : nullptr;

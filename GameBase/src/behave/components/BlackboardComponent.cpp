@@ -2,10 +2,7 @@
 
 #include <behave/ActorComponentVector.h>
 
-using namespace Behave;
-using namespace Behave::Components;
-
-bool BlackboardComponent::TryCreateFromInfo(const BlackboardComponentInfo& componentInfo,
+bool Behave::Components::BlackboardComponent::TryCreateFromInfo(const BlackboardComponentInfo& componentInfo,
 	const ActorComponentID reservedID, ActorComponentVector& destination)
 {
 	destination.Emplace<BlackboardComponent>(reservedID);

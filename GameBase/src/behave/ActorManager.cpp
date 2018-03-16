@@ -18,9 +18,7 @@
 #include <set>
 #include <vector>
 
-using namespace Behave;
-
-ActorManager::ActorManager(const ActorComponentFactory& componentFactory)
+Behave::ActorManager::ActorManager(const ActorComponentFactory& componentFactory)
 	: m_actorComponentFactory(componentFactory)
 	, m_actors()
 	, m_actorComponents()
@@ -29,11 +27,11 @@ ActorManager::ActorManager(const ActorComponentFactory& componentFactory)
 {
 }
 
-ActorManager::~ActorManager()
+Behave::ActorManager::~ActorManager()
 {
 }
 
-Actor& ActorManager::CreateActor(const ActorInfo& actorInfo)
+Behave::Actor& Behave::ActorManager::CreateActor(const ActorInfo& actorInfo)
 {
 	// Create the actor.
 	const ActorID actorID = m_nextActorID;
@@ -82,13 +80,13 @@ Actor& ActorManager::CreateActor(const ActorInfo& actorInfo)
 	return actor;
 }
 
-Actor* ActorManager::FindActor(const ActorID id)
+Behave::Actor* Behave::ActorManager::FindActor(const ActorID id)
 {
 	// Implemented using the const variant.
 	return const_cast<Actor*>(static_cast<const ActorManager*>(this)->FindActor(id));
 }
 
-const Actor* ActorManager::FindActor(const ActorID id) const
+const Behave::Actor* Behave::ActorManager::FindActor(const ActorID id) const
 {
 	const auto itr = std::lower_bound(m_actors.begin(), m_actors.end(), id,
 		[](const Actor& actor, const ActorID& id)
@@ -102,13 +100,13 @@ const Actor* ActorManager::FindActor(const ActorID id) const
 	return &*itr;
 }
 
-ActorComponent* ActorManager::FindComponent(const ActorComponentID id)
+Behave::ActorComponent* Behave::ActorManager::FindComponent(const ActorComponentID id)
 {
 	// Implemented using the const variant.
 	return const_cast<ActorComponent*>(static_cast<const ActorManager*>(this)->FindComponent(id));
 }
 
-const ActorComponent* ActorManager::FindComponent(const ActorComponentID id) const
+const Behave::ActorComponent* Behave::ActorManager::FindComponent(const ActorComponentID id) const
 {
 	const Collection::Pair<const Util::StringHash, ActorComponentVector>* const componentsEntry =
 		m_actorComponents.Find(id.GetType());
@@ -130,7 +128,7 @@ const ActorComponent* ActorManager::FindComponent(const ActorComponentID id) con
 	return &*itr;
 }
 
-size_t ActorManager::FindComponentIndex(const ActorComponentID id) const
+size_t Behave::ActorManager::FindComponentIndex(const ActorComponentID id) const
 {
 	const Collection::Pair<const Util::StringHash, ActorComponentVector>* const componentsEntry =
 		m_actorComponents.Find(id.GetType());
@@ -152,7 +150,7 @@ size_t ActorManager::FindComponentIndex(const ActorComponentID id) const
 	return static_cast<size_t>(itr.GetIndex());
 }
 
-void ActorManager::RemoveComponent(const ActorComponentID id)
+void Behave::ActorManager::RemoveComponent(const ActorComponentID id)
 {
 	// TODO remove components from execution groups
 	Collection::Pair<const Util::StringHash, ActorComponentVector>* const componentsEntry =
@@ -165,13 +163,13 @@ void ActorManager::RemoveComponent(const ActorComponentID id)
 	components.Remove(id, m_actorComponentFactory);
 }
 
-ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem()
+Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem()
 	: m_behaviourSystem()
 	, m_updateFunction(nullptr)
 	, m_componentGroups()
 {}
 
-ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem(
+Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem(
 	Mem::UniquePtr<BehaviourSystem>&& system,
 	BehaviourSystemUpdateFn updateFunction)
 	: m_behaviourSystem(std::move(system))
@@ -180,7 +178,7 @@ ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem(
 		m_behaviourSystem->GetImmutableComponentTypes().Size() + m_behaviourSystem->GetMutableComponentTypes().Size())
 {}
 
-void ActorManager::RegisterBehaviourSystem(
+void Behave::ActorManager::RegisterBehaviourSystem(
 	Mem::UniquePtr<BehaviourSystem>&& system,
 	BehaviourSystemUpdateFn updateFn)
 {
@@ -239,7 +237,7 @@ void ActorManager::RegisterBehaviourSystem(
 	newGroup.m_systems.Emplace(std::move(system), updateFn);
 }
 
-void ActorManager::AddActorComponentsToBehaviourSystems(const Collection::ArrayView<Actor>& actorsToAdd)
+void Behave::ActorManager::AddActorComponentsToBehaviourSystems(const Collection::ArrayView<Actor>& actorsToAdd)
 {
 	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
 	{
@@ -290,13 +288,13 @@ void ActorManager::AddActorComponentsToBehaviourSystems(const Collection::ArrayV
 	}
 }
 
-void ActorManager::Update(const BehaviourTreeContext& treeContext)
+void Behave::ActorManager::Update(const BehaviourTreeContext& treeContext)
 {
 	UpdateBehaviourTrees(treeContext);
 	UpdateBehaviourSystems();
 }
 
-void ActorManager::UpdateBehaviourTrees(const BehaviourTreeContext& context)
+void Behave::ActorManager::UpdateBehaviourTrees(const BehaviourTreeContext& context)
 {
 	// Update the actors in parallel, as their trees can't access other actors.
 	// TODO When MSVC supports the <execution> header, make this parallel,
@@ -342,7 +340,7 @@ void ActorManager::UpdateBehaviourTrees(const BehaviourTreeContext& context)
 	m_actors.Remove(removeIndex, m_actors.Size());*/
 }
 
-void ActorManager::UpdateBehaviourSystems()
+void Behave::ActorManager::UpdateBehaviourSystems()
 {
 	// Update the behaviour system execution groups. The systems in each group can update in parallel.
 	for (auto& executionGroup : m_behaviourSystemExecutionGroups)

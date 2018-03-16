@@ -2,10 +2,10 @@
 
 #include <algorithm>
 
+namespace Internal_JSONTypes
+{
 using namespace JSON;
 
-namespace
-{
 template <typename T>
 bool AcceptTempl(const T& jsonValue, Visitor* visitor)
 {
@@ -14,12 +14,12 @@ bool AcceptTempl(const T& jsonValue, Visitor* visitor)
 }
 }
 
-bool JSONString::Accept(Visitor* visitor) const { return AcceptTempl(*this, visitor); }
-bool JSONNumber::Accept(Visitor* visitor) const { return AcceptTempl(*this, visitor); }
-bool JSONBoolean::Accept(Visitor* visitor) const { return AcceptTempl(*this, visitor); }
-bool JSONNull::Accept(Visitor* visitor) const { return AcceptTempl(*this, visitor); }
+bool JSON::JSONString::Accept(Visitor* visitor) const { return Internal_JSONTypes::AcceptTempl(*this, visitor); }
+bool JSON::JSONNumber::Accept(Visitor* visitor) const { return  Internal_JSONTypes::AcceptTempl(*this, visitor); }
+bool JSON::JSONBoolean::Accept(Visitor* visitor) const { return  Internal_JSONTypes::AcceptTempl(*this, visitor); }
+bool JSON::JSONNull::Accept(Visitor* visitor) const { return  Internal_JSONTypes::AcceptTempl(*this, visitor); }
 
-bool JSONArray::Accept(Visitor* visitor) const
+bool JSON::JSONArray::Accept(Visitor* visitor) const
 {
 	VisitorFlow controlValue = visitor->Visit(*this);
 	switch (controlValue)
@@ -45,12 +45,12 @@ bool JSONArray::Accept(Visitor* visitor) const
 	return true;
 }
 
-void JSONArray::Add(Mem::UniquePtr<JSONValue>&& value)
+void JSON::JSONArray::Add(Mem::UniquePtr<JSONValue>&& value)
 {
 	m_array.Add(std::move(value));
 }
 
-bool JSONObject::Accept(Visitor* visitor) const
+bool JSON::JSONObject::Accept(Visitor* visitor) const
 {
 	VisitorFlow controlValue = visitor->Visit(*this);
 	switch (controlValue)
@@ -76,14 +76,16 @@ bool JSONObject::Accept(Visitor* visitor) const
 	return true;
 }
 
-const JSONValue* JSONObject::FindAny(const Util::StringHash keyHash) const
+const JSON::JSONValue* JSON::JSONObject::FindAny(const Util::StringHash keyHash) const
 {
 	const auto itr = m_map.find(keyHash);
 	return (itr != m_map.end()) ? itr->second : nullptr;
 }
 
-namespace
+namespace Internal_JSONTypes
 {
+using namespace JSON;
+
 template <typename T, ValueType type>
 const T* FindWithType(const JSONObject& jsonObject, const Util::StringHash keyHash)
 {
@@ -92,37 +94,37 @@ const T* FindWithType(const JSONObject& jsonObject, const Util::StringHash keyHa
 }
 }
 
-const JSONString* JSONObject::FindString(const Util::StringHash keyHash) const
+const JSON::JSONString* JSON::JSONObject::FindString(const Util::StringHash keyHash) const
 {
-	return FindWithType<JSONString, ValueType::String>(*this, keyHash);
+	return Internal_JSONTypes::FindWithType<JSONString, ValueType::String>(*this, keyHash);
 }
 
-const JSONNumber* JSONObject::FindNumber(const Util::StringHash keyHash) const
+const JSON::JSONNumber* JSON::JSONObject::FindNumber(const Util::StringHash keyHash) const
 {
-	return FindWithType<JSONNumber, ValueType::Number>(*this, keyHash);
+	return Internal_JSONTypes::FindWithType<JSONNumber, ValueType::Number>(*this, keyHash);
 }
 
-const JSONBoolean* JSONObject::FindBoolean(const Util::StringHash keyHash) const
+const JSON::JSONBoolean* JSON::JSONObject::FindBoolean(const Util::StringHash keyHash) const
 {
-	return FindWithType<JSONBoolean, ValueType::Boolean>(*this, keyHash);
+	return Internal_JSONTypes::FindWithType<JSONBoolean, ValueType::Boolean>(*this, keyHash);
 }
 
-const JSONNull* JSONObject::FindNull(const Util::StringHash keyHash) const
+const JSON::JSONNull* JSON::JSONObject::FindNull(const Util::StringHash keyHash) const
 {
-	return FindWithType<JSONNull, ValueType::Null>(*this, keyHash);
+	return Internal_JSONTypes::FindWithType<JSONNull, ValueType::Null>(*this, keyHash);
 }
 
-const JSONArray* JSONObject::FindArray(const Util::StringHash keyHash) const
+const JSON::JSONArray* JSON::JSONObject::FindArray(const Util::StringHash keyHash) const
 {
-	return FindWithType<JSONArray, ValueType::Array>(*this, keyHash);
+	return Internal_JSONTypes::FindWithType<JSONArray, ValueType::Array>(*this, keyHash);
 }
 
-const JSONObject* JSONObject::FindObject(const Util::StringHash keyHash) const
+const JSON::JSONObject* JSON::JSONObject::FindObject(const Util::StringHash keyHash) const
 {
-	return FindWithType<JSONObject, ValueType::Object>(*this, keyHash);
+	return Internal_JSONTypes::FindWithType<JSONObject, ValueType::Object>(*this, keyHash);
 }
 
-JSONObject::Entry& JSONObject::Emplace(const std::string& key, Mem::UniquePtr<JSONValue>&& value)
+JSON::JSONObject::Entry& JSON::JSONObject::Emplace(const std::string& key, Mem::UniquePtr<JSONValue>&& value)
 {
 	m_pairs.Emplace(key, std::move(value));
 	Entry& entry = m_pairs.Back();

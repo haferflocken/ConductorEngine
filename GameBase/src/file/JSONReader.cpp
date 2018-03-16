@@ -7,22 +7,19 @@
 #include <cctype>
 #include <sstream>
 
+namespace Internal_JSONReader
+{
 using namespace JSON;
 
-namespace JSONReader
-{
-	bool TryReadJSONString(const char*& inOutInput, JSONString& out);
-	bool TryReadJSONNumber(const char*& inOutInput, JSONNumber& out);
-	bool TryReadJSONBoolean(const char*& inOutInput, JSONBoolean& out);
-	bool TryReadJSONNull(const char*& inOutInput, JSONNull& out);
-	bool TryReadJSONArray(const char*& inOutInput, JSONArray& out);
-	bool TryReadJSONObject(const char*& inOutInput, JSONObject& out);
+bool TryReadJSONString(const char*& inOutInput, JSONString& out);
+bool TryReadJSONNumber(const char*& inOutInput, JSONNumber& out);
+bool TryReadJSONBoolean(const char*& inOutInput, JSONBoolean& out);
+bool TryReadJSONNull(const char*& inOutInput, JSONNull& out);
+bool TryReadJSONArray(const char*& inOutInput, JSONArray& out);
+bool TryReadJSONObject(const char*& inOutInput, JSONObject& out);
 
-	Mem::UniquePtr<JSONValue> ReadJSONValue(const char*& inOutInput);
-}
+Mem::UniquePtr<JSONValue> ReadJSONValue(const char*& inOutInput);
 
-namespace
-{
 bool IsDigit(const char c)
 {
 	return (c >= '0' && c <= '9');
@@ -79,7 +76,7 @@ bool TryToEscape(const char c, char& out)
 }
 }
 
-bool JSONReader::TryReadJSONString(const char*& inOutInput, JSONString& out)
+bool Internal_JSONReader::TryReadJSONString(const char*& inOutInput, JSON::JSONString& out)
 {
 	Dev::FatalAssert(inOutInput[0] == '"', "Strings must always start with a double quote.");
 
@@ -126,7 +123,7 @@ bool JSONReader::TryReadJSONString(const char*& inOutInput, JSONString& out)
 	return false;
 }
 
-bool JSONReader::TryReadJSONNumber(const char*& inOutInput, JSONNumber& out)
+bool Internal_JSONReader::TryReadJSONNumber(const char*& inOutInput, JSON::JSONNumber& out)
 {
 	const bool isNegative = (inOutInput[0] == '-');
 	if (isNegative)
@@ -210,7 +207,7 @@ bool JSONReader::TryReadJSONNumber(const char*& inOutInput, JSONNumber& out)
 	return IsValueDelimeter(inOutInput[0]);
 }
 
-bool JSONReader::TryReadJSONBoolean(const char*& inOutInput, JSONBoolean& out)
+bool Internal_JSONReader::TryReadJSONBoolean(const char*& inOutInput, JSON::JSONBoolean& out)
 {
 	if (strncmp(inOutInput, "true", 4) == 0)
 	{
@@ -227,7 +224,7 @@ bool JSONReader::TryReadJSONBoolean(const char*& inOutInput, JSONBoolean& out)
 	return false;
 }
 
-bool JSONReader::TryReadJSONNull(const char*& inOutInput, JSONNull& out)
+bool Internal_JSONReader::TryReadJSONNull(const char*& inOutInput, JSON::JSONNull& out)
 {
 	if (strncmp(inOutInput, "null", 4) == 0)
 	{
@@ -237,7 +234,7 @@ bool JSONReader::TryReadJSONNull(const char*& inOutInput, JSONNull& out)
 	return false;
 }
 
-bool JSONReader::TryReadJSONArray(const char*& inOutInput, JSONArray& out)
+bool Internal_JSONReader::TryReadJSONArray(const char*& inOutInput, JSON::JSONArray& out)
 {
 	Dev::FatalAssert(inOutInput[0] == '[', "Arrays must always start with a square bracket.");
 	
@@ -281,7 +278,7 @@ bool JSONReader::TryReadJSONArray(const char*& inOutInput, JSONArray& out)
 	return false;
 }
 
-bool JSONReader::TryReadJSONObject(const char*& inOutInput, JSONObject& out)
+bool Internal_JSONReader::TryReadJSONObject(const char*& inOutInput, JSON::JSONObject& out)
 {
 	Dev::FatalAssert(inOutInput[0] == '{', "Objects must always start with a curly bracket.");
 	
@@ -343,7 +340,7 @@ bool JSONReader::TryReadJSONObject(const char*& inOutInput, JSONObject& out)
 	return false;
 }
 
-Mem::UniquePtr<JSONValue> JSONReader::ReadJSONValue(const char*& inOutInput)
+Mem::UniquePtr<JSON::JSONValue> Internal_JSONReader::ReadJSONValue(const char*& inOutInput)
 {
 	ValueType valueType;
 	if (!TryIdentifyNextValue(inOutInput[0], valueType))
@@ -387,10 +384,10 @@ Mem::UniquePtr<JSONValue> JSONReader::ReadJSONValue(const char*& inOutInput)
 	return nullptr;
 }
 
-Mem::UniquePtr<JSONValue> File::ReadJSONFile(const File::Path& path)
+Mem::UniquePtr<JSON::JSONValue> File::ReadJSONFile(const File::Path& path)
 {
 	const std::string fullText = ReadFullTextFile(path);
 
 	const char* input = fullText.data();
-	return JSONReader::ReadJSONValue(input);
+	return Internal_JSONReader::ReadJSONValue(input);
 }

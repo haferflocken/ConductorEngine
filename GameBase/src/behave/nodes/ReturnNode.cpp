@@ -7,11 +7,11 @@
 
 #include <mem/UniquePtr.h>
 
+namespace Internal_ReturnNode
+{
 using namespace Behave;
 using namespace Behave::Nodes;
 
-namespace
-{
 class ReturnBehaviourState final : public BehaviourNodeState
 {
 public:
@@ -35,10 +35,10 @@ private:
 const Util::StringHash k_returnsSuccessHash = Util::CalcHash("returns_success");
 }
 
-Mem::UniquePtr<BehaviourNode> ReturnNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ReturnNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
 	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
 {
-	const JSON::JSONBoolean* const returnsSuccess = jsonObject.FindBoolean(k_returnsSuccessHash);
+	const JSON::JSONBoolean* const returnsSuccess = jsonObject.FindBoolean(Internal_ReturnNode::k_returnsSuccessHash);
 	if (returnsSuccess != nullptr)
 	{
 		auto node = Mem::MakeUnique<ReturnNode>(tree);
@@ -48,7 +48,7 @@ Mem::UniquePtr<BehaviourNode> ReturnNode::LoadFromJSON(const BehaviourNodeFactor
 	return nullptr;
 }
 
-void ReturnNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
+void Behave::Nodes::ReturnNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
 {
-	treeEvaluator.GetCallStack().Emplace<ReturnBehaviourState>(*this);
+	treeEvaluator.GetCallStack().Emplace<Internal_ReturnNode::ReturnBehaviourState>(*this);
 }

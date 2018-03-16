@@ -6,14 +6,12 @@
 #include <behave/BehaviourTree.h>
 #include <behave/nodes/ReturnNode.h>
 
-using namespace Behave;
-
-const BehaviourTree* BehaviourTreeEvaluator::GetCurrentTree() const
+const Behave::BehaviourTree* Behave::BehaviourTreeEvaluator::GetCurrentTree() const
 {
 	return (!m_callStack.IsEmpty()) ? &m_callStack.Peek()->GetNode()->GetTree() : nullptr;
 }
 
-void BehaviourTreeEvaluator::Update(Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
+void Behave::BehaviourTreeEvaluator::Update(Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
 	const BehaviourTreeContext& context)
 {
 	Dev::FatalAssert(!m_callStack.IsEmpty(), "Cannot update without a call stack.");

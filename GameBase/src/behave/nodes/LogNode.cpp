@@ -10,11 +10,11 @@
 
 #include <mem/UniquePtr.h>
 
+namespace Internal_LogNode
+{
 using namespace Behave;
 using namespace Behave::Nodes;
 
-namespace
-{
 class LogBehaviourState final : public BehaviourNodeState
 {
 public:
@@ -39,10 +39,10 @@ private:
 const Util::StringHash k_messageHash = Util::CalcHash("message");
 }
 
-Mem::UniquePtr<BehaviourNode> LogNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::LogNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
 	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
 {
-	const JSON::JSONString* const message = jsonObject.FindString(k_messageHash);
+	const JSON::JSONString* const message = jsonObject.FindString(Internal_LogNode::k_messageHash);
 	if (message != nullptr)
 	{
 		auto node = Mem::MakeUnique<LogNode>(tree);
@@ -52,7 +52,7 @@ Mem::UniquePtr<BehaviourNode> LogNode::LoadFromJSON(const BehaviourNodeFactory& 
 	return nullptr;
 }
 
-void LogNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
+void Behave::Nodes::LogNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
 {
-	treeEvaluator.GetCallStack().Emplace<LogBehaviourState>(*this);
+	treeEvaluator.GetCallStack().Emplace<Internal_LogNode::LogBehaviourState>(*this);
 }

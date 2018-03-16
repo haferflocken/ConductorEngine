@@ -9,10 +9,10 @@
 #include <file/JSONReader.h>
 #include <json/JSONTypes.h>
 
+namespace Internal_ActorInfoManager
+{
 using namespace Behave;
 
-namespace
-{
 const Util::StringHash k_componentsHash = Util::CalcHash("components");
 const Util::StringHash k_behaviourTreesArray = Util::CalcHash("behaviour_trees");
 
@@ -73,7 +73,7 @@ Mem::UniquePtr<ActorInfo> MakeActorInfo(const ActorComponentInfoFactory& actorCo
 }
 }
 
-void ActorInfoManager::LoadActorInfosInDirectory(const File::Path& directory)
+void Behave::ActorInfoManager::LoadActorInfosInDirectory(const File::Path& directory)
 {
 	if (!File::IsDirectory(directory))
 	{
@@ -91,8 +91,8 @@ void ActorInfoManager::LoadActorInfosInDirectory(const File::Path& directory)
 		{
 			const JSON::JSONObject& jsonObject = *static_cast<const JSON::JSONObject*>(jsonValue.Get());
 
-			Mem::UniquePtr<ActorInfo> actorInfo =
-				MakeActorInfo(m_actorComponentInfoFactory, m_behaviourTreeManager, jsonObject);
+			Mem::UniquePtr<ActorInfo> actorInfo = Internal_ActorInfoManager::MakeActorInfo(
+				m_actorComponentInfoFactory, m_behaviourTreeManager, jsonObject);
 			if (actorInfo != nullptr)
 			{
 				const File::Path& fileName = file.filename();
@@ -116,7 +116,7 @@ void ActorInfoManager::LoadActorInfosInDirectory(const File::Path& directory)
 	});
 }
 
-const ActorInfo* ActorInfoManager::FindActorInfo(const Util::StringHash actorInfoNameHash) const
+const Behave::ActorInfo* Behave::ActorInfoManager::FindActorInfo(const Util::StringHash actorInfoNameHash) const
 {
 	const auto itr = m_actorInfos.find(actorInfoNameHash);
 	return (itr != m_actorInfos.end()) ? &itr->second : nullptr;

@@ -4,25 +4,23 @@
 
 #include <json/JSONTypes.h>
 
-using namespace Behave;
-
-BehaviourTree::BehaviourTree()
+Behave::BehaviourTree::BehaviourTree()
 	: m_root()
 {}
 
-BehaviourTree::BehaviourTree(BehaviourTree&& o)
+Behave::BehaviourTree::BehaviourTree(BehaviourTree&& o)
 	: m_root(std::move(o.m_root))
 {}
 
-void BehaviourTree::operator=(BehaviourTree&& rhs)
+void Behave::BehaviourTree::operator=(BehaviourTree&& rhs)
 {
 	m_root = std::move(rhs.m_root);
 }
 
-BehaviourTree::~BehaviourTree()
+Behave::BehaviourTree::~BehaviourTree()
 {}
 
-bool BehaviourTree::LoadFromJSON(const BehaviourNodeFactory& nodeFactory, const JSON::JSONObject& jsonObject)
+bool Behave::BehaviourTree::LoadFromJSON(const BehaviourNodeFactory& nodeFactory, const JSON::JSONObject& jsonObject)
 {
 	m_root = nodeFactory.MakeNode(jsonObject, *this);
 	return (m_root != nullptr);

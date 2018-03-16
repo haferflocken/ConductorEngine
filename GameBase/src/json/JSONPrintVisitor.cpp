@@ -2,33 +2,31 @@
 
 #include <iostream>
 
-using namespace JSON;
-
-VisitorFlow PrintVisitor::Visit(const JSONString& value)
+JSON::VisitorFlow JSON::PrintVisitor::Visit(const JSONString& value)
 {
 	std::cout << '"' << value.m_string << '"';
-	return VisitorFlow::Visit;
+	return JSON::VisitorFlow::Visit;
 }
 
-VisitorFlow PrintVisitor::Visit(const JSONNumber& value)
+JSON::VisitorFlow JSON::PrintVisitor::Visit(const JSONNumber& value)
 {
 	std::cout << value.m_number;
-	return VisitorFlow::Visit;
+	return JSON::VisitorFlow::Visit;
 }
 
-VisitorFlow PrintVisitor::Visit(const JSONBoolean& value)
+JSON::VisitorFlow JSON::PrintVisitor::Visit(const JSONBoolean& value)
 {
 	std::cout << (value.m_boolean ? "true" : "false");
-	return VisitorFlow::Visit;
+	return JSON::VisitorFlow::Visit;
 }
 
-VisitorFlow PrintVisitor::Visit(const JSONNull& value)
+JSON::VisitorFlow JSON::PrintVisitor::Visit(const JSONNull& value)
 {
 	std::cout << "null";
-	return VisitorFlow::Visit;
+	return JSON::VisitorFlow::Visit;
 }
 
-VisitorFlow PrintVisitor::Visit(const JSONArray& value)
+JSON::VisitorFlow JSON::PrintVisitor::Visit(const JSONArray& value)
 {
 	std::cout << '[' << std::endl;
 	m_prefix.push_back('\t');
@@ -42,10 +40,10 @@ VisitorFlow PrintVisitor::Visit(const JSONArray& value)
 
 	m_prefix.pop_back();
 	std::cout << m_prefix << ']';
-	return VisitorFlow::Skip;
+	return JSON::VisitorFlow::Skip;
 }
 
-VisitorFlow PrintVisitor::Visit(const JSONObject& value)
+JSON::VisitorFlow JSON::PrintVisitor::Visit(const JSONObject& value)
 {
 	std::cout << '{' << std::endl;
 	m_prefix.push_back('\t');
@@ -59,5 +57,5 @@ VisitorFlow PrintVisitor::Visit(const JSONObject& value)
 
 	m_prefix.pop_back();
 	std::cout << m_prefix << '}';
-	return VisitorFlow::Skip;
+	return JSON::VisitorFlow::Skip;
 }

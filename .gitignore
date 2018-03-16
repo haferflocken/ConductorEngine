@@ -302,3 +302,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+/RudeBuild_ConductorEngine.sln
+/VulkanRenderer/RudeBuild_VulkanRenderer.vcxproj
+/IslandGame/RudeBuild_IslandGame.vcxproj
+/glslang/RudeBuild_glslang.vcxproj

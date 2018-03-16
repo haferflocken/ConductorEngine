@@ -8,20 +8,13 @@
 
 #include <dev/Dev.h>
 
-using namespace Behave;
-
-namespace
-{
-const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
-}
-
-ActorComponentFactory::ActorComponentFactory()
+Behave::ActorComponentFactory::ActorComponentFactory()
 {
 	RegisterComponentType<Components::BlackboardComponent>();
 	RegisterComponentType<Components::SceneTransformComponent>();
 }
 
-void ActorComponentFactory::RegisterComponentType(const char* const componentTypeName,
+void Behave::ActorComponentFactory::RegisterComponentType(const char* const componentTypeName,
 	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponentInBytes,
 	FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn)
 {
@@ -41,7 +34,8 @@ void ActorComponentFactory::RegisterComponentType(const char* const componentTyp
 	m_swapFunctions[componentTypeHash] = std::move(swapFn);
 }
 
-Unit::ByteCount64 ActorComponentFactory::GetSizeOfComponentInBytes(const Util::StringHash componentTypeHash) const
+Unit::ByteCount64 Behave::ActorComponentFactory::GetSizeOfComponentInBytes(
+	const Util::StringHash componentTypeHash) const
 {
 	const auto sizeItr = m_componentSizesInBytes.find(componentTypeHash);
 	if (sizeItr == m_componentSizesInBytes.end())
@@ -53,7 +47,7 @@ Unit::ByteCount64 ActorComponentFactory::GetSizeOfComponentInBytes(const Util::S
 	return sizeItr->second;
 }
 
-bool ActorComponentFactory::TryMakeComponent(const ActorComponentInfo& componentInfo,
+bool Behave::ActorComponentFactory::TryMakeComponent(const ActorComponentInfo& componentInfo,
 	const ActorComponentID reservedID, ActorComponentVector& destination) const
 {
 	const auto factoryItr = m_factoryFunctions.find(componentInfo.GetTypeHash());
@@ -66,7 +60,7 @@ bool ActorComponentFactory::TryMakeComponent(const ActorComponentInfo& component
 	return factoryItr->second(componentInfo, reservedID, destination);
 }
 
-void ActorComponentFactory::DestroyComponent(ActorComponent& component) const
+void Behave::ActorComponentFactory::DestroyComponent(ActorComponent& component) const
 {
 	const auto& destructorItr = m_destructorFunctions.find(component.m_id.GetType());
 	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
@@ -76,7 +70,7 @@ void ActorComponentFactory::DestroyComponent(ActorComponent& component) const
 	destructorItr->second(component);
 }
 
-void ActorComponentFactory::SwapComponents(ActorComponent& a, ActorComponent& b) const
+void Behave::ActorComponentFactory::SwapComponents(ActorComponent& a, ActorComponent& b) const
 {
 	const auto& swapItr = m_swapFunctions.find(a.m_id.GetType());
 	Dev::FatalAssert(swapItr != m_swapFunctions.end() && swapItr == m_swapFunctions.find(b.m_id.GetType()),

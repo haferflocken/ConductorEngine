@@ -4,11 +4,11 @@
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
 
+namespace Internal_SelectorNode
+{
 using namespace Behave;
 using namespace Behave::Nodes;
 
-namespace
-{
 class SelectorBehaviourState final : public BehaviourNodeState
 {
 public:
@@ -82,12 +82,12 @@ private:
 const Util::StringHash k_childrenHash = Util::CalcHash("children");
 }
 
-Mem::UniquePtr<BehaviourNode> SelectorNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::SelectorNode::LoadFromJSON(
+	const BehaviourNodeFactory& nodeFactory, const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
 {
 	auto node = Mem::MakeUnique<SelectorNode>(tree);
 
-	if (!nodeFactory.TryMakeNodesFrom(jsonObject, tree, k_childrenHash, node->m_children))
+	if (!nodeFactory.TryMakeNodesFrom(jsonObject, tree, Internal_SelectorNode::k_childrenHash, node->m_children))
 	{
 		return nullptr;
 	}
@@ -95,7 +95,7 @@ Mem::UniquePtr<BehaviourNode> SelectorNode::LoadFromJSON(const BehaviourNodeFact
 	return node;
 }
 
-void SelectorNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
+void Behave::Nodes::SelectorNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
 {
-	treeEvaluator.GetCallStack().Emplace<SelectorBehaviourState>(*this);
+	treeEvaluator.GetCallStack().Emplace<Internal_SelectorNode::SelectorBehaviourState>(*this);
 }

@@ -4,9 +4,7 @@
 
 #include <array>
 
-using namespace Behave;
-
-void ActorComponentGroupVector::Add(const Collection::Vector<size_t>& componentIndices)
+void Behave::ActorComponentGroupVector::Add(const Collection::Vector<size_t>& componentIndices)
 {
 	Dev::FatalAssert(componentIndices.Size() == m_groupSize,
 		"Can only add component groups with the correct group size.");
@@ -17,7 +15,7 @@ void ActorComponentGroupVector::Add(const Collection::Vector<size_t>& componentI
 	}
 }
 
-namespace
+namespace Internal_ActorComponentGroupVector
 {
 template <uint32_t GroupSize>
 void SortGroups(Collection::Vector<size_t>& data, const uint32_t numGroups)
@@ -33,8 +31,10 @@ void SortGroups(Collection::Vector<size_t>& data, const uint32_t numGroups)
 }
 }
 
-void ActorComponentGroupVector::Sort()
+void Behave::ActorComponentGroupVector::Sort()
 {
+	using namespace Internal_ActorComponentGroupVector;
+
 	if (IsEmpty())
 	{
 		return;

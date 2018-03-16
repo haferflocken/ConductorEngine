@@ -7,11 +7,11 @@
 
 #include <json/JSONTypes.h>
 
+namespace Internal_ConditionalNode
+{
 using namespace Behave;
 using namespace Behave::Nodes;
 
-namespace
-{
 class ConditionalBehaviourState final : public BehaviourNodeState
 {
 public:
@@ -64,9 +64,13 @@ const Util::StringHash k_conditionHash = Util::CalcHash("condition");
 const Util::StringHash k_nodeHash = Util::CalcHash("node");
 }
 
-Mem::UniquePtr<BehaviourNode> ConditionalNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::LoadFromJSON(
+	const Behave::BehaviourNodeFactory& nodeFactory,
+	const JSON::JSONObject& jsonObject,
+	const BehaviourTree& tree)
 {
+	using namespace Internal_ConditionalNode;
+
 	const JSON::JSONArray* const children = jsonObject.FindArray(k_childrenHash);
 	if (children == nullptr)
 	{
@@ -105,16 +109,16 @@ Mem::UniquePtr<BehaviourNode> ConditionalNode::LoadFromJSON(const BehaviourNodeF
 	return node;
 }
 
-ConditionalNode::ConditionalNode(const BehaviourTree& tree)
+Behave::Nodes::ConditionalNode::ConditionalNode(const BehaviourTree& tree)
 	: BehaviourNode(tree)
 	, m_conditions()
 	, m_children()
 {}
 
-ConditionalNode::~ConditionalNode()
+Behave::Nodes::ConditionalNode::~ConditionalNode()
 {}
 
-void ConditionalNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
+void Behave::Nodes::ConditionalNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
 {
-	treeEvaluator.GetCallStack().Emplace<ConditionalBehaviourState>(*this);
+	treeEvaluator.GetCallStack().Emplace<Internal_ConditionalNode::ConditionalBehaviourState>(*this);
 }

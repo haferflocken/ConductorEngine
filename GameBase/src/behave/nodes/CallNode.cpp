@@ -10,11 +10,11 @@
 
 #include <mem/UniquePtr.h>
 
+namespace Internal_CallNode
+{
 using namespace Behave;
 using namespace Behave::Nodes;
 
-namespace
-{
 class CallBehaviourState final : public BehaviourNodeState
 {
 public:
@@ -66,10 +66,10 @@ private:
 const Util::StringHash k_treeToCallHash = Util::CalcHash("tree_to_call");
 }
 
-Mem::UniquePtr<BehaviourNode> CallNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::CallNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
 	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
 {
-	const JSON::JSONString* const treeToCall = jsonObject.FindString(k_treeToCallHash);
+	const JSON::JSONString* const treeToCall = jsonObject.FindString(Internal_CallNode::k_treeToCallHash);
 	if (treeToCall == nullptr)
 	{
 		Dev::LogWarning("CallBehaviour failed to find a tree to call.");
@@ -81,7 +81,7 @@ Mem::UniquePtr<BehaviourNode> CallNode::LoadFromJSON(const BehaviourNodeFactory&
 	return node;
 }
 
-void CallNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
+void Behave::Nodes::CallNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const
 {
-	treeEvaluator.GetCallStack().Emplace<CallBehaviourState>(*this);
+	treeEvaluator.GetCallStack().Emplace<Internal_CallNode::CallBehaviourState>(*this);
 }
