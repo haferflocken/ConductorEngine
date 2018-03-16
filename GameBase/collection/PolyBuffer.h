@@ -83,7 +83,7 @@ private:
 
 	const ElementMetadata* peekMetadata() const
 	{
-		return reinterpret_cast<const ElementMetadata*>(m_top - sk_metadataSize.GetN());
+		return reinterpret_cast<const ElementMetadata*>(m_top - Unit::ByteCount64(sk_metadataSize).GetN());
 	}
 
 	void deleteOwned()
@@ -111,7 +111,7 @@ private:
 template <typename T>
 inline bool PolyBuffer::hasRoomFor() const
 {
-	return ((m_top + Unit::WordSizeOfInBytes<T>().GetN()) <= m_maximum);
+	return ((m_top + Unit::WordSizeOfInBytes<T>().GetN() + Unit::ByteCount64(sk_metadataSize).GetN()) <= m_maximum);
 }
 
 template <typename T>
