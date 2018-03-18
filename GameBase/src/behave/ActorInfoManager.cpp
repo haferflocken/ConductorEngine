@@ -118,6 +118,6 @@ void Behave::ActorInfoManager::LoadActorInfosInDirectory(const File::Path& direc
 
 const Behave::ActorInfo* Behave::ActorInfoManager::FindActorInfo(const Util::StringHash actorInfoNameHash) const
 {
-	const auto itr = m_actorInfos.find(actorInfoNameHash);
+	const auto itr = m_actorInfos.Find(actorInfoNameHash);
 	return (itr != m_actorInfos.end()) ? &itr->second : nullptr;
 }

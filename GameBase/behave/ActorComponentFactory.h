@@ -1,9 +1,8 @@
 #pragma once
 
+#include <collection/VectorMap.h>
 #include <unit/CountUnits.h>
 #include <util/StringHash.h>
-
-#include <unordered_map>
 
 namespace Behave
 {
@@ -41,16 +40,16 @@ private:
 		SwapFunction swapFn);
 
 	// Maps component type hashes to the size in bytes of those components.
-	std::unordered_map<Util::StringHash, Unit::ByteCount64> m_componentSizesInBytes;
+	Collection::VectorMap<Util::StringHash, Unit::ByteCount64> m_componentSizesInBytes;
 
 	// Maps component type hashes to factory functions for those component types.
-	std::unordered_map<Util::StringHash, FactoryFunction> m_factoryFunctions;
+	Collection::VectorMap<Util::StringHash, FactoryFunction> m_factoryFunctions;
 
 	// Maps component type hashes to destructor functions for those component types.
-	std::unordered_map<Util::StringHash, DestructorFunction> m_destructorFunctions;
+	Collection::VectorMap<Util::StringHash, DestructorFunction> m_destructorFunctions;
 
 	// Maps component type hashes to swap functions for those component types.
-	std::unordered_map<Util::StringHash, SwapFunction> m_swapFunctions;
+	Collection::VectorMap<Util::StringHash, SwapFunction> m_swapFunctions;
 };
 
 template <typename ComponentType>

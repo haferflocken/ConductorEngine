@@ -1,9 +1,8 @@
 #pragma once
 
+#include <collection/VectorMap.h>
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
-
-#include <unordered_map>
 
 namespace JSON { class JSONObject; }
 
@@ -30,7 +29,7 @@ private:
 	void RegisterFactoryFunction(const char* const componentTypeName, FactoryFunction fn);
 	
 	// Maps hashes of component type names to factory functions for those component types.
-	std::unordered_map<Util::StringHash, FactoryFunction> m_factoryFunctions;
+	Collection::VectorMap<Util::StringHash, FactoryFunction> m_factoryFunctions;
 };
 
 template <typename ComponentInfoType>

@@ -59,6 +59,6 @@ void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& direct
 
 const Behave::BehaviourTree* Behave::BehaviourTreeManager::FindTree(const Util::StringHash treeNameHash) const
 {
-	const auto itr = m_trees.find(treeNameHash);
+	const auto itr = m_trees.Find(treeNameHash);
 	return (itr != m_trees.end()) ? &itr->second : nullptr;
 }

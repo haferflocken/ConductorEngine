@@ -22,7 +22,7 @@ void Behave::ActorComponentInfoFactory::RegisterFactoryFunction(
 	const char* const componentTypeName, FactoryFunction fn)
 {
 	const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeName);
-	Dev::FatalAssert(m_factoryFunctions.find(componentTypeHash) == m_factoryFunctions.end(),
+	Dev::FatalAssert(m_factoryFunctions.Find(componentTypeHash) == m_factoryFunctions.end(),
 		"Attempted to register a factory function for component type \"%s\", but there already is one.");
 	m_factoryFunctions[componentTypeHash] = std::move(fn);
 }
@@ -38,7 +38,7 @@ Mem::UniquePtr<Behave::ActorComponentInfo> Behave::ActorComponentInfoFactory::Ma
 		return nullptr;
 	}
 
-	const auto factoryItr = m_factoryFunctions.find(jsonTypeName->m_hash);
+	const auto factoryItr = m_factoryFunctions.Find(jsonTypeName->m_hash);
 	if (factoryItr == m_factoryFunctions.end())
 	{
 		Dev::LogWarning("Failed to find a factory function for component type \"%s\".",

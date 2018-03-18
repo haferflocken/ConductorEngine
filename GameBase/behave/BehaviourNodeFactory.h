@@ -1,10 +1,9 @@
 #pragma once
 
 #include <collection/Vector.h>
+#include <collection/VectorMap.h>
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
-
-#include <unordered_map>
 
 namespace JSON
 {
@@ -41,9 +40,9 @@ public:
 
 private:
 	// Maps hashes of node type names to factory functions for those node types.
-	std::unordered_map<Util::StringHash, NodeFactoryFunction> m_nodeFactoryFunctions;
+	Collection::VectorMap<Util::StringHash, NodeFactoryFunction> m_nodeFactoryFunctions;
 
 	// Maps hashes of condition type names to factory functions for those condition types.
-	std::unordered_map<Util::StringHash, ConditionFactoryFunction> m_conditionFactoryFunctions;
+	Collection::VectorMap<Util::StringHash, ConditionFactoryFunction> m_conditionFactoryFunctions;
 };
 }

@@ -1,9 +1,8 @@
 #pragma once
 
+#include <collection/VectorMAp.h>
 #include <file/Path.h>
 #include <util/StringHash.h>
-
-#include <unordered_map>
 
 namespace Behave
 {
@@ -26,6 +25,6 @@ public:
 
 private:
 	const BehaviourNodeFactory& m_nodeFactory;
-	std::unordered_map<Util::StringHash, BehaviourTree> m_trees;
+	Collection::VectorMap<Util::StringHash, BehaviourTree> m_trees;
 };
 }

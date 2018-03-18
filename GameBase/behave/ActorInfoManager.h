@@ -1,11 +1,9 @@
 #pragma once
 
 #include <behave/ActorInfo.h>
-
+#include <collection/VectorMap.h>
 #include <file/Path.h>
 #include <util/StringHash.h>
-
-#include <unordered_map>
 
 namespace JSON
 {
@@ -36,6 +34,6 @@ public:
 private:
 	const ActorComponentInfoFactory& m_actorComponentInfoFactory;
 	const BehaviourTreeManager& m_behaviourTreeManager;
-	std::unordered_map<Util::StringHash, ActorInfo> m_actorInfos;
+	Collection::VectorMap<Util::StringHash, ActorInfo> m_actorInfos;
 };
 }

@@ -39,7 +39,7 @@ void BehaviourNodeFactory::RegisterNodeFactoryFunction(
 	NodeFactoryFunction fn)
 {
 	const Util::StringHash nodeTypeHash = Util::CalcHash(nodeType);
-	Dev::FatalAssert(m_nodeFactoryFunctions.find(nodeTypeHash) == m_nodeFactoryFunctions.end(),
+	Dev::FatalAssert(m_nodeFactoryFunctions.Find(nodeTypeHash) == m_nodeFactoryFunctions.end(),
 		"Attempted to register a factory function for node type \"%s\", but there already is one.");
 	m_nodeFactoryFunctions[nodeTypeHash] = std::move(fn);
 }
@@ -49,7 +49,7 @@ void BehaviourNodeFactory::RegisterConditionFactoryFunction(
 	ConditionFactoryFunction fn)
 {
 	const Util::StringHash conditionTypeHash = Util::CalcHash(conditionType);
-	Dev::FatalAssert(m_conditionFactoryFunctions.find(conditionTypeHash) == m_conditionFactoryFunctions.end(),
+	Dev::FatalAssert(m_conditionFactoryFunctions.Find(conditionTypeHash) == m_conditionFactoryFunctions.end(),
 		"Attempted to register a factory function for condition type \"%s\", but there already is one.");
 	m_conditionFactoryFunctions[conditionTypeHash] = std::move(fn);
 }
@@ -65,9 +65,13 @@ Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
 		return nullptr;
 	}
 
-	const auto factoryItr = m_nodeFactoryFunctions.find(jsonTypeName->m_hash);
+	const auto factoryItr = m_nodeFactoryFunctions.Find(jsonTypeName->m_hash);
 	if (factoryItr == m_nodeFactoryFunctions.end())
 	{
+		for (const auto& entry : m_nodeFactoryFunctions)
+		{
+			Dev::Log("%s", Util::ReverseHash(entry.first));
+		}
 		Dev::LogWarning("Failed to find a factory function for node type \"%s\".", jsonTypeName->m_string.c_str());
 		return nullptr;
 	}
@@ -84,7 +88,7 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const JSO
 		return nullptr;
 	}
 
-	const auto factoryItr = m_conditionFactoryFunctions.find(jsonTypeName->m_hash);
+	const auto factoryItr = m_conditionFactoryFunctions.Find(jsonTypeName->m_hash);
 	if (factoryItr == m_conditionFactoryFunctions.end())
 	{
 		Dev::LogWarning("Failed to find a factory function for condition type \"%s\".", jsonTypeName->m_string.c_str());

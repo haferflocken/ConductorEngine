@@ -1,7 +1,5 @@
 #include <util/StringHash.h>
 
-#include <unordered_map>
-
 Mem::UniquePtr<Util::StringHash::Dictionary> Util::StringHash::s_dictionary;
 
 Util::StringHash::Dictionary& Util::StringHash::GetDictionary()
