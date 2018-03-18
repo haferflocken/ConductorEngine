@@ -59,10 +59,16 @@ inline ValueType& VectorMap<KeyType, ValueType, ComparisonType>::operator[](cons
 	iterator i = Find(key);
 	if (i == end())
 	{
-		m_vector.Emplace(key, ValueType());
-		std::sort(m_vector.begin(), m_vector.end(),
-			[](const auto& lhs, const auto& rhs) { return ComparisonType()(lhs.first, rhs.first); });
-		i = Find(key);
+		const auto destinationItr = std::lower_bound(begin(), end(), key, [](const value_type& a, const KeyType& b)
+		{
+			return (a.first < b);
+		});
+		const size_t destinationIndex = static_cast<size_t>(destinationItr - begin());
+
+		m_vector.EmplaceAt(destinationIndex, key, ValueType());
+
+		// destinationItr may be invalidated by EmplaceAt.
+		i = begin() + destinationIndex;
 	}
 	return i->second;
 }
@@ -73,10 +79,16 @@ inline ValueType& VectorMap<KeyType, ValueType, ComparisonType>::operator[](KeyT
 	iterator i = Find(key);
 	if (i == end())
 	{
-		m_vector.Emplace(std::move(key), ValueType());
-		std::sort(m_vector.begin(), m_vector.end(),
-			[](const auto& lhs, const auto& rhs) { return ComparisonType()(lhs.first, rhs.first); });
-		i = Find(key);
+		const auto destinationItr = std::lower_bound(begin(), end(), key, [](const value_type& a, const KeyType& b)
+		{
+			return (a.first < b);
+		});
+		const size_t destinationIndex = static_cast<size_t>(destinationItr - begin());
+
+		m_vector.EmplaceAt(destinationIndex, std::move(key), ValueType());
+
+		// destinationItr may be invalidated by EmplaceAt.
+		i = begin() + destinationIndex;
 	}
 	return i->second;
 }
@@ -90,7 +102,7 @@ inline typename VectorMap<KeyType, ValueType, ComparisonType>::iterator
 		return (a.first < b);
 	});
 
-	return (itr != end() && itr->first == key) ? &*itr : end();
+	return (itr != end() && itr->first == key) ? itr : end();
 }
 
 template <typename KeyType, typename ValueType, typename ComparisonType>
@@ -102,7 +114,7 @@ inline typename VectorMap<KeyType, ValueType, ComparisonType>::const_iterator
 		return (a.first < b);
 	});
 
-	return (itr != end() && itr->first == key) ? &*itr : end();
+	return (itr != end() && itr->first == key) ? itr : end();
 }
 
 template <typename KeyType, typename ValueType, typename ComparisonType>

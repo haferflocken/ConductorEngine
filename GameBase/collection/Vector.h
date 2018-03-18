@@ -58,6 +58,9 @@ public:
 	template <typename... Args>
 	T& Emplace(Args&&... args);
 
+	template <typename... Args>
+	T& EmplaceAt(const size_t i, Args&&... args);
+
 	void RemoveLast();
 	void Remove(const size_t start, const size_t end);
 
@@ -189,6 +192,37 @@ inline T& Vector<T>::Emplace(Args&&... args)
 	EnsureCapacity(i + 1);
 	new (&m_data[i]) T(std::forward<Args>(args)...);
 	m_count += 1;
+	return m_data[i];
+}
+
+template <typename T>
+template <typename... Args>
+inline T& Vector<T>::EmplaceAt(const size_t i, Args&&... args)
+{
+	Dev::FatalAssert(i <= m_count, "Cannot emplace a new element outside of the range [0, size()].");
+
+	// Increase the size by 1.
+	const uint32_t lastIndex = m_count;
+	EnsureCapacity(lastIndex + 1);
+	m_count += 1;
+	
+	// Move the elements at and after i down by 1.
+	// Move-construct the last element because it has no destination instance.
+	if (lastIndex > 0)
+	{
+		if (lastIndex != i)
+		{
+			new (&m_data[lastIndex]) T(std::move(m_data[lastIndex - 1]));
+		}
+
+		for (size_t j = lastIndex; j > (i + 1); --j)
+		{
+			m_data[j - 1] = std::move(m_data[j - 2]);
+		}
+	}
+
+	// Create and return the element at i.
+	new (&m_data[i]) T(std::forward<Args>(args)...);
 	return m_data[i];
 }
 
