@@ -1,17 +1,18 @@
 #pragma once
 
+#include <collection/VectorMap.h>
 #include <mem/UniquePtr.h>
 
 #include <functional>
 #include <string>
-#include <unordered_map>
+#include <type_traits>
 
 namespace Util
 {
 class StringHash
 {
 public:
-	using Dictionary = std::unordered_map<StringHash, std::string>;
+	using Dictionary = Collection::VectorMap<StringHash, std::string>;
 	
 	static Dictionary& GetDictionary();
 	static constexpr size_t sk_invalidHash = 0;

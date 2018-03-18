@@ -17,7 +17,7 @@ Util::StringHash Util::CalcHash(const char* const cStr)
 	const auto hash = StringHash(std::hash<std::string>()(str));
 
 	Util::StringHash::Dictionary& dictionary = Util::StringHash::GetDictionary();
-	const auto itr = dictionary.find(hash);
+	const auto itr = dictionary.Find(hash);
 	if (itr == dictionary.end())
 	{
 		dictionary[hash] = std::move(str);
@@ -31,7 +31,7 @@ Util::StringHash Util::CalcHash(const std::string& str)
 	const auto hash = StringHash(std::hash<std::string>()(str));
 	
 	Util::StringHash::Dictionary& dictionary = Util::StringHash::GetDictionary();
-	const auto itr = dictionary.find(hash);
+	const auto itr = dictionary.Find(hash);
 	if (itr == dictionary.end())
 	{
 		dictionary[hash] = str;
@@ -43,6 +43,6 @@ Util::StringHash Util::CalcHash(const std::string& str)
 const char* Util::ReverseHash(const Util::StringHash hash)
 {
 	const Util::StringHash::Dictionary& dictionary = Util::StringHash::GetDictionary();
-	const auto itr = dictionary.find(hash);
+	const auto itr = dictionary.Find(hash);
 	return (itr != dictionary.end()) ? itr->second.c_str() : "\0";
 }
