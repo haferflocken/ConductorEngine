@@ -14,28 +14,28 @@ class ActorComponentGroupVector;
  * A behaviour system updates actors which have a set of components which match the system's input components.
  * Behaviour systems should be defined by extending BehaviourSystemTempl.
  * All behaviour systems must define an update function which encapsulates their logic with this signature:
- *   void Update(const Collection::ArrayView<ComponentGroupType>& componentGroups) const;
+ *   void Update(const Collection::ArrayView<ActorComponentGroupType>& componentGroups) const;
  */
 class BehaviourSystem
 {
 public:
-	explicit BehaviourSystem(Collection::Vector<Util::StringHash>&& immutableComponentTypes,
-		Collection::Vector<Util::StringHash>&& mutableComponentTypes)
-		: m_immutableComponentTypes(std::move(immutableComponentTypes))
-		, m_mutableComponentTypes(std::move(mutableComponentTypes))
+	explicit BehaviourSystem(Collection::Vector<Util::StringHash>&& immutableTypes,
+		Collection::Vector<Util::StringHash>&& mutableTypes)
+		: m_immutableTypes(std::move(immutableTypes))
+		, m_mutableTypes(std::move(mutableTypes))
 	{}
 
 	virtual ~BehaviourSystem() {}
 
-	const Collection::Vector<Util::StringHash>& GetImmutableComponentTypes() const { return m_immutableComponentTypes; }
-	const Collection::Vector<Util::StringHash>& GetMutableComponentTypes() const { return m_mutableComponentTypes; }
+	const Collection::Vector<Util::StringHash>& GetImmutableTypes() const { return m_immutableTypes; }
+	const Collection::Vector<Util::StringHash>& GetMutableTypes() const { return m_mutableTypes; }
 
 private:
-	Collection::Vector<Util::StringHash> m_immutableComponentTypes;
-	Collection::Vector<Util::StringHash> m_mutableComponentTypes;
+	Collection::Vector<Util::StringHash> m_immutableTypes;
+	Collection::Vector<Util::StringHash> m_mutableTypes;
 };
 
-namespace Detail
+namespace BehaviourSystemDetail
 {
 template <typename TypeList, size_t... Indices>
 Collection::Vector<Util::StringHash> MapTupleTypeHashesToVector(std::index_sequence<Indices...>)
@@ -55,23 +55,23 @@ ActorComponentGroup<ComponentTypes...> ActorComponentGroupForTypeListFn(Util::Ty
 	return {};
 }
 
-template <typename ComponentTypeList>
-using ActorComponentGroupForTypeList = decltype(ActorComponentGroupForTypeListFn(ComponentTypeList()));
+template <typename ActorComponentTypeList>
+using ActorComponentGroupForTypeList = decltype(ActorComponentGroupForTypeListFn(ActorComponentTypeList()));
 }
 
-template <typename ImmutableComponentTL, typename MutableComponentTL>
+template <typename ImmutableTL, typename MutableTL>
 class BehaviourSystemTempl : public BehaviourSystem
 {
 public:
-	using ImmutableComponentTypeList = typename ImmutableComponentTL::ConstList;
-	using MutableComponentTypeList = MutableComponentTL;
+	using ImmutableTypesList = typename ImmutableTL::ConstList;
+	using MutableTypesList = MutableTL;
 
-	using ComponentTypeList = typename ImmutableComponentTypeList::template ConcatType<MutableComponentTypeList>;
-	using ComponentGroupType = Detail::ActorComponentGroupForTypeList<ComponentTypeList>;
+	using ActorComponentTypeList = typename ImmutableTypesList::template ConcatType<MutableTypesList>;
+	using ActorComponentGroupType = BehaviourSystemDetail::ActorComponentGroupForTypeList<ActorComponentTypeList>;
 
 	BehaviourSystemTempl()
-		: BehaviourSystem(Detail::MapTupleTypeHashesToVector<ImmutableComponentTypeList>(),
-			Detail::MapTupleTypeHashesToVector<MutableComponentTypeList>())
+		: BehaviourSystem(BehaviourSystemDetail::MapTupleTypeHashesToVector<ImmutableTypesList>(),
+			BehaviourSystemDetail::MapTupleTypeHashesToVector<MutableTypesList>())
 	{}
 };
 }

@@ -8,10 +8,10 @@
 namespace Behave
 {
 class Actor;
+class BehaveContext;
 class BehaviourCondition;
 class BehaviourNodeState;
 class BehaviourTree;
-class BehaviourTreeContext;
 
 /**
 * A behaviour tree evaluator runs a behaviour tree.
@@ -51,7 +51,7 @@ public:
 	Collection::Vector<DomainEntry>& GetDomainStack() { return m_domainStack; }
 	
 	void Update(Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context);
+		const BehaveContext& context);
 
 private:
 	Collection::PolyStack<BehaviourNodeState> m_callStack;

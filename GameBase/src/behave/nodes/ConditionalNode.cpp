@@ -3,7 +3,7 @@
 #include <behave/BehaviourCondition.h>
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
-#include <behave/Actor.h>
+#include <behave/BehaviourTreeEvaluator.h>
 
 #include <json/JSONTypes.h>
 
@@ -24,7 +24,7 @@ public:
 
 	virtual EvaluateResult Evaluate(Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context) override
+		const BehaveContext& context) override
 	{
 		// If m_childResult is Running, it means that a child has not been evaluated yet.
 		if (m_childResult == EvaluateResult::Running)

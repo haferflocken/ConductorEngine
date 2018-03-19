@@ -6,12 +6,12 @@
 
 namespace Behave
 {
-class BehaviourTree;
-
 class ActorInfo
 {
 public:
+	static constexpr char* sk_typeName = "actor";
+	static const Util::StringHash sk_typeHash;
+
 	Collection::Vector<Mem::UniquePtr<ActorComponentInfo>> m_componentInfos;
-	Collection::Vector<const BehaviourTree*> m_behaviourTrees;
 };
 }

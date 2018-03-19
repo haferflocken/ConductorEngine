@@ -1,8 +1,8 @@
 #include <behave/nodes/LogNode.h>
 
-#include <behave/Actor.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTree.h>
+#include <behave/BehaviourTreeEvaluator.h>
 
 #include <dev/Dev.h>
 
@@ -26,7 +26,7 @@ public:
 
 	virtual EvaluateResult Evaluate(Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context) override
+		const BehaveContext& context) override
 	{
 		Dev::Log("%s", m_node->GetMessage());
 		return EvaluateResult::Success;

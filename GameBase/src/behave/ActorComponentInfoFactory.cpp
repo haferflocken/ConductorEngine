@@ -1,5 +1,6 @@
 #include <behave/ActorComponentInfo.h>
 #include <behave/ActorComponentInfoFactory.h>
+#include <behave/components/BehaviourTreeComponentInfo.h>
 #include <behave/components/BlackboardComponentInfo.h>
 #include <behave/components/SceneTransformComponentInfo.h>
 
@@ -14,6 +15,7 @@ const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 Behave::ActorComponentInfoFactory::ActorComponentInfoFactory()
 	: m_factoryFunctions()
 {
+	RegisterFactoryFunction<Components::BehaviourTreeComponentInfo>();
 	RegisterFactoryFunction<Components::BlackboardComponentInfo>();
 	RegisterFactoryFunction<Components::SceneTransformComponentInfo>();
 }
@@ -28,7 +30,7 @@ void Behave::ActorComponentInfoFactory::RegisterFactoryFunction(
 }
 
 Mem::UniquePtr<Behave::ActorComponentInfo> Behave::ActorComponentInfoFactory::MakeComponentInfo(
-	const JSON::JSONObject& jsonObject) const
+	const BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject) const
 {
 	const JSON::JSONString* const jsonTypeName =
 		jsonObject.FindString(Internal_ActorComponentInfoFactory::k_typeKeyHash);
@@ -46,5 +48,5 @@ Mem::UniquePtr<Behave::ActorComponentInfo> Behave::ActorComponentInfoFactory::Ma
 		return nullptr;
 	}
 
-	return factoryItr->second(jsonObject);
+	return factoryItr->second(behaviourTreeManager, jsonObject);
 }

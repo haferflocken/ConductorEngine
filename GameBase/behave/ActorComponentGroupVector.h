@@ -8,7 +8,7 @@
 namespace Behave
 {
 /**
- * Holds groups of actor component indices in contiguous storage.
+ * Holds groups of actor indices and actor component indices in contiguous storage.
  */
 class ActorComponentGroupVector
 {
@@ -25,8 +25,8 @@ public:
 	uint32_t NumComponentsInGroup() const { return m_groupSize; }
 	bool IsEmpty() const { return m_data.IsEmpty(); }
 
-	// Add a component group to this component group vector.
-	void Add(const Collection::Vector<size_t>& componentIndices); 
+	// Add an actor component group to this component group vector.
+	void Add(const Collection::Vector<size_t>& indices); 
 	
 	// Sort the component groups of this vector by the first index in each component group.
 	void Sort();
@@ -34,16 +34,16 @@ public:
 	void Clear() { m_data.Clear(); }
 
 	// Return an iterable view into this which iterates with the given group type.
-	template <typename ComponentGroupType>
-	Collection::ArrayView<ComponentGroupType> GetView()
+	template <typename ActorComponentGroupType>
+	Collection::ArrayView<ActorComponentGroupType> GetView()
 	{
-		Dev::FatalAssert((ComponentGroupType::k_size * sizeof(size_t)) == sizeof(ComponentGroupType),
+		Dev::FatalAssert((ActorComponentGroupType::k_size * sizeof(size_t)) == sizeof(ActorComponentGroupType),
 			"Component group type has mismatch between its size constant and its actual size.");
-		Dev::FatalAssert(m_groupSize == ComponentGroupType::k_size,
+		Dev::FatalAssert(m_groupSize == ActorComponentGroupType::k_size,
 			"Component group type has the wrong number of components.");
 		
-		ComponentGroupType* const data = reinterpret_cast<ComponentGroupType*>(&m_data[0]);
-		return Collection::ArrayView<ComponentGroupType>(data, Size());
+		ActorComponentGroupType* const data = reinterpret_cast<ActorComponentGroupType*>(&m_data[0]);
+		return Collection::ArrayView<ActorComponentGroupType>(data, Size());
 	}
 
 private:

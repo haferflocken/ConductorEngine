@@ -2,8 +2,8 @@
 
 #include <behave/ActorInfoManager.h>
 #include <behave/ActorManager.h>
+#include <behave/BehaveContext.h>
 #include <behave/BehaviourSystem.h>
-#include <behave/BehaviourTreeContext.h>
 #include <behave/components/SceneTransformComponent.h>
 #include <behave/components/SceneTransformComponentInfo.h>
 
@@ -70,7 +70,8 @@ int main(const int argc, const char* argv[])
 		class TestSystem : public BehaviourSystemTempl<Util::TypeList<Behave::Components::SceneTransformComponent>, Util::TypeList<>>
 		{
 		public:
-			void Update(const Collection::ArrayView<ComponentGroupType>& components) const {}
+			void Update(ActorManager& actorManager, const BehaveContext& context,
+				const Collection::ArrayView<ActorComponentGroupType>& components) const {}
 		};
 		
 		ActorManager actorManager{ gameData.GetActorComponentFactory() };
@@ -78,7 +79,9 @@ int main(const int argc, const char* argv[])
 
 		actorManager.CreateActor(*gameData.GetActorInfoManager().FindActorInfo(Util::CalcHash("islander.json")));
 		
-		const BehaviourTreeContext context{ gameData.GetBehaviourTreeManager() };
+		const BehaveContext context{ gameData.GetBehaviourTreeManager() };
 		actorManager.Update(context);
 	}
+
+	return 0;
 }

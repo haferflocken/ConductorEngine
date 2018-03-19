@@ -1,9 +1,9 @@
 #include <behave/nodes/CallNode.h>
 
-#include <behave/Actor.h>
+#include <behave/BehaveContext.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTree.h>
-#include <behave/BehaviourTreeContext.h>
+#include <behave/BehaviourTreeEvaluator.h>
 #include <behave/BehaviourTreeManager.h>
 
 #include <json/JSONTypes.h>
@@ -27,7 +27,7 @@ public:
 
 	virtual EvaluateResult Evaluate(Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context) override
+		const BehaveContext& context) override
 	{
 		// Evaluate will be called twice during the lifetime of a CallBehaviourState.
 		// First, Evaluate is called when the state is first encountered. In this case, m_result is Running,

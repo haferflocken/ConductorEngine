@@ -12,7 +12,7 @@ const Behave::BehaviourTree* Behave::BehaviourTreeEvaluator::GetCurrentTree() co
 }
 
 void Behave::BehaviourTreeEvaluator::Update(Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
-	const BehaviourTreeContext& context)
+	const BehaveContext& context)
 {
 	Dev::FatalAssert(!m_callStack.IsEmpty(), "Cannot update without a call stack.");
 

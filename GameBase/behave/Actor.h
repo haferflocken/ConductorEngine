@@ -2,13 +2,12 @@
 
 #include <behave/ActorComponentID.h>
 #include <behave/ActorID.h>
-#include <behave/BehaviourTreeEvaluator.h>
 
 #include <Collection/Vector.h>
 
 namespace Behave
 {
-class ActorWorldContext;
+class ActorInfo;
 class BehaviourNodeState;
 class BehaviourTree;
 
@@ -18,9 +17,10 @@ class BehaviourTree;
 class Actor final
 {
 public:
+	using Info = ActorInfo;
+
 	explicit Actor(const ActorID& id)
 		: m_id(id)
-		, m_treeEvaluators()
 		, m_components()
 	{}
 
@@ -38,10 +38,10 @@ public:
 public:
 	// A unique ID for this actor.
 	ActorID m_id;
-	// TODO(refactor) behaviour tree component The evaluation contexts for the behaviour trees this actor is running.
-	Collection::Vector<BehaviourTreeEvaluator> m_treeEvaluators;
 	// The components this actor is composed of.
 	Collection::Vector<ActorComponentID> m_components;
+	// Explicit padding.
+	uint8_t padding[8];
 };
 
 template <typename ComponentType>

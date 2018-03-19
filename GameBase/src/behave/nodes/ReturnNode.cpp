@@ -1,7 +1,7 @@
 #include <behave/nodes/ReturnNode.h>
 
-#include <behave/Actor.h>
 #include <behave/BehaviourNodeState.h>
+#include <behave/BehaviourTreeEvaluator.h>
 
 #include <json/JSONTypes.h>
 
@@ -23,7 +23,7 @@ public:
 
 	virtual EvaluateResult Evaluate(Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context) override
+		const BehaveContext& context) override
 	{
 		return EvaluateResult::Return;
 	}

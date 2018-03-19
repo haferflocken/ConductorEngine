@@ -14,7 +14,6 @@ namespace Internal_ActorInfoManager
 using namespace Behave;
 
 const Util::StringHash k_componentsHash = Util::CalcHash("components");
-const Util::StringHash k_behaviourTreesArray = Util::CalcHash("behaviour_trees");
 
 Mem::UniquePtr<ActorInfo> MakeActorInfo(const ActorComponentInfoFactory& actorComponentInfoFactory,
 	const BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
@@ -23,13 +22,6 @@ Mem::UniquePtr<ActorInfo> MakeActorInfo(const ActorComponentInfoFactory& actorCo
 	if (componentsArray == nullptr)
 	{
 		Dev::LogWarning("Failed to find component info array for actor info.");
-		return nullptr;
-	}
-
-	const JSON::JSONArray* const behaviourTreesArray = jsonObject.FindArray(k_behaviourTreesArray);
-	if (behaviourTreesArray == nullptr)
-	{
-		Dev::LogWarning("Failed to find behaviour tree array for actor info.");
 		return nullptr;
 	}
 
@@ -43,30 +35,14 @@ Mem::UniquePtr<ActorInfo> MakeActorInfo(const ActorComponentInfoFactory& actorCo
 			continue;
 		}
 		const JSON::JSONObject& valueObject = static_cast<const JSON::JSONObject&>(*value);
-		Mem::UniquePtr<ActorComponentInfo> componentInfo = actorComponentInfoFactory.MakeComponentInfo(valueObject);
+		Mem::UniquePtr<ActorComponentInfo> componentInfo =
+			actorComponentInfoFactory.MakeComponentInfo(behaviourTreeManager, valueObject);
 		if (componentInfo == nullptr)
 		{
 			Dev::LogWarning("Failed to make an actor component info.");
 			continue;
 		}
 		actorInfo->m_componentInfos.Add(std::move(componentInfo));
-	}
-
-	for (const auto& value : *behaviourTreesArray)
-	{
-		if (value->GetType() != JSON::ValueType::String)
-		{
-			Dev::LogWarning("Encountered a non-string element in an actor info behaviour tree array.");
-			continue;
-		}
-		const JSON::JSONString& valueString = static_cast<const JSON::JSONString&>(*value);
-		const BehaviourTree* const behaviourTree = behaviourTreeManager.FindTree(valueString.m_hash);
-		if (behaviourTree == nullptr)
-		{
-			Dev::LogWarning("Failed to find behaviour tree \"%s\".", valueString.m_string.c_str());
-			continue;
-		}
-		actorInfo->m_behaviourTrees.Add(behaviourTree);
 	}
 
 	return actorInfo;

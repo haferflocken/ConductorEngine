@@ -1,8 +1,8 @@
 #include <behave/nodes/SequenceNode.h>
 
-#include <behave/Actor.h>
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
+#include <behave/BehaviourTreeEvaluator.h>
 
 namespace Internal_SequenceNode
 {
@@ -21,7 +21,7 @@ public:
 
 	virtual EvaluateResult Evaluate(Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context) override
+		const BehaveContext& context) override
 	{
 		// If the active child is the max value of size_t, return Failure.
 		if (m_activeChildIndex == std::numeric_limits<size_t>::max())

@@ -7,8 +7,8 @@ namespace Collection { template <typename T> class Vector; }
 namespace Behave
 {
 class Actor;
+class BehaveContext;
 class BehaviourNode;
-class BehaviourTreeContext;
 class BehaviourTreeEvaluator;
 
 enum class EvaluateResult
@@ -27,7 +27,7 @@ public:
 	
 	virtual EvaluateResult Evaluate(Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context) = 0;
+		const BehaveContext& context) = 0;
 
 	virtual void NotifyChildFinished(const BehaviourNode* child, const EvaluateResult result) {}
 

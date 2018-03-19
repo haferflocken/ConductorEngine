@@ -135,6 +135,9 @@
     <ClCompile Include="src\behave\ActorComponentVector.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\behave\ActorInfo.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\behave\ActorInfoManager.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -154,6 +157,12 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\behave\Blackboard.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\behave\components\BehaviourTreeComponent.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\behave\components\BehaviourTreeComponentInfo.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\behave\components\BlackboardComponent.cpp">
@@ -184,6 +193,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\behave\nodes\SelectorNode.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\behave\systems\BehaviourTreeEvaluationSystem.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\gamebase\ClientWorld.cpp">
@@ -228,7 +240,7 @@
     <ClInclude Include="behave\ActorInfo.h" />
     <ClInclude Include="behave\ActorInfoManager.h" />
     <ClInclude Include="behave\ActorManager.h" />
-    <ClInclude Include="behave\BehaviourTreeContext.h" />
+    <ClInclude Include="behave\BehaveContext.h" />
     <ClInclude Include="behave\BehaviourCondition.h" />
     <ClInclude Include="behave\BehaviourNodeFactory.h" />
     <ClInclude Include="behave\BehaviourNodeState.h" />
@@ -238,6 +250,8 @@
     <ClInclude Include="behave\BehaviourTreeManager.h" />
     <ClInclude Include="behave\BehaviourNode.h" />
     <ClInclude Include="behave\Blackboard.h" />
+    <ClInclude Include="behave\components\BehaviourTreeComponent.h" />
+    <ClInclude Include="behave\components\BehaviourTreeComponentInfo.h" />
     <ClInclude Include="behave\components\BlackboardComponent.h" />
     <ClInclude Include="behave\components\BlackboardComponentInfo.h" />
     <ClInclude Include="behave\components\SceneTransformComponent.h" />
@@ -250,6 +264,7 @@
     <ClInclude Include="behave\nodes\ReturnNode.h" />
     <ClInclude Include="behave\nodes\SelectorNode.h" />
     <ClInclude Include="behave\nodes\SequenceNode.h" />
+    <ClInclude Include="behave\systems\BehaviourTreeEvaluationSystem.h" />
     <ClInclude Include="collection\ArrayView.h" />
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\Pair.h" />

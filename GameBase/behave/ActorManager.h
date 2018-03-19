@@ -13,6 +13,7 @@
 #include <util/StringHash.h>
 
 #include <functional>
+#include <type_traits>
 
 namespace Collection
 {
@@ -28,9 +29,9 @@ class ActorComponentFactory;
 class ActorComponentGroupVector;
 class ActorComponentVector;
 class ActorInfo;
+class BehaveContext;
 class BehaviourSystem;
 class BehaviourTree;
-class BehaviourTreeContext;
 class BehaviourTreeEvaluator;
 
 /**
@@ -39,7 +40,8 @@ class BehaviourTreeEvaluator;
 class ActorManager final
 {
 public:
-	using BehaviourSystemUpdateFn = void(*)(const BehaviourSystem&, ActorComponentGroupVector&);
+	using BehaviourSystemUpdateFn =
+		void(*)(const BehaviourSystem&, ActorManager&, const BehaveContext&, ActorComponentGroupVector&);
 
 	ActorManager(const ActorComponentFactory& componentFactory);
 	~ActorManager();
@@ -54,12 +56,15 @@ public:
 
 	size_t FindComponentIndex(const ActorComponentID id) const;
 
+	Actor& GetActorByIndex(const size_t index);
+	ActorComponent& GetComponentByIndex(const Util::StringHash typeHash, const size_t index);
+
 	void RemoveComponent(const ActorComponentID id);
 
 	template <typename BehaviourSystemType>
 	void RegisterBehaviourSystem(Mem::UniquePtr<BehaviourSystemType>&& system);
 
-	void Update(const BehaviourTreeContext& treeContext);
+	void Update(const BehaveContext& context);
 
 private:
 	struct RegisteredBehaviourSystem
@@ -81,8 +86,7 @@ private:
 
 	void AddActorComponentsToBehaviourSystems(const Collection::ArrayView<Actor>& actorsToAdd);
 
-	void UpdateBehaviourTrees(const BehaviourTreeContext& context);
-	void UpdateBehaviourSystems();
+	void UpdateBehaviourSystems(const BehaveContext& context);
 
 	// The factory this manager uses to create actor components.
 	const ActorComponentFactory& m_actorComponentFactory;
@@ -108,10 +112,11 @@ void ActorManager::RegisterBehaviourSystem(Mem::UniquePtr<BehaviourSystemType>&&
 {
 	struct SystemTypeFunctions
 	{
-		static void Update(const BehaviourSystem& system, ActorComponentGroupVector& componentGroups)
+		static void Update(const BehaviourSystem& system, ActorManager& actorManager, const BehaveContext& context,
+			ActorComponentGroupVector& actorComponentGroups)
 		{
-			const auto view = componentGroups.GetView<BehaviourSystemType::ComponentGroupType>();
-			static_cast<const BehaviourSystemType&>(system).Update(view);
+			const auto view = actorComponentGroups.GetView<BehaviourSystemType::ActorComponentGroupType>();
+			static_cast<const BehaviourSystemType&>(system).Update(actorManager, context, view);
 		}
 	};
 	RegisterBehaviourSystem(std::move(system), &SystemTypeFunctions::Update);

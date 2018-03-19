@@ -1,9 +1,9 @@
 #include <behave/nodes/DomainNode.h>
 
-#include <behave/Actor.h>
 #include <behave/BehaviourCondition.h>
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
+#include <behave/BehaviourTreeEvaluator.h>
 
 #include <json/JSONTypes.h>
 
@@ -24,7 +24,7 @@ public:
 
 	virtual EvaluateResult Evaluate(Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
-		const BehaviourTreeContext& context) override
+		const BehaveContext& context) override
 	{
 		if (m_childResult != EvaluateResult::Running)
 		{

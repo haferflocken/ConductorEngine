@@ -1,6 +1,8 @@
 #include <behave/ActorComponent.h>
 #include <behave/ActorComponentFactory.h>
 #include <behave/ActorComponentInfo.h>
+#include <behave/components/BehaviourTreeComponent.h>
+#include <behave/components/BehaviourTreeComponentInfo.h>
 #include <behave/components/BlackboardComponent.h>
 #include <behave/components/BlackboardComponentInfo.h>
 #include <behave/components/SceneTransformComponent.h>
@@ -10,6 +12,7 @@
 
 Behave::ActorComponentFactory::ActorComponentFactory()
 {
+	RegisterComponentType<Components::BehaviourTreeComponent>();
 	RegisterComponentType<Components::BlackboardComponent>();
 	RegisterComponentType<Components::SceneTransformComponent>();
 }

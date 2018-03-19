@@ -7,14 +7,15 @@ namespace Mem { template <typename T> class UniquePtr; }
 
 namespace Behave
 {
+class BehaviourTree;
 class BehaviourTreeManager;
 
 namespace Components
 {
-class SceneTransformComponentInfo final : public Behave::ActorComponentInfo
+class BehaviourTreeComponentInfo final : public Behave::ActorComponentInfo
 {
 public:
-	static constexpr char* sk_typeName = "scene_transform_component";
+	static constexpr char* sk_typeName = "behaviour_tree_component";
 	static const Util::StringHash sk_typeHash;
 
 	static Mem::UniquePtr<Behave::ActorComponentInfo> LoadFromJSON(
@@ -22,6 +23,8 @@ public:
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
 	virtual Util::StringHash GetTypeHash() const { return sk_typeHash; }
+
+	Collection::Vector<const BehaviourTree*> m_behaviourTrees{};
 };
 }
 }

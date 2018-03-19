@@ -9,6 +9,7 @@ namespace JSON { class JSONObject; }
 namespace Behave
 {
 class ActorComponentInfo;
+class BehaviourTreeManager;
 
 /**
  * Creates actor component info structs from JSON files.
@@ -16,14 +17,15 @@ class ActorComponentInfo;
 class ActorComponentInfoFactory
 {
 public:
-	using FactoryFunction = Mem::UniquePtr<ActorComponentInfo>(*)(const JSON::JSONObject&);
+	using FactoryFunction = Mem::UniquePtr<ActorComponentInfo>(*)(const BehaviourTreeManager&, const JSON::JSONObject&);
 
 	ActorComponentInfoFactory();
 
 	template <typename ComponentInfoType>
 	void RegisterFactoryFunction();
 
-	Mem::UniquePtr<ActorComponentInfo> MakeComponentInfo(const JSON::JSONObject& jsonObject) const;
+	Mem::UniquePtr<ActorComponentInfo> MakeComponentInfo(
+		const BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject) const;
 
 private:
 	void RegisterFactoryFunction(const char* const componentTypeName, FactoryFunction fn);

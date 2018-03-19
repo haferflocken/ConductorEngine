@@ -6,11 +6,12 @@
 #include <behave/ActorComponentGroupVector.h>
 #include <behave/ActorComponentVector.h>
 #include <behave/ActorInfo.h>
+#include <behave/BehaveContext.h>
 #include <behave/BehaviourNode.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourSystem.h>
 #include <behave/BehaviourTree.h>
-#include <behave/BehaviourTreeContext.h>
+#include <behave/systems/BehaviourTreeEvaluationSystem.h>
 
 #include <collection/ArrayView.h>
 
@@ -25,6 +26,7 @@ Behave::ActorManager::ActorManager(const ActorComponentFactory& componentFactory
 	, m_nextActorID(0)
 	, m_nextActorComponentID(0)
 {
+	RegisterBehaviourSystem(Mem::MakeUnique<Systems::BehaviourTreeEvaluationSystem>());
 }
 
 Behave::ActorManager::~ActorManager()
@@ -61,13 +63,6 @@ Behave::Actor& Behave::ActorManager::CreateActor(const ActorInfo& actorInfo)
 
 		++m_nextActorComponentID;
 		actor.m_components.Add(componentID);
-	}
-
-	// Initialize the actor's behaviour tree evaluators.
-	for (const BehaviourTree* const behaviourTree : actorInfo.m_behaviourTrees)
-	{
-		BehaviourTreeEvaluator& treeEvaluator = actor.m_treeEvaluators.Emplace();
-		behaviourTree->GetRoot()->PushState(treeEvaluator);
 	}
 	
 	// Update the next unique ID.
@@ -150,6 +145,16 @@ size_t Behave::ActorManager::FindComponentIndex(const ActorComponentID id) const
 	return static_cast<size_t>(itr.GetIndex());
 }
 
+Behave::Actor& Behave::ActorManager::GetActorByIndex(const size_t index)
+{
+	return m_actors[index];
+}
+
+Behave::ActorComponent& Behave::ActorManager::GetComponentByIndex(const Util::StringHash typeHash, const size_t index)
+{
+	return m_actorComponents.Find(typeHash)->second[index];
+}
+
 void Behave::ActorManager::RemoveComponent(const ActorComponentID id)
 {
 	// TODO remove components from execution groups
@@ -175,7 +180,7 @@ Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem(
 	: m_behaviourSystem(std::move(system))
 	, m_updateFunction(updateFunction)
 	, m_componentGroups(
-		m_behaviourSystem->GetImmutableComponentTypes().Size() + m_behaviourSystem->GetMutableComponentTypes().Size())
+		m_behaviourSystem->GetImmutableTypes().Size() + m_behaviourSystem->GetMutableTypes().Size())
 {}
 
 void Behave::ActorManager::RegisterBehaviourSystem(
@@ -185,27 +190,27 @@ void Behave::ActorManager::RegisterBehaviourSystem(
 	Dev::FatalAssert(m_actors.IsEmpty(), "Behaviour systems must be registered before actors are added to the "
 		"ActorManager because there is not currently support for initializing the system's component groups.");
 
-	// Try to find an execution group for which this system does not mutate the referenced components of any system
-	// in the group and for which none of the systems in the group mutate the referenced components of this system.
+	// Try to find an execution group for which this system does not mutate instances of the referenced types of any system
+	// in the group and for which none of the systems in the group mutate instances of the referenced types of this system.
 	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
 	{
 		std::set<Util::StringHash> groupTotalTypes;
 		std::set<Util::StringHash> groupMutableTypes;
 		for (const auto& registeredSystem : executionGroup.m_systems)
 		{
-			for (const auto& type : registeredSystem.m_behaviourSystem->GetImmutableComponentTypes())
+			for (const auto& type : registeredSystem.m_behaviourSystem->GetImmutableTypes())
 			{
 				groupTotalTypes.insert(type);
 			}
-			for (const auto& type : registeredSystem.m_behaviourSystem->GetMutableComponentTypes())
+			for (const auto& type : registeredSystem.m_behaviourSystem->GetMutableTypes())
 			{
 				groupTotalTypes.insert(type);
 				groupMutableTypes.insert(type);
 			}
 		}
 
-		const bool systemMutatesGroup = std::any_of(system->GetMutableComponentTypes().begin(),
-			system->GetMutableComponentTypes().end(), [&](const Util::StringHash& type)
+		const bool systemMutatesGroup = std::any_of(system->GetMutableTypes().begin(), system->GetMutableTypes().end(),
+			[&](const Util::StringHash& type)
 		{
 			return (groupTotalTypes.find(type) != groupTotalTypes.end());
 		});
@@ -217,10 +222,10 @@ void Behave::ActorManager::RegisterBehaviourSystem(
 		const bool groupMutatesSystem = std::any_of(groupMutableTypes.begin(), groupMutableTypes.end(),
 			[&](const Util::StringHash& type)
 		{
-			return (std::find(system->GetImmutableComponentTypes().begin(), system->GetImmutableComponentTypes().end(),
-				type) != system->GetImmutableComponentTypes().end())
-				|| (std::find(system->GetMutableComponentTypes().begin(), system->GetMutableComponentTypes().end(),
-					type) != system->GetMutableComponentTypes().end());
+			return (std::find(system->GetImmutableTypes().begin(), system->GetImmutableTypes().end(), type)
+				!= system->GetImmutableTypes().end())
+				|| (std::find(system->GetMutableTypes().begin(), system->GetMutableTypes().end(), type)
+					!= system->GetMutableTypes().end());
 		});
 		if (groupMutatesSystem)
 		{
@@ -241,22 +246,28 @@ void Behave::ActorManager::AddActorComponentsToBehaviourSystems(const Collection
 {
 	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
 	{
-		// Gather the components each member of the execution group needs.
+		// Gather the actor indices and component indices each member of the execution group needs.
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
-			const Collection::Vector<Util::StringHash>& immutableComponentTypes =
-				registeredSystem.m_behaviourSystem->GetImmutableComponentTypes();
-			const Collection::Vector<Util::StringHash>& mutableComponentTypes =
-				registeredSystem.m_behaviourSystem->GetMutableComponentTypes();
+			const Collection::Vector<Util::StringHash>& immutableTypes =
+				registeredSystem.m_behaviourSystem->GetImmutableTypes();
+			const Collection::Vector<Util::StringHash>& mutableTypes =
+				registeredSystem.m_behaviourSystem->GetMutableTypes();
 
 			for (const auto& actor : actorsToAdd)
 			{
-				const auto TryGatherComponentIndices = [this](const Collection::Vector<Util::StringHash>& componentTypes,
+				const auto TryGatherIndices = [this](const Collection::Vector<Util::StringHash>& componentTypes,
 					const Actor& actor, Collection::Vector<size_t>& componentIDs)
 				{
 					bool foundAll = true;
 					for (const auto& typeHash : componentTypes)
 					{
+						if (typeHash == ActorInfo::sk_typeHash)
+						{
+							componentIDs.Add((&actor) - m_actors.begin());
+							continue;
+						}
+
 						const ActorComponentID* const idPtr = actor.m_components.Find(
 							[&](const ActorComponentID& componentID) { return componentID.GetType() == typeHash; });
 						if (idPtr == nullptr)
@@ -269,17 +280,17 @@ void Behave::ActorManager::AddActorComponentsToBehaviourSystems(const Collection
 					return foundAll;
 				};
 
-				Collection::Vector<size_t> componentIndices;
-				if (!TryGatherComponentIndices(immutableComponentTypes, actor, componentIndices))
+				Collection::Vector<size_t> indices;
+				if (!TryGatherIndices(immutableTypes, actor, indices))
 				{
 					continue;
 				}
-				if (!TryGatherComponentIndices(mutableComponentTypes, actor, componentIndices))
+				if (!TryGatherIndices(mutableTypes, actor, indices))
 				{
 					continue;
 				}
 
-				registeredSystem.m_componentGroups.Add(componentIndices);
+				registeredSystem.m_componentGroups.Add(indices);
 			}
 
 			// Sort the group vector in order to make the memory accesses as fast as possible.
@@ -288,59 +299,12 @@ void Behave::ActorManager::AddActorComponentsToBehaviourSystems(const Collection
 	}
 }
 
-void Behave::ActorManager::Update(const BehaviourTreeContext& treeContext)
+void Behave::ActorManager::Update(const BehaveContext& context)
 {
-	UpdateBehaviourTrees(treeContext);
-	UpdateBehaviourSystems();
+	UpdateBehaviourSystems(context);
 }
 
-void Behave::ActorManager::UpdateBehaviourTrees(const BehaviourTreeContext& context)
-{
-	// Update the actors in parallel, as their trees can't access other actors.
-	// TODO When MSVC supports the <execution> header, make this parallel,
-	//      with a vector of deferred functions for each parallel list.
-	Collection::Vector<std::function<void()>> deferredFunctions;
-	std::for_each(m_actors.begin(), m_actors.end(), [this, &context, &deferredFunctions](Actor& actor)
-	{
-		// Update this actor's tree evaluators.
-		for (auto& evaluator : actor.m_treeEvaluators)
-		{
-			evaluator.Update(actor, deferredFunctions, context);
-		}
-
-		// Destroy any evaluators which are no longer running a tree.
-		const size_t removeIndex = actor.m_treeEvaluators.Partition([](const BehaviourTreeEvaluator& evaluator)
-		{
-			return evaluator.GetCurrentTree() != nullptr;
-		});
-		actor.m_treeEvaluators.Remove(removeIndex, actor.m_treeEvaluators.Size());
-	});
-
-	// Resolve deferred functions.
-	for (auto& deferredFunction : deferredFunctions)
-	{
-		deferredFunction();
-	}
-	deferredFunctions.Clear();
-
-	// Destroy any actors which are no longer running any trees.
-	// TODO Is this desired?
-	/*const size_t removeIndex = m_actors.Partition([](const Actor& actor)
-	{
-		return !actor.m_treeEvaluators.IsEmpty();
-	});
-	for (size_t i = removeIndex, iEnd = m_actors.Size(); i < iEnd; ++i)
-	{
-		const Actor& actor = m_actors[i];
-		for (const auto& componentID : actor.m_components)
-		{
-			RemoveComponent(componentID);
-		}
-	}
-	m_actors.Remove(removeIndex, m_actors.Size());*/
-}
-
-void Behave::ActorManager::UpdateBehaviourSystems()
+void Behave::ActorManager::UpdateBehaviourSystems(const BehaveContext& context)
 {
 	// Update the behaviour system execution groups. The systems in each group can update in parallel.
 	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
@@ -349,7 +313,7 @@ void Behave::ActorManager::UpdateBehaviourSystems()
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
 			const BehaviourSystem& system = *registeredSystem.m_behaviourSystem;
-			registeredSystem.m_updateFunction(system, registeredSystem.m_componentGroups);
+			registeredSystem.m_updateFunction(system, *this, context, registeredSystem.m_componentGroups);
 		}
 	}
 }

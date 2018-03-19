@@ -4,12 +4,12 @@
 
 #include <array>
 
-void Behave::ActorComponentGroupVector::Add(const Collection::Vector<size_t>& componentIndices)
+void Behave::ActorComponentGroupVector::Add(const Collection::Vector<size_t>& indices)
 {
-	Dev::FatalAssert(componentIndices.Size() == m_groupSize,
-		"Can only add component groups with the correct group size.");
+	Dev::FatalAssert(indices.Size() == m_groupSize,
+		"Can only add actor component groups with the correct group size.");
 	
-	for (const auto& index : componentIndices)
+	for (const auto& index : indices)
 	{
 		m_data.Add(index);
 	}
