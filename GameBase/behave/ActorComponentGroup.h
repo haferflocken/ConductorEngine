@@ -6,6 +6,8 @@
 
 namespace Behave
 {
+class Actor;
+class ActorComponent;
 class ActorManager;
 
 /**
