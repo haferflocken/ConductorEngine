@@ -192,49 +192,62 @@ void Behave::ActorManager::RegisterBehaviourSystem(
 
 	// Try to find an execution group for which this system does not mutate instances of the referenced types of any system
 	// in the group and for which none of the systems in the group mutate instances of the referenced types of this system.
-	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
+	// Systems which read or write Actors and not just ActorComponents are always placed in their own execution group.
+	const auto TypeIsActor = [](const Util::StringHash& type)
 	{
-		std::set<Util::StringHash> groupTotalTypes;
-		std::set<Util::StringHash> groupMutableTypes;
-		for (const auto& registeredSystem : executionGroup.m_systems)
+		return type == ActorInfo::sk_typeHash;
+	};
+	const bool systemReferencesActors =
+		std::any_of(system->GetMutableTypes().begin(), system->GetMutableTypes().end(), TypeIsActor)
+		|| std::any_of(system->GetImmutableTypes().begin(), system->GetImmutableTypes().end(), TypeIsActor);
+	
+	if (!systemReferencesActors)
+	{
+		for (auto& executionGroup : m_behaviourSystemExecutionGroups)
 		{
-			for (const auto& type : registeredSystem.m_behaviourSystem->GetImmutableTypes())
+			std::set<Util::StringHash> groupTotalTypes;
+			std::set<Util::StringHash> groupMutableTypes;
+			for (const auto& registeredSystem : executionGroup.m_systems)
 			{
-				groupTotalTypes.insert(type);
+				for (const auto& type : registeredSystem.m_behaviourSystem->GetImmutableTypes())
+				{
+					groupTotalTypes.insert(type);
+				}
+				for (const auto& type : registeredSystem.m_behaviourSystem->GetMutableTypes())
+				{
+					groupTotalTypes.insert(type);
+					groupMutableTypes.insert(type);
+				}
 			}
-			for (const auto& type : registeredSystem.m_behaviourSystem->GetMutableTypes())
+
+			const bool systemMutatesGroup = std::any_of(system->GetMutableTypes().begin(),
+				system->GetMutableTypes().end(),
+				[&](const Util::StringHash& type)
 			{
-				groupTotalTypes.insert(type);
-				groupMutableTypes.insert(type);
+				return (groupTotalTypes.find(type) != groupTotalTypes.end());
+			});
+			if (systemMutatesGroup)
+			{
+				continue;
 			}
-		}
 
-		const bool systemMutatesGroup = std::any_of(system->GetMutableTypes().begin(), system->GetMutableTypes().end(),
-			[&](const Util::StringHash& type)
-		{
-			return (groupTotalTypes.find(type) != groupTotalTypes.end());
-		});
-		if (systemMutatesGroup)
-		{
-			continue;
-		}
+			const bool groupMutatesSystem = std::any_of(groupMutableTypes.begin(), groupMutableTypes.end(),
+				[&](const Util::StringHash& type)
+			{
+				return (std::find(system->GetImmutableTypes().begin(), system->GetImmutableTypes().end(), type)
+					!= system->GetImmutableTypes().end())
+					|| (std::find(system->GetMutableTypes().begin(), system->GetMutableTypes().end(), type)
+						!= system->GetMutableTypes().end());
+			});
+			if (groupMutatesSystem)
+			{
+				continue;
+			}
 
-		const bool groupMutatesSystem = std::any_of(groupMutableTypes.begin(), groupMutableTypes.end(),
-			[&](const Util::StringHash& type)
-		{
-			return (std::find(system->GetImmutableTypes().begin(), system->GetImmutableTypes().end(), type)
-				!= system->GetImmutableTypes().end())
-				|| (std::find(system->GetMutableTypes().begin(), system->GetMutableTypes().end(), type)
-					!= system->GetMutableTypes().end());
-		});
-		if (groupMutatesSystem)
-		{
-			continue;
+			// The system does not conflict with any other systems in the group, so add it and return.
+			executionGroup.m_systems.Emplace(std::move(system), updateFn);
+			return;
 		}
-
-		// The system does not conflict with any other systems in the group, so add it and return.
-		executionGroup.m_systems.Emplace(std::move(system), updateFn);
-		return;
 	}
 
 	// If we fail to find an execution group for the system, create a new one for it.
