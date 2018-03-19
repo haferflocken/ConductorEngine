@@ -80,7 +80,10 @@ int main(const int argc, const char* argv[])
 		actorManager.CreateActor(*gameData.GetActorInfoManager().FindActorInfo(Util::CalcHash("islander.json")));
 		
 		const BehaveContext context{ gameData.GetBehaviourTreeManager() };
-		actorManager.Update(context);
+		for (size_t i = 0; i < 10; ++i)
+		{
+			actorManager.Update(context);
+		}
 	}
 
 	return 0;

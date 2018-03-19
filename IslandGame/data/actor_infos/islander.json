@@ -3,7 +3,7 @@
     {
       "type": "behaviour_tree_component",
       "behaviour_trees": [
-        "islander_tree.json"
+        "testCall.json"
       ]
     },
     { "type": "scene_transform_component" },
