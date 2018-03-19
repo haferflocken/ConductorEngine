@@ -157,21 +157,28 @@ Behave::ActorComponent& Behave::ActorManager::GetComponentByIndex(const Util::St
 
 void Behave::ActorManager::RemoveComponent(const ActorComponentID id)
 {
-	// TODO remove components from execution groups
+	// Delete the component.
 	Collection::Pair<const Util::StringHash, ActorComponentVector>* const componentsEntry =
 		m_actorComponents.Find(id.GetType());
-	if (componentsEntry == nullptr)
-	{
-		return;
-	}
 	ActorComponentVector& components = componentsEntry->second;
 	components.Remove(id, m_actorComponentFactory);
+
+	// Recalculate all actor component groups.
+	// TODO this could be deferred to happen after a number of components are removed
+	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
+	{
+		for (auto& registeredSystem : executionGroup.m_systems)
+		{
+			registeredSystem.m_actorComponentGroups.Clear();
+		}
+	}
+	AddActorComponentsToBehaviourSystems({ &m_actors[0], m_actors.Size() });
 }
 
 Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem()
 	: m_behaviourSystem()
 	, m_updateFunction(nullptr)
-	, m_componentGroups()
+	, m_actorComponentGroups()
 {}
 
 Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem(
@@ -179,7 +186,7 @@ Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem(
 	BehaviourSystemUpdateFn updateFunction)
 	: m_behaviourSystem(std::move(system))
 	, m_updateFunction(updateFunction)
-	, m_componentGroups(
+	, m_actorComponentGroups(
 		m_behaviourSystem->GetImmutableTypes().Size() + m_behaviourSystem->GetMutableTypes().Size())
 {}
 
@@ -303,11 +310,11 @@ void Behave::ActorManager::AddActorComponentsToBehaviourSystems(const Collection
 					continue;
 				}
 
-				registeredSystem.m_componentGroups.Add(indices);
+				registeredSystem.m_actorComponentGroups.Add(indices);
 			}
 
 			// Sort the group vector in order to make the memory accesses as fast as possible.
-			registeredSystem.m_componentGroups.Sort();
+			registeredSystem.m_actorComponentGroups.Sort();
 		}
 	}
 }
@@ -326,7 +333,7 @@ void Behave::ActorManager::UpdateBehaviourSystems(const BehaveContext& context)
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
 			const BehaviourSystem& system = *registeredSystem.m_behaviourSystem;
-			registeredSystem.m_updateFunction(system, *this, context, registeredSystem.m_componentGroups);
+			registeredSystem.m_updateFunction(system, *this, context, registeredSystem.m_actorComponentGroups);
 		}
 	}
 }

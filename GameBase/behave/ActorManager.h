@@ -74,7 +74,7 @@ private:
 
 		Mem::UniquePtr<BehaviourSystem> m_behaviourSystem;
 		BehaviourSystemUpdateFn m_updateFunction;
-		ActorComponentGroupVector m_componentGroups;
+		ActorComponentGroupVector m_actorComponentGroups;
 	};
 
 	struct BehaviourSystemExecutionGroup
