@@ -4,7 +4,7 @@
 
 #include <functional>
 
-namespace GameBase
+namespace Client
 {
 class ConnectedHost;
 class IClient;
@@ -27,7 +27,7 @@ public:
 
 private:
 	ClientFactory m_clientFactory;
-	Mem::UniquePtr<ConnectedHost> m_connectedHost;
-	Mem::UniquePtr<IClient> m_client;
+	Mem::UniquePtr<ConnectedHost> m_connectedHost{};
+	Mem::UniquePtr<IClient> m_client{};
 };
 }

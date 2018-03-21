@@ -8,7 +8,7 @@ VulkanRenderer::VulkanInstance::VulkanInstance(const char* const applicationName
 {
 }
 
-GameBase::IRenderInstance::Status VulkanRenderer::VulkanInstance::Update()
+Client::IRenderInstance::Status VulkanRenderer::VulkanInstance::Update()
 {
 	return m_internal->Update();
 }

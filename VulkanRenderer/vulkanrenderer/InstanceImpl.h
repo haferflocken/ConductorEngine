@@ -2,7 +2,7 @@
 
 #include <file/Path.h>
 
-#include <gamebase/IRenderInstance.h>
+#include <client/IRenderInstance.h>
 
 #include <vulkanrenderer/vulkanobjects/CommandBuffersObject.h>
 #include <vulkanrenderer/vulkanobjects/DepthBufferObject.h>
@@ -27,7 +27,7 @@ namespace VulkanRenderer
 class InstanceImpl
 {
 public:
-	using Status = GameBase::IRenderInstance::Status;
+	using Status = Client::IRenderInstance::Status;
 
 	InstanceImpl(const char* const applicationName, const File::Path& vertexShaderFile,
 		const File::Path& fragmentShaderFile);

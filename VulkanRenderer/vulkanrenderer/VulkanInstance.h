@@ -1,7 +1,7 @@
 #pragma once
 
 #include <file/Path.h>
-#include <gamebase/IRenderInstance.h>
+#include <client/IRenderInstance.h>
 #include <mem/UniquePtr.h>
 
 namespace VulkanRenderer
@@ -11,7 +11,7 @@ class InstanceImpl;
 /**
  * A ConcurrentGame window that renders the game using Vulkan.
  */
-class VulkanInstance final : public GameBase::IRenderInstance
+class VulkanInstance final : public Client::IRenderInstance
 {
 public:
 	// Constructor and destructor implemented in the cpp file so that unique_ptr can be declared on a forward declaration.

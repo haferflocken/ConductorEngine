@@ -202,10 +202,10 @@
     <ClCompile Include="src\behave\systems\BehaviourTreeEvaluationSystem.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\gamebase\ClientWorld.cpp">
+    <ClCompile Include="src\client\ClientWorld.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\gamebase\HostWorld.cpp">
+    <ClCompile Include="src\host\HostWorld.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\json\JSONPrintVisitor.cpp">
@@ -218,9 +218,6 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\file\JSONReader.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\gamebase\BaseManager.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\file\FullFileReader.cpp">
@@ -273,12 +270,12 @@
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\Pair.h" />
     <ClInclude Include="collection\Variant.h" />
-    <ClInclude Include="gamebase\ClientWorld.h" />
-    <ClInclude Include="gamebase\ConnectedClient.h" />
-    <ClInclude Include="gamebase\ConnectedHost.h" />
-    <ClInclude Include="gamebase\HostWorld.h" />
-    <ClInclude Include="gamebase\IClient.h" />
-    <ClInclude Include="gamebase\IHost.h" />
+    <ClInclude Include="client\ClientWorld.h" />
+    <ClInclude Include="host\ConnectedClient.h" />
+    <ClInclude Include="client\ConnectedHost.h" />
+    <ClInclude Include="host\HostWorld.h" />
+    <ClInclude Include="client\IClient.h" />
+    <ClInclude Include="host\IHost.h" />
     <ClInclude Include="math\Matrix4x4.h" />
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
@@ -294,14 +291,12 @@
     <ClInclude Include="collection\Vector.h" />
     <ClInclude Include="dev\Dev.h" />
     <ClInclude Include="file\JSONReader.h" />
-    <ClInclude Include="gamebase\BaseManager.h" />
     <ClInclude Include="collection\Array2D.h" />
     <ClInclude Include="collection\IntegralRange.h" />
     <ClInclude Include="collection\ProgramParameters.h" />
     <ClInclude Include="file\FullFileReader.h" />
     <ClInclude Include="file\Path.h" />
-    <ClInclude Include="gamebase\IRenderInstance.h" />
-    <ClInclude Include="gamebase\Looper.h" />
+    <ClInclude Include="client\IRenderInstance.h" />
     <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
     <ClInclude Include="unit\Time.h" />
     <ClInclude Include="unit\UnitTempl.h" />

@@ -11,10 +11,10 @@
 
 #include <file/Path.h>
 
-#include <gamebase/IClient.h>
-#include <gamebase/IHost.h>
-#include <gamebase/ClientWorld.h>
-#include <gamebase/HostWorld.h>
+#include <client/ClientWorld.h>
+#include <client/IClient.h>
+#include <host/IHost.h>
+#include <host/HostWorld.h>
 
 #include <vulkanrenderer/VulkanInstance.h>
 
@@ -35,7 +35,6 @@ int main(const int argc, const char* argv[])
 {
 	using namespace Internal_IslandGame;
 	using namespace IslandGame;
-	using namespace GameBase;
 
 	// Extract the data directory from the command line parameters.
 	const auto params = Collection::ProgramParameters(argc, argv);
@@ -57,14 +56,19 @@ int main(const int argc, const char* argv[])
 	gameData.LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
 
-	// TODO(refactor) Create and run a host and client.
-	/*HostWorld::HostFactory hostFactory = []() { return Mem::UniquePtr<IHost>(); };
-	ClientWorld::ClientFactory clientFactory = [](ConnectedHost&) { return Mem::UniquePtr<IClient>(); };
+	// Create and run a host and client.
+	Host::HostWorld::HostFactory hostFactory = []() { return Mem::UniquePtr<Host::IHost>(); };
+	Client::ClientWorld::ClientFactory clientFactory =
+		[](Client::ConnectedHost&) { return Mem::UniquePtr<Client::IClient>(); };
 
-	HostWorld hostWorld{ std::move(hostFactory) };
-	ClientWorld clientWorld{ std::move(clientFactory) };*/
+	Host::HostWorld hostWorld{ std::move(hostFactory) };
+	Client::ClientWorld clientWorld{ std::move(clientFactory) };
 
-	{
+	// Connect the client to the host.
+
+
+
+	/*{
 		using namespace Behave;
 
 		class TestSystem : public BehaviourSystemTempl<Util::TypeList<Behave::Components::SceneTransformComponent>, Util::TypeList<>>
@@ -85,7 +89,7 @@ int main(const int argc, const char* argv[])
 		{
 			actorManager.Update(context);
 		}
-	}
+	}*/
 
 	return 0;
 }

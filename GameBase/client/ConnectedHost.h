@@ -1,6 +1,6 @@
 #pragma once
 
-namespace GameBase
+namespace Client
 {
 // ConnectedHost defines an asynchronous interface which a client uses to connect with a host.
 class ConnectedHost

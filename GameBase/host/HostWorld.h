@@ -3,7 +3,9 @@
 #include <collection/Vector.h>
 #include <mem/UniquePtr.h>
 
-namespace GameBase
+#include <thread>
+
+namespace Host
 {
 class ConnectedClient;
 class IHost;
@@ -22,12 +24,29 @@ public:
 	HostWorld(const HostWorld&) = delete;
 	HostWorld(HostWorld&&) = delete;
 
+	HostWorld& operator=(const HostWorld&) = delete;
+	HostWorld& operator=(HostWorld&&) = delete;
+
 	~HostWorld();
 
-private:
-	HostFactory m_hostFactory;
-	Mem::UniquePtr<IHost> m_host;
+	void RequestShutdown();
 
-	Collection::Vector<Mem::UniquePtr<ConnectedClient>> m_connectedClients;
+private:
+	enum class HostThreadStatus
+	{
+		Stopped,
+		Running,
+		ShutdownRequested,
+	};
+
+	void HostThreadFunction();
+
+	HostFactory m_hostFactory;
+	Mem::UniquePtr<IHost> m_host{};
+
+	std::thread m_hostThread{};
+	HostThreadStatus m_hostThreadStatus{ HostThreadStatus::Stopped };
+
+	Collection::Vector<Mem::UniquePtr<ConnectedClient>> m_connectedClients{};
 };
 }

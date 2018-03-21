@@ -1,6 +1,6 @@
 #pragma once
 
-namespace GameBase
+namespace Client
 {
 /**
  * Interface for render instances to implement so that game code can be abstracted away
