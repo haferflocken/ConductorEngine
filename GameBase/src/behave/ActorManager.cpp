@@ -16,8 +16,8 @@
 #include <collection/ArrayView.h>
 
 #include <algorithm>
+#include <execution>
 #include <set>
-#include <vector>
 
 Behave::ActorManager::ActorManager(const ActorComponentFactory& componentFactory)
 	: m_actorComponentFactory(componentFactory)
@@ -335,14 +335,15 @@ void Behave::ActorManager::UpdateBehaviourSystems(const BehaveContext& context)
 	// Recalculate actor component group vectors before updating the systems to ensure they have the latest data.
 	RecalculateActorComponentGroupVectors();
 
-	// Update the behaviour system execution groups. The systems in each group can update in parallel.
+	// Update the behaviour system execution groups.
 	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
 	{
-		// TODO Make this parallel, since there are no read/write conflicts
-		for (auto& registeredSystem : executionGroup.m_systems)
+		// The systems in each group can update in parallel.
+		std::for_each(std::execution::par, executionGroup.m_systems.begin(), executionGroup.m_systems.end(),
+			[&](RegisteredBehaviourSystem& registeredSystem)
 		{
-			registeredSystem.m_updateFunction( *this, context, registeredSystem);
-		}
+			registeredSystem.m_updateFunction(*this, context, registeredSystem);
+		});
 
 		// Resolve deferred functions single-threaded.
 		for (auto& registeredSystem : executionGroup.m_systems)
