@@ -2,7 +2,13 @@
 
 #include <behave/BehaviourSystem.h>
 
-namespace Collection { template <typename T> class ArrayView; }
+#include <functional>
+
+namespace Collection
+{
+template <typename T> class ArrayView;
+template <typename T> class Vector;
+}
 
 namespace Behave
 {
@@ -22,7 +28,8 @@ class BehaviourTreeEvaluationSystem : public BehaviourSystemTempl<
 {
 public:
 	void Update(ActorManager& actorManager, const BehaveContext& context,
-		const Collection::ArrayView<ActorComponentGroupType>& actorComponentGroups) const;
+		const Collection::ArrayView<ActorComponentGroupType>& actorComponentGroups,
+		Collection::Vector<std::function<void()>>& deferredFunctions) const;
 };
 }
 }

@@ -40,9 +40,6 @@ class BehaviourTreeEvaluator;
 class ActorManager final
 {
 public:
-	using BehaviourSystemUpdateFn =
-		void(*)(const BehaviourSystem&, ActorManager&, const BehaveContext&, ActorComponentGroupVector&);
-
 	ActorManager(const ActorComponentFactory& componentFactory);
 	~ActorManager();
 
@@ -67,6 +64,9 @@ public:
 	void Update(const BehaveContext& context);
 
 private:
+	struct RegisteredBehaviourSystem;
+	using BehaviourSystemUpdateFn = void(*)(ActorManager&, const BehaveContext&, RegisteredBehaviourSystem&);
+
 	struct RegisteredBehaviourSystem
 	{
 		RegisteredBehaviourSystem();
@@ -75,6 +75,7 @@ private:
 		Mem::UniquePtr<BehaviourSystem> m_behaviourSystem;
 		BehaviourSystemUpdateFn m_updateFunction;
 		ActorComponentGroupVector m_actorComponentGroups;
+		Collection::Vector<std::function<void()>> m_deferredFunctions;
 	};
 
 	struct BehaviourSystemExecutionGroup
@@ -112,11 +113,14 @@ void ActorManager::RegisterBehaviourSystem(Mem::UniquePtr<BehaviourSystemType>&&
 {
 	struct SystemTypeFunctions
 	{
-		static void Update(const BehaviourSystem& system, ActorManager& actorManager, const BehaveContext& context,
-			ActorComponentGroupVector& actorComponentGroups)
+		static void Update(ActorManager& actorManager, const BehaveContext& context,
+			RegisteredBehaviourSystem& registeredSystem)
 		{
-			const auto view = actorComponentGroups.GetView<BehaviourSystemType::ActorComponentGroupType>();
-			static_cast<const BehaviourSystemType&>(system).Update(actorManager, context, view);
+			const auto& system = static_cast<const BehaviourSystemType&>(*registeredSystem.m_behaviourSystem);
+			const auto actorComponentGroupsView =
+				registeredSystem.m_actorComponentGroups.GetView<BehaviourSystemType::ActorComponentGroupType>();
+
+			system.Update(actorManager, context, actorComponentGroupsView, registeredSystem.m_deferredFunctions);
 		}
 	};
 	RegisterBehaviourSystem(std::move(system), &SystemTypeFunctions::Update);

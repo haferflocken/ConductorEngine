@@ -71,7 +71,8 @@ int main(const int argc, const char* argv[])
 		{
 		public:
 			void Update(ActorManager& actorManager, const BehaveContext& context,
-				const Collection::ArrayView<ActorComponentGroupType>& components) const {}
+				const Collection::ArrayView<ActorComponentGroupType>& components,
+				Collection::Vector<std::function<void()>>& deferredFunctions) const {}
 		};
 		
 		ActorManager actorManager{ gameData.GetActorComponentFactory() };

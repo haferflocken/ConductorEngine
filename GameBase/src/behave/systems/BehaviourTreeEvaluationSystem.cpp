@@ -6,12 +6,12 @@
 #include <behave/components/BehaviourTreeComponent.h>
 
 void Behave::Systems::BehaviourTreeEvaluationSystem::Update(ActorManager& actorManager, const BehaveContext& context,
-	const Collection::ArrayView<ActorComponentGroupType>& actorComponentGroups) const
+	const Collection::ArrayView<ActorComponentGroupType>& actorComponentGroups,
+	Collection::Vector<std::function<void()>>& deferredFunctions) const
 {
 	// Update the actors in parallel, as their trees can't access other actors.
 	// TODO When MSVC supports the <execution> header, make this parallel,
 	//      with a vector of deferred functions for each parallel list.
-	Collection::Vector<std::function<void()>> deferredFunctions;
 	std::for_each(actorComponentGroups.begin(), actorComponentGroups.end(),
 		[&](const ActorComponentGroupType& actorComponentGroup)
 	{
@@ -31,13 +31,6 @@ void Behave::Systems::BehaviourTreeEvaluationSystem::Update(ActorManager& actorM
 		});
 		behaviourTreeComponent.m_treeEvaluators.Remove(removeIndex, behaviourTreeComponent.m_treeEvaluators.Size());
 	});
-
-	// Resolve deferred functions.
-	for (auto& deferredFunction : deferredFunctions)
-	{
-		deferredFunction();
-	}
-	deferredFunctions.Clear();
 
 	// Destroy any actors which are no longer running any trees.
 	// TODO Is this desired?

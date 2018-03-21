@@ -179,6 +179,7 @@ Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem()
 	: m_behaviourSystem()
 	, m_updateFunction(nullptr)
 	, m_actorComponentGroups()
+	, m_deferredFunctions()
 {}
 
 Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem(
@@ -332,8 +333,17 @@ void Behave::ActorManager::UpdateBehaviourSystems(const BehaveContext& context)
 		// TODO Make this parallel, since there are no read/write conflicts
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
-			const BehaviourSystem& system = *registeredSystem.m_behaviourSystem;
-			registeredSystem.m_updateFunction(system, *this, context, registeredSystem.m_actorComponentGroups);
+			registeredSystem.m_updateFunction( *this, context, registeredSystem);
+		}
+
+		// Resolve deferred functions single-threaded.
+		for (auto& registeredSystem : executionGroup.m_systems)
+		{
+			for (auto& deferredFunction : registeredSystem.m_deferredFunctions)
+			{
+				deferredFunction();
+			}
+			registeredSystem.m_deferredFunctions.Clear();
 		}
 	}
 }
