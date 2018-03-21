@@ -21,10 +21,6 @@
 
 Behave::ActorManager::ActorManager(const ActorComponentFactory& componentFactory)
 	: m_actorComponentFactory(componentFactory)
-	, m_actors()
-	, m_actorComponents()
-	, m_nextActorID(0)
-	, m_nextActorComponentID(0)
 {
 	RegisterBehaviourSystem(Mem::MakeUnique<Systems::BehaviourTreeEvaluationSystem>());
 }
@@ -163,16 +159,8 @@ void Behave::ActorManager::RemoveComponent(const ActorComponentID id)
 	ActorComponentVector& components = componentsEntry->second;
 	components.Remove(id, m_actorComponentFactory);
 
-	// Recalculate all actor component groups.
-	// TODO this could be deferred to happen after a number of components are removed
-	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
-	{
-		for (auto& registeredSystem : executionGroup.m_systems)
-		{
-			registeredSystem.m_actorComponentGroups.Clear();
-		}
-	}
-	AddActorComponentsToBehaviourSystems({ &m_actors[0], m_actors.Size() });
+	// Flag the actor component group vectors for recalculation.
+	m_actorComponentGroupVectorsNeedRecalculation = true;
 }
 
 Behave::ActorManager::RegisteredBehaviourSystem::RegisteredBehaviourSystem()
@@ -327,6 +315,26 @@ void Behave::ActorManager::Update(const BehaveContext& context)
 
 void Behave::ActorManager::UpdateBehaviourSystems(const BehaveContext& context)
 {
+	const auto RecalculateActorComponentGroupVectors = [this]()
+	{
+		if (m_actorComponentGroupVectorsNeedRecalculation)
+		{
+			for (auto& executionGroup : m_behaviourSystemExecutionGroups)
+			{
+				for (auto& registeredSystem : executionGroup.m_systems)
+				{
+					registeredSystem.m_actorComponentGroups.Clear();
+				}
+			}
+			AddActorComponentsToBehaviourSystems({ &m_actors[0], m_actors.Size() });
+			
+			m_actorComponentGroupVectorsNeedRecalculation = false;
+		}
+	};
+
+	// Recalculate actor component group vectors before updating the systems to ensure they have the latest data.
+	RecalculateActorComponentGroupVectors();
+
 	// Update the behaviour system execution groups. The systems in each group can update in parallel.
 	for (auto& executionGroup : m_behaviourSystemExecutionGroups)
 	{
@@ -345,5 +353,8 @@ void Behave::ActorManager::UpdateBehaviourSystems(const BehaveContext& context)
 			}
 			registeredSystem.m_deferredFunctions.Clear();
 		}
+
+		// Recalculate all actor component groups after the deferred functions evaluate.
+		RecalculateActorComponentGroupVectors();
 	}
 }

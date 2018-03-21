@@ -93,19 +93,22 @@ private:
 	const ActorComponentFactory& m_actorComponentFactory;
 
 	// The actors this manager is in charge of updating, sorted by ID.
-	Collection::Vector<Actor> m_actors;
+	Collection::Vector<Actor> m_actors{};
 
 	// The actor components this manager owns on behalf of its actors, grouped by type.
-	Collection::VectorMap<Util::StringHash, ActorComponentVector> m_actorComponents;
+	Collection::VectorMap<Util::StringHash, ActorComponentVector> m_actorComponents{};
 
 	// The next actor ID that will be assigned.
-	ActorID m_nextActorID;
+	ActorID m_nextActorID{ 0 };
 
 	// The next actor component ID that will be assigned.
-	size_t m_nextActorComponentID;
+	size_t m_nextActorComponentID{ 0 };
 
 	// The behaviour systems that this actor manager is running, sorted into groups which can run concurrently.
-	Collection::Vector<BehaviourSystemExecutionGroup> m_behaviourSystemExecutionGroups;
+	Collection::Vector<BehaviourSystemExecutionGroup> m_behaviourSystemExecutionGroups{};
+
+	// Whether or not the actor component group vectors need to be recalculated.
+	bool m_actorComponentGroupVectorsNeedRecalculation{ false };
 };
 
 template <typename BehaviourSystemType>
