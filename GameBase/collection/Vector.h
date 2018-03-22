@@ -229,8 +229,8 @@ inline T& Vector<T>::EmplaceAt(const size_t i, Args&&... args)
 template <typename T>
 inline void Vector<T>::RemoveLast()
 {
-	(&m_data[m_count])->~T();
 	--m_count;
+	(&m_data[m_count])->~T();
 }
 
 template <typename T>
