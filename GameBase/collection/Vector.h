@@ -114,7 +114,7 @@ inline void Vector<T>::operator=(const Vector<T>& rhs)
 {
 	if (m_data != nullptr)
 	{
-		delete m_data;
+		free(m_data);
 	}
 
 	m_data = static_cast<T*>(malloc(rhs.m_count * Unit::AlignedSizeOf<T>()));
@@ -164,6 +164,8 @@ inline Vector<T>::~Vector()
 	{
 		(&element)->~T();
 	}
+	free(m_data);
+	m_data = nullptr;
 }
 
 template <typename T>
@@ -336,10 +338,10 @@ inline void Vector<T>::EnsureCapacity(const uint32_t desiredCapacity)
 			}
 		}
 
-		// Move the new buffer into m_data and delete the old buffer.
+		// Move the new buffer into m_data and free the old buffer.
 		if (m_data != nullptr)
 		{
-			delete m_data;
+			free(m_data);
 		}
 		m_data = newData;
 		m_capacity = newCapacity;
