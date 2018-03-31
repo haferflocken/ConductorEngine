@@ -1,11 +1,12 @@
 #include <host/HostWorld.h>
 
+#include <client/MessageToHost.h>
+#include <collection/LocklessQueue.h>
+
 #include <host/ConnectedClient.h>
 #include <host/IHost.h>
 
-#include <collection/LocklessQueue.h>
-
-Host::HostWorld::HostWorld(Collection::LocklessQueue<std::function<void()>>& networkInputQueue,
+Host::HostWorld::HostWorld(Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
 	HostFactory&& hostFactory)
 	: m_networkInputQueue(networkInputQueue)
 	, m_hostFactory(std::move(hostFactory))
@@ -53,10 +54,10 @@ void Host::HostWorld::HostThreadFunction()
 	while (m_hostThreadStatus == HostThreadStatus::Running)
 	{
 		// Process pending input from the network.
-		std::function<void()> message;
+		Client::MessageToHost message;
 		while (m_networkInputQueue.TryPop(message))
 		{
-			message();
+			ProcessMessageFromClient(message);
 		}
 
 		m_host->Update();
@@ -66,4 +67,16 @@ void Host::HostWorld::HostThreadFunction()
 
 	m_host.Reset();
 	m_hostThreadStatus = HostThreadStatus::Stopped;
+}
+
+void Host::HostWorld::ProcessMessageFromClient(Client::MessageToHost& message)
+{
+	switch (message.m_type)
+	{
+	case Client::MessageToHostType::Disconnect:
+	{
+		NotifyOfClientDisconnected(message.m_clientID);
+		break;
+	}
+	}
 }

@@ -17,8 +17,10 @@
 
 #include <client/ClientWorld.h>
 #include <client/ConnectedHost.h>
+#include <client/MessageToHost.h>
 #include <host/ConnectedClient.h>
 #include <host/HostWorld.h>
+#include <host/MessageToClient.h>
 
 #include <vulkanrenderer/VulkanInstance.h>
 
@@ -61,9 +63,8 @@ int main(const int argc, const char* argv[])
 
 	// Create and run a host and client.
 	constexpr size_t k_messageCapacity = 256;
-	// TODO std::function will not work when actually performing this over a network
-	Collection::LocklessQueue<std::function<void()>> clientToHostMessages{ k_messageCapacity };
-	Collection::LocklessQueue<std::function<void()>> hostToClientMessages{ k_messageCapacity };
+	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{ k_messageCapacity };
+	Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{ k_messageCapacity };
 
 	Host::HostWorld::HostFactory hostFactory = [&]()
 	{
@@ -80,49 +81,47 @@ int main(const int argc, const char* argv[])
 	// Connect the client and the host.
 	class LocalConnectedClient : public Host::ConnectedClient
 	{
-		Client::ClientWorld& m_clientWorld;
-		Collection::LocklessQueue<std::function<void()>>& m_hostToClientMessages;
+		Collection::LocklessQueue<Host::MessageToClient>& m_hostToClientMessages;
 
 	public:
-		LocalConnectedClient(Client::ClientWorld& clientWorld,
-			Collection::LocklessQueue<std::function<void()>>& hostToClientMessages)
-			: m_clientWorld(clientWorld)
-			, m_hostToClientMessages(hostToClientMessages)
+		LocalConnectedClient(Collection::LocklessQueue<Host::MessageToClient>& hostToClientMessages)
+			: m_hostToClientMessages(hostToClientMessages)
 		{
 			m_clientID = 1;
 		}
 
 		void NotifyOfHostDisconnected() override
 		{
-			Client::ClientWorld& clientWorld = m_clientWorld;
-			m_hostToClientMessages.TryPush([&clientWorld]() { clientWorld.NotifyOfHostDisconnected(); });
+			Host::MessageToClient message;
+			message.m_type = Host::MessageToClientType::NotifyOfHostDisconnected;
+
+			m_hostToClientMessages.TryPush(std::move(message));
 		}
 	};
 
 	class LocalConnectedHost : public Client::ConnectedHost
 	{
-		Host::HostWorld& m_hostWorld;
-		Collection::LocklessQueue<std::function<void()>>& m_clientToHostMessages;
+		Collection::LocklessQueue<Client::MessageToHost>& m_clientToHostMessages;
 
 	public:
-		LocalConnectedHost(Host::HostWorld& hostWorld,
-			Collection::LocklessQueue<std::function<void()>>& clientToHostMessages)
-			: m_hostWorld(hostWorld)
-			, m_clientToHostMessages(clientToHostMessages)
+		LocalConnectedHost(Collection::LocklessQueue<Client::MessageToHost>& clientToHostMessages)
+			: m_clientToHostMessages(clientToHostMessages)
 		{
 			m_clientID = 1;
 		}
 
 		void Disconnect() override
 		{
-			Host::HostWorld& hostWorld = m_hostWorld;
-			uint16_t clientID = m_clientID;
-			m_clientToHostMessages.TryPush([&hostWorld, clientID]() { hostWorld.NotifyOfClientDisconnected(clientID); });
+			Client::MessageToHost message;
+			message.m_clientID = m_clientID;
+			message.m_type = Client::MessageToHostType::Disconnect;
+
+			m_clientToHostMessages.TryPush(std::move(message));
 		}
 	};
 
-	hostWorld.NotifyOfClientConnected(Mem::MakeUnique<LocalConnectedClient>(clientWorld, hostToClientMessages));
-	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<LocalConnectedHost>(hostWorld, clientToHostMessages));
+	hostWorld.NotifyOfClientConnected(Mem::MakeUnique<LocalConnectedClient>(hostToClientMessages));
+	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<LocalConnectedHost>(clientToHostMessages));
 
 	// Run the HostWorld until the client terminates.
 	while (hostWorld.GetNumConnectedClients() > 0)

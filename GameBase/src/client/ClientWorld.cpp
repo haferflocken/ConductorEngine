@@ -5,8 +5,9 @@
 
 #include <collection/LocklessQueue.h>
 #include <dev/Dev.h>
+#include <host/MessageToClient.h>
 
-Client::ClientWorld::ClientWorld(Collection::LocklessQueue<std::function<void()>>& networkInputQueue,
+Client::ClientWorld::ClientWorld(Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
 	ClientFactory&& clientFactory)
 	: m_networkInputQueue(networkInputQueue)
 	, m_clientFactory(std::move(clientFactory))
@@ -44,10 +45,10 @@ void Client::ClientWorld::ClientThreadFunction()
 	while (m_clientThreadStatus == ClientThreadStatus::Running)
 	{
 		// Process pending input from the network.
-		std::function<void()> message;
+		Host::MessageToClient message;
 		while (m_networkInputQueue.TryPop(message))
 		{
-			message();
+			ProcessMessageFromHost(message);
 		}
 
 		// TODO client loop
@@ -58,4 +59,16 @@ void Client::ClientWorld::ClientThreadFunction()
 	m_client.Reset();
 	m_connectedHost.Reset();
 	m_clientThreadStatus = ClientThreadStatus::Stopped;
+}
+
+void Client::ClientWorld::ProcessMessageFromHost(Host::MessageToClient& message)
+{
+	switch (message.m_type)
+	{
+	case Host::MessageToClientType::NotifyOfHostDisconnected:
+	{
+		NotifyOfHostDisconnected();
+		break;
+	}
+	}
 }

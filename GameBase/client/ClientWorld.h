@@ -6,6 +6,7 @@
 #include <thread>
 
 namespace Collection { template <typename T> class LocklessQueue; }
+namespace Host { struct MessageToClient; }
 
 namespace Client
 {
@@ -20,7 +21,7 @@ class ClientWorld final
 public:
 	using ClientFactory = std::function<Mem::UniquePtr<IClient>(ConnectedHost&)>;
 
-	ClientWorld(Collection::LocklessQueue<std::function<void()>>& networkInputQueue,
+	ClientWorld(Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
 		ClientFactory&& clientFactory);
 
 	ClientWorld() = delete;
@@ -43,8 +44,9 @@ private:
 	};
 
 	void ClientThreadFunction();
+	void ProcessMessageFromHost(Host::MessageToClient& message);
 
-	Collection::LocklessQueue<std::function<void()>>& m_networkInputQueue;
+	Collection::LocklessQueue<Host::MessageToClient>& m_networkInputQueue;
 	ClientFactory m_clientFactory;
 
 	Mem::UniquePtr<ConnectedHost> m_connectedHost{};

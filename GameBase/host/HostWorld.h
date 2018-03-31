@@ -5,12 +5,15 @@
 
 #include <thread>
 
+namespace Client { struct MessageToHost; }
+
 namespace Collection { template <typename T> class LocklessQueue; }
 
 namespace Host
 {
 class ConnectedClient;
 class IHost;
+struct MessageToClient;
 
 /**
  * HostWorld runs a headless game simulation which clients can connect to and interact with.
@@ -20,7 +23,7 @@ class HostWorld final
 public:
 	using HostFactory = std::function<Mem::UniquePtr<IHost>()>;
 
-	HostWorld(Collection::LocklessQueue<std::function<void()>>& networkInputQueue,
+	HostWorld(Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
 		HostFactory&& hostFactory);
 
 	HostWorld() = delete;
@@ -47,8 +50,9 @@ private:
 	};
 
 	void HostThreadFunction();
+	void ProcessMessageFromClient(Client::MessageToHost& message);
 	
-	Collection::LocklessQueue<std::function<void()>>& m_networkInputQueue;
+	Collection::LocklessQueue<Client::MessageToHost>& m_networkInputQueue;
 	HostFactory m_hostFactory;
 	Mem::UniquePtr<IHost> m_host{};
 

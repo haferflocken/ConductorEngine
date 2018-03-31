@@ -200,6 +200,7 @@
     <ClInclude Include="behave\nodes\SelectorNode.h" />
     <ClInclude Include="behave\nodes\SequenceNode.h" />
     <ClInclude Include="behave\systems\BehaviourTreeEvaluationSystem.h" />
+    <ClInclude Include="client\MessageToHost.h" />
     <ClInclude Include="collection\ArrayView.h" />
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\LocklessQueue.h" />
@@ -211,6 +212,7 @@
     <ClInclude Include="host\HostWorld.h" />
     <ClInclude Include="client\IClient.h" />
     <ClInclude Include="host\IHost.h" />
+    <ClInclude Include="host\MessageToClient.h" />
     <ClInclude Include="math\Matrix4x4.h" />
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
