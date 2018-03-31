@@ -19,14 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\islandgame\client\IslandGameClient.cpp" />
+    <ClCompile Include="src\islandgame\host\IslandGameHost.cpp" />
     <ClCompile Include="src\islandgame\IslandGame.cpp" />
     <ClCompile Include="src\islandgame\components\IslanderComponent.cpp" />
     <ClCompile Include="src\islandgame\components\IslanderComponentInfo.cpp" />
     <ClCompile Include="src\islandgame\IslandGameData.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="islandgame\client\IslandGameClient.h" />
     <ClInclude Include="islandgame\components\IslanderComponent.h" />
     <ClInclude Include="islandgame\components\IslanderComponentInfo.h" />
+    <ClInclude Include="islandgame\host\IslandGameHost.h" />
     <ClInclude Include="islandgame\IslandGameData.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

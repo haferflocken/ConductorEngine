@@ -5,6 +5,8 @@
 
 #include <thread>
 
+namespace Collection { template <typename T> class LocklessQueue; }
+
 namespace Host
 {
 class ConnectedClient;
@@ -18,7 +20,8 @@ class HostWorld final
 public:
 	using HostFactory = std::function<Mem::UniquePtr<IHost>()>;
 
-	HostWorld(HostFactory&& hostFactory);
+	HostWorld(Collection::LocklessQueue<std::function<void()>>& networkInputQueue,
+		HostFactory&& hostFactory);
 
 	HostWorld() = delete;
 	HostWorld(const HostWorld&) = delete;
@@ -31,6 +34,10 @@ public:
 
 	void RequestShutdown();
 
+	void NotifyOfClientConnected(Mem::UniquePtr<ConnectedClient>&& connectedClient);
+	void NotifyOfClientDisconnected(const uint16_t clientID);
+	uint32_t GetNumConnectedClients() const { return m_connectedClients.Size(); }
+
 private:
 	enum class HostThreadStatus
 	{
@@ -40,7 +47,8 @@ private:
 	};
 
 	void HostThreadFunction();
-
+	
+	Collection::LocklessQueue<std::function<void()>>& m_networkInputQueue;
 	HostFactory m_hostFactory;
 	Mem::UniquePtr<IHost> m_host{};
 
