@@ -79,49 +79,9 @@ int main(const int argc, const char* argv[])
 	Client::ClientWorld clientWorld{ hostToClientMessages, std::move(clientFactory) };
 
 	// Connect the client and the host.
-	class LocalConnectedClient : public Host::ConnectedClient
-	{
-		Collection::LocklessQueue<Host::MessageToClient>& m_hostToClientMessages;
-
-	public:
-		LocalConnectedClient(Collection::LocklessQueue<Host::MessageToClient>& hostToClientMessages)
-			: m_hostToClientMessages(hostToClientMessages)
-		{
-			m_clientID = 1;
-		}
-
-		void NotifyOfHostDisconnected() override
-		{
-			Host::MessageToClient message;
-			message.m_type = Host::MessageToClientType::NotifyOfHostDisconnected;
-
-			m_hostToClientMessages.TryPush(std::move(message));
-		}
-	};
-
-	class LocalConnectedHost : public Client::ConnectedHost
-	{
-		Collection::LocklessQueue<Client::MessageToHost>& m_clientToHostMessages;
-
-	public:
-		LocalConnectedHost(Collection::LocklessQueue<Client::MessageToHost>& clientToHostMessages)
-			: m_clientToHostMessages(clientToHostMessages)
-		{
-			m_clientID = 1;
-		}
-
-		void Disconnect() override
-		{
-			Client::MessageToHost message;
-			message.m_clientID = m_clientID;
-			message.m_type = Client::MessageToHostType::Disconnect;
-
-			m_clientToHostMessages.TryPush(std::move(message));
-		}
-	};
-
-	hostWorld.NotifyOfClientConnected(Mem::MakeUnique<LocalConnectedClient>(hostToClientMessages));
-	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<LocalConnectedHost>(clientToHostMessages));
+	constexpr uint16_t clientID = 1;
+	hostWorld.NotifyOfClientConnected(Mem::MakeUnique<Host::ConnectedClient>(clientID, hostToClientMessages));
+	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(clientID, clientToHostMessages));
 
 	// Run the HostWorld until the client terminates.
 	while (hostWorld.GetNumConnectedClients() > 0)
