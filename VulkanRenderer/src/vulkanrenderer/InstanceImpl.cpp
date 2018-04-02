@@ -58,6 +58,18 @@ VulkanRenderer::InstanceImpl::Status VulkanRenderer::InstanceImpl::Update()
 			
 			return Status::SafeTerminated;
 		}
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+		{
+			Client::InputMessage message;
+			message.m_type = (event.type == SDL_KEYDOWN)
+				? Client::InputMessageType::KeyDown
+				: Client::InputMessageType::KeyUp;
+			message.m_key = static_cast<char>(event.key.keysym.sym);
+			
+			m_inputToClientMessages.TryPush(std::move(message));
+			break;
+		}
 		default:
 		{
 			break;
