@@ -2,8 +2,6 @@
 
 #include <collection/Vector.h>
 
-#include <atomic>
-
 namespace Collection
 {
 /**
