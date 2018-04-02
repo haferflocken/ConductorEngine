@@ -21,7 +21,7 @@
 
 #include <string>
 
-namespace Client { struct InputMessage; }
+namespace Client { struct InputMessage; struct MessageToRenderInstance; }
 namespace Collection { template <typename T> class LocklessQueue; }
 
 namespace VulkanRenderer
@@ -31,7 +31,8 @@ class InstanceImpl
 public:
 	using Status = Client::IRenderInstance::Status;
 
-	InstanceImpl(Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
+	InstanceImpl(Collection::LocklessQueue<Client::MessageToRenderInstance>& messagesFromClient,
+		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
 		const char* const applicationName, const File::Path& vertexShaderFile, const File::Path& fragmentShaderFile);
 
 	Status GetStatus() const { return m_status; }
@@ -40,6 +41,7 @@ public:
 
 private:
 	Status m_status;
+	Collection::LocklessQueue<Client::MessageToRenderInstance>& m_messagesFromClient;
 	Collection::LocklessQueue<Client::InputMessage>& m_inputToClientMessages;
 
 	// The declaration order of the following members is very important, as their constructors depend on the order.

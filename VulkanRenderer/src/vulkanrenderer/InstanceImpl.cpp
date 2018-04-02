@@ -3,6 +3,7 @@
 #include <vulkanrenderer/VulkanUtils.h>
 
 #include <client/InputMessage.h>
+#include <client/MessageToRenderInstance.h>
 #include <collection/LocklessQueue.h>
 #include <file/Path.h>
 
@@ -12,9 +13,12 @@ constexpr int32_t k_desiredWidth = 1280;
 constexpr int32_t k_desiredHeight = 720;
 }
 
-VulkanRenderer::InstanceImpl::InstanceImpl(Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
+VulkanRenderer::InstanceImpl::InstanceImpl(
+	Collection::LocklessQueue<Client::MessageToRenderInstance>& messagesFromClient,
+	Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
 	const char* const applicationName, const File::Path& vertexShaderFile, const File::Path& fragmentShaderFile)
 	: m_status(Status::Initializing)
+	, m_messagesFromClient(messagesFromClient)
 	, m_inputToClientMessages(inputToClientMessages)
 	, m_applicationInfo({ applicationName, 1, "ConductorEngine", 1 })
 	, m_instanceInfo(Utils::MakeInstanceInfo())
@@ -75,6 +79,12 @@ VulkanRenderer::InstanceImpl::Status VulkanRenderer::InstanceImpl::Update()
 			break;
 		}
 		}
+	}
+
+	Client::MessageToRenderInstance message;
+	while (m_messagesFromClient.TryPop(message))
+	{
+		// TODO handle the messages from the client
 	}
 
 	return m_status;

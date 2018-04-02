@@ -4,7 +4,7 @@
 #include <file/Path.h>
 #include <mem/UniquePtr.h>
 
-namespace Client { struct InputMessage; }
+namespace Client { struct InputMessage; struct MessageToRenderInstance; }
 namespace Collection { template <typename T> class LocklessQueue; }
 
 namespace VulkanRenderer
@@ -18,7 +18,8 @@ class VulkanInstance final : public Client::IRenderInstance
 {
 public:
 	// Constructor and destructor implemented in the cpp file so that unique_ptr can be declared on a forward declaration.
-	explicit VulkanInstance(Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
+	explicit VulkanInstance(Collection::LocklessQueue<Client::MessageToRenderInstance>& messagesFromClient,
+		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
 		const char* const applicationName, const File::Path& vertexShaderFile, const File::Path& fragmentShaderFile);
 	~VulkanInstance();
 

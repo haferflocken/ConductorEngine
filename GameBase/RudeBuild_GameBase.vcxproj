@@ -273,6 +273,7 @@
     <ClInclude Include="behave\nodes\SequenceNode.h" />
     <ClInclude Include="behave\systems\BehaviourTreeEvaluationSystem.h" />
     <ClInclude Include="client\MessageToHost.h" />
+    <ClInclude Include="client\MessageToRenderInstance.h" />
     <ClInclude Include="collection\ArrayView.h" />
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\LocklessQueue.h" />

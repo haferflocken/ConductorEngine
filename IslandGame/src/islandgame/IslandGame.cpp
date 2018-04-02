@@ -20,6 +20,7 @@
 #include <client/InputMessage.h>
 #include <client/IRenderInstance.h>
 #include <client/MessageToHost.h>
+#include <client/MessageToRenderInstance.h>
 #include <host/ConnectedClient.h>
 #include <host/HostWorld.h>
 #include <host/MessageToClient.h>
@@ -62,9 +63,10 @@ int main(const int argc, const char* argv[])
 	// it must be created and managed on the main thread.
 	constexpr size_t k_messageCapacity = 256;
 	Collection::LocklessQueue<Client::InputMessage> inputToClientMessages{ k_messageCapacity };
+	Collection::LocklessQueue<Client::MessageToRenderInstance> clientToRenderInstanceMessages{ k_messageCapacity };
 	
 	Mem::UniquePtr<Client::IRenderInstance> renderInstance = Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
-		inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
+		clientToRenderInstanceMessages, inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
 
 	// Load data files.
 	IslandGame::IslandGameData gameData;
