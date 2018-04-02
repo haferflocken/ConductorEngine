@@ -62,6 +62,6 @@ private:
 	T* m_queue;
 	size_t m_inputIndex;
 	size_t m_outputIndex;
-	size_t m_capacity; // Not atomic because its value does not change.
+	size_t m_capacity;
 };
 }
