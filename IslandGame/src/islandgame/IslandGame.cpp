@@ -17,6 +17,8 @@
 
 #include <client/ClientWorld.h>
 #include <client/ConnectedHost.h>
+#include <client/InputMessage.h>
+#include <client/IRenderInstance.h>
 #include <client/MessageToHost.h>
 #include <host/ConnectedClient.h>
 #include <host/HostWorld.h>
@@ -55,6 +57,14 @@ int main(const int argc, const char* argv[])
 	// Find the vertex and fragment shaders in the data directory.
 	const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
 	const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
+	
+	// Create a render instance. Because a render instance creates a window,
+	// it must be created and managed on the main thread.
+	constexpr size_t k_messageCapacity = 256;
+	Collection::LocklessQueue<Client::InputMessage> inputToClientMessages{ k_messageCapacity };
+	
+	Mem::UniquePtr<Client::IRenderInstance> renderInstance = Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
+		inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
 
 	// Load data files.
 	IslandGame::IslandGameData gameData;
@@ -62,7 +72,6 @@ int main(const int argc, const char* argv[])
 	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
 
 	// Create and run a host and client.
-	constexpr size_t k_messageCapacity = 256;
 	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{ k_messageCapacity };
 	Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{ k_messageCapacity };
 
@@ -76,15 +85,16 @@ int main(const int argc, const char* argv[])
 	};
 
 	Host::HostWorld hostWorld{ clientToHostMessages, std::move(hostFactory) };
-	Client::ClientWorld clientWorld{ hostToClientMessages, std::move(clientFactory) };
+	Client::ClientWorld clientWorld{ inputToClientMessages, hostToClientMessages, std::move(clientFactory) };
 
 	// Connect the client and the host.
 	constexpr uint16_t clientID = 1;
 	hostWorld.NotifyOfClientConnected(Mem::MakeUnique<Host::ConnectedClient>(clientID, hostToClientMessages));
 	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(clientID, clientToHostMessages));
 
-	// Run the HostWorld until the client terminates.
-	while (hostWorld.GetNumConnectedClients() > 0)
+	// Run the window while the client and host run in other threads. Stop when the host stops.
+	while (renderInstance->Update() == Client::IRenderInstance::Status::Running
+		&& hostWorld.GetNumConnectedClients() > 0)
 	{
 		std::this_thread::yield();
 	}

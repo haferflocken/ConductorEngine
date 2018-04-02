@@ -12,6 +12,7 @@ namespace Client
 {
 class ConnectedHost;
 class IClient;
+struct InputMessage;
 
 /**
  * ClientWorld connects to a host game simulation and allows a user to view it and interact with it.
@@ -21,8 +22,8 @@ class ClientWorld final
 public:
 	using ClientFactory = std::function<Mem::UniquePtr<IClient>(ConnectedHost&)>;
 
-	ClientWorld(Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
-		ClientFactory&& clientFactory);
+	ClientWorld(Collection::LocklessQueue<Client::InputMessage>& inputMessages,
+		Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue, ClientFactory&& clientFactory);
 
 	ClientWorld() = delete;
 	ClientWorld(const ClientWorld&) = delete;
@@ -45,7 +46,9 @@ private:
 
 	void ClientThreadFunction();
 	void ProcessMessageFromHost(Host::MessageToClient& message);
+	void ProcessInputMessage(Client::InputMessage& message);
 
+	Collection::LocklessQueue<Client::InputMessage>& m_inputMessages;
 	Collection::LocklessQueue<Host::MessageToClient>& m_networkInputQueue;
 	ClientFactory m_clientFactory;
 

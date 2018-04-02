@@ -290,6 +290,7 @@
     <ClInclude Include="math\Vector3.h" />
     <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="mem\UniquePtr.h" />
+    <ClInclude Include="client\InputMessage.h" />
     <ClInclude Include="unit\CountUnits.h" />
     <ClInclude Include="collection\PolyStack.h" />
     <ClInclude Include="collection\PolyBuffer.h" />

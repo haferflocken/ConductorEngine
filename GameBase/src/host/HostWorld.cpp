@@ -60,7 +60,9 @@ void Host::HostWorld::HostThreadFunction()
 			ProcessMessageFromClient(message);
 		}
 
+		// Update the game simulation.
 		m_host->Update();
+
 		// TODO transmit game state to clients
 		std::this_thread::yield();
 	}

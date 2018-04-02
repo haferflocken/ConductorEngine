@@ -1,8 +1,7 @@
 #pragma once
 
-#include <file/Path.h>
-
 #include <client/IRenderInstance.h>
+#include <file/Path.h>
 
 #include <vulkanrenderer/vulkanobjects/CommandBuffersObject.h>
 #include <vulkanrenderer/vulkanobjects/DepthBufferObject.h>
@@ -22,6 +21,9 @@
 
 #include <string>
 
+namespace Client { struct InputMessage; }
+namespace Collection { template <typename T> class LocklessQueue; }
+
 namespace VulkanRenderer
 {
 class InstanceImpl
@@ -29,8 +31,8 @@ class InstanceImpl
 public:
 	using Status = Client::IRenderInstance::Status;
 
-	InstanceImpl(const char* const applicationName, const File::Path& vertexShaderFile,
-		const File::Path& fragmentShaderFile);
+	InstanceImpl(Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
+		const char* const applicationName, const File::Path& vertexShaderFile, const File::Path& fragmentShaderFile);
 
 	Status GetStatus() const { return m_status; }
 
@@ -38,6 +40,7 @@ public:
 
 private:
 	Status m_status;
+	Collection::LocklessQueue<Client::InputMessage>& m_inputToClientMessages;
 
 	// The declaration order of the following members is very important, as their constructors depend on the order.
 	VulkanObjects::ApplicationInfo m_applicationInfo;

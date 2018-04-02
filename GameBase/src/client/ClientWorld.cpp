@@ -2,14 +2,16 @@
 
 #include <client/ConnectedHost.h>
 #include <client/IClient.h>
+#include <client/InputMessage.h>
 
 #include <collection/LocklessQueue.h>
 #include <dev/Dev.h>
 #include <host/MessageToClient.h>
 
-Client::ClientWorld::ClientWorld(Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
-	ClientFactory&& clientFactory)
-	: m_networkInputQueue(networkInputQueue)
+Client::ClientWorld::ClientWorld(Collection::LocklessQueue<Client::InputMessage>& inputMessages,
+	Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue, ClientFactory&& clientFactory)
+	: m_inputMessages(inputMessages)
+	, m_networkInputQueue(networkInputQueue)
 	, m_clientFactory(std::move(clientFactory))
 {}
 
@@ -45,13 +47,27 @@ void Client::ClientWorld::ClientThreadFunction()
 	while (m_clientThreadStatus == ClientThreadStatus::Running)
 	{
 		// Process pending input from the network.
-		Host::MessageToClient message;
-		while (m_networkInputQueue.TryPop(message))
 		{
-			ProcessMessageFromHost(message);
+			Host::MessageToClient message;
+			while (m_networkInputQueue.TryPop(message))
+			{
+				ProcessMessageFromHost(message);
+			}
 		}
 
-		// TODO client loop
+		// Process pending player input.
+		{
+			Client::InputMessage message;
+			while (m_inputMessages.TryPop(message))
+			{
+				ProcessInputMessage(message);
+			}
+		}
+
+		// TODO queue player input for transmission on the network
+		// TODO predict simulation state based on player input
+		// TODO interpolate between the last received server state and the predicted simulation state
+
 		m_client->Update();
 		std::this_thread::yield();
 	}
@@ -68,6 +84,34 @@ void Client::ClientWorld::ProcessMessageFromHost(Host::MessageToClient& message)
 	case Host::MessageToClientType::NotifyOfHostDisconnected:
 	{
 		NotifyOfHostDisconnected();
+		break;
+	}
+	}
+}
+
+void Client::ClientWorld::ProcessInputMessage(Client::InputMessage& message)
+{
+	switch (message.m_type)
+	{
+	case Client::InputMessageType::WindowClosed:
+	{
+		m_client->NotifyOfWindowClosed();
+		m_connectedHost->Disconnect();
+		break;
+	}
+	case Client::InputMessageType::KeyUp:
+	{
+		m_client->NotifyOfKeyUp(message.m_key);
+		break;
+	}
+	case Client::InputMessageType::KeyDown:
+	{
+		m_client->NotifyOfKeyDown(message.m_key);
+		break;
+	}
+	default:
+	{
+		m_client->NotifyOfInputMessage(message);
 		break;
 	}
 	}

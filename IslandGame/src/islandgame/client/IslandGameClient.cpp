@@ -4,5 +4,5 @@
 
 void IslandGame::Client::IslandGameClient::Update()
 {
-	m_connectedHost.Disconnect();
+	
 }

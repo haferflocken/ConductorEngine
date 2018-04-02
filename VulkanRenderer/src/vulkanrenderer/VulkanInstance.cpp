@@ -2,9 +2,10 @@
 
 #include <vulkanrenderer/InstanceImpl.h>
 
-VulkanRenderer::VulkanInstance::VulkanInstance(const char* const applicationName, const File::Path& vertexShaderFile,
-	const File::Path& fragmentShaderFile)
-	: m_internal(Mem::MakeUnique<InstanceImpl>(applicationName, vertexShaderFile, fragmentShaderFile))
+VulkanRenderer::VulkanInstance::VulkanInstance(
+	Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
+	const char* const applicationName, const File::Path& vertexShaderFile, const File::Path& fragmentShaderFile)
+	: m_internal(Mem::MakeUnique<InstanceImpl>(inputToClientMessages, applicationName, vertexShaderFile, fragmentShaderFile))
 {
 }
 
