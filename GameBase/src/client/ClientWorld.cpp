@@ -17,8 +17,11 @@ Client::ClientWorld::ClientWorld(Collection::LocklessQueue<Client::InputMessage>
 
 Client::ClientWorld::~ClientWorld()
 {
-	RequestShutdown();
-	m_clientThread.join();
+	if (m_clientThreadStatus == ClientThreadStatus::Running)
+	{
+		RequestShutdown();
+		m_clientThread.join();
+	}
 }
 
 void Client::ClientWorld::RequestShutdown()

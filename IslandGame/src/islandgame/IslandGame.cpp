@@ -38,6 +38,14 @@ constexpr char* k_fragmentShaderPath = "shaders/fragment_shader.glsl";
 
 constexpr char* k_behaviourTreesPath = "behaviour_trees";
 constexpr char* k_actorInfosPath = "actor_infos";
+
+constexpr char* k_applicationModeClientParameter = "-client";
+constexpr char* k_applicationModeHostParameter = "-host";
+
+constexpr size_t k_messageCapacity = 256;
+
+int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory, const std::string& hostName);
+int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory);
 }
 
 int main(const int argc, const char* argv[])
@@ -45,7 +53,7 @@ int main(const int argc, const char* argv[])
 	using namespace Internal_IslandGame;
 
 	// Extract the data directory from the command line parameters.
-	const auto params = Collection::ProgramParameters(argc, argv);
+	const Collection::ProgramParameters params{ argc, argv };
 	std::string dataDirectoryStr;
 	if (!params.TryGet(k_dataDirectoryParameter, dataDirectoryStr))
 	{
@@ -55,13 +63,30 @@ int main(const int argc, const char* argv[])
 
 	const File::Path dataDirectory = File::MakePath(dataDirectoryStr.c_str());
 
+	// Determine the application mode from the command line parameters.
+	std::string applicationModeParamater;
+	if (params.TryGet(k_applicationModeClientParameter, applicationModeParamater))
+	{
+		return ClientMain(params, dataDirectory, applicationModeParamater);
+	}
+	if (params.TryGet(k_applicationModeHostParameter, applicationModeParamater))
+	{
+		return HostMain(params, dataDirectory);
+	}
+
+	std::cerr << "Missing application mode parameter: -client hostName or -host" << std::endl;
+	return -1;
+}
+
+int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
+	const std::string& hostName)
+{
 	// Find the vertex and fragment shaders in the data directory.
 	const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
 	const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
 	
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.
-	constexpr size_t k_messageCapacity = 256;
 	Collection::LocklessQueue<Client::InputMessage> inputToClientMessages{ k_messageCapacity };
 	Collection::LocklessQueue<Client::MessageToRenderInstance> clientToRenderInstanceMessages{ k_messageCapacity };
 	
@@ -73,33 +98,63 @@ int main(const int argc, const char* argv[])
 	gameData.LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
 
-	// Create and run a host and client.
+	// Create the message queues that will allow the client and host to communicate.
 	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{ k_messageCapacity };
 	Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{ k_messageCapacity };
+
+	// Create the client and connect it to the specified host.
+	Client::ClientWorld::ClientFactory clientFactory = [](Client::ConnectedHost& conenctedHost)
+	{
+		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(conenctedHost);
+	};
+	Client::ClientWorld clientWorld{ inputToClientMessages, hostToClientMessages, std::move(clientFactory) };
+
+	if (strcmp(hostName.c_str(), "newhost") == 0)
+	{
+		// Connect the client to a new host.
+		Host::HostWorld::HostFactory hostFactory = [&]()
+		{
+			return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(gameData);
+		};
+		Host::HostWorld hostWorld{ clientToHostMessages, std::move(hostFactory) };
+		
+		constexpr uint16_t clientID = 1;
+		hostWorld.NotifyOfClientConnected(Mem::MakeUnique<Host::ConnectedClient>(clientID, hostToClientMessages));
+		clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(clientID, clientToHostMessages));
+
+		// Run the window while the client and host run in other threads. Stop when the host stops.
+		while (renderInstance->Update() == Client::IRenderInstance::Status::Running
+			&& hostWorld.GetNumConnectedClients() > 0)
+		{
+			std::this_thread::yield();
+		}
+	}
+	else
+	{
+		// TODO Connect the client to a networked host.
+	}
+
+	return 0;
+}
+
+int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory)
+{
+	// Load data files.
+	IslandGame::IslandGameData gameData;
+	gameData.LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
+	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
+
+	// Create and run a host and TODO a network thread.
+	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{ k_messageCapacity };
+	//Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{ k_messageCapacity };
 
 	Host::HostWorld::HostFactory hostFactory = [&]()
 	{
 		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(gameData);
 	};
-	Client::ClientWorld::ClientFactory clientFactory = [](Client::ConnectedHost& conenctedHost)
-	{
-		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(conenctedHost);
-	};
-
 	Host::HostWorld hostWorld{ clientToHostMessages, std::move(hostFactory) };
-	Client::ClientWorld clientWorld{ inputToClientMessages, hostToClientMessages, std::move(clientFactory) };
-
-	// Connect the client and the host.
-	constexpr uint16_t clientID = 1;
-	hostWorld.NotifyOfClientConnected(Mem::MakeUnique<Host::ConnectedClient>(clientID, hostToClientMessages));
-	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(clientID, clientToHostMessages));
-
-	// Run the window while the client and host run in other threads. Stop when the host stops.
-	while (renderInstance->Update() == Client::IRenderInstance::Status::Running
-		&& hostWorld.GetNumConnectedClients() > 0)
-	{
-		std::this_thread::yield();
-	}
+	
+	// TODO run the host until a specified condition
 
 	return 0;
 }
