@@ -3,6 +3,7 @@
 #include <client/ClientID.h>
 
 namespace Collection { template <typename T> class LocklessQueue; }
+namespace Host { struct MessageToClient; }
 
 namespace Client
 {
@@ -22,6 +23,9 @@ public:
 	{}
 
 	ClientID GetClientID() const { return m_clientID; }
+
+	// Connect to a host. In Client code, pass in null; in Host network code, pass in a non-null value.
+	void Connect(Collection::LocklessQueue<Host::MessageToClient>* hostToClientMessages);
 
 	void Disconnect();
 };

@@ -2,6 +2,7 @@
 
 #include <client/MessageToHost.h>
 #include <collection/LocklessQueue.h>
+#include <dev/Dev.h>
 
 #include <host/ConnectedClient.h>
 #include <host/IHost.h>
@@ -75,6 +76,14 @@ void Host::HostWorld::ProcessMessageFromClient(Client::MessageToHost& message)
 {
 	switch (message.m_type)
 	{
+	case Client::MessageToHostType::Connect:
+	{
+		Dev::FatalAssert(message.m_connectPayload.m_hostToClientMessages != nullptr,
+			"HostWorld expects connect messages to have their message queues resolved in HostNetworkWorld.");
+		NotifyOfClientConnected(
+			Mem::MakeUnique<Host::ConnectedClient>(message.m_clientID, *message.m_connectPayload.m_hostToClientMessages));
+		break;
+	}
 	case Client::MessageToHostType::Disconnect:
 	{
 		NotifyOfClientDisconnected(message.m_clientID);

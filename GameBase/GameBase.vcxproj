@@ -156,6 +156,7 @@
     <ClCompile Include="src\client\ClientWorld.cpp" />
     <ClCompile Include="src\client\ConnectedHost.cpp" />
     <ClCompile Include="src\host\ConnectedClient.cpp" />
+    <ClCompile Include="src\host\HostNetworkWorld.cpp" />
     <ClCompile Include="src\host\HostWorld.cpp" />
     <ClCompile Include="src\json\JSONPrintVisitor.cpp" />
     <ClCompile Include="src\json\JSONTypes.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="client\ClientWorld.h" />
     <ClInclude Include="host\ConnectedClient.h" />
     <ClInclude Include="client\ConnectedHost.h" />
+    <ClInclude Include="host\HostNetworkWorld.h" />
     <ClInclude Include="host\HostWorld.h" />
     <ClInclude Include="client\IClient.h" />
     <ClInclude Include="host\IHost.h" />

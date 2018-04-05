@@ -22,6 +22,7 @@
 #include <client/MessageToHost.h>
 #include <client/MessageToRenderInstance.h>
 #include <host/ConnectedClient.h>
+#include <host/HostNetworkWorld.h>
 #include <host/HostWorld.h>
 #include <host/MessageToClient.h>
 
@@ -41,8 +42,6 @@ constexpr char* k_actorInfosPath = "actor_infos";
 
 constexpr char* k_applicationModeClientParameter = "-client";
 constexpr char* k_applicationModeHostParameter = "-host";
-
-constexpr size_t k_messageCapacity = 256;
 
 int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory, const std::string& hostName);
 int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory);
@@ -87,8 +86,10 @@ int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params,
 	
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.
-	Collection::LocklessQueue<Client::InputMessage> inputToClientMessages{ k_messageCapacity };
-	Collection::LocklessQueue<Client::MessageToRenderInstance> clientToRenderInstanceMessages{ k_messageCapacity };
+	constexpr size_t k_clientRenderMessageCapacity = 256;
+	Collection::LocklessQueue<Client::InputMessage> inputToClientMessages{ k_clientRenderMessageCapacity };
+	Collection::LocklessQueue<Client::MessageToRenderInstance> clientToRenderInstanceMessages{
+		k_clientRenderMessageCapacity };
 	
 	Mem::UniquePtr<Client::IRenderInstance> renderInstance = Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
 		clientToRenderInstanceMessages, inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
@@ -99,8 +100,10 @@ int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params,
 	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
 
 	// Create the message queues that will allow the client and host to communicate.
-	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{ k_messageCapacity };
-	Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{ k_messageCapacity };
+	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{
+		Host::HostNetworkWorld::k_inboundMessageCapacity };
+	Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{
+		Host::HostNetworkWorld::k_outboundMessageCapacityPerClient };
 
 	// Create the client and connect it to the specified host.
 	Client::ClientWorld::ClientFactory clientFactory = [](Client::ConnectedHost& conenctedHost)
@@ -118,7 +121,7 @@ int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params,
 		};
 		Host::HostWorld hostWorld{ clientToHostMessages, std::move(hostFactory) };
 		
-		constexpr Client::ClientID clientID{ 1 };
+		constexpr Client::ClientID clientID = Host::HostNetworkWorld::k_localClientID;
 		hostWorld.NotifyOfClientConnected(Mem::MakeUnique<Host::ConnectedClient>(clientID, hostToClientMessages));
 		clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(clientID, clientToHostMessages));
 
@@ -144,17 +147,33 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 	gameData.LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
 
-	// Create and run a host and TODO a network thread.
-	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{ k_messageCapacity };
-	//Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{ k_messageCapacity };
+	// Create and run a host and a network thread.
+	Host::HostNetworkWorld hostNetworkWorld;
 
 	Host::HostWorld::HostFactory hostFactory = [&]()
 	{
 		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(gameData);
 	};
-	Host::HostWorld hostWorld{ clientToHostMessages, std::move(hostFactory) };
+	Host::HostWorld hostWorld{ hostNetworkWorld.GetClientToHostMessageQueue(), std::move(hostFactory) };
 	
-	// TODO run the host until a specified condition
+	// Create a thread that processes console input for as long as the network thread is running.
+	std::thread consoleInputThread{ [&hostNetworkWorld]()
+	{
+		while (hostNetworkWorld.IsRunning())
+		{
+			std::string consoleInput;
+			std::getline(std::cin, consoleInput);
+			if (!consoleInput.empty())
+			{
+				hostNetworkWorld.NotifyOfConsoleInput(std::move(consoleInput));
+			}
+			std::this_thread::yield();
+		}
+	}};
+	consoleInputThread.detach();
+
+	// Block this thread until the network thread stops.
+	hostNetworkWorld.WaitForShutdown();
 
 	return 0;
 }

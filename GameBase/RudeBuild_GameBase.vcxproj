@@ -211,6 +211,9 @@
     <ClCompile Include="src\host\ConnectedClient.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\host\HostNetworkWorld.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\host\HostWorld.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -283,6 +286,7 @@
     <ClInclude Include="client\ClientWorld.h" />
     <ClInclude Include="host\ConnectedClient.h" />
     <ClInclude Include="client\ConnectedHost.h" />
+    <ClInclude Include="host\HostNetworkWorld.h" />
     <ClInclude Include="host\HostWorld.h" />
     <ClInclude Include="client\IClient.h" />
     <ClInclude Include="host\IHost.h" />
