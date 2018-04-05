@@ -1,5 +1,6 @@
 #pragma once
 
+#include <client/ClientID.h>
 #include <collection/Vector.h>
 #include <mem/UniquePtr.h>
 
@@ -38,7 +39,7 @@ public:
 	void RequestShutdown();
 
 	void NotifyOfClientConnected(Mem::UniquePtr<ConnectedClient>&& connectedClient);
-	void NotifyOfClientDisconnected(const uint16_t clientID);
+	void NotifyOfClientDisconnected(const Client::ClientID clientID);
 	uint32_t GetNumConnectedClients() const { return m_connectedClients.Size(); }
 
 private:

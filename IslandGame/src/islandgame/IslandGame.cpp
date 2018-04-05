@@ -118,7 +118,7 @@ int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params,
 		};
 		Host::HostWorld hostWorld{ clientToHostMessages, std::move(hostFactory) };
 		
-		constexpr uint16_t clientID = 1;
+		constexpr Client::ClientID clientID{ 1 };
 		hostWorld.NotifyOfClientConnected(Mem::MakeUnique<Host::ConnectedClient>(clientID, hostToClientMessages));
 		clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(clientID, clientToHostMessages));
 

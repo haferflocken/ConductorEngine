@@ -30,7 +30,7 @@ void Host::HostWorld::NotifyOfClientConnected(Mem::UniquePtr<ConnectedClient>&& 
 	m_connectedClients.Add(std::move(connectedClient));
 }
 
-void Host::HostWorld::NotifyOfClientDisconnected(const uint16_t clientID)
+void Host::HostWorld::NotifyOfClientDisconnected(const Client::ClientID clientID)
 {
 	const size_t clientIndex = m_connectedClients.IndexOf([&](const Mem::UniquePtr<ConnectedClient>& connectedClient)
 	{

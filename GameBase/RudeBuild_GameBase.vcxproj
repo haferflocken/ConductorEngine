@@ -272,6 +272,7 @@
     <ClInclude Include="behave\nodes\SelectorNode.h" />
     <ClInclude Include="behave\nodes\SequenceNode.h" />
     <ClInclude Include="behave\systems\BehaviourTreeEvaluationSystem.h" />
+    <ClInclude Include="client\ClientID.h" />
     <ClInclude Include="client\MessageToHost.h" />
     <ClInclude Include="client\MessageToRenderInstance.h" />
     <ClInclude Include="collection\ArrayView.h" />

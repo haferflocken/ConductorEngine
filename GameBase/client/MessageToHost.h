@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <client/ClientID.h>
 
 namespace Client
 {
@@ -12,7 +12,7 @@ enum class MessageToHostType : uint8_t
 
 struct MessageToHost
 {
-	uint16_t m_clientID{ 0 };
+	Client::ClientID m_clientID{ 0 };
 	MessageToHostType m_type{ MessageToHostType::Count };
 };
 }
