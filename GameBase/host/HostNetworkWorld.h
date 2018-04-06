@@ -7,6 +7,7 @@
 #include <collection/LocklessQueue.h>
 #include <collection/VectorMap.h>
 #include <mem/UniquePtr.h>
+#include <network/Socket.h>
 
 #include <string>
 #include <thread>
@@ -21,7 +22,7 @@ namespace Host
 		static constexpr size_t k_outboundMessageCapacityPerClient = 128;
 		static constexpr Client::ClientID k_localClientID{ 1 };
 
-		HostNetworkWorld();
+		HostNetworkWorld(const char* listenerPort);
 
 		bool IsRunning() const;
 		void WaitForShutdown();
@@ -37,9 +38,12 @@ namespace Host
 		struct NetworkConnectedClient
 		{
 			Collection::LocklessQueue<Host::MessageToClient> m_hostToClientMessageQueue{ k_outboundMessageCapacityPerClient };
+			Network::Socket m_clientSocket{};
 		};
 
 		void NetworkThreadFunction();
+
+		Network::Socket m_listenerSocket;
 
 		Collection::LocklessQueue<std::string> m_consoleMessageQueue{ k_consoleMessageCapacity };
 		Collection::LocklessQueue<Client::MessageToHost> m_clientToHostMessageQueue{ k_inboundMessageCapacity };

@@ -25,6 +25,7 @@
 #include <host/HostNetworkWorld.h>
 #include <host/HostWorld.h>
 #include <host/MessageToClient.h>
+#include <network/Socket.h>
 
 #include <vulkanrenderer/VulkanInstance.h>
 
@@ -43,8 +44,21 @@ constexpr char* k_actorInfosPath = "actor_infos";
 constexpr char* k_applicationModeClientParameter = "-client";
 constexpr char* k_applicationModeHostParameter = "-host";
 
-int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory, const std::string& hostName);
-int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory);
+enum ApplicationErrorCode : int
+{
+	NoError = 0,
+	MissingDatapath,
+	MissingApplicationMode,
+	MissingClientHostName,
+	MissingHostPort,
+	FailedToInitializeSocketAPI,
+	FailedToInitializeNetworkThread,
+};
+
+int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
+	const std::string& hostName);
+int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
+	const std::string& port);
 }
 
 int main(const int argc, const char* argv[])
@@ -57,7 +71,7 @@ int main(const int argc, const char* argv[])
 	if (!params.TryGet(k_dataDirectoryParameter, dataDirectoryStr))
 	{
 		std::cerr << "Missing required parameter: -datapath <dir>" << std::endl;
-		return -1;
+		return MissingDatapath;
 	}
 
 	const File::Path dataDirectory = File::MakePath(dataDirectoryStr.c_str());
@@ -70,16 +84,22 @@ int main(const int argc, const char* argv[])
 	}
 	if (params.TryGet(k_applicationModeHostParameter, applicationModeParamater))
 	{
-		return HostMain(params, dataDirectory);
+		return HostMain(params, dataDirectory, applicationModeParamater);
 	}
 
 	std::cerr << "Missing application mode parameter: -client hostName or -host" << std::endl;
-	return -1;
+	return MissingApplicationMode;
 }
 
 int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
 	const std::string& hostName)
 {
+	// Ensure a host name was specified.
+	if (hostName.empty())
+	{
+		return MissingClientHostName;
+	}
+
 	// Find the vertex and fragment shaders in the data directory.
 	const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
 	const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
@@ -134,22 +154,50 @@ int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params,
 	}
 	else
 	{
+		// Initialize the network socket API.
+		if (!Network::TryInitializeSocketAPI())
+		{
+			return FailedToInitializeSocketAPI;
+		}
+
 		// TODO Connect the client to a networked host.
+
+		// Shutdown the socket API.
+		Network::ShutdownSocketAPI();
 	}
 
-	return 0;
+	return NoError;
 }
 
-int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory)
+int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
+	const std::string& port)
 {
+	// Ensure a port was specified.
+	if (port.empty())
+	{
+		return MissingHostPort;
+	}
+
 	// Load data files.
 	IslandGame::IslandGameData gameData;
 	gameData.LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
 
-	// Create and run a host and a network thread.
-	Host::HostNetworkWorld hostNetworkWorld;
+	// Initialize the network socket API.
+	if (!Network::TryInitializeSocketAPI())
+	{
+		return FailedToInitializeSocketAPI;
+	}
 
+	// Setup the network world and verify it is running.
+	Host::HostNetworkWorld hostNetworkWorld{ port.c_str() };
+	if (!hostNetworkWorld.IsRunning())
+	{
+		Network::ShutdownSocketAPI();
+		return FailedToInitializeNetworkThread;
+	}
+
+	// Create and run a host.
 	Host::HostWorld::HostFactory hostFactory = [&]()
 	{
 		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(gameData);
@@ -175,5 +223,8 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 	// Block this thread until the network thread stops.
 	hostNetworkWorld.WaitForShutdown();
 
-	return 0;
+	// Shutdown the socket API.
+	Network::ShutdownSocketAPI();
+
+	return NoError;
 }

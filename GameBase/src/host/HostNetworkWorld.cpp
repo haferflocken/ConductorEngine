@@ -2,18 +2,22 @@
 
 #include <client/ConnectedHost.h>
 
-Host::HostNetworkWorld::HostNetworkWorld()
+Host::HostNetworkWorld::HostNetworkWorld(const char* listenerPort)
+	: m_listenerSocket(Network::CreateAndBindListenerSocket(listenerPort))
 {
-	// Add the default local client for the server administrator.
-	m_networkConnectedClients[k_localClientID] = Mem::MakeUnique<NetworkConnectedClient>();
+	if (m_listenerSocket.TryListen())
 	{
-		Client::ConnectedHost localHost{ k_localClientID, m_clientToHostMessageQueue };
-		localHost.Connect(&m_networkConnectedClients[k_localClientID]->m_hostToClientMessageQueue);
-	}
+		// Add the default local client for the server administrator.
+		m_networkConnectedClients[k_localClientID] = Mem::MakeUnique<NetworkConnectedClient>();
+		{
+			Client::ConnectedHost localHost{ k_localClientID, m_clientToHostMessageQueue };
+			localHost.Connect(&m_networkConnectedClients[k_localClientID]->m_hostToClientMessageQueue);
+		}
 
-	// Start the network thread after adding the default local client because the network thread terminates
-	// when the default local client is disconnected.
-	m_networkThread = std::thread(&HostNetworkWorld::NetworkThreadFunction, this);
+		// Start the network thread after adding the default local client because the network thread terminates
+		// when the default local client is disconnected.
+		m_networkThread = std::thread(&HostNetworkWorld::NetworkThreadFunction, this);
+	}
 }
 
 bool Host::HostNetworkWorld::IsRunning() const
@@ -40,6 +44,8 @@ void ProcessConsoleMessage(Client::ConnectedHost& localHost, const std::string& 
 	{
 		localHost.Disconnect();
 	}
+	// TODO kick clients
+	// TODO print client list
 }
 }
 
