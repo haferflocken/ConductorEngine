@@ -67,23 +67,41 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 			}
 		}
 
-		// TODO thread loop:
-		//      Accept or reject client connection requests
-		//      Process client messages, including disconnections
-		//      Transmit host messages to clients
+		// Accept client connection requests.
+		constexpr size_t k_maxNewClients = 8;
+		Network::Socket newClientSockets[k_maxNewClients];
+		const size_t numNewClients = m_listenerSocket.AcceptPendingConnections(newClientSockets, k_maxNewClients);
+		
+		for (size_t i = 0; i < numNewClients; ++i)
+		{
+			const Client::ClientID clientID{
+				static_cast<uint16_t>(k_localClientID.GetN() + m_networkConnectedClients.Size() + 1) };
 
+			Dev::Log("New client connection accepted. ID: %u", clientID.GetN());
+
+			Mem::UniquePtr<NetworkConnectedClient>& networkConnectedClient = m_networkConnectedClients[clientID];
+			networkConnectedClient = Mem::MakeUnique<NetworkConnectedClient>();
+			networkConnectedClient->m_clientSocket = std::move(newClientSockets[i]);
+		}
+
+		// Process the network connected clients.
 		Collection::Vector<Client::ClientID> disconnectedClientIDs;
-
-		// Transmit host messages to each client.
 		for (auto& entry : m_networkConnectedClients)
 		{
 			const Client::ClientID clientID = entry.first;
 			Mem::UniquePtr<NetworkConnectedClient>& networkConnectedClient = entry.second;
 
-			Host::MessageToClient message;
-			while (networkConnectedClient->m_hostToClientMessageQueue.TryPop(message))
+			// TODO Receive any pending data from the client.
+
+			// TODO Process client to host messages, including disconnection messages.
+			
+			// TODO Check if the client disconnected without notice.
+
+			// Transmit host messages to each client.
+			Host::MessageToClient messageToClient;
+			while (networkConnectedClient->m_hostToClientMessageQueue.TryPop(messageToClient))
 			{
-				if (message.m_type == Host::MessageToClientType::NotifyOfHostDisconnected)
+				if (messageToClient.m_type == Host::MessageToClientType::NotifyOfHostDisconnected)
 				{
 					disconnectedClientIDs.Add(clientID);
 				}

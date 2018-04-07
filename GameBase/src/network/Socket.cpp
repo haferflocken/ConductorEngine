@@ -85,6 +85,35 @@ Network::Socket Network::Socket::Accept()
 	return outSocket;
 }
 
+size_t Network::Socket::AcceptPendingConnections(Socket* outSockets, const size_t maxAcceptCount)
+{
+	fd_set readSockets;
+	readSockets.fd_count = 1;
+	readSockets.fd_array[0] = m_impl->m_platformSocket;
+
+	timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+
+	size_t i = 0;
+	while (i < maxAcceptCount)
+	{
+		const int result = select(0, &readSockets, nullptr, nullptr, &timeout);
+		if (result == SOCKET_ERROR)
+		{
+			Dev::LogError("select() failed with error code [%d].", WSAGetLastError());
+			return i;
+		}
+		if (result == 0)
+		{
+			return i;
+		}
+
+		outSockets[i++] = Accept();
+	}
+	return i;
+}
+
 void Network::Socket::Close()
 {
 	closesocket(m_impl->m_platformSocket);
@@ -94,7 +123,6 @@ void Network::Socket::Close()
 Network::Socket Network::CreateAndBindListenerSocket(const char* port)
 {
 	addrinfo* result = nullptr;
-	addrinfo* ptr = nullptr;
 	addrinfo hints;
 
 	ZeroMemory(&hints, sizeof(hints));
@@ -134,5 +162,51 @@ Network::Socket Network::CreateAndBindListenerSocket(const char* port)
 	// Return the platform specific socket wrapped in a platform agnostic way.
 	Socket outSocket;
 	outSocket.GetImpl().m_platformSocket = listenerSocket;
+	return outSocket;
+}
+
+Network::Socket Network::CreateConnectedSocket(const char* hostName, const char* port)
+{
+	addrinfo* result = nullptr;
+	addrinfo hints;
+
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	const int errorCode = getaddrinfo(hostName, port, &hints, &result);
+	if (errorCode != 0)
+	{
+		Dev::LogError("getaddrinfo() failed with error code [%d].", errorCode);
+		return Socket();
+	}
+
+	// Create a socket to connect to the host.
+	addrinfo* ptr = result;
+	SOCKET connectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+	if (connectSocket == INVALID_SOCKET)
+	{
+		Dev::LogError("socket() failed with error code [%d].", WSAGetLastError());
+		freeaddrinfo(result);
+		return Socket();
+	}
+
+	// Connect the socket to the host.
+	if (connect(connectSocket, ptr->ai_addr, static_cast<int>(ptr->ai_addrlen)) == SOCKET_ERROR)
+	{
+		Dev::LogError("connect() failed with error code [%d].", WSAGetLastError());
+		freeaddrinfo(result);
+		return Socket();
+	}
+
+	// TODO try to connect to all the results rather than just the first
+
+	// Free the addrinfo after it is no longer needed.
+	freeaddrinfo(result);
+	
+	// Return the platform specific socket wrapped in a platform agnostic way.
+	Socket outSocket;
+	outSocket.GetImpl().m_platformSocket = connectSocket;
 	return outSocket;
 }

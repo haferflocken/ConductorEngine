@@ -50,13 +50,13 @@ enum ApplicationErrorCode : int
 	MissingDatapath,
 	MissingApplicationMode,
 	MissingClientHostName,
+	MissingClientHostPort,
 	MissingHostPort,
 	FailedToInitializeSocketAPI,
 	FailedToInitializeNetworkThread,
 };
 
-int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
-	const std::string& hostName);
+int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory, std::string& hostParam);
 int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
 	const std::string& port);
 }
@@ -91,11 +91,13 @@ int main(const int argc, const char* argv[])
 	return MissingApplicationMode;
 }
 
-int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
-	const std::string& hostName)
+int Internal_IslandGame::ClientMain(
+	const Collection::ProgramParameters& params,
+	const File::Path& dataDirectory,
+	std::string& hostParam)
 {
-	// Ensure a host name was specified.
-	if (hostName.empty())
+	// Ensure a host parameter was specified.
+	if (hostParam.size() < 3)
 	{
 		return MissingClientHostName;
 	}
@@ -132,7 +134,7 @@ int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params,
 	};
 	Client::ClientWorld clientWorld{ inputToClientMessages, hostToClientMessages, std::move(clientFactory) };
 
-	if (strcmp(hostName.c_str(), "newhost") == 0)
+	if (strcmp(hostParam.c_str(), "newhost") == 0)
 	{
 		// Connect the client to a new host.
 		Host::HostWorld::HostFactory hostFactory = [&]()
@@ -154,13 +156,26 @@ int Internal_IslandGame::ClientMain(const Collection::ProgramParameters& params,
 	}
 	else
 	{
+		// Extract the host name and port from hostParam.
+		const size_t portStartIndex = hostParam.find_last_of(':');
+		if (portStartIndex == std::string::npos)
+		{
+			return MissingClientHostPort;
+		}
+		hostParam[portStartIndex] = '\0';
+		const char* const hostName = hostParam.c_str();
+		const char* const hostPort = hostName + portStartIndex + 1;
+
 		// Initialize the network socket API.
 		if (!Network::TryInitializeSocketAPI())
 		{
 			return FailedToInitializeSocketAPI;
 		}
 
-		// TODO Connect the client to a networked host.
+		// Connect the client to a networked host.
+		Network::Socket socket = Network::CreateConnectedSocket(hostName, hostPort);
+
+		// TODO use the connection
 
 		// Shutdown the socket API.
 		Network::ShutdownSocketAPI();
