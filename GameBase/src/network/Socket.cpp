@@ -197,6 +197,7 @@ Network::Socket Network::CreateConnectedSocket(const char* hostName, const char*
 	{
 		Dev::LogError("connect() failed with error code [%d].", WSAGetLastError());
 		freeaddrinfo(result);
+		closesocket(connectSocket);
 		return Socket();
 	}
 
