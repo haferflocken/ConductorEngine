@@ -155,6 +155,7 @@
     <ClCompile Include="src\behave\systems\BehaviourTreeEvaluationSystem.cpp" />
     <ClCompile Include="src\client\ClientWorld.cpp" />
     <ClCompile Include="src\client\ConnectedHost.cpp" />
+    <ClCompile Include="src\conductor\HostMain.cpp" />
     <ClCompile Include="src\conductor\LocalClientHostMain.cpp" />
     <ClCompile Include="src\conductor\RemoteClientMain.cpp" />
     <ClCompile Include="src\host\ConnectedClient.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="collection\Variant.h" />
     <ClInclude Include="client\ClientWorld.h" />
     <ClInclude Include="conductor\ApplicationErrorCode.h" />
+    <ClInclude Include="conductor\HostMain.h" />
     <ClInclude Include="conductor\LocalClientHostMain.h" />
     <ClInclude Include="conductor\RemoteClientMain.h" />
     <ClInclude Include="conductor\IGameData.h" />

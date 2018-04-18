@@ -24,6 +24,7 @@
 #include <conductor/ApplicationErrorCode.h>
 #include <conductor/IGameData.h>
 #include <conductor/LocalClientHostMain.h>
+#include <conductor/HostMain.h>
 #include <conductor/RemoteClientMain.h>
 #include <host/ConnectedClient.h>
 #include <host/HostNetworkWorld.h>
@@ -178,54 +179,23 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 	{
 		return static_cast<int>(Conductor::ApplicationErrorCode::MissingHostPort);
 	}
-
-	// Load data files.
-	IslandGame::IslandGameData gameData;
-	gameData.LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
-	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
-
-	// Initialize the network socket API.
-	if (!Network::TryInitializeSocketAPI())
+	
+	// Define the factory functions that abstract game code away from engine code.
+	Conductor::GameDataFactory gameDataFactory = [](const File::Path& dataDirectory)
 	{
-		return static_cast<int>(Conductor::ApplicationErrorCode::FailedToInitializeSocketAPI);
-	}
+		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
+		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
+		gameData->LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
+		return gameData;
+	};
 
-	// Setup the network world and verify it is running.
-	Host::HostNetworkWorld hostNetworkWorld{ port.c_str() };
-	if (!hostNetworkWorld.IsRunning())
-	{
-		Network::ShutdownSocketAPI();
-		return static_cast<int>(Conductor::ApplicationErrorCode::FailedToInitializeNetworkThread);
-	}
-
-	// Create and run a host.
 	Host::HostWorld::HostFactory hostFactory = [](const Conductor::IGameData& gameData)
 	{
 		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(static_cast<const IslandGame::IslandGameData&>(gameData));
 	};
-	Host::HostWorld hostWorld{ gameData, hostNetworkWorld.GetClientToHostMessageQueue(), std::move(hostFactory) };
-	
-	// Create a thread that processes console input for as long as the network thread is running.
-	std::thread consoleInputThread{ [&hostNetworkWorld]()
-	{
-		while (hostNetworkWorld.IsRunning())
-		{
-			std::string consoleInput;
-			std::getline(std::cin, consoleInput);
-			if (!consoleInput.empty())
-			{
-				hostNetworkWorld.NotifyOfConsoleInput(std::move(consoleInput));
-			}
-			std::this_thread::yield();
-		}
-	}};
-	consoleInputThread.detach();
 
-	// Block this thread until the network thread stops.
-	hostNetworkWorld.WaitForShutdown();
-
-	// Shutdown the socket API.
-	Network::ShutdownSocketAPI();
-	
-	return static_cast<int>(Conductor::ApplicationErrorCode::NoError);
+	// Run the host.
+	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, port.c_str(),
+		std::move(gameDataFactory), std::move(hostFactory));
+	return static_cast<int>(errorCode);
 }

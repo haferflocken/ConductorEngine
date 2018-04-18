@@ -208,6 +208,9 @@
     <ClCompile Include="src\client\ConnectedHost.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\conductor\HostMain.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\conductor\LocalClientHostMain.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -292,6 +295,7 @@
     <ClInclude Include="collection\Variant.h" />
     <ClInclude Include="client\ClientWorld.h" />
     <ClInclude Include="conductor\ApplicationErrorCode.h" />
+    <ClInclude Include="conductor\HostMain.h" />
     <ClInclude Include="conductor\LocalClientHostMain.h" />
     <ClInclude Include="conductor\RemoteClientMain.h" />
     <ClInclude Include="conductor\IGameData.h" />
