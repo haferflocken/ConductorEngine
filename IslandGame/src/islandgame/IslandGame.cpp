@@ -21,6 +21,10 @@
 #include <client/IRenderInstance.h>
 #include <client/MessageToHost.h>
 #include <client/MessageToRenderInstance.h>
+#include <conductor/ApplicationErrorCode.h>
+#include <conductor/IGameData.h>
+#include <conductor/LocalClientHostMain.h>
+#include <conductor/RemoteClientMain.h>
 #include <host/ConnectedClient.h>
 #include <host/HostNetworkWorld.h>
 #include <host/HostWorld.h>
@@ -44,16 +48,11 @@ constexpr char* k_actorInfosPath = "actor_infos";
 constexpr char* k_applicationModeClientParameter = "-client";
 constexpr char* k_applicationModeHostParameter = "-host";
 
-enum ApplicationErrorCode : int
+enum class ApplicationMode
 {
-	NoError = 0,
-	MissingDatapath,
-	MissingApplicationMode,
-	MissingClientHostName,
-	MissingClientHostPort,
-	MissingHostPort,
-	FailedToInitializeSocketAPI,
-	FailedToInitializeNetworkThread,
+	Invalid = 0,
+	Client,
+	Host,
 };
 
 int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory, std::string& hostParam);
@@ -71,24 +70,34 @@ int main(const int argc, const char* argv[])
 	if (!params.TryGet(k_dataDirectoryParameter, dataDirectoryStr))
 	{
 		std::cerr << "Missing required parameter: -datapath <dir>" << std::endl;
-		return MissingDatapath;
+		return static_cast<int>(Conductor::ApplicationErrorCode::MissingDatapath);
 	}
 
 	const File::Path dataDirectory = File::MakePath(dataDirectoryStr.c_str());
 
 	// Determine the application mode from the command line parameters.
+	ApplicationMode applicationMode = ApplicationMode::Invalid;
 	std::string applicationModeParamater;
 	if (params.TryGet(k_applicationModeClientParameter, applicationModeParamater))
 	{
-		return ClientMain(params, dataDirectory, applicationModeParamater);
+		applicationMode = ApplicationMode::Client;
 	}
-	if (params.TryGet(k_applicationModeHostParameter, applicationModeParamater))
+	else if (params.TryGet(k_applicationModeHostParameter, applicationModeParamater))
 	{
-		return HostMain(params, dataDirectory, applicationModeParamater);
+		applicationMode = ApplicationMode::Host;
+	}
+	else
+	{
+		std::cerr << "Missing application mode parameter: -client hostName or -host" << std::endl;
+		return static_cast<int>(Conductor::ApplicationErrorCode::MissingApplicationMode);
 	}
 
-	std::cerr << "Missing application mode parameter: -client hostName or -host" << std::endl;
-	return MissingApplicationMode;
+	// Run the application in the specified mode.
+	if (applicationMode == ApplicationMode::Client)
+	{
+		return ClientMain(params, dataDirectory, applicationModeParamater);
+	}
+	return HostMain(params, dataDirectory, applicationModeParamater);
 }
 
 int Internal_IslandGame::ClientMain(
@@ -99,60 +108,47 @@ int Internal_IslandGame::ClientMain(
 	// Ensure a host parameter was specified.
 	if (hostParam.size() < 3)
 	{
-		return MissingClientHostName;
+		return static_cast<int>(Conductor::ApplicationErrorCode::MissingClientHostName);
 	}
 
-	// Find the vertex and fragment shaders in the data directory.
-	const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
-	const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
-	
-	// Create a render instance. Because a render instance creates a window,
-	// it must be created and managed on the main thread.
-	constexpr size_t k_clientRenderMessageCapacity = 256;
-	Collection::LocklessQueue<Client::InputMessage> inputToClientMessages{ k_clientRenderMessageCapacity };
-	Collection::LocklessQueue<Client::MessageToRenderInstance> clientToRenderInstanceMessages{
-		k_clientRenderMessageCapacity };
-	
-	Mem::UniquePtr<Client::IRenderInstance> renderInstance = Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
-		clientToRenderInstanceMessages, inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
-
-	// Load data files.
-	IslandGame::IslandGameData gameData;
-	gameData.LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
-	gameData.LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
-
-	// Create the message queues that will allow the client and host to communicate.
-	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{
-		Host::HostNetworkWorld::k_inboundMessageCapacity };
-	Collection::LocklessQueue<Host::MessageToClient> hostToClientMessages{
-		Host::HostNetworkWorld::k_outboundMessageCapacityPerClient };
-
-	// Create the client and connect it to the specified host.
-	Client::ClientWorld::ClientFactory clientFactory = [](Client::ConnectedHost& conenctedHost)
+	// Define the factory functions that abstract game code away from engine code.
+	Client::RenderInstanceFactory renderInstanceFactory = [](const File::Path& dataDirectory,
+		Collection::LocklessQueue<Client::MessageToRenderInstance>& clientToRenderInstanceMessages,
+		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages)
 	{
-		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(conenctedHost);
+		const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
+		const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
+	
+		return Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
+			clientToRenderInstanceMessages, inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
 	};
-	Client::ClientWorld clientWorld{ inputToClientMessages, hostToClientMessages, std::move(clientFactory) };
 
+	Conductor::GameDataFactory gameDataFactory = [](const File::Path& dataDirectory)
+	{
+		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
+		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
+		gameData->LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
+		return gameData;
+	};
+
+	Client::ClientWorld::ClientFactory clientFactory =
+		[](const Conductor::IGameData& gameData, Client::ConnectedHost& connectedHost)
+	{
+		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(connectedHost);
+	};
+
+	Host::HostWorld::HostFactory hostFactory = [](const Conductor::IGameData& gameData)
+	{
+		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(static_cast<const IslandGame::IslandGameData&>(gameData));
+	};
+
+	// If the host is specified as "newhost", spin up a local host with no network thread: just direct communication.
+	// Otherwise, connect to a remote host.
 	if (strcmp(hostParam.c_str(), "newhost") == 0)
 	{
-		// Connect the client to a new host.
-		Host::HostWorld::HostFactory hostFactory = [&]()
-		{
-			return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(gameData);
-		};
-		Host::HostWorld hostWorld{ clientToHostMessages, std::move(hostFactory) };
-		
-		constexpr Client::ClientID clientID = Host::HostNetworkWorld::k_localClientID;
-		hostWorld.NotifyOfClientConnected(Mem::MakeUnique<Host::ConnectedClient>(clientID, hostToClientMessages));
-		clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(clientID, clientToHostMessages));
-
-		// Run the window while the client and host run in other threads. Stop when the host stops.
-		while (renderInstance->Update() == Client::IRenderInstance::Status::Running
-			&& hostWorld.GetNumConnectedClients() > 0)
-		{
-			std::this_thread::yield();
-		}
+		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(params, dataDirectory,
+			std::move(renderInstanceFactory), std::move(gameDataFactory), std::move(clientFactory), std::move(hostFactory));
+		return static_cast<int>(errorCode);
 	}
 	else
 	{
@@ -160,28 +156,18 @@ int Internal_IslandGame::ClientMain(
 		const size_t portStartIndex = hostParam.find_last_of(':');
 		if (portStartIndex == std::string::npos)
 		{
-			return MissingClientHostPort;
+			return static_cast<int>(Conductor::ApplicationErrorCode::MissingClientHostPort);
 		}
 		hostParam[portStartIndex] = '\0';
 		const char* const hostName = hostParam.c_str();
 		const char* const hostPort = hostName + portStartIndex + 1;
 
-		// Initialize the network socket API.
-		if (!Network::TryInitializeSocketAPI())
-		{
-			return FailedToInitializeSocketAPI;
-		}
-
-		// Connect the client to a networked host.
-		Network::Socket socket = Network::CreateConnectedSocket(hostName, hostPort);
-
-		// TODO use the connection
-
-		// Shutdown the socket API.
-		Network::ShutdownSocketAPI();
+		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(params, dataDirectory,
+			hostName, hostPort,std::move(renderInstanceFactory), std::move(gameDataFactory), std::move(clientFactory));
+		return static_cast<int>(errorCode);
 	}
 
-	return NoError;
+	return static_cast<int>(Conductor::ApplicationErrorCode::NoError);
 }
 
 int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
@@ -190,7 +176,7 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 	// Ensure a port was specified.
 	if (port.empty())
 	{
-		return MissingHostPort;
+		return static_cast<int>(Conductor::ApplicationErrorCode::MissingHostPort);
 	}
 
 	// Load data files.
@@ -201,7 +187,7 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 	// Initialize the network socket API.
 	if (!Network::TryInitializeSocketAPI())
 	{
-		return FailedToInitializeSocketAPI;
+		return static_cast<int>(Conductor::ApplicationErrorCode::FailedToInitializeSocketAPI);
 	}
 
 	// Setup the network world and verify it is running.
@@ -209,15 +195,15 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 	if (!hostNetworkWorld.IsRunning())
 	{
 		Network::ShutdownSocketAPI();
-		return FailedToInitializeNetworkThread;
+		return static_cast<int>(Conductor::ApplicationErrorCode::FailedToInitializeNetworkThread);
 	}
 
 	// Create and run a host.
-	Host::HostWorld::HostFactory hostFactory = [&]()
+	Host::HostWorld::HostFactory hostFactory = [](const Conductor::IGameData& gameData)
 	{
-		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(gameData);
+		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(static_cast<const IslandGame::IslandGameData&>(gameData));
 	};
-	Host::HostWorld hostWorld{ hostNetworkWorld.GetClientToHostMessageQueue(), std::move(hostFactory) };
+	Host::HostWorld hostWorld{ gameData, hostNetworkWorld.GetClientToHostMessageQueue(), std::move(hostFactory) };
 	
 	// Create a thread that processes console input for as long as the network thread is running.
 	std::thread consoleInputThread{ [&hostNetworkWorld]()
@@ -240,6 +226,6 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 
 	// Shutdown the socket API.
 	Network::ShutdownSocketAPI();
-
-	return NoError;
+	
+	return static_cast<int>(Conductor::ApplicationErrorCode::NoError);
 }

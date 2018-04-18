@@ -1,5 +1,6 @@
 #pragma once
 
+#include <conductor/IGameData.h>
 #include <file/Path.h>
 #include <mem/UniquePtr.h>
 
@@ -17,11 +18,11 @@ namespace IslandGame
 /**
  * Holds data that will not change over the course of the game.
  */
-class IslandGameData final
+class IslandGameData final : public Conductor::IGameData
 {
 public:
 	IslandGameData();
-	~IslandGameData();
+	virtual ~IslandGameData();
 
 	const Behave::BehaviourNodeFactory& GetBehaviourNodeFactory() const { return *m_behaviourNodeFactory; }
 	const Behave::BehaviourTreeManager& GetBehaviourTreeManager() const { return *m_behaviourTreeManager; }

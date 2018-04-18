@@ -7,8 +7,8 @@
 #include <thread>
 
 namespace Client { struct MessageToHost; }
-
 namespace Collection { template <typename T> class LocklessQueue; }
+namespace Conductor { class IGameData; }
 
 namespace Host
 {
@@ -22,9 +22,10 @@ struct MessageToClient;
 class HostWorld final
 {
 public:
-	using HostFactory = std::function<Mem::UniquePtr<IHost>()>;
+	using HostFactory = std::function<Mem::UniquePtr<IHost>(const Conductor::IGameData&)>;
 
-	HostWorld(Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
+	HostWorld(const Conductor::IGameData& gameData,
+		Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
 		HostFactory&& hostFactory);
 
 	HostWorld() = delete;
@@ -53,6 +54,7 @@ private:
 	void HostThreadFunction();
 	void ProcessMessageFromClient(Client::MessageToHost& message);
 	
+	const Conductor::IGameData& m_gameData;
 	Collection::LocklessQueue<Client::MessageToHost>& m_networkInputQueue;
 	HostFactory m_hostFactory;
 	Mem::UniquePtr<IHost> m_host{};

@@ -1,5 +1,12 @@
 #pragma once
 
+#include <file/Path.h>
+
+#include <functional>
+
+namespace Collection { template <typename T> class LocklessQueue; }
+namespace Mem { template <typename T> class UniquePtr; }
+
 namespace Client
 {
 /**
@@ -31,4 +38,10 @@ public:
 
 	virtual Status Update() = 0;
 };
+
+struct InputMessage;
+struct MessageToRenderInstance;
+
+using RenderInstanceFactory = std::function<Mem::UniquePtr<IRenderInstance>(const File::Path&,
+	Collection::LocklessQueue<Client::MessageToRenderInstance>&, Collection::LocklessQueue<Client::InputMessage>&)>;
 }

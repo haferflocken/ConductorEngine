@@ -7,9 +7,11 @@
 #include <host/ConnectedClient.h>
 #include <host/IHost.h>
 
-Host::HostWorld::HostWorld(Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
+Host::HostWorld::HostWorld(const Conductor::IGameData& gameData,
+	Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
 	HostFactory&& hostFactory)
-	: m_networkInputQueue(networkInputQueue)
+	: m_gameData(gameData)
+	, m_networkInputQueue(networkInputQueue)
 	, m_hostFactory(std::move(hostFactory))
 {
 	m_hostThread = std::thread(&HostWorld::HostThreadFunction, this);
@@ -50,7 +52,7 @@ void Host::HostWorld::NotifyOfClientDisconnected(const Client::ClientID clientID
 void Host::HostWorld::HostThreadFunction()
 {
 	m_hostThreadStatus = HostThreadStatus::Running;
-	m_host = m_hostFactory();
+	m_host = m_hostFactory(m_gameData);
 
 	while (m_hostThreadStatus == HostThreadStatus::Running)
 	{
