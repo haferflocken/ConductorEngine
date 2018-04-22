@@ -1,5 +1,7 @@
 #include <conductor/RemoteClientMain.h>
 
+#include <client/ConnectedHost.h>
+#include <client/InputMessage.h>
 #include <client/IRenderInstance.h>
 #include <client/MessageToRenderInstance.h>
 #include <client/ClientNetworkWorld.h>

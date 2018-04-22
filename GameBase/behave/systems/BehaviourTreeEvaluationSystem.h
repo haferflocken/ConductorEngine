@@ -1,6 +1,8 @@
 #pragma once
 
 #include <behave/BehaviourSystem.h>
+#include <behave/components/BehaviourTreeComponent.h>
+#include <behave/components/BehaviourTreeComponentInfo.h>
 
 #include <functional>
 
@@ -15,7 +17,6 @@ namespace Behave
 class Actor;
 class ActorManager;
 class BehaveContext;
-namespace Components { class BehaviourTreeComponent; }
 
 namespace Systems
 {

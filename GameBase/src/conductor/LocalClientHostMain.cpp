@@ -1,6 +1,10 @@
 #include <conductor/LocalClientHostMain.h>
 
+#include <client/ConnectedHost.h>
+#include <client/InputMessage.h>
+#include <client/MessageToRenderInstance.h>
 #include <collection/LocklessQueue.h>
+#include <host/ConnectedClient.h>
 #include <host/HostNetworkWorld.h>
 #include <host/HostWorld.h>
 

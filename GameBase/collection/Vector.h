@@ -118,7 +118,7 @@ inline void Vector<T>::operator=(const Vector<T>& rhs)
 	}
 
 	m_data = static_cast<T*>(malloc(rhs.m_count * Unit::AlignedSizeOf<T>()));
-	m_capacity = rhs.m_capacity;
+	m_capacity = rhs.m_count;
 	m_count = rhs.m_count;
 
 	if (Traits::IsMemCopyAFullCopy<T>::value)
