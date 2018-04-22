@@ -248,7 +248,7 @@
     <ClCompile Include="src\util\StringHash.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Release-x64\Conductor\Conductor1.cpp" />
+    <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\Conductor\Conductor1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="behave\Actor.h" />
