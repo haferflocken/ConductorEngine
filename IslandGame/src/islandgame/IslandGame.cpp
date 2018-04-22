@@ -3,13 +3,6 @@
 #include <islandgame/client/IslandGameClient.h>
 #include <islandgame/host/IslandGameHost.h>
 
-#include <behave/ActorInfoManager.h>
-#include <behave/ActorManager.h>
-#include <behave/BehaveContext.h>
-#include <behave/BehaviourSystem.h>
-#include <behave/components/SceneTransformComponent.h>
-#include <behave/components/SceneTransformComponentInfo.h>
-
 #include <collection/LocklessQueue.h>
 #include <collection/ProgramParameters.h>
 
@@ -59,6 +52,48 @@ enum class ApplicationMode
 int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory, std::string& hostParam);
 int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
 	const std::string& port);
+
+// Define the factory functions that abstract game code away from engine code.
+Client::RenderInstanceFactory MakeRenderInstanceFactory()
+{
+	return [](const File::Path& dataDirectory,
+		Collection::LocklessQueue<Client::MessageToRenderInstance>& clientToRenderInstanceMessages,
+		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages)
+	{
+		const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
+		const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
+	
+		return Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
+			clientToRenderInstanceMessages, inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
+	};
+}
+
+Conductor::GameDataFactory MakeGameDataFactory()
+{
+	return [](const File::Path& dataDirectory)
+	{
+		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
+		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
+		gameData->LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
+		return gameData;
+	};
+}
+
+Client::ClientWorld::ClientFactory MakeClientFactory()
+{
+	return [](const Conductor::IGameData& gameData, Client::ConnectedHost& connectedHost)
+	{
+		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(connectedHost);
+	};
+}
+
+Host::HostWorld::HostFactory MakeHostFactory()
+{
+	return [](const Conductor::IGameData& gameData)
+	{
+		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(static_cast<const IslandGame::IslandGameData&>(gameData));
+	};
+}
 }
 
 int main(const int argc, const char* argv[])
@@ -112,43 +147,12 @@ int Internal_IslandGame::ClientMain(
 		return static_cast<int>(Conductor::ApplicationErrorCode::MissingClientHostName);
 	}
 
-	// Define the factory functions that abstract game code away from engine code.
-	Client::RenderInstanceFactory renderInstanceFactory = [](const File::Path& dataDirectory,
-		Collection::LocklessQueue<Client::MessageToRenderInstance>& clientToRenderInstanceMessages,
-		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages)
-	{
-		const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
-		const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
-	
-		return Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
-			clientToRenderInstanceMessages, inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
-	};
-
-	Conductor::GameDataFactory gameDataFactory = [](const File::Path& dataDirectory)
-	{
-		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
-		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
-		gameData->LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
-		return gameData;
-	};
-
-	Client::ClientWorld::ClientFactory clientFactory =
-		[](const Conductor::IGameData& gameData, Client::ConnectedHost& connectedHost)
-	{
-		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(connectedHost);
-	};
-
-	Host::HostWorld::HostFactory hostFactory = [](const Conductor::IGameData& gameData)
-	{
-		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(static_cast<const IslandGame::IslandGameData&>(gameData));
-	};
-
 	// If the host is specified as "newhost", spin up a local host with no network thread: just direct communication.
 	// Otherwise, connect to a remote host.
 	if (strcmp(hostParam.c_str(), "newhost") == 0)
 	{
 		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(params, dataDirectory,
-			std::move(renderInstanceFactory), std::move(gameDataFactory), std::move(clientFactory), std::move(hostFactory));
+			MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory(), MakeHostFactory());
 		return static_cast<int>(errorCode);
 	}
 	else
@@ -164,7 +168,7 @@ int Internal_IslandGame::ClientMain(
 		const char* const hostPort = hostName + portStartIndex + 1;
 
 		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(params, dataDirectory,
-			hostName, hostPort,std::move(renderInstanceFactory), std::move(gameDataFactory), std::move(clientFactory));
+			hostName, hostPort, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory());
 		return static_cast<int>(errorCode);
 	}
 
@@ -180,22 +184,8 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 		return static_cast<int>(Conductor::ApplicationErrorCode::MissingHostPort);
 	}
 	
-	// Define the factory functions that abstract game code away from engine code.
-	Conductor::GameDataFactory gameDataFactory = [](const File::Path& dataDirectory)
-	{
-		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
-		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
-		gameData->LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
-		return gameData;
-	};
-
-	Host::HostWorld::HostFactory hostFactory = [](const Conductor::IGameData& gameData)
-	{
-		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(static_cast<const IslandGame::IslandGameData&>(gameData));
-	};
-
 	// Run the host.
 	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, port.c_str(),
-		std::move(gameDataFactory), std::move(hostFactory));
+		MakeGameDataFactory(), MakeHostFactory());
 	return static_cast<int>(errorCode);
 }
