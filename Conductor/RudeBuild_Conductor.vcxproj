@@ -19,8 +19,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1579652B-0C60-4C45-8131-1D5F9BB59108}</ProjectGuid>
-    <RootNamespace>GameBase</RootNamespace>
-    <ProjectName>GameBase</ProjectName>
+    <RootNamespace>Conductor</RootNamespace>
+    <ProjectName>Conductor</ProjectName>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -67,10 +67,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)GameBase;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Conductor;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)GameBase;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Conductor;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -248,7 +248,7 @@
     <ClCompile Include="src\util\StringHash.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\GameBase\GameBase1.cpp" />
+    <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Release-x64\Conductor\Conductor1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="behave\Actor.h" />
