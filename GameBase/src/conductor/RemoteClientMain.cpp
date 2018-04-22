@@ -2,6 +2,7 @@
 
 #include <client/IRenderInstance.h>
 #include <client/MessageToRenderInstance.h>
+#include <client/ClientNetworkWorld.h>
 #include <collection/LocklessQueue.h>
 #include <network/Socket.h>
 
@@ -14,6 +15,12 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	GameDataFactory&& gameDataFactory,
 	Client::ClientWorld::ClientFactory&& clientFactory)
 {
+	// Initialize the network socket API.
+	if (!Network::TryInitializeSocketAPI())
+	{
+		return ApplicationErrorCode::FailedToInitializeSocketAPI;
+	}
+
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.
 	constexpr size_t k_clientRenderMessageCapacity = 256;
@@ -27,16 +34,25 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	// Load data files.
 	Mem::UniquePtr<IGameData> gameData = gameDataFactory(dataDirectory);
 
-	// Initialize the network socket API.
-	if (!Network::TryInitializeSocketAPI())
+	// Establish a connection to the networked host.
+	Client::ClientNetworkWorld clientNetworkWorld{ hostName, hostPort };
+	if (!clientNetworkWorld.IsRunning())
 	{
-		return ApplicationErrorCode::FailedToInitializeSocketAPI;
+		Network::ShutdownSocketAPI();
+		return ApplicationErrorCode::FailedToInitializeNetworkThread;
 	}
 
-	// Connect the client to a networked host.
-	Network::Socket socket = Network::CreateConnectedSocket(hostName, hostPort);
+	// Create a client and notify it of the connection.
+	Client::ClientWorld clientWorld{ *gameData, inputToClientMessages,
+		clientNetworkWorld.GetHostToClientMessageQueue(), std::move(clientFactory) };
+	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(
+		clientNetworkWorld.GetClientID(), clientNetworkWorld.GetClientToHostMessageQueue()));
 
-	// TODO use the connection
+	// Run the window while the client runs in another thread.
+	while (renderInstance->Update() == Client::IRenderInstance::Status::Running)
+	{
+		std::this_thread::yield();
+	}
 
 	// Shutdown the socket API.
 	Network::ShutdownSocketAPI();

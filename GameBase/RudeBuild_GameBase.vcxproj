@@ -202,6 +202,9 @@
     <ClCompile Include="src\behave\systems\BehaviourTreeEvaluationSystem.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\client\ClientNetworkWorld.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\client\ClientWorld.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -286,6 +289,7 @@
     <ClInclude Include="behave\nodes\SequenceNode.h" />
     <ClInclude Include="behave\systems\BehaviourTreeEvaluationSystem.h" />
     <ClInclude Include="client\ClientID.h" />
+    <ClInclude Include="client\ClientNetworkWorld.h" />
     <ClInclude Include="client\MessageToHost.h" />
     <ClInclude Include="client\MessageToRenderInstance.h" />
     <ClInclude Include="collection\ArrayView.h" />

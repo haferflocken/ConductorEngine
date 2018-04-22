@@ -57,6 +57,11 @@ Network::Socket& Network::Socket::operator=(Socket&& rhs)
 	return *this;
 }
 
+bool Network::Socket::IsValid() const
+{
+	return m_impl->m_platformSocket != INVALID_SOCKET;
+}
+
 bool Network::Socket::TryListen()
 {
 	if (listen(m_impl->m_platformSocket, SOMAXCONN) == SOCKET_ERROR)

@@ -19,6 +19,9 @@ public:
 	Socket& operator=(Socket&& rhs);
 
 	SocketImpl& GetImpl() { return *m_impl; }
+	
+	// Test if this socket object actually represents a network socket.
+	bool IsValid() const;
 
 	// Attempt to listen on this socket and return true if succesful.
 	bool TryListen();
