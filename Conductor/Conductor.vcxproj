@@ -167,6 +167,7 @@
     <ClCompile Include="src\dev\Dev.cpp" />
     <ClCompile Include="src\file\JSONReader.cpp" />
     <ClCompile Include="src\file\FullFileReader.cpp" />
+    <ClCompile Include="src\navigation\NavMesh.cpp" />
     <ClCompile Include="src\network\Socket.cpp" />
     <ClCompile Include="src\util\StringHash.cpp" />
   </ItemGroup>
@@ -236,6 +237,7 @@
     <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="mem\UniquePtr.h" />
     <ClInclude Include="client\InputMessage.h" />
+    <ClInclude Include="navigation\NavMesh.h" />
     <ClInclude Include="network\Socket.h" />
     <ClInclude Include="unit\CountUnits.h" />
     <ClInclude Include="collection\PolyStack.h" />
