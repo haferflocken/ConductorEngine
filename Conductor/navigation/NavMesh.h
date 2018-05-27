@@ -1,7 +1,7 @@
 #pragma once
 
 #include <collection/Pair.h>
-#include <Collection/Vector.h>
+#include <collection/Vector.h>
 
 #include <cstdint>
 
