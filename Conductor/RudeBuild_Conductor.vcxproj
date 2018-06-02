@@ -251,7 +251,7 @@
     <ClCompile Include="src\util\StringHash.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="C:\RudeBuildCache\ConductorEngine_9b02a0ef3a0dea688ff8c08bcf548e27\Debug-x64\Conductor\Conductor1.cpp" />
+    <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\Conductor\Conductor1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="behave\Actor.h" />
@@ -296,8 +296,10 @@
     <ClInclude Include="client\MessageToHost.h" />
     <ClInclude Include="client\MessageToRenderInstance.h" />
     <ClInclude Include="collection\ArrayView.h" />
+    <ClInclude Include="collection\BitVector.h" />
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\LocklessQueue.h" />
+    <ClInclude Include="collection\Heap.h" />
     <ClInclude Include="collection\Pair.h" />
     <ClInclude Include="collection\Variant.h" />
     <ClInclude Include="client\ClientWorld.h" />
@@ -319,7 +321,9 @@
     <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="mem\UniquePtr.h" />
     <ClInclude Include="client\InputMessage.h" />
+    <ClInclude Include="navigation\AStar.h" />
     <ClInclude Include="navigation\NavMesh.h" />
+    <ClInclude Include="navigation\NavMeshGraphInterface.h" />
     <ClInclude Include="network\Socket.h" />
     <ClInclude Include="unit\CountUnits.h" />
     <ClInclude Include="collection\PolyStack.h" />

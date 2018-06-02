@@ -83,7 +83,8 @@ Client::ClientWorld::ClientFactory MakeClientFactory()
 {
 	return [](const Conductor::IGameData& gameData, Client::ConnectedHost& connectedHost)
 	{
-		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(connectedHost);
+		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(
+			static_cast<const IslandGame::IslandGameData&>(gameData), connectedHost);
 	};
 }
 
@@ -91,7 +92,8 @@ Host::HostWorld::HostFactory MakeHostFactory()
 {
 	return [](const Conductor::IGameData& gameData)
 	{
-		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(static_cast<const IslandGame::IslandGameData&>(gameData));
+		return Mem::MakeUnique<IslandGame::Host::IslandGameHost>(
+			static_cast<const IslandGame::IslandGameData&>(gameData));
 	};
 }
 }

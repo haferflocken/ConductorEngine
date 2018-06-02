@@ -20,6 +20,8 @@ public:
 		, m_count(count)
 	{}
 
+	size_t Size() const { return m_count; }
+
 	iterator begin() { return m_data; }
 	const_iterator begin() const { return m_data; }
 	const_iterator cbegin() const { return begin(); }

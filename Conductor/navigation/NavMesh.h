@@ -30,16 +30,16 @@ class NavMesh
 public:
 	NavMesh() = default;
 
-	size_t FindIndexOfID(const NavMeshTriangleID id) const;
+	uint32_t FindIndexOfID(const NavMeshTriangleID id) const;
 
-	NavMeshTriangle& GetTriangleByIndex(const size_t index);
-	const NavMeshTriangle& GetTriangleByIndex(const size_t index) const;
+	NavMeshTriangle& GetTriangleByIndex(const uint32_t index);
+	const NavMeshTriangle& GetTriangleByIndex(const uint32_t index) const;
 
-	NavMeshConnections& GetConnectionsByIndex(const size_t index);
-	const NavMeshConnections& GetConnectionsByIndex(const size_t index) const;
+	NavMeshConnections& GetConnectionsByIndex(const uint32_t index);
+	const NavMeshConnections& GetConnectionsByIndex(const uint32_t index) const;
 
 	// Adds a triangle to the nav mesh and returns its index and ID.
-	Collection::Pair<size_t, NavMeshTriangleID> AddTriangle(const NavMeshTriangle& triangle);
+	Collection::Pair<uint32_t, NavMeshTriangleID> AddTriangle(const NavMeshTriangle& triangle);
 };
 
 class NavMeshTriangleID
@@ -69,6 +69,7 @@ struct NavMeshTriangle
 	float m_x1, m_y1;
 	float m_x2, m_y2;
 	float m_x3, m_y3;
+	float m_xCenter, m_yCenter;
 };
 
 class NavMeshConnectionFlags
