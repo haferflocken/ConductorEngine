@@ -1,5 +1,6 @@
 #pragma once
 
+#include <collection/ArrayView.h>
 #include <dev/Dev.h>
 #include <traits/IsMemCopyAFullCopy.h>
 #include <unit/CountUnits.h>
@@ -22,6 +23,7 @@ public:
 
 	explicit Vector(const uint32_t initialCapacity = 8);
 	explicit Vector(std::initializer_list<T> initialElements);
+	explicit Vector(const ArrayView<const T>& initialElements);
 
 	Vector(const Vector<T>& o);
 	void operator=(const Vector<T>& rhs);
@@ -51,6 +53,8 @@ public:
 	iterator end() { return begin() + m_count; }
 	const_iterator end() const { return begin() + m_count; }
 	const_iterator cend() const { return end(); }
+
+	void Resize(const uint32_t count, const T& defaultValue = T());
 
 	void Add(const T& e);
 	void Add(T&& e);
@@ -95,6 +99,18 @@ template <typename T>
 inline Vector<T>::Vector(std::initializer_list<T> initialElements)
 	: m_data(static_cast<T*>(malloc(initialElements.size()* Unit::AlignedSizeOf<T>())))
 	, m_capacity(static_cast<uint32_t>(initialElements.size()))
+	, m_count(0)
+{
+	for (const auto& element : initialElements)
+	{
+		Add(element);
+	}
+}
+
+template <typename T>
+inline Vector<T>::Vector(const ArrayView<const T>& initialElements)
+	: m_data(static_cast<T*>(malloc(initialElements.Size()* Unit::AlignedSizeOf<T>())))
+	, m_capacity(static_cast<uint32_t>(initialElements.Size()))
 	, m_count(0)
 {
 	for (const auto& element : initialElements)
@@ -166,6 +182,17 @@ inline Vector<T>::~Vector()
 	}
 	free(m_data);
 	m_data = nullptr;
+}
+
+template <typename T>
+inline void Vector<T>::Resize(const uint32_t count, const T& defaultValue)
+{
+	EnsureCapacity(count);
+	// TODO this could be more efficient by doing a memcpy when possible
+	while (m_count < count)
+	{
+		Add(defaultValue);
+	}
 }
 
 template <typename T>
