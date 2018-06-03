@@ -28,19 +28,33 @@ void IslandGame::Host::IslandGameHost::Update()
 	using namespace Navigation;
 
 	NavMesh navMesh;
-	const NavMeshTriangle startTriangle{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f / 3.0f, 1.0f / 3.0f };
-	const NavMeshTriangle goalTriangle{ 0.0f, 0.0f, 0.0f, -1.0f, -1.0f, 0.0f, -1.0f / 3.0f, -1.0f / 3.0f };
+	const NavMeshTriangle triangle{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f / 3.0f, 1.0f / 3.0f };
 
-	const Collection::Pair<uint32_t, NavMeshTriangleID> startIndexAndID = navMesh.AddTriangle(startTriangle);
-	const Collection::Pair<uint32_t, NavMeshTriangleID> goalIndexAndID = navMesh.AddTriangle(goalTriangle);
+	Collection::Vector<NavMeshTriangleID> ids;
+	for (size_t i = 0; i < 1000; ++i)
+	{
+		const Collection::Pair<uint32_t, NavMeshTriangleID> indexAndID = navMesh.AddTriangle(triangle);
+		ids.Add(indexAndID.second);
+	}
+	for (size_t i = 0; i < 1000; ++i)
+	{
+		const uint32_t indexOfID = navMesh.FindIndexOfID(ids[i]);
+		NavMeshConnections& connections = navMesh.GetConnectionsByIndex(indexOfID);
 
-	NavMeshConnections& startConnections = navMesh.GetConnectionsByIndex(startIndexAndID.first);
-	NavMeshConnection& connectionToGoal = startConnections.m_connections[startConnections.m_numConnections++];
-	connectionToGoal.m_connectedID = goalIndexAndID.second;
+		NavMeshConnection& connectionA = connections.m_connections[connections.m_numConnections++];
+		NavMeshConnection& connectionB = connections.m_connections[connections.m_numConnections++];
+		NavMeshConnection& connectionC = connections.m_connections[connections.m_numConnections++];
+
+		connectionA.m_connectedID = ids[rand() % ids.Size()];
+		connectionB.m_connectedID = ids[rand() % ids.Size()];
+		connectionC.m_connectedID = ids[rand() % ids.Size()];
+	}
+
+	const NavMeshTriangleID& startID = ids[rand() % ids.Size()];
+	const NavMeshTriangleID& goalID = ids[rand() % ids.Size()];
 
 	Collection::Vector<NavMeshTriangleID> path;
-	const bool pathFound = AStarSearch(
-		NavMeshGraphInterface(navMesh), startIndexAndID.second, goalIndexAndID.second, path);
+	const bool pathFound = AStarSearch(NavMeshGraphInterface(navMesh), startID, goalID, path);
 
 	int x = 0;
 	++x;
