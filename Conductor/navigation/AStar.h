@@ -61,7 +61,7 @@ bool AStarSearch(
 	const uint32_t goalNodeIndex = graphInterface.NodeIDToIndex(goalNodeID);
 
 	Collection::Vector<AStarNode<NodeID, CostType>> nodes;
-	Collection::Heap<uint32_t, HeapProperty> openQueue{ HeapProperty{ &nodes } };
+	Collection::Heap<uint32_t, 2, HeapProperty> openQueue{ HeapProperty{ &nodes } };
 	Collection::BitVector closedSet;
 	{
 		const uint32_t startNodeIndex = graphInterface.NodeIDToIndex(startNodeID);
