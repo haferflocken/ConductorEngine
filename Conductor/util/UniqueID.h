@@ -12,26 +12,29 @@ public:
 	using BackingType = BT;
 	using SelfType = UniqueID<TT, BT>;
 
-	static constexpr BackingType sk_invalidUniqueID = std::numeric_limits<BackingType>::max();
+	static constexpr BackingType sk_invalidValue = std::numeric_limits<BackingType>::max();
 
 	UniqueID()
-		: m_uniqueID(sk_invalidUniqueID)
+		: m_value(sk_invalidValue)
 	{}
 
 	UniqueID(const SelfType& o) = default;
 	UniqueID& operator=(const SelfType& rhs) = default;
 
 	explicit UniqueID(const BackingType uniqueID)
-		: m_uniqueID(uniqueID)
+		: m_value(uniqueID)
 	{}
 
-	BackingType GetUniqueID() const { return m_uniqueID; }
+	BackingType GetUniqueID() const { return m_value; }
 
-	bool operator==(const SelfType& rhs) const { return m_uniqueID == rhs.m_uniqueID; }
-	bool operator!=(const SelfType& rhs) const { return !(*this == rhs); }
-	bool operator<(const SelfType& rhs) const { return m_uniqueID < rhs.m_uniqueID; }
+	bool operator==(const SelfType& rhs) const { return m_value == rhs.m_value; }
+	bool operator!=(const SelfType& rhs) const { return m_value != rhs.m_value; }
+	bool operator<(const SelfType& rhs) const { return m_value < rhs.m_value; }
+	bool operator<=(const SelfType& rhs) const { return m_value <= rhs.m_value; }
+	bool operator>(const SelfType& rhs) const { return m_value > rhs.m_value; }
+	bool operator>=(const SelfType& rhs) const { return m_value >= rhs.m_value; }
 
 private:
-	BackingType m_uniqueID;
+	BackingType m_value;
 };
 }

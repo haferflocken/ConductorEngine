@@ -2,12 +2,14 @@
 
 #include <collection/Pair.h>
 #include <collection/Vector.h>
+#include <math/Vector3.h>
+#include <navigation/NavMeshTriangleID.h>
+#include <util/UniqueID.h>
 
 #include <cstdint>
 
 namespace Navigation
 {
-class NavMeshTriangleID;
 struct NavMeshTriangle;
 struct NavMeshConnection;
 struct NavMeshConnections;
@@ -30,6 +32,9 @@ class NavMesh
 public:
 	NavMesh() = default;
 
+	NavMesh(NavMesh&& o);
+	void NavMesh::operator=(NavMesh&& rhs);
+
 	uint32_t FindIndexOfID(const NavMeshTriangleID id) const;
 
 	NavMeshTriangle& GetTriangleByIndex(const uint32_t index);
@@ -40,36 +45,17 @@ public:
 
 	// Adds a triangle to the nav mesh and returns its index and ID.
 	Collection::Pair<uint32_t, NavMeshTriangleID> AddTriangle(const NavMeshTriangle& triangle);
-};
 
-class NavMeshTriangleID
-{
-	static constexpr uint32_t k_invalidValue = UINT32_MAX;
-	uint32_t m_value{ k_invalidValue };
-
-public:
-	NavMeshTriangleID() = default;
-
-	explicit NavMeshTriangleID(uint32_t value)
-		: m_value(value)
-	{}
-
-	uint32_t GetValue() const { return m_value; }
-
-	bool operator==(const NavMeshTriangleID& rhs) const { return m_value == rhs.m_value; }
-	bool operator!=(const NavMeshTriangleID& rhs) const { return m_value != rhs.m_value; }
-	bool operator<(const NavMeshTriangleID& rhs) const { return m_value < rhs.m_value; }
-	bool operator<=(const NavMeshTriangleID& rhs) const { return m_value <= rhs.m_value; }
-	bool operator>(const NavMeshTriangleID& rhs) const { return m_value > rhs.m_value; }
-	bool operator>=(const NavMeshTriangleID& rhs) const { return m_value >= rhs.m_value; }
+	// Finds the first triangle containing the point and returns its index and ID.
+	Collection::Pair<uint32_t, NavMeshTriangleID> FindTriangleContaining(const Math::Vector3& position) const;
 };
 
 struct NavMeshTriangle
 {
-	float m_x1, m_y1;
-	float m_x2, m_y2;
-	float m_x3, m_y3;
-	float m_xCenter, m_yCenter;
+	Math::Vector3 m_v1;
+	Math::Vector3 m_v2;
+	Math::Vector3 m_v3;
+	Math::Vector3 m_center;
 };
 
 class NavMeshConnectionFlags

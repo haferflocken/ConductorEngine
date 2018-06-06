@@ -7,6 +7,19 @@ namespace Navigation
 static_assert(sizeof(NavMeshConnections) == 64,
 	"Please ensure that NavMeshConnections align well to cache boundaries.");
 
+NavMesh::NavMesh(NavMesh&& o)
+	: m_triangleIDs(std::move(o.m_triangleIDs))
+	, m_trianglesByIDIndex(std::move(o.m_trianglesByIDIndex))
+	, m_connectionsByIDIndex(std::move(o.m_connectionsByIDIndex))
+{}
+
+void NavMesh::operator=(NavMesh&& rhs)
+{
+	m_triangleIDs = std::move(rhs.m_triangleIDs);
+	m_trianglesByIDIndex = std::move(rhs.m_trianglesByIDIndex);
+	m_connectionsByIDIndex = std::move(rhs.m_connectionsByIDIndex);
+}
+
 uint32_t NavMesh::FindIndexOfID(const NavMeshTriangleID id) const
 {
 	for (auto iter = m_triangleIDs.begin(), iterEnd = m_triangleIDs.end(); iter != iterEnd; ++iter)
@@ -43,7 +56,7 @@ Collection::Pair<uint32_t, NavMeshTriangleID> NavMesh::AddTriangle(const NavMesh
 {
 	const NavMeshTriangleID triangleID = (m_triangleIDs.IsEmpty())
 		? NavMeshTriangleID(0)
-		: NavMeshTriangleID(m_triangleIDs.Back().GetValue() + 1);
+		: NavMeshTriangleID(m_triangleIDs.Back().GetUniqueID() + 1);
 
 	const uint32_t triangleIndex = m_triangleIDs.Size();
 
@@ -52,5 +65,11 @@ Collection::Pair<uint32_t, NavMeshTriangleID> NavMesh::AddTriangle(const NavMesh
 	m_connectionsByIDIndex.Emplace();
 
 	return { triangleIndex, triangleID };
+}
+
+Collection::Pair<uint32_t, NavMeshTriangleID> NavMesh::FindTriangleContaining(const Math::Vector3& position) const
+{
+	// TODO
+	return { UINT32_MAX, NavMeshTriangleID() };
 }
 }

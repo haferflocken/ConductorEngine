@@ -36,12 +36,12 @@ public:
 // Inline implementations.
 namespace Navigation
 {
-uint32_t NavMeshGraphInterface::NodeIDToIndex(const NavMeshTriangleID& nodeID) const
+inline uint32_t NavMeshGraphInterface::NodeIDToIndex(const NavMeshTriangleID& nodeID) const
 {
 	return static_cast<uint32_t>(m_navMesh.FindIndexOfID(nodeID));
 }
 
-Collection::ArrayView<const NavMeshConnection> NavMeshGraphInterface::GetNeighbours(
+inline Collection::ArrayView<const NavMeshConnection> NavMeshGraphInterface::GetNeighbours(
 	const NavMeshTriangleID& nodeID,
 	const uint32_t nodeIndex) const
 {
@@ -49,12 +49,12 @@ Collection::ArrayView<const NavMeshConnection> NavMeshGraphInterface::GetNeighbo
 	return Collection::ArrayView<const NavMeshConnection>(connections.m_connections, connections.m_numConnections);
 }
 
-NavMeshTriangleID NavMeshGraphInterface::ConnectionToNodeID(const NavMeshConnection& connection) const
+inline NavMeshTriangleID NavMeshGraphInterface::ConnectionToNodeID(const NavMeshConnection& connection) const
 {
 	return connection.m_connectedID;
 }
 
-bool NavMeshGraphInterface::IsValidNeighbour(
+inline bool NavMeshGraphInterface::IsValidNeighbour(
 	const NavMeshTriangleID& nodeID,
 	const uint32_t nodeIndex,
 	const NavMeshConnection& connection) const
@@ -62,7 +62,7 @@ bool NavMeshGraphInterface::IsValidNeighbour(
 	return true;
 }
 
-float NavMeshGraphInterface::CalcCost(
+inline float NavMeshGraphInterface::CalcCost(
 	const NavMeshTriangleID& nodeID,
 	const uint32_t nodeIndex,
 	const NavMeshConnection& connection,
@@ -70,12 +70,11 @@ float NavMeshGraphInterface::CalcCost(
 {
 	const NavMeshTriangle& nodeTriangle = m_navMesh.GetTriangleByIndex(nodeIndex);
 	const NavMeshTriangle& connectedTriangle = m_navMesh.GetTriangleByIndex(connectedIndex);
-	const float dX = (nodeTriangle.m_xCenter - connectedTriangle.m_xCenter);
-	const float dY = (nodeTriangle.m_yCenter - connectedTriangle.m_yCenter);
-	return sqrt((dX * dX) + (dY * dY));
+	const Math::Vector3 delta = nodeTriangle.m_center - connectedTriangle.m_center;
+	return delta.Length();
 }
 
-float NavMeshGraphInterface::Heuristic(
+inline float NavMeshGraphInterface::Heuristic(
 	const NavMeshTriangleID& nodeID,
 	const uint32_t nodeIndex,
 	const NavMeshTriangleID& goalID,
@@ -83,8 +82,7 @@ float NavMeshGraphInterface::Heuristic(
 {
 	const NavMeshTriangle& nodeTriangle = m_navMesh.GetTriangleByIndex(nodeIndex);
 	const NavMeshTriangle& goalTriangle = m_navMesh.GetTriangleByIndex(goalIndex);
-	const float dX = (nodeTriangle.m_xCenter - goalTriangle.m_xCenter);
-	const float dY = (nodeTriangle.m_yCenter - goalTriangle.m_yCenter);
-	return sqrt((dX * dX) + (dY * dY));
+	const Math::Vector3 delta = nodeTriangle.m_center - goalTriangle.m_center;
+	return delta.Length();
 }
 }

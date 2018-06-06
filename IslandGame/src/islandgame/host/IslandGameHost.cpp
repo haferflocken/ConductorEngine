@@ -28,7 +28,7 @@ void IslandGame::Host::IslandGameHost::Update()
 	using namespace Navigation;
 
 	NavMesh navMesh;
-	const NavMeshTriangle triangle{ 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f / 3.0f, 1.0f / 3.0f };
+	const NavMeshTriangle triangle;
 
 	Collection::Vector<NavMeshTriangleID> ids;
 	for (size_t i = 0; i < 1000; ++i)
