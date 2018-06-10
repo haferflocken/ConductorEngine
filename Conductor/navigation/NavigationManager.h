@@ -4,7 +4,6 @@
 #include <navigation/Navigator.h>
 #include <navigation/NavigatorID.h>
 #include <navigation/NavMesh.h>
-#include <navigation/PathCache.h>
 
 namespace Navigation
 {
@@ -15,9 +14,9 @@ namespace Navigation
 class NavigationManager
 {
 	Collection::VectorMap<NavigatorID, Navigator> m_navigatorMap{};
+	Collection::VectorMap<NavigatorID, Collection::Vector<NavMeshTriangleID>> m_pathsByNavigatorID{};
 	NavigatorID m_nextNavigatorID{ 0 };
 	NavMesh m_navMesh;
-	PathCache<NavMeshTriangleID> m_pathCache{};
 
 public:
 	explicit NavigationManager(NavMesh&& navMesh);
@@ -28,5 +27,8 @@ public:
 	void SetGoalPosition(const NavigatorID navigatorID, const Math::Vector3& goalPosition);
 
 	void Update();
+
+private:
+	void GuideNavigator(const NavigatorID& navigatorID, Navigator& navigator);
 };
 }

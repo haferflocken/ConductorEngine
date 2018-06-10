@@ -23,6 +23,12 @@ public:
 	void operator+=(const Vector3& rhs);
 	void operator-=(const Vector3& rhs);
 
+	Vector3 operator*(const float rhs) const;
+	Vector3 operator/(const float rhs) const;
+
+	void operator*=(const float rhs);
+	void operator/=(const float rhs);
+
 	float Dot(const Vector3& rhs) const;
 
 	float x;
@@ -78,6 +84,30 @@ inline void Vector3::operator-=(const Vector3& rhs)
 	x -= rhs.x;
 	y -= rhs.y;
 	z -= rhs.z;
+}
+
+inline Vector3 Vector3::operator*(const float rhs) const
+{
+	return Vector3(x * rhs, y * rhs, z * rhs);
+}
+
+inline Vector3 Vector3::operator/(const float rhs) const
+{
+	return Vector3(x / rhs, y / rhs, z / rhs);
+}
+
+inline void Vector3::operator*=(const float rhs)
+{
+	x *= rhs;
+	y *= rhs;
+	z *= rhs;
+}
+
+inline void Vector3::operator/=(const float rhs)
+{
+	x /= rhs;
+	y /= rhs;
+	z /= rhs;
 }
 
 inline float Vector3::Dot(const Vector3& rhs) const

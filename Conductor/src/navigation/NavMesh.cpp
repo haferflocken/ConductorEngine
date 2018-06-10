@@ -69,7 +69,12 @@ Collection::Pair<uint32_t, NavMeshTriangleID> NavMesh::AddTriangle(const NavMesh
 
 Collection::Pair<uint32_t, NavMeshTriangleID> NavMesh::FindTriangleContaining(const Math::Vector3& position) const
 {
-	// TODO
+	// TODO Some sort of spatial paritioning for triangles
+	for (auto iter = m_trianglesByIDIndex.begin(), iterEnd = m_trianglesByIDIndex.end(); iter != iterEnd; ++iter)
+	{
+		const NavMeshTriangle& triangle = *iter;
+		// TODO test if triangle contains
+	}
 	return { UINT32_MAX, NavMeshTriangleID() };
 }
 }

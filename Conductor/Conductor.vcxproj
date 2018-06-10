@@ -247,7 +247,6 @@
     <ClInclude Include="navigation\NavMesh.h" />
     <ClInclude Include="navigation\NavMeshGraphInterface.h" />
     <ClInclude Include="navigation\NavMeshTriangleID.h" />
-    <ClInclude Include="navigation\PathCache.h" />
     <ClInclude Include="network\Socket.h" />
     <ClInclude Include="unit\CountUnits.h" />
     <ClInclude Include="collection\PolyStack.h" />

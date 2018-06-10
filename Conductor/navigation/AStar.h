@@ -7,11 +7,19 @@
 
 namespace Navigation
 {
-namespace AStarDetail
-{
 template <typename NodeID, typename CostType>
 struct AStarNode;
 
+template <typename NodeID, typename CostType>
+struct MakePathFromNodes
+{
+	Collection::Vector<NodeID>& m_outPath;
+
+	void OnPathFound(const Collection::Vector<AStarNode<NodeID, CostType>>& nodes, const uint32_t goalNodeIndex);
+};
+
+namespace AStarDetail
+{
 template <typename NodeID, typename CostType>
 struct AStarHeapProperty
 {
@@ -19,12 +27,6 @@ struct AStarHeapProperty
 
 	bool Test(const uint32_t& parent, const uint32_t& child) const;
 };
-
-template <typename NodeID, typename CostType>
-void MakePathFromNodes(
-	const Collection::Vector<AStarNode<NodeID, CostType>>& nodes,
-	const uint32_t goalNodeIndex,
-	Collection::Vector<NodeID>& outPath);
 }
 
 /**
@@ -43,14 +45,17 @@ void MakePathFromNodes(
  *       const NodeConnection& connection, const uint32_t connectedIndex) const
  * - CostType Heuristic(const NodeID& nodeID, const uint32_t nodeIndex, const NodeID& goalID, const uint32_t goalIndex)
  *
- * Returns true if a path was found and places the path in outPath.
+ * The provided output interface must have the following member function:
+ * - void OnPathFound(const Collection::Vector<AStarNode<NodeID, CostType>>& nodes, const uint32_t goalNodeIndex)
+ *
+ * If a path is found, calls OnPathFound on outputInterface and returns true.
  */
-template <typename GraphInterfaceType>
+template <typename GraphInterfaceType, typename OutputInterfaceType>
 bool AStarSearch(
 	GraphInterfaceType& graphInterface,
 	const typename GraphInterfaceType::NodeID& startNodeID,
 	const typename GraphInterfaceType::NodeID& goalNodeID,
-	Collection::Vector<typename GraphInterfaceType::NodeID>& outPath)
+	OutputInterfaceType& outputInterface)
 {
 	using namespace AStarDetail;
 	using NodeID = typename GraphInterfaceType::NodeID;
@@ -86,7 +91,7 @@ bool AStarSearch(
 		const AStarNode<NodeID, CostType>& current = nodes[currentIndex];
 		if (current.m_nodeID == goalNodeID)
 		{
-			MakePathFromNodes(nodes, goalNodeIndex, outPath);
+			outputInterface.OnPathFound(nodes, goalNodeIndex);
 			return true;
 		}
 
@@ -156,7 +161,7 @@ bool AStarSearch(
 }
 }
 
-namespace Navigation::AStarDetail
+namespace Navigation
 {
 template <typename NodeID, typename CostType>
 struct AStarNode
@@ -165,28 +170,30 @@ struct AStarNode
 	NodeID m_nodeID;
 	CostType m_costFromStart; // Often known as the g-value.
 	CostType m_estimatedCostFromStartToGoal; // Often known as the f-value.
-	
+
 	bool HasCosts() const { return m_parentNodeIndex != std::numeric_limits<size_t>::max(); }
 };
 
 template <typename NodeID, typename CostType>
-bool AStarHeapProperty<NodeID, CostType>::Test(const uint32_t& parent, const uint32_t& child) const
-{
-	return (*m_nodes)[parent].m_estimatedCostFromStartToGoal < (*m_nodes)[child].m_estimatedCostFromStartToGoal;
-}
-
-template <typename NodeID, typename CostType>
-void MakePathFromNodes(
+void MakePathFromNodes<NodeID, CostType>::OnPathFound(
 	const Collection::Vector<AStarNode<NodeID, CostType>>& nodes,
-	const uint32_t goalNodeIndex,
-	Collection::Vector<NodeID>& outPath)
+	const uint32_t goalNodeIndex)
 {
 	size_t index = goalNodeIndex;
 	do
 	{
 		const AStarNode<NodeID, CostType>& current = nodes[index];
-		outPath.Add(current.m_nodeID);
+		m_outPath.Add(current.m_nodeID);
 		index = current.m_parentNodeIndex;
 	} while (index != std::numeric_limits<size_t>::max());
+}
+}
+
+namespace Navigation::AStarDetail
+{
+template <typename NodeID, typename CostType>
+bool AStarHeapProperty<NodeID, CostType>::Test(const uint32_t& parent, const uint32_t& child) const
+{
+	return (*m_nodes)[parent].m_estimatedCostFromStartToGoal < (*m_nodes)[child].m_estimatedCostFromStartToGoal;
 }
 }

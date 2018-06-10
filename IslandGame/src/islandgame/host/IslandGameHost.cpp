@@ -9,23 +9,13 @@
 #include <navigation/NavMesh.h>
 #include <navigation/NavMeshGraphInterface.h>
 
-IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
-	: m_gameData(gameData)
-	, m_actorManager(gameData.GetActorComponentFactory())
+namespace Internal_IslandGameHost
 {
-	m_actorManager.CreateActor(*m_gameData.GetActorInfoManager().FindActorInfo(Util::CalcHash("islander.json")));
-}
-
-IslandGame::Host::IslandGameHost::~IslandGameHost()
+Navigation::NavMesh MakeTestNavMesh()
 {
-}
-
-void IslandGame::Host::IslandGameHost::Update()
-{
-	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
-	m_actorManager.Update(context);
-
 	using namespace Navigation;
+
+	// TODO not a random navmesh 
 
 	NavMesh navMesh;
 	const NavMeshTriangle triangle;
@@ -50,12 +40,30 @@ void IslandGame::Host::IslandGameHost::Update()
 		connectionC.m_connectedID = ids[rand() % ids.Size()];
 	}
 
-	const NavMeshTriangleID& startID = ids[rand() % ids.Size()];
-	const NavMeshTriangleID& goalID = ids[rand() % ids.Size()];
+	return navMesh;
+}
+}
 
-	Collection::Vector<NavMeshTriangleID> path;
-	const bool pathFound = AStarSearch(NavMeshGraphInterface(navMesh), startID, goalID, path);
+IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
+	: m_gameData(gameData)
+	, m_navigationManager(Internal_IslandGameHost::MakeTestNavMesh())
+	, m_actorManager(gameData.GetActorComponentFactory())
+{
+	// TODO create this at the right place
+	const Navigation::NavigatorID navigatorID = m_navigationManager.CreateNavigator(
+		Math::Vector3(), Math::Vector3(1.0f, 0.0f, 0.0f));
 
-	int x = 0;
-	++x;
+	m_actorManager.CreateActor(*m_gameData.GetActorInfoManager().FindActorInfo(Util::CalcHash("islander.json")));
+}
+
+IslandGame::Host::IslandGameHost::~IslandGameHost()
+{
+}
+
+void IslandGame::Host::IslandGameHost::Update()
+{
+	m_navigationManager.Update();
+
+	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
+	m_actorManager.Update(context);
 }

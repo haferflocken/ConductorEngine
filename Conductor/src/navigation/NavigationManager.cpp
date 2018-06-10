@@ -51,24 +51,62 @@ void NavigationManager::Update()
 		{
 			continue;
 		}
-		const auto* const cachedPath = m_pathCache.FindPath(navigator.m_currentTriangle, navigator.m_goalTriangle);
-		if (cachedPath != nullptr)
+
+		Collection::Vector<NavMeshTriangleID>& path = m_pathsByNavigatorID[entry.first];
+		if (!path.IsEmpty())
 		{
 			continue;
 		}
 
-		// TODO there is a way to cache all the sub paths
-		Collection::Vector<NavMeshTriangleID> path;
-		if (AStarSearch(graphInterface, navigator.m_currentTriangle, navigator.m_goalTriangle, path))
+		// If there is no path, pathfind.
+		const bool pathFound = AStarSearch(graphInterface, navigator.m_currentTriangle, navigator.m_goalTriangle,
+			MakePathFromNodes<NavMeshTriangleID, float>{ path });
+
+		// If pathfinding fails, add the current node to the path to indicate no path is needed.
+		if (!pathFound)
 		{
-
+			path.Add(navigator.m_currentTriangle);
 		}
-
-		// Always add a path to the cache, even if it is empty.
-		// This prevents repeatedly searching for a path that will never be found.
-		m_pathCache.AddPath(navigator.m_currentTriangle, navigator.m_goalTriangle, std::move(path));
 	}
 
-	// TODO Guidance for all navigators not at their goal position
+	// Guide all navigators not within their required proximity to their goal position.
+	for (auto& entry : m_navigatorMap)
+	{
+		GuideNavigator(entry.first, entry.second);
+	}
+}
+
+void NavigationManager::GuideNavigator(const NavigatorID& navigatorID, Navigator& navigator)
+{
+	const Math::Vector3 positionToGoal = navigator.m_goalPosition - navigator.m_position;
+	const float goalProximitySquared = positionToGoal.LengthSquared();
+	if (goalProximitySquared <= (navigator.m_requiredProximity - navigator.m_requiredProximity))
+	{
+		return;
+	}
+
+	const float goalProximity = sqrtf(goalProximitySquared);
+	const Math::Vector3 normalizedPositionToGoal = positionToGoal / goalProximity;
+
+	const float speed = navigator.m_speed;
+	const float maxSpeed = navigator.m_maxSpeed;
+	const float maxAcceleration = navigator.m_maxAcceleration;
+	float newSpeed;
+	if (speed < goalProximity)
+	{
+		// Go as fast as possible towards the goal without overshooting it.
+		const float maxNewSpeed = ((speed + maxAcceleration) < maxSpeed) ? (speed + maxAcceleration) : maxSpeed;
+		newSpeed = (maxNewSpeed < goalProximity) ? maxNewSpeed : goalProximity;
+	}
+	else
+	{
+		// Slow down towards the goal.
+		const float deceleration = (goalProximity < maxAcceleration) ? goalProximity : maxAcceleration;
+		newSpeed = (deceleration < speed) ? (speed - deceleration) : 0.0f;
+	}
+	
+	navigator.m_position += (normalizedPositionToGoal * newSpeed);
+	navigator.m_heading = normalizedPositionToGoal;
+	navigator.m_speed = newSpeed;
 }
 }
