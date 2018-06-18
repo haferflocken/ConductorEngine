@@ -122,6 +122,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="asset\InfoSchema.h" />
+    <ClInclude Include="asset\InfoSchemaField.h" />
     <ClInclude Include="collection\Array2D.h" />
     <ClInclude Include="collection\ArrayView.h" />
     <ClInclude Include="collection\BitVector.h" />
@@ -152,6 +154,8 @@
     <ClInclude Include="util\VariadicUtil.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\assets\InfoSchema.cpp" />
+    <ClCompile Include="src\assets\InfoSchemaField.cpp" />
     <ClCompile Include="src\dev\Dev.cpp" />
     <ClCompile Include="src\file\FullFileReader.cpp" />
     <ClCompile Include="src\file\JSONReader.cpp" />
