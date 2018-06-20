@@ -67,10 +67,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Conductor;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Amp;$(SolutionDir)Conductor;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Conductor;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Amp;$(SolutionDir)Conductor;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -86,6 +86,7 @@
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_SILENCE_PARALLEL_ALGORITHMS_EXPERIMENTAL_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories></AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <Link>
@@ -115,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_SILENCE_PARALLEL_ALGORITHMS_EXPERIMENTAL_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories></AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -229,21 +231,6 @@
     <ClCompile Include="src\host\HostWorld.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\json\JSONPrintVisitor.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\json\JSONTypes.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\dev\Dev.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\file\JSONReader.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\file\FullFileReader.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="src\navigation\NavigationManager.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -251,9 +238,6 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\network\Socket.cpp" />
-    <ClCompile Include="src\util\StringHash.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\Conductor\Conductor1.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -298,13 +282,6 @@
     <ClInclude Include="client\ClientNetworkWorld.h" />
     <ClInclude Include="client\MessageToHost.h" />
     <ClInclude Include="client\MessageToRenderInstance.h" />
-    <ClInclude Include="collection\ArrayView.h" />
-    <ClInclude Include="collection\BitVector.h" />
-    <ClInclude Include="collection\IndexIterator.h" />
-    <ClInclude Include="collection\LocklessQueue.h" />
-    <ClInclude Include="collection\Heap.h" />
-    <ClInclude Include="collection\Pair.h" />
-    <ClInclude Include="collection\Variant.h" />
     <ClInclude Include="client\ClientWorld.h" />
     <ClInclude Include="conductor\ApplicationErrorCode.h" />
     <ClInclude Include="conductor\HostMain.h" />
@@ -322,7 +299,6 @@
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
     <ClInclude Include="math\Vector4.h" />
-    <ClInclude Include="mem\UniquePtr.h" />
     <ClInclude Include="client\InputMessage.h" />
     <ClInclude Include="navigation\AStar.h" />
     <ClInclude Include="navigation\NavigationManager.h" />
@@ -332,35 +308,12 @@
     <ClInclude Include="navigation\NavMeshGraphInterface.h" />
     <ClInclude Include="navigation\NavMeshTriangleID.h" />
     <ClInclude Include="network\Socket.h" />
-    <ClInclude Include="unit\CountUnits.h" />
-    <ClInclude Include="collection\PolyStack.h" />
-    <ClInclude Include="collection\PolyBuffer.h" />
-    <ClInclude Include="collection\VectorMap.h" />
-    <ClInclude Include="util\StringHash.h" />
-    <ClInclude Include="json\JSONPrintVisitor.h" />
-    <ClInclude Include="json\JSONTypes.h" />
-    <ClInclude Include="collection\Vector.h" />
-    <ClInclude Include="dev\Dev.h" />
-    <ClInclude Include="file\JSONReader.h" />
-    <ClInclude Include="collection\Array2D.h" />
-    <ClInclude Include="collection\IntegralRange.h" />
-    <ClInclude Include="collection\ProgramParameters.h" />
-    <ClInclude Include="file\FullFileReader.h" />
-    <ClInclude Include="file\Path.h" />
     <ClInclude Include="client\IRenderInstance.h" />
-    <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
-    <ClInclude Include="unit\Time.h" />
-    <ClInclude Include="unit\UnitTempl.h" />
-    <ClInclude Include="util\UniqueID.h" />
-    <ClInclude Include="util\VariadicUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\behave\nodes\SequenceNode.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="unit\UnitTempl.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
