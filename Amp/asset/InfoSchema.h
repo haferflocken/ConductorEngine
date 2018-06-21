@@ -1,6 +1,9 @@
 #pragma once
 
 #include <asset/InfoSchemaField.h>
+#include <collection/Vector.h>
+
+namespace JSON { class JSONObject; }
 
 namespace Asset
 {
@@ -9,9 +12,15 @@ namespace Asset
  */
 class InfoSchema
 {
-	InfoSchemaField m_rootGroup;
+	// The version number of this schema.
+	uint32_t m_version{ 0 };
+
+	// A list of fields sorted by field ID.
+	Collection::Vector<InfoSchemaField> m_fields{};
 
 public:
-	InfoSchema();
+	InfoSchema() = default;
+
+	static InfoSchema MakeFromJSON(const JSON::JSONObject& jsonObject);
 };
 }
