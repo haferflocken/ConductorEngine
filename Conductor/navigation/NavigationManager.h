@@ -29,6 +29,7 @@ public:
 	void Update();
 
 private:
-	void GuideNavigator(const NavigatorID& navigatorID, Navigator& navigator);
+	void GuideNavigatorToWaypoint(Navigator& navigator);
+	void GuideNavigatorToGoal(Navigator& navigator);
 };
 }

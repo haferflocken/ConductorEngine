@@ -17,7 +17,9 @@ struct Navigator
 	float m_maxSpeed{ 0.0f };
 	float m_maxAcceleration{ 0.0f };
 	Math::Vector3 m_goalPosition{};
+	Math::Vector3 m_waypointPosition{};
 	float m_requiredProximity{ 1.0f };
+	float m_radius{ 1.0f };
 	NavMeshTriangleID m_currentTriangle{};
 	NavMeshTriangleID m_goalTriangle{};
 };
