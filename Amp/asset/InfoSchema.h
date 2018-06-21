@@ -22,5 +22,9 @@ public:
 	InfoSchema() = default;
 
 	static InfoSchema MakeFromJSON(const JSON::JSONObject& jsonObject);
+
+	uint32_t GetVersion() const { return m_version; }
+	InfoSchemaField* FindField(uint16_t fieldID);
+	const InfoSchemaField* FindField(uint16_t fieldID) const;
 };
 }
