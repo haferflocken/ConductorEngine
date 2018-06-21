@@ -1,4 +1,4 @@
-#include <asset/InfoSchema.h>
+#include <asset/RecordSchema.h>
 
 #include <json/JSONTypes.h>
 
@@ -6,7 +6,7 @@
 
 namespace Asset
 {
-namespace Internal_InfoSchema
+namespace Internal_RecordSchema
 {
 const Util::StringHash k_versionHash = Util::CalcHash("version");
 const Util::StringHash k_fieldsHash = Util::CalcHash("fields");
@@ -21,37 +21,37 @@ const Util::StringHash k_fieldMaxValueHash = Util::CalcHash("maxValue");
 const Util::StringHash k_fieldAcceptedTypesHash = Util::CalcHash("acceptedTypes");
 const Util::StringHash k_fieldMemberIDsHash = Util::CalcHash("memberIDs");
 
-InfoSchemaFieldType ParseType(const char* const typeString)
+RecordSchemaFieldType ParseType(const char* const typeString)
 {
 	if (strcmp("bool", typeString) == 0)
 	{
-		return InfoSchemaFieldType::Boolean;
+		return RecordSchemaFieldType::Boolean;
 	}
 	if (strcmp("float", typeString) == 0)
 	{
-		return InfoSchemaFieldType::Float;
+		return RecordSchemaFieldType::Float;
 	}
 	if (strcmp("int", typeString) == 0)
 	{
-		return InfoSchemaFieldType::Integer;
+		return RecordSchemaFieldType::Integer;
 	}
 	if (strcmp("instanceReference", typeString) == 0)
 	{
-		return InfoSchemaFieldType::InstanceReference;
+		return RecordSchemaFieldType::InstanceReference;
 	}
 	if (strcmp("group", typeString) == 0)
 	{
-		return InfoSchemaFieldType::Group;
+		return RecordSchemaFieldType::Group;
 	}
-	return InfoSchemaFieldType::Invalid;
+	return RecordSchemaFieldType::Invalid;
 }
 }
 
-InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
+RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 {
-	using namespace Internal_InfoSchema;
+	using namespace Internal_RecordSchema;
 
-	InfoSchema outSchema;
+	RecordSchema outSchema;
 
 	const JSON::JSONNumber* const version = jsonObject.FindNumber(k_versionHash);
 	if (version == nullptr)
@@ -93,8 +93,8 @@ InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			continue;
 		}
 
-		const InfoSchemaFieldType fieldType = ParseType(candidateType->m_string.c_str());
-		if (fieldType == InfoSchemaFieldType::Invalid)
+		const RecordSchemaFieldType fieldType = ParseType(candidateType->m_string.c_str());
+		if (fieldType == RecordSchemaFieldType::Invalid)
 		{
 			Dev::LogWarning("Skipped field [%u] with unknown type [%s].", fieldID, candidateType->m_string.c_str());
 			continue;
@@ -102,9 +102,9 @@ InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 
 		switch (fieldType)
 		{
-		case InfoSchemaFieldType::Boolean:
+		case RecordSchemaFieldType::Boolean:
 		{
-			InfoSchemaField booleanField = InfoSchemaField::MakeBooleanField(fieldID);
+			RecordSchemaField booleanField = RecordSchemaField::MakeBooleanField(fieldID);
 
 			const JSON::JSONBoolean* const candidateDefault = field.FindBoolean(k_fieldDefaultValueHash);
 			if (candidateDefault != nullptr)
@@ -115,9 +115,9 @@ InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			outSchema.m_fields.Add(std::move(booleanField));
 			break;
 		}
-		case InfoSchemaFieldType::Float:
+		case RecordSchemaFieldType::Float:
 		{
-			InfoSchemaField floatField = InfoSchemaField::MakeFloatField(fieldID);
+			RecordSchemaField floatField = RecordSchemaField::MakeFloatField(fieldID);
 
 			const JSON::JSONNumber* const candidateDefault = field.FindNumber(k_fieldDefaultValueHash);
 			const JSON::JSONNumber* const candidateMin = field.FindNumber(k_fieldMinValueHash);
@@ -138,9 +138,9 @@ InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			outSchema.m_fields.Add(std::move(floatField));
 			break;
 		}
-		case InfoSchemaFieldType::Integer:
+		case RecordSchemaFieldType::Integer:
 		{
-			InfoSchemaField integerField = InfoSchemaField::MakeIntegerField(fieldID);
+			RecordSchemaField integerField = RecordSchemaField::MakeIntegerField(fieldID);
 
 			const JSON::JSONNumber* const candidateDefault = field.FindNumber(k_fieldDefaultValueHash);
 			const JSON::JSONNumber* const candidateMin = field.FindNumber(k_fieldMinValueHash);
@@ -161,9 +161,9 @@ InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			outSchema.m_fields.Add(std::move(integerField));
 			break;
 		}
-		case InfoSchemaFieldType::InstanceReference:
+		case RecordSchemaFieldType::InstanceReference:
 		{
-			InfoSchemaField instanceReferenceField = InfoSchemaField::MakeInstanceReferenceField(fieldID);
+			RecordSchemaField instanceReferenceField = RecordSchemaField::MakeInstanceReferenceField(fieldID);
 
 			const JSON::JSONArray* const candidateAcceptedTypes = field.FindArray(k_fieldAcceptedTypesHash);
 			if (candidateAcceptedTypes != nullptr)
@@ -184,9 +184,9 @@ InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			outSchema.m_fields.Add(std::move(instanceReferenceField));
 			break;
 		}
-		case InfoSchemaFieldType::Group:
+		case RecordSchemaFieldType::Group:
 		{
-			InfoSchemaField groupField = InfoSchemaField::MakeGroupField(fieldID);
+			RecordSchemaField groupField = RecordSchemaField::MakeGroupField(fieldID);
 
 			const JSON::JSONArray* const candidateMemberFieldIDs = field.FindArray(k_fieldMemberIDsHash);
 			if (candidateMemberFieldIDs != nullptr)
@@ -216,12 +216,12 @@ InfoSchema InfoSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 	}
 
 	std::sort(outSchema.m_fields.begin(), outSchema.m_fields.end(),
-		[](const InfoSchemaField& lhs, const InfoSchemaField& rhs) { return lhs.m_fieldID < rhs.m_fieldID; });
+		[](const RecordSchemaField& lhs, const RecordSchemaField& rhs) { return lhs.m_fieldID < rhs.m_fieldID; });
 
 	return outSchema;
 }
 
-InfoSchemaField* InfoSchema::FindField(uint16_t fieldID)
+RecordSchemaField* RecordSchema::FindField(uint16_t fieldID)
 {
 	for (auto& field : m_fields)
 	{
@@ -233,7 +233,7 @@ InfoSchemaField* InfoSchema::FindField(uint16_t fieldID)
 	return nullptr;
 }
 
-const InfoSchemaField* InfoSchema::FindField(uint16_t fieldID) const
+const RecordSchemaField* RecordSchema::FindField(uint16_t fieldID) const
 {
 	for (const auto& field : m_fields)
 	{

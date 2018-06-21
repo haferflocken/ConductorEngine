@@ -119,8 +119,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="asset\InfoSchema.h" />
-    <ClInclude Include="asset\InfoSchemaField.h" />
+    <ClInclude Include="asset\RecordSchema.h" />
+    <ClInclude Include="asset\RecordSchemaField.h" />
     <ClInclude Include="collection\Array2D.h" />
     <ClInclude Include="collection\ArrayView.h" />
     <ClInclude Include="collection\BitVector.h" />
@@ -151,10 +151,10 @@
     <ClInclude Include="util\VariadicUtil.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\assets\InfoSchema.cpp">
+    <ClCompile Include="src\assets\RecordSchema.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\assets\InfoSchemaField.cpp">
+    <ClCompile Include="src\assets\RecordSchemaField.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\dev\Dev.cpp">
