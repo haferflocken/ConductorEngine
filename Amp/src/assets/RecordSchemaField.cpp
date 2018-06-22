@@ -107,6 +107,7 @@ RecordSchemaField::~RecordSchemaField()
 RecordSchemaField::RecordSchemaField(RecordSchemaField&& o)
 	: m_type(o.m_type)
 	, m_fieldID(o.m_fieldID)
+	, m_fieldName(std::move(o.m_fieldName))
 {
 	Internal_RecordSchemaField::MoveData(*this, std::move(o));
 }
@@ -117,26 +118,29 @@ void RecordSchemaField::operator=(RecordSchemaField&& rhs)
 
 	m_type = rhs.m_type;
 	m_fieldID = rhs.m_fieldID;
+	m_fieldName = std::move(rhs.m_fieldName);
 
 	Internal_RecordSchemaField::MoveData(*this, std::move(rhs));
 }
 
-RecordSchemaField RecordSchemaField::MakeBooleanField(const uint16_t fieldID)
+RecordSchemaField RecordSchemaField::MakeBooleanField(uint16_t fieldID, const char* name)
 {
 	RecordSchemaField field;
 	field.m_type = RecordSchemaFieldType::Boolean;
 	field.m_fieldID = fieldID;
+	field.m_fieldName = name;
 
 	field.m_booleanData.m_defaultValue = false;
 
 	return field;
 }
 
-RecordSchemaField RecordSchemaField::MakeFloatField(const uint16_t fieldID)
+RecordSchemaField RecordSchemaField::MakeFloatField(uint16_t fieldID, const char* name)
 {
 	RecordSchemaField field;
 	field.m_type = RecordSchemaFieldType::Float;
 	field.m_fieldID = fieldID;
+	field.m_fieldName = name;
 
 	field.m_floatData.m_defaultValue = 0.0f;
 	field.m_floatData.m_minimumValue = -FLT_MAX;
@@ -145,11 +149,12 @@ RecordSchemaField RecordSchemaField::MakeFloatField(const uint16_t fieldID)
 	return field;
 }
 
-RecordSchemaField RecordSchemaField::MakeIntegerField(const uint16_t fieldID)
+RecordSchemaField RecordSchemaField::MakeIntegerField(uint16_t fieldID, const char* name)
 {
 	RecordSchemaField field;
 	field.m_type = RecordSchemaFieldType::Integer;
 	field.m_fieldID = fieldID;
+	field.m_fieldName = name;
 
 	field.m_integerData.m_defaultValue = 0;
 	field.m_integerData.m_minimumValue = INT32_MIN;
@@ -158,22 +163,24 @@ RecordSchemaField RecordSchemaField::MakeIntegerField(const uint16_t fieldID)
 	return field;
 }
 
-RecordSchemaField RecordSchemaField::MakeInstanceReferenceField(const uint16_t fieldID)
+RecordSchemaField RecordSchemaField::MakeInstanceReferenceField(uint16_t fieldID, const char* name)
 {
 	RecordSchemaField field;
 	field.m_type = RecordSchemaFieldType::InstanceReference;
 	field.m_fieldID = fieldID;
+	field.m_fieldName = name;
 
 	new(&field.m_instanceReferenceData) RecordSchemaInstanceReferenceData();
 
 	return field;
 }
 
-RecordSchemaField RecordSchemaField::MakeGroupField(const uint16_t fieldID)
+RecordSchemaField RecordSchemaField::MakeGroupField(uint16_t fieldID, const char* name)
 {
 	RecordSchemaField field;
 	field.m_type = RecordSchemaFieldType::Group;
 	field.m_fieldID = fieldID;
+	field.m_fieldName = name;
 
 	new(&field.m_groupData) RecordSchemaGroupData();
 

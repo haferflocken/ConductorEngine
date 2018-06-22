@@ -1,0 +1,16 @@
+{
+	"version": 1,
+	"name": "Test",
+	"fields": {
+		"1": {
+			"name": "foo",
+			"type": "bool",
+			"defaultValue": true
+		},
+		"2": {
+			"name": "bar",
+			"type": "group",
+			"fields": {}
+		}
+	}
+}

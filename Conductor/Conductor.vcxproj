@@ -243,6 +243,9 @@
   <ItemGroup>
     <ClCompile Include="src\behave\nodes\SequenceNode.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="schemas\infoassets\test.json" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

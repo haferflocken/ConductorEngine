@@ -28,29 +28,25 @@ public:
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaBooleanData& fieldData) override
 	{
-		m_output.NewLine();
-		m_output << "bool " << field.m_fieldName.c_str() << ";";
+		WriteVariable("bool", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaFloatData& fieldData) override
 	{
-		m_output.NewLine();
-		m_output << "float " << field.m_fieldName.c_str() << ";";
+		WriteVariable("float", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaIntegerData& fieldData) override
 	{
-		m_output.NewLine();
-		m_output << "int32_t " << field.m_fieldName.c_str() << ";";
+		WriteVariable("int32_t", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaInstanceReferenceData& fieldData) override
 	{
-		m_output.NewLine();
-		m_output << "std::string " << field.m_fieldName.c_str() << ";";
+		WriteVariable("std::string", field.m_fieldName.c_str(), "");
 		return Flow::Visit;
 	}
 
@@ -88,10 +84,22 @@ public:
 
 		// Create a variable of the struct with a lowercase first letter.
 		const char lowerFirst = static_cast<char>(tolower(groupName[0]));
+
+		m_output.NewLine();
 		m_output << upperFirst << (groupName + 1) << " " << lowerFirst << (groupName + 1) << ";";
 
 		// Do not visit the fields within the group because they were visited by the subVisitor.
 		return Flow::Skip;
+	}
+
+private:
+	void WriteVariable(const char* const type, const char* const rawName, const char* const defaultValue)
+	{
+		const char lowerFirst = static_cast<char>(rawName[0]);
+
+		m_output.NewLine();
+		m_output << type << " m_" << lowerFirst << (rawName + 1);
+		m_output << "{ " << defaultValue << " };";
 	}
 };
 }
@@ -100,11 +108,19 @@ std::string CodeGen::GenerateInfoInstanceStruct(const Asset::RecordSchema& schem
 {
 	using namespace Internal_InfoAssetCodeGen;
 
+	const char* const name = schema.GetName().c_str();
+	if (name == nullptr || name[0] == '\0')
+	{
+		return "";
+	}
+	const char upperFirst = static_cast<char>(toupper(name[0]));
+
 	// Write out the instance struct.
 	CppStream output;
 	output << "#include <cstdint>\n";
 	output << "#include <string>\n";
-	output << "struct " << schema.GetName().c_str() << "\n{";
+
+	output << "struct " << upperFirst << (name + 1) << "\n{";
 
 	output.Indent([&]()
 	{
@@ -113,7 +129,7 @@ std::string CodeGen::GenerateInfoInstanceStruct(const Asset::RecordSchema& schem
 	});
 
 	output.NewLine();
-	output << "}\n";
+	output << "};\n";
 	return output.CopyOut();
 }
 

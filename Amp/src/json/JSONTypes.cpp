@@ -90,6 +90,10 @@ template <typename T, ValueType type>
 const T* FindWithType(const JSONObject& jsonObject, const Util::StringHash keyHash)
 {
 	const JSONValue* const value = jsonObject.FindAny(keyHash);
+	if (value == nullptr)
+	{
+		return nullptr;
+	}
 	return (value->GetType() == type) ? static_cast<const T*>(value) : nullptr;
 }
 }

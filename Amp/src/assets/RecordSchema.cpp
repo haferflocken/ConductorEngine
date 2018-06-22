@@ -4,16 +4,18 @@
 #include <json/JSONTypes.h>
 
 #include <algorithm>
+#include <cstdlib>
 
 namespace Asset
 {
 namespace Internal_RecordSchema
 {
 const Util::StringHash k_versionHash = Util::CalcHash("version");
+const Util::StringHash k_nameHash = Util::CalcHash("name");
 const Util::StringHash k_fieldsHash = Util::CalcHash("fields");
 
-const Util::StringHash k_fieldTypeHash = Util::CalcHash("fieldType");
-const Util::StringHash k_fieldIDHash = Util::CalcHash("fieldID");
+const Util::StringHash k_fieldNameHash = Util::CalcHash("name");
+const Util::StringHash k_fieldTypeHash = Util::CalcHash("type");
 
 const Util::StringHash k_fieldDefaultValueHash = Util::CalcHash("defaultValue");
 const Util::StringHash k_fieldMinValueHash = Util::CalcHash("minValue");
@@ -60,32 +62,52 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		Dev::LogWarning("Failed to find a version number in the schema.");
 		return outSchema;
 	}
-	const JSON::JSONArray* const fields = jsonObject.FindArray(k_fieldsHash);
-	if (fields == nullptr)
+	const JSON::JSONString* const name = jsonObject.FindString(k_nameHash);
+	if (name == nullptr || name->m_string.empty())
+	{
+		Dev::LogWarning("Failed to find a name in the schema.");
+		return outSchema;
+	}
+	const JSON::JSONObject* const fieldMap = jsonObject.FindObject(k_fieldsHash);
+	if (fieldMap == nullptr)
 	{
 		Dev::LogWarning("Failed to find fields in the schema.");
 		return outSchema;
 	}
 
 	outSchema.m_version = static_cast<uint32_t>(version->m_number);
+	outSchema.m_name = name->m_string;
+	
+	RecordSchemaField rootGroup = RecordSchemaField::MakeGroupField(0, "root");
 
-	for (const auto& candidate : *fields)
+	for (const auto& candidateEntry : *fieldMap)
 	{
-		if (candidate->GetType() != JSON::ValueType::Object)
+		// Validate the field input.
+		const char* const candidateKey = candidateEntry.first.c_str();
+		const JSON::JSONValue& candidate = *candidateEntry.second;
+
+		if (candidate.GetType() != JSON::ValueType::Object)
 		{
 			Dev::LogWarning("Skipped a JSON value with type [%d] in the field array.",
-				static_cast<int32_t>(candidate->GetType()));
+				static_cast<int32_t>(candidate.GetType()));
 			continue;
 		}
-		const auto& field = *dynamic_cast<const JSON::JSONObject*>(candidate.Get());
+		const auto& field = *dynamic_cast<const JSON::JSONObject*>(&candidate);
 
-		const JSON::JSONNumber* const candidateID = field.FindNumber(k_fieldIDHash);
-		if (candidateID == nullptr)
+		const uint16_t fieldID = static_cast<uint16_t>(strtol(candidateKey, nullptr, 10));
+		if (fieldID == 0)
 		{
-			Dev::LogWarning("Skipped a field which was missing an ID.");
+			Dev::LogWarning("Skipped field [%u] with an invalid ID.", fieldID);
 			continue;
 		}
-		const uint16_t fieldID = static_cast<uint16_t>(candidateID->m_number);
+
+		const JSON::JSONString* const candidateName = field.FindString(k_fieldNameHash);
+		if (candidateName == nullptr || candidateName->m_string.empty())
+		{
+			Dev::LogWarning("Skipped field [%u] with a missing name.", fieldID);
+			continue;
+		}
+		const char* const fieldName = candidateName->m_string.c_str();
 
 		const JSON::JSONString* const candidateType = field.FindString(k_fieldTypeHash);
 		if (candidateType == nullptr)
@@ -101,11 +123,15 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			continue;
 		}
 
+		// Store the field in the root.
+		rootGroup.m_groupData.m_memberFieldIDs.Add(fieldID);
+
+		// Create the field.
 		switch (fieldType)
 		{
 		case RecordSchemaFieldType::Boolean:
 		{
-			RecordSchemaField booleanField = RecordSchemaField::MakeBooleanField(fieldID);
+			RecordSchemaField booleanField = RecordSchemaField::MakeBooleanField(fieldID, fieldName);
 
 			const JSON::JSONBoolean* const candidateDefault = field.FindBoolean(k_fieldDefaultValueHash);
 			if (candidateDefault != nullptr)
@@ -118,7 +144,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::Float:
 		{
-			RecordSchemaField floatField = RecordSchemaField::MakeFloatField(fieldID);
+			RecordSchemaField floatField = RecordSchemaField::MakeFloatField(fieldID, fieldName);
 
 			const JSON::JSONNumber* const candidateDefault = field.FindNumber(k_fieldDefaultValueHash);
 			const JSON::JSONNumber* const candidateMin = field.FindNumber(k_fieldMinValueHash);
@@ -141,7 +167,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::Integer:
 		{
-			RecordSchemaField integerField = RecordSchemaField::MakeIntegerField(fieldID);
+			RecordSchemaField integerField = RecordSchemaField::MakeIntegerField(fieldID, fieldName);
 
 			const JSON::JSONNumber* const candidateDefault = field.FindNumber(k_fieldDefaultValueHash);
 			const JSON::JSONNumber* const candidateMin = field.FindNumber(k_fieldMinValueHash);
@@ -164,7 +190,8 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::InstanceReference:
 		{
-			RecordSchemaField instanceReferenceField = RecordSchemaField::MakeInstanceReferenceField(fieldID);
+			RecordSchemaField instanceReferenceField =
+				RecordSchemaField::MakeInstanceReferenceField(fieldID, fieldName);
 
 			const JSON::JSONArray* const candidateAcceptedTypes = field.FindArray(k_fieldAcceptedTypesHash);
 			if (candidateAcceptedTypes != nullptr)
@@ -187,7 +214,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::Group:
 		{
-			RecordSchemaField groupField = RecordSchemaField::MakeGroupField(fieldID);
+			RecordSchemaField groupField = RecordSchemaField::MakeGroupField(fieldID, fieldName);
 
 			const JSON::JSONArray* const candidateMemberFieldIDs = field.FindArray(k_fieldMemberIDsHash);
 			if (candidateMemberFieldIDs != nullptr)
@@ -215,6 +242,9 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		}
 	}
+
+	// Store the root in the schema and sort the fields by field ID.
+	outSchema.m_fields.Add(std::move(rootGroup));
 
 	std::sort(outSchema.m_fields.begin(), outSchema.m_fields.end(),
 		[](const RecordSchemaField& lhs, const RecordSchemaField& rhs) { return lhs.m_fieldID < rhs.m_fieldID; });
