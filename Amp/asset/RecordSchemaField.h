@@ -7,6 +7,8 @@
 
 namespace Asset
 {
+class RecordSchemaVisitor;
+
 /**
 * A definition of a field within a schema.
 */
@@ -55,6 +57,7 @@ struct RecordSchemaField
 {
 	RecordSchemaFieldType m_type{ RecordSchemaFieldType::Invalid };
 	uint16_t m_fieldID{ UINT16_MAX };
+	std::string m_fieldName;
 	union
 	{
 		RecordSchemaBooleanData m_booleanData;

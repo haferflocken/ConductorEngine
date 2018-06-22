@@ -124,6 +124,7 @@
   <ItemGroup>
     <ClInclude Include="asset\RecordSchema.h" />
     <ClInclude Include="asset\RecordSchemaField.h" />
+    <ClInclude Include="asset\RecordSchemaVisitor.h" />
     <ClInclude Include="collection\Array2D.h" />
     <ClInclude Include="collection\ArrayView.h" />
     <ClInclude Include="collection\BitVector.h" />

@@ -127,7 +127,14 @@
     <ClCompile Include="src\CodeGenerator.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\codegen\InfoAssetCodeGen.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\CodeGenerator\CodeGenerator1.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="codegen\CppStream.h" />
+    <ClInclude Include="codegen\InfoAssetCodeGen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>

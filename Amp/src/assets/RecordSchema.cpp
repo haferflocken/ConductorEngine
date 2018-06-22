@@ -1,5 +1,6 @@
 #include <asset/RecordSchema.h>
 
+#include <asset/RecordSchemaVisitor.h>
 #include <json/JSONTypes.h>
 
 #include <algorithm>
@@ -243,5 +244,72 @@ const RecordSchemaField* RecordSchema::FindField(uint16_t fieldID) const
 		}
 	}
 	return nullptr;
+}
+
+bool RecordSchema::Accept(RecordSchemaVisitor& visitor, uint16_t fieldID) const
+{
+	const RecordSchemaField* const field = FindField(fieldID);
+	if (field == nullptr)
+	{
+		return false;
+	}
+
+	switch (field->m_type)
+	{
+	case RecordSchemaFieldType::Invalid:
+	{
+		return true;
+	}
+	case RecordSchemaFieldType::Boolean:
+	{
+		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_booleanData);
+		return (result != RecordSchemaVisitor::Flow::Stop);
+	}
+	case RecordSchemaFieldType::Float:
+	{
+		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_floatData);
+		return (result != RecordSchemaVisitor::Flow::Stop);
+	}
+	case RecordSchemaFieldType::Integer:
+	{
+		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_integerData);
+		return (result != RecordSchemaVisitor::Flow::Stop);
+	}
+	case RecordSchemaFieldType::InstanceReference:
+	{
+		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_instanceReferenceData);
+		return (result != RecordSchemaVisitor::Flow::Stop);
+	}
+	case RecordSchemaFieldType::Group:
+	{
+		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_groupData);
+		switch (result)
+		{
+		case RecordSchemaVisitor::Flow::Skip:
+		{
+			return true;
+		}
+		case RecordSchemaVisitor::Flow::Stop:
+		{
+			return false;
+		}
+		}
+
+		for (const auto& memberFieldID : field->m_groupData.m_memberFieldIDs)
+		{
+			const bool keepGoing = Accept(visitor, memberFieldID);
+			if (!keepGoing)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	default:
+	{
+		Dev::FatalError("Unknown field type [%d]", static_cast<int32_t>(field->m_type));
+		return false;
+	}
+	}
 }
 }
