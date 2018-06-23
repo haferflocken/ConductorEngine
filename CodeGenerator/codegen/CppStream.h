@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sstream>
+#include <ostream>
 #include <string>
 
 namespace CodeGen
@@ -11,7 +11,9 @@ namespace CodeGen
 class CppStream
 {
 public:
-	CppStream() = default;
+	explicit CppStream(std::ostream& outputStream)
+		: m_stream(outputStream)
+	{}
 
 	CppStream& operator<<(const char* text)
 	{
@@ -38,10 +40,8 @@ public:
 		m_indentation.pop_back();
 	}
 
-	std::string CopyOut() const { return m_stream.str(); }
-
 private:
-	std::stringstream m_stream{};
+	std::ostream& m_stream;
 	std::string m_indentation{};
 };
 }

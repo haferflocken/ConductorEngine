@@ -241,6 +241,7 @@
     <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\Conductor\Conductor1.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="generated\**\*.h" />
     <ClInclude Include="behave\Actor.h" />
     <ClInclude Include="behave\ActorComponent.h" />
     <ClInclude Include="behave\ActorComponentFactory.h" />
@@ -316,7 +317,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="schemas\InfoAsset\test.json" />
+    <None Include="schemas\InfoAsset\Test.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>

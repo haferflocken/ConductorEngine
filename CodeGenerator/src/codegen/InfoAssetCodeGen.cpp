@@ -104,22 +104,23 @@ private:
 };
 }
 
-std::string CodeGen::GenerateInfoInstanceStruct(
+void CodeGen::GenerateInfoInstanceStruct(
 	const std::string* namespaceNames,
 	const size_t numNamespaceNames,
-	const Asset::RecordSchema& schema)
+	const Asset::RecordSchema& schema,
+	std::ostream& outputStream)
 {
 	using namespace Internal_InfoAssetCodeGen;
 
 	const char* const name = schema.GetName().c_str();
 	if (name == nullptr || name[0] == '\0')
 	{
-		return "";
+		return;
 	}
 	const char upperFirst = static_cast<char>(toupper(name[0]));
 
 	// Write out the required includes.
-	CppStream output;
+	CppStream output{ outputStream };
 	output << "#include <cstdint>\n";
 	output << "#include <string>\n";
 
@@ -145,24 +146,24 @@ std::string CodeGen::GenerateInfoInstanceStruct(
 	output.NewLine();
 	output << "};\n";
 
-	// Close the namespaces brace and return.
+	// Close the namespaces brace.
 	output << "}\n";
-	return output.CopyOut();
 }
 
-std::string CodeGen::GenerateInfoInstanceSaveFunction(
+void CodeGen::GenerateInfoInstanceSaveFunction(
 	const std::string* namespaceNames,
 	const size_t numNamespaceNames,
-	const Asset::RecordSchema& schema)
+	const Asset::RecordSchema& schema,
+	std::ostream& outputStream)
 {
 	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
 	if (rootGroup == nullptr || rootGroup->m_type != Asset::RecordSchemaFieldType::Group)
 	{
-		return "";
+		return;
 	}
 	const Asset::RecordSchemaGroupData& rootGroupData = rootGroup->m_groupData;
 
-	CppStream output;
+	CppStream output{ outputStream };
 	output << "JSON::JSONObject SaveInfoInstance(";
 	output << "const " << schema.GetName().c_str() << "& infoInstance";
 	output << ")\n{";
@@ -174,14 +175,13 @@ std::string CodeGen::GenerateInfoInstanceSaveFunction(
 
 	output.NewLine();
 	output << "}\n";
-	return output.CopyOut();
 }
 
-std::string CodeGen::GenerateInfoInstanceLoadFunction(
+void CodeGen::GenerateInfoInstanceLoadFunction(
 	const std::string* namespaceNames,
 	const size_t numNamespaceNames,
-	const Asset::RecordSchema& schema)
+	const Asset::RecordSchema& schema,
+	std::ostream& outputStream)
 {
 	// TODO
-	return "";
 }

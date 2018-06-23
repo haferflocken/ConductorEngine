@@ -132,11 +132,8 @@ int main(const int argc, const char* argv[])
 		{
 		case GenerationType::InfoAsset:
 		{
-			const std::string structString = CodeGen::GenerateInfoInstanceStruct(parentStack, parentStackSize, schema);
-			
-			std::fstream outputStream{ outputFile, std::ios_base::out|std::ios_base::trunc };
-			outputStream << structString;
-			
+			std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
+			CodeGen::GenerateInfoInstanceStruct(parentStack, parentStackSize, schema, outputStream);
 			break;
 		}
 		case GenerationType::Component:
