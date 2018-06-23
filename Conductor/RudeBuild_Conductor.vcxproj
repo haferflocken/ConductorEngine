@@ -316,7 +316,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="schemas\infoassets\test.json" />
+    <None Include="schemas\InfoAsset\test.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>

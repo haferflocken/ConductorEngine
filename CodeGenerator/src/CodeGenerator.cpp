@@ -6,32 +6,146 @@
 #include <json/JSONTypes.h>
 #include <mem/UniquePtr.h>
 
+#include <cwchar>
+#include <fstream>
 #include <iostream>
+#include <string>
 
 int main(const int argc, const char* argv[])
 {
+	// Collect the required command line arguments.
 	const Collection::ProgramParameters params{ argc, argv };
 	
 	std::string inputPath;
-	if (!params.TryGet("-inputFile", inputPath))
+	if (!params.TryGet("-inputDir", inputPath))
 	{
-		std::cerr << "Missing required parameter: -inputFile <file>" << std::endl;
+		std::cerr << "Missing required parameter: -inputDir <path>" << std::endl;
+		return -1;
+	}
+	const File::Path inputDir = File::MakePath(inputPath.c_str());
+	if (!File::IsDirectory(inputDir))
+	{
+		std::cerr << "-inputDir must specify a directory." << std::endl;
+		return -1;
+	}
+	const size_t inputPathLength = wcslen(inputDir.c_str());
+
+	std::string outputPath;
+	if (!params.TryGet("-outputDir", outputPath))
+	{
+		std::cerr << "Missing required parameter: -outputDir <path>" << std::endl;
+		return -1;
+	}
+	const File::Path outputDir = File::MakePath(outputPath.c_str());
+	if (!File::IsDirectory(outputDir))
+	{
+		std::cerr << "-outputDir must specify a directory." << std::endl;
 		return -1;
 	}
 
-	const Mem::UniquePtr<JSON::JSONValue> jsonInput = File::ReadJSONFile(File::MakePath(inputPath.c_str()));
-	if (jsonInput->GetType() != JSON::ValueType::Object)
+	// Generate the output from the input.
+	const bool result = File::ForEachFileInDirectoryRecursive(inputDir, [&](const File::Path& file, const size_t depth)
 	{
-		std::cerr << "Failed to parse the input as a JSON object." << std::endl;
-		return -2;
-	}
-	const JSON::JSONObject& jsonObject = *dynamic_cast<const JSON::JSONObject*>(jsonInput.Get());
+		if ((!file.has_extension()) || wcscmp(file.extension().c_str(), L".json") != 0)
+		{
+			return true;
+		}
+		std::cout << file.filename() << std::endl;
 
-	const Asset::RecordSchema schema = Asset::RecordSchema::MakeFromJSON(jsonObject);
+		// Extract the namespace information of the generated code.
+		constexpr size_t k_stackCapacity = 8;
+		std::string parentStack[k_stackCapacity];
+		size_t parentStackSize = 0;
 
-	const std::string structString = CodeGen::GenerateInfoInstanceStruct(schema);
-	
-	std::cout << structString << std::endl;
+		File::Path current = file;
+		while (parentStackSize < depth)
+		{
+			if (parentStackSize == k_stackCapacity)
+			{
+				std::cerr << "!> File too nested from the input directory to extract namespace." << std::endl;
+				return false;
+			}
+			current = current.parent_path();
+			parentStack[parentStackSize++] = current.filename().string();
+		}
 
-	return 0;
+		// Determine the type of code generation to do based on the top of the stack.
+		if (parentStackSize == 0)
+		{
+			std::cerr << "!> Cannot determine code generation type at the top level directory." << std::endl;
+			return false;
+		}
+		
+		enum class GenerationType
+		{
+			InfoAsset,
+			Component
+		};
+		GenerationType generationType;
+		if (strcmp(parentStack[parentStackSize - 1].c_str(), "InfoAsset") == 0)
+		{
+			generationType = GenerationType::InfoAsset;
+		}
+		else if (strcmp(parentStack[parentStackSize - 1].c_str(), "Component") == 0)
+		{
+			generationType = GenerationType::Component;
+		}
+		else
+		{
+			std::cerr << "!> Unrecognized code generation type [";
+			std::cerr << parentStack[parentStackSize - 1].c_str() << ']' << std::endl;
+			return false;
+		}
+
+		// Determine the output filepath.
+		File::Path outputFile = outputDir;
+		for (int64_t i = parentStackSize - 1; i >= 0; --i)
+		{
+			outputFile /= parentStack[i];
+		}
+		outputFile /= file.filename();
+		outputFile.replace_extension(".h");
+
+		if (File::Exists(outputFile) && !File::IsRegularFile(outputFile))
+		{
+			std::cerr << "!> Desired output path is not an ordinary file [" << outputFile << ']' << std::endl;
+			return false;
+		}
+
+		// Load the file as a RecordSchema.
+		const Mem::UniquePtr<JSON::JSONValue> jsonInput = File::ReadJSONFile(file);
+		if (jsonInput->GetType() != JSON::ValueType::Object)
+		{
+			std::cerr << "!> Failed to parse as a JSON object." << std::endl;
+			return false;
+		}
+		const JSON::JSONObject& jsonObject = *dynamic_cast<const JSON::JSONObject*>(jsonInput.Get());
+		const Asset::RecordSchema schema = Asset::RecordSchema::MakeFromJSON(jsonObject);
+		if (schema.FindField(0) == nullptr)
+		{
+			std::cerr << "!> Failed to parse as a schema." << std::endl;
+			return false;
+		}
+
+		// Generate and output code.
+		switch (generationType)
+		{
+		case GenerationType::InfoAsset:
+		{
+			const std::string structString = CodeGen::GenerateInfoInstanceStruct(parentStack, parentStackSize, schema);
+			
+			std::fstream outputStream{ outputFile, std::ios_base::out|std::ios_base::trunc };
+			outputStream << structString;
+			
+			break;
+		}
+		case GenerationType::Component:
+		{
+			// TODO
+			break;
+		}
+		}
+		return true;
+	});
+	return (result ? 0 : -2);
 }

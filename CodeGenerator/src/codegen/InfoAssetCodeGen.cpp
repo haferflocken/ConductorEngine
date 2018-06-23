@@ -104,7 +104,10 @@ private:
 };
 }
 
-std::string CodeGen::GenerateInfoInstanceStruct(const Asset::RecordSchema& schema)
+std::string CodeGen::GenerateInfoInstanceStruct(
+	const std::string* namespaceNames,
+	const size_t numNamespaceNames,
+	const Asset::RecordSchema& schema)
 {
 	using namespace Internal_InfoAssetCodeGen;
 
@@ -115,11 +118,22 @@ std::string CodeGen::GenerateInfoInstanceStruct(const Asset::RecordSchema& schem
 	}
 	const char upperFirst = static_cast<char>(toupper(name[0]));
 
-	// Write out the instance struct.
+	// Write out the required includes.
 	CppStream output;
 	output << "#include <cstdint>\n";
 	output << "#include <string>\n";
 
+	// Write out the namespaces.
+	output.NewLine();
+	output << "namespace " << namespaceNames[0].c_str();
+	for (size_t i = 1; i < numNamespaceNames; ++i)
+	{
+		output << "::" << namespaceNames[i].c_str();
+	}
+	output << "\n{";
+	
+	// Write out the instance struct.
+	output.NewLine();
 	output << "struct " << upperFirst << (name + 1) << "\n{";
 
 	output.Indent([&]()
@@ -130,10 +144,16 @@ std::string CodeGen::GenerateInfoInstanceStruct(const Asset::RecordSchema& schem
 
 	output.NewLine();
 	output << "};\n";
+
+	// Close the namespaces brace and return.
+	output << "}\n";
 	return output.CopyOut();
 }
 
-std::string CodeGen::GenerateInfoInstanceSaveFunction(const Asset::RecordSchema& schema)
+std::string CodeGen::GenerateInfoInstanceSaveFunction(
+	const std::string* namespaceNames,
+	const size_t numNamespaceNames,
+	const Asset::RecordSchema& schema)
 {
 	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
 	if (rootGroup == nullptr || rootGroup->m_type != Asset::RecordSchemaFieldType::Group)
@@ -157,7 +177,10 @@ std::string CodeGen::GenerateInfoInstanceSaveFunction(const Asset::RecordSchema&
 	return output.CopyOut();
 }
 
-std::string CodeGen::GenerateInfoInstanceLoadFunction(const Asset::RecordSchema& schema)
+std::string CodeGen::GenerateInfoInstanceLoadFunction(
+	const std::string* namespaceNames,
+	const size_t numNamespaceNames,
+	const Asset::RecordSchema& schema)
 {
 	// TODO
 	return "";

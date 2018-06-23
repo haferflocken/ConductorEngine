@@ -171,6 +171,7 @@
     <ClCompile Include="src\network\Socket.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="generated\**\*.h" />
     <ClInclude Include="behave\Actor.h" />
     <ClInclude Include="behave\ActorComponent.h" />
     <ClInclude Include="behave\ActorComponentFactory.h" />
@@ -244,7 +245,7 @@
     <ClCompile Include="src\behave\nodes\SequenceNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="schemas\infoassets\test.json" />
+    <None Include="schemas\InfoAsset\Test.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
