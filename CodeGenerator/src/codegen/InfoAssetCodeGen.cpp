@@ -28,7 +28,7 @@ public:
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaBooleanData& fieldData) override
 	{
-		WriteVariable("bool", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
+		WriteVariable("bool", field.m_fieldName.c_str(), fieldData.m_defaultValue ? "true" : "false" );
 		return Flow::Visit;
 	}
 
@@ -66,10 +66,10 @@ public:
 			Dev::LogWarning("Cannot generate an inner struct for an unnamed group.");
 			return Flow::Skip;
 		}
-		const char upperFirst = static_cast<char>(toupper(groupName[0]));
 
 		m_output.NewLine();
-		m_output << "struct " << upperFirst << (groupName + 1);
+		m_output << "struct ";
+		m_output.AppendCapitalized(groupName);
 		m_output.NewLine();
 		m_output << "{";
 
@@ -86,7 +86,8 @@ public:
 		const char lowerFirst = static_cast<char>(tolower(groupName[0]));
 
 		m_output.NewLine();
-		m_output << upperFirst << (groupName + 1) << " " << lowerFirst << (groupName + 1) << ";";
+		m_output.AppendCapitalized(groupName);
+		m_output << " " << lowerFirst << (groupName + 1) << ";";
 
 		// Do not visit the fields within the group because they were visited by the subVisitor.
 		return Flow::Skip;
@@ -102,6 +103,18 @@ private:
 		m_output << "{ " << defaultValue << " };";
 	}
 };
+
+void WriteNamespaceDeclaration(
+	const std::string* namespaceNames,
+	const size_t numNamespaceNames,
+	CodeGen::CppStream& output)
+{
+	output << "namespace " << namespaceNames[0].c_str();
+	for (size_t i = 1; i < numNamespaceNames; ++i)
+	{
+		output << "::" << namespaceNames[i].c_str();
+	}
+}
 }
 
 void CodeGen::GenerateInfoInstanceStruct(
@@ -117,25 +130,24 @@ void CodeGen::GenerateInfoInstanceStruct(
 	{
 		return;
 	}
-	const char upperFirst = static_cast<char>(toupper(name[0]));
+
+	CppStream output{ outputStream };
+	output << "// GENERATED CODE\n";
 
 	// Write out the required includes.
-	CppStream output{ outputStream };
 	output << "#include <cstdint>\n";
 	output << "#include <string>\n";
 
 	// Write out the namespaces.
 	output.NewLine();
-	output << "namespace " << namespaceNames[0].c_str();
-	for (size_t i = 1; i < numNamespaceNames; ++i)
-	{
-		output << "::" << namespaceNames[i].c_str();
-	}
+	WriteNamespaceDeclaration(namespaceNames, numNamespaceNames, output);
 	output << "\n{";
 	
 	// Write out the instance struct.
 	output.NewLine();
-	output << "struct " << upperFirst << (name + 1) << "\n{";
+	output << "struct ";
+	output.AppendCapitalized(name);
+	output << "\n{";
 
 	output.Indent([&]()
 	{
@@ -156,24 +168,42 @@ void CodeGen::GenerateInfoInstanceSaveFunction(
 	const Asset::RecordSchema& schema,
 	std::ostream& outputStream)
 {
-	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
-	if (rootGroup == nullptr || rootGroup->m_type != Asset::RecordSchemaFieldType::Group)
+	using namespace Internal_InfoAssetCodeGen;
+
+	const char* const name = schema.GetName().c_str();
+	if (name == nullptr || name[0] == '\0')
 	{
 		return;
 	}
-	const Asset::RecordSchemaGroupData& rootGroupData = rootGroup->m_groupData;
 
 	CppStream output{ outputStream };
-	output << "JSON::JSONObject SaveInfoInstance(";
-	output << "const " << schema.GetName().c_str() << "& infoInstance";
-	output << ")\n{";
+	output << "// GENERATED CODE\n";
+
+	// Write out the required includes.
+	output << "#include <json/JSONTypes.h>\n";
+
+	// Write out the namespaces.
+	output.NewLine();
+	WriteNamespaceDeclaration(namespaceNames, numNamespaceNames, output);
+	output << "\n{";
+
+	// Write out the save function.
+	output.NewLine();
+	output << "JSON::JSONObject SaveInfoInstance(const ";
+	output.AppendCapitalized(name);
+	output << "& infoInstance)\n{";
 
 	output.Indent([&]()
 	{
 		// TODO
+		output.NewLine();
+		output << "return JSON::JSONObject();";
 	});
 
 	output.NewLine();
+	output << "}\n";
+
+	// Close the namespaces brace.
 	output << "}\n";
 }
 

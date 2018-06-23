@@ -134,6 +134,8 @@ int main(const int argc, const char* argv[])
 		{
 			std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
 			CodeGen::GenerateInfoInstanceStruct(parentStack, parentStackSize, schema, outputStream);
+			CodeGen::GenerateInfoInstanceSaveFunction(parentStack, parentStackSize, schema, outputStream);
+			CodeGen::GenerateInfoInstanceLoadFunction(parentStack, parentStackSize, schema, outputStream);
 			break;
 		}
 		case GenerationType::Component:

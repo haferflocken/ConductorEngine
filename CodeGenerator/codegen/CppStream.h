@@ -27,6 +27,16 @@ public:
 		return *this;
 	}
 
+	void AppendCapitalized(const char* text)
+	{
+		if (text == nullptr || text[0] == '\0')
+		{
+			return;
+		}
+		const char upperFirst = static_cast<char>(toupper(text[0]));
+		m_stream << upperFirst << (text + 1);
+	}
+
 	void NewLine()
 	{
 		m_stream << "\n" << m_indentation;
