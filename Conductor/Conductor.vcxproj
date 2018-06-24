@@ -130,6 +130,16 @@
       <AdditionalDependencies>MemoryPools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <CustomBuildStep>
+      <Command>$(SolutionDir)$(Platform)\$(Configuration)\CodeGenerator.exe -inputDir $(ProjectDir)schemas -outputDir $(ProjectDir)generated</Command>
+      <Outputs>$(ProjectDir)generated\**\*.h</Outputs>
+      <Inputs>$(ProjectDir)schemas\**\*.json</Inputs>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <PropertyGroup>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="src\behave\Actor.cpp" />
     <ClCompile Include="src\behave\ActorComponentFactory.cpp" />

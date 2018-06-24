@@ -7,6 +7,7 @@ struct RecordSchemaFloatData;
 struct RecordSchemaIntegerData;
 struct RecordSchemaInstanceReferenceData;
 struct RecordSchemaGroupData;
+struct RecordSchemaListData;
 struct RecordSchemaField;
 
 /**
@@ -26,8 +27,9 @@ public:
 
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaBooleanData& fieldData) = 0;
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaFloatData& fieldData) = 0;
-	virtual Flow Visit(const RecordSchemaField& fieldD, const RecordSchemaIntegerData& fieldData) = 0;
+	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaIntegerData& fieldData) = 0;
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaInstanceReferenceData& fieldData) = 0;
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaGroupData& fieldData) = 0;
+	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaListData& fieldData) = 0;
 };
 }

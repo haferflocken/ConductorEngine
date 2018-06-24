@@ -5,6 +5,7 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Conductor", "Conductor\Conductor.vcxproj", "{1579652B-0C60-4C45-8131-1D5F9BB59108}"
 	ProjectSection(ProjectDependencies) = postProject
+		{D8F263C4-B227-4BA0-A01D-2727DD7D2465} = {D8F263C4-B227-4BA0-A01D-2727DD7D2465}
 		{BB9CF1F1-C3B7-44FB-BC07-DE3B5356AC3B} = {BB9CF1F1-C3B7-44FB-BC07-DE3B5356AC3B}
 	EndProjectSection
 EndProject

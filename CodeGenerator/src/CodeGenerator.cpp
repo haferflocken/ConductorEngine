@@ -121,9 +121,8 @@ int main(const int argc, const char* argv[])
 		}
 		const JSON::JSONObject& jsonObject = *dynamic_cast<const JSON::JSONObject*>(jsonInput.Get());
 		const Asset::RecordSchema schema = Asset::RecordSchema::MakeFromJSON(jsonObject);
-		if (schema.FindField(0) == nullptr)
+		if (!schema.CheckIsErrorFree())
 		{
-			std::cerr << "!> Failed to parse as a schema." << std::endl;
 			return false;
 		}
 

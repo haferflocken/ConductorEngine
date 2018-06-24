@@ -37,5 +37,7 @@ public:
 	const RecordSchemaField* FindField(uint16_t fieldID) const;
 
 	bool Accept(RecordSchemaVisitor& visitor, uint16_t fieldID) const;
+
+	bool CheckIsErrorFree() const;
 };
 }

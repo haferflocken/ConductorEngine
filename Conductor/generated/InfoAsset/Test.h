@@ -1,4 +1,5 @@
 // GENERATED CODE
+#include <collection/Vector.h>
 #include <cstdint>
 #include <string>
 
@@ -9,6 +10,12 @@ struct Test
 	bool m_foo{ true };
 	struct Bar
 	{
+		struct Car
+		{
+			int32_t m_numWheels{ 4 };
+			float m_topSpeed{ 0.000000 };
+		};
+		Collection::Vector<Collection::Vector<Car>> m_baz{  };
 	};
 	Bar bar;
 };

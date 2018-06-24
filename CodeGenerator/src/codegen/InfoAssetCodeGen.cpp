@@ -61,12 +61,51 @@ public:
 
 		// Write out an inner struct for the group with an uppercase first letter.
 		const char* const groupName = field.m_fieldName.c_str();
-		if (groupName == nullptr || groupName[0] == '\0')
+		Dev::FatalAssert(groupName != nullptr && groupName[0] != '\0', "Group field [%u] is missing a name.",
+			field.m_fieldID);
+
+		WriteGroupStruct(field, groupName);
+
+		// Create a variable of the struct with a lowercase first letter.
+		const char lowerFirst = static_cast<char>(tolower(groupName[0]));
+
+		m_output.NewLine();
+		m_output.AppendCapitalized(groupName);
+		m_output << " " << lowerFirst << (groupName + 1) << ";";
+
+		// Do not visit the fields within the group because they were visited by the subVisitor.
+		return Flow::Skip;
+	}
+
+	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaListData& fieldData) override
+	{
+		std::string typeString = "Collection::Vector<";
+		std::string typeStringSuffix = ">";
+		if (!TryCalcListElementTypeAndWriteDependentTypes(fieldData.m_elementFieldID, typeString, typeStringSuffix))
 		{
-			Dev::LogWarning("Cannot generate an inner struct for an unnamed group.");
+			Dev::LogWarning("!> Unable to generate list field [%u].", field.m_fieldID);
 			return Flow::Skip;
 		}
+		typeString += typeStringSuffix;
 
+		WriteVariable(typeString.c_str(), field.m_fieldName.c_str(), "");
+
+		// Do not visit the element field of the list because it was already visited when determining the type string.
+		return Flow::Skip;
+	}
+
+private:
+	void WriteVariable(const char* const type, const char* const rawName, const char* const defaultValue)
+	{
+		const char lowerFirst = static_cast<char>(rawName[0]);
+
+		m_output.NewLine();
+		m_output << type << " m_" << lowerFirst << (rawName + 1);
+		m_output << "{ " << defaultValue << " };";
+	}
+
+	void WriteGroupStruct(const Asset::RecordSchemaField& field, const char* const groupName)
+	{
 		m_output.NewLine();
 		m_output << "struct ";
 		m_output.AppendCapitalized(groupName);
@@ -81,26 +120,80 @@ public:
 		});
 		m_output.NewLine();
 		m_output << "};";
-
-		// Create a variable of the struct with a lowercase first letter.
-		const char lowerFirst = static_cast<char>(tolower(groupName[0]));
-
-		m_output.NewLine();
-		m_output.AppendCapitalized(groupName);
-		m_output << " " << lowerFirst << (groupName + 1) << ";";
-
-		// Do not visit the fields within the group because they were visited by the subVisitor.
-		return Flow::Skip;
 	}
 
-private:
-	void WriteVariable(const char* const type, const char* const rawName, const char* const defaultValue)
+	bool TryCalcListElementTypeAndWriteDependentTypes(
+		const uint16_t elementFieldID,
+		std::string& outType,
+		std::string& outTypeSuffix)
 	{
-		const char lowerFirst = static_cast<char>(rawName[0]);
+		// Write out a struct for the list's element if one is needed.
+		const Asset::RecordSchemaField* const elementField = m_schema.FindField(elementFieldID);
+		if (elementField == nullptr)
+		{
+			Dev::LogWarning("!> Cannot generate a variable for a list with no element field.");
+			return false;
+		}
 
-		m_output.NewLine();
-		m_output << type << " m_" << lowerFirst << (rawName + 1);
-		m_output << "{ " << defaultValue << " };";
+		switch (elementField->m_type)
+		{
+		case Asset::RecordSchemaFieldType::Boolean:
+		{
+			outType += "bool";
+			return true;
+		}
+		case Asset::RecordSchemaFieldType::Float:
+		{
+			outType += "float";
+			return true;
+		}
+		case Asset::RecordSchemaFieldType::Integer:
+		{
+			outType += "int32_t";
+			return true;
+		}
+		case Asset::RecordSchemaFieldType::InstanceReference:
+		{
+			const auto& acceptedTypes = elementField->m_instanceReferenceData.m_acceptedTypes;
+			if (acceptedTypes.IsEmpty())
+			{
+				outType += "void";
+			}
+			else
+			{
+				outType += "std::string";
+			}
+			return true;
+		}
+		case Asset::RecordSchemaFieldType::Group:
+		{
+			// Write out an inner struct for the group with an uppercase first letter.
+			const char* const groupName = elementField->m_fieldName.c_str();
+			Dev::FatalAssert(groupName != nullptr && groupName[0] != '\0', "Group field [%u] is missing a name.",
+				elementField->m_fieldID);
+
+			WriteGroupStruct(*elementField, groupName);
+
+			// Copy the group struct name to outType.
+			outType += static_cast<char>(toupper(groupName[0]));
+			outType += (groupName + 1);
+			return true;
+		}
+		case Asset::RecordSchemaFieldType::List:
+		{
+			outType += "Collection::Vector<";
+			outTypeSuffix += ">";
+
+			return TryCalcListElementTypeAndWriteDependentTypes(elementField->m_listData.m_elementFieldID,
+				outType, outTypeSuffix);
+		}
+		default:
+		{
+			Dev::FatalError("Field [%u] has unknown type [%d]", elementFieldID,
+				static_cast<int32_t>(elementField->m_type));
+			return false;
+		}
+		}
 	}
 };
 
@@ -135,6 +228,7 @@ void CodeGen::GenerateInfoInstanceStruct(
 	output << "// GENERATED CODE\n";
 
 	// Write out the required includes.
+	output << "#include <collection/Vector.h>\n";
 	output << "#include <cstdint>\n";
 	output << "#include <string>\n";
 

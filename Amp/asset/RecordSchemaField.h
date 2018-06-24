@@ -21,7 +21,8 @@ enum class RecordSchemaFieldType : uint8_t
 	Float,
 	Integer,
 	InstanceReference,
-	Group
+	Group,
+	List
 };
 
 struct RecordSchemaBooleanData
@@ -53,6 +54,11 @@ struct RecordSchemaGroupData
 	Collection::Vector<uint16_t> m_memberFieldIDs;
 };
 
+struct RecordSchemaListData
+{
+	uint16_t m_elementFieldID;
+};
+
 struct RecordSchemaField
 {
 	RecordSchemaFieldType m_type{ RecordSchemaFieldType::Invalid };
@@ -65,6 +71,7 @@ struct RecordSchemaField
 		RecordSchemaIntegerData m_integerData;
 		RecordSchemaInstanceReferenceData m_instanceReferenceData;
 		RecordSchemaGroupData m_groupData;
+		RecordSchemaListData m_listData;
 	};
 
 	RecordSchemaField();
@@ -81,5 +88,6 @@ struct RecordSchemaField
 	static RecordSchemaField MakeIntegerField(uint16_t fieldID, const char* name);
 	static RecordSchemaField MakeInstanceReferenceField(uint16_t fieldID, const char* name);
 	static RecordSchemaField MakeGroupField(uint16_t fieldID, const char* name);
+	static RecordSchemaField MakeListField(uint16_t fieldID, const char* name);
 };
 }

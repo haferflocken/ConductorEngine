@@ -39,6 +39,11 @@ void MoveData(RecordSchemaField& destination, RecordSchemaField&& source)
 		destination.m_groupData = std::move(source.m_groupData);
 		break;
 	}
+	case RecordSchemaFieldType::List:
+	{
+		destination.m_listData = std::move(source.m_listData);
+		break;
+	}
 	default:
 	{
 		Dev::FatalError("Unknown field type [%d]", static_cast<int32_t>(destination.m_type));
@@ -84,6 +89,11 @@ void DestroyInfoSchemaField(RecordSchemaField& field)
 	case RecordSchemaFieldType::Group:
 	{
 		MoveDestroy(field.m_groupData);
+		break;
+	}
+	case RecordSchemaFieldType::List:
+	{
+		MoveDestroy(field.m_listData);
 		break;
 	}
 	default:
@@ -183,6 +193,18 @@ RecordSchemaField RecordSchemaField::MakeGroupField(uint16_t fieldID, const char
 	field.m_fieldName = name;
 
 	new(&field.m_groupData) RecordSchemaGroupData();
+
+	return field;
+}
+
+RecordSchemaField RecordSchemaField::MakeListField(uint16_t fieldID, const char* name)
+{
+	RecordSchemaField field;
+	field.m_type = RecordSchemaFieldType::List;
+	field.m_fieldID = fieldID;
+	field.m_fieldName = name;
+
+	field.m_listData.m_elementFieldID = UINT16_MAX;
 
 	return field;
 }
