@@ -368,15 +368,15 @@ bool RecordSchema::Accept(RecordSchemaVisitor& visitor, uint16_t fieldID) const
 
 namespace Internal_RecordSchema
 {
-class GroupMemberReferenceValidationVisitor : public RecordSchemaVisitor
+class ChildReferenceValidationVisitor : public RecordSchemaVisitor
 {
-	const uint16_t m_groupID;
-	const uint16_t m_memberID;
+	const uint16_t m_parentID;
+	const uint16_t m_childID;
 
 public:
-	GroupMemberReferenceValidationVisitor(uint16_t groupID, uint16_t memberID)
-		: m_groupID(groupID)
-		, m_memberID(memberID)
+	ChildReferenceValidationVisitor(uint16_t parentID, uint16_t childID)
+		: m_parentID(parentID)
+		, m_childID(childID)
 	{}
 
 	Flow Visit(const RecordSchemaField& field, const RecordSchemaBooleanData& fieldData) override
@@ -401,13 +401,13 @@ public:
 
 	Flow Visit(const RecordSchemaField& field, const RecordSchemaGroupData& fieldData) override
 	{
-		if (field.m_fieldID == m_groupID)
+		if (field.m_fieldID == m_parentID)
 		{
 			return Flow::Visit;
 		}
 		for (const auto& memberFieldID : fieldData.m_memberFieldIDs)
 		{
-			if (memberFieldID == m_memberID)
+			if (memberFieldID == m_childID)
 			{
 				return Flow::Stop;
 			}
@@ -417,7 +417,7 @@ public:
 
 	Flow Visit(const RecordSchemaField& field, const RecordSchemaListData& fieldData) override
 	{
-		if (fieldData.m_elementFieldID == m_memberID)
+		if (field.m_fieldID != m_parentID && fieldData.m_elementFieldID == m_childID)
 		{
 			return Flow::Stop;
 		}
@@ -502,7 +502,7 @@ bool RecordSchema::CheckIsErrorFree() const
 		// Ensure that all group member fields are only referenced by their group.
 		for (const auto& memberFieldID : field.m_groupData.m_memberFieldIDs)
 		{
-			GroupMemberReferenceValidationVisitor visitor{ field.m_fieldID, memberFieldID };
+			ChildReferenceValidationVisitor visitor{ field.m_fieldID, memberFieldID };
 			if (!Accept(visitor, 0))
 			{
 				Dev::LogWarning("!> Group member field [%u] in group field [%u] is referenced elsewhere.",
@@ -512,7 +512,22 @@ bool RecordSchema::CheckIsErrorFree() const
 		}
 	}
 
-	// TODO Ensure that all list member elements are only referenced by their list.
+	// Ensure that all list elements are only referenced by their list.
+	for (const auto& field : m_fields)
+	{
+		if (field.m_type != RecordSchemaFieldType::List)
+		{
+			continue;
+		}
+
+		ChildReferenceValidationVisitor visitor{ field.m_fieldID, field.m_listData.m_elementFieldID };
+		if (!Accept(visitor, 0))
+		{
+			Dev::LogWarning("!> List element field [%u] in list field [%u] is referenced elsewhere.",
+				field.m_listData.m_elementFieldID, field.m_fieldID);
+			return false;
+		}
+	}
 
 	return true;
 }
