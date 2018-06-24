@@ -129,14 +129,22 @@
     <ClCompile Include="src\CodeGenerator.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\codegen\InfoAssetCodeGen.cpp">
+    <ClCompile Include="src\codegen\InfoAssetCodeGenUtil.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\codegen\InfoAssetSaveFunctionCodeGen.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\codegen\InfoAssetStructCodeGen.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="C:\RudeBuildCache\ConductorEngine_9b02a0ef3a0dea688ff8c08bcf548e27\Debug-x64\CodeGenerator\CodeGenerator1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="codegen\CppStream.h" />
-    <ClInclude Include="codegen\InfoAssetCodeGen.h" />
+    <ClInclude Include="codegen\InfoAssetCodeGenUtil.h" />
+    <ClInclude Include="codegen\InfoAssetSaveFunctionCodeGen.h" />
+    <ClInclude Include="codegen\InfoAssetStructCodeGen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>

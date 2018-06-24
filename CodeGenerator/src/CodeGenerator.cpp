@@ -1,7 +1,8 @@
 #include <collection/ProgramParameters.h>
 
 #include <asset/RecordSchema.h>
-#include <codegen/InfoAssetCodeGen.h>
+#include <codegen/InfoAssetSaveFunctionCodeGen.h>
+#include <codegen/InfoAssetStructCodeGen.h>
 #include <file/JSONReader.h>
 #include <json/JSONTypes.h>
 #include <mem/UniquePtr.h>
@@ -134,7 +135,7 @@ int main(const int argc, const char* argv[])
 			std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
 			CodeGen::GenerateInfoInstanceStruct(parentStack, parentStackSize, schema, outputStream);
 			CodeGen::GenerateInfoInstanceSaveFunction(parentStack, parentStackSize, schema, outputStream);
-			CodeGen::GenerateInfoInstanceLoadFunction(parentStack, parentStackSize, schema, outputStream);
+			// CodeGen::GenerateInfoInstanceLoadFunction(parentStack, parentStackSize, schema, outputStream);
 			break;
 		}
 		case GenerationType::Component:

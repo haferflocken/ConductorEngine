@@ -1,12 +1,12 @@
-#include <codegen/InfoAssetCodeGen.h>
+#include <codegen/InfoAssetStructCodeGen.h>
 
 #include <asset/RecordSchema.h>
 #include <asset/RecordSchemaVisitor.h>
 #include <codegen/CppStream.h>
-#include <collection/VectorMap.h>
+#include <codegen/InfoAssetCodeGenUtil.h>
 #include <dev/Dev.h>
 
-namespace Internal_InfoAssetCodeGen
+namespace Internal_InfoAssetStructCodeGen
 {
 class WriteInfoInstanceStructVisitor : public Asset::RecordSchemaVisitor
 {
@@ -196,18 +196,6 @@ private:
 		}
 	}
 };
-
-void WriteNamespaceDeclaration(
-	const std::string* namespaceNames,
-	const size_t numNamespaceNames,
-	CodeGen::CppStream& output)
-{
-	output << "namespace " << namespaceNames[0].c_str();
-	for (size_t i = 1; i < numNamespaceNames; ++i)
-	{
-		output << "::" << namespaceNames[i].c_str();
-	}
-}
 }
 
 void CodeGen::GenerateInfoInstanceStruct(
@@ -216,7 +204,7 @@ void CodeGen::GenerateInfoInstanceStruct(
 	const Asset::RecordSchema& schema,
 	std::ostream& outputStream)
 {
-	using namespace Internal_InfoAssetCodeGen;
+	using namespace Internal_InfoAssetStructCodeGen;
 
 	const char* const name = schema.GetName().c_str();
 	if (name == nullptr || name[0] == '\0')
@@ -254,58 +242,4 @@ void CodeGen::GenerateInfoInstanceStruct(
 
 	// Close the namespaces brace.
 	output << "}\n";
-}
-
-void CodeGen::GenerateInfoInstanceSaveFunction(
-	const std::string* namespaceNames,
-	const size_t numNamespaceNames,
-	const Asset::RecordSchema& schema,
-	std::ostream& outputStream)
-{
-	using namespace Internal_InfoAssetCodeGen;
-
-	const char* const name = schema.GetName().c_str();
-	if (name == nullptr || name[0] == '\0')
-	{
-		return;
-	}
-
-	CppStream output{ outputStream };
-	output << "// GENERATED CODE\n";
-
-	// Write out the required includes.
-	output << "#include <json/JSONTypes.h>\n";
-
-	// Write out the namespaces.
-	output.NewLine();
-	WriteNamespaceDeclaration(namespaceNames, numNamespaceNames, output);
-	output << "\n{";
-
-	// Write out the save function.
-	output.NewLine();
-	output << "JSON::JSONObject SaveInfoInstance(const ";
-	output.AppendCapitalized(name);
-	output << "& infoInstance)\n{";
-
-	output.Indent([&]()
-	{
-		// TODO
-		output.NewLine();
-		output << "return JSON::JSONObject();";
-	});
-
-	output.NewLine();
-	output << "}\n";
-
-	// Close the namespaces brace.
-	output << "}\n";
-}
-
-void CodeGen::GenerateInfoInstanceLoadFunction(
-	const std::string* namespaceNames,
-	const size_t numNamespaceNames,
-	const Asset::RecordSchema& schema,
-	std::ostream& outputStream)
-{
-	// TODO
 }
