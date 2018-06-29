@@ -15,7 +15,7 @@ class WriteInfoInstanceStructVisitor : public Asset::RecordSchemaVisitor
 	const uint16_t m_rootFieldID;
 
 public:
-	explicit WriteInfoInstanceStructVisitor(
+	WriteInfoInstanceStructVisitor(
 		const Asset::RecordSchema& schema,
 		CodeGen::CppStream& output,
 		uint16_t rootFieldID)
@@ -28,25 +28,26 @@ public:
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaBooleanData& fieldData) override
 	{
-		WriteVariable("bool", field.m_fieldName.c_str(), fieldData.m_defaultValue ? "true" : "false" );
+		WriteVariableDeclaration("bool", field.m_fieldName.c_str(), fieldData.m_defaultValue ? "true" : "false" );
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaFloatData& fieldData) override
 	{
-		WriteVariable("float", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
+		WriteVariableDeclaration("float", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaIntegerData& fieldData) override
 	{
-		WriteVariable("int32_t", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
+		WriteVariableDeclaration("int32_t", field.m_fieldName.c_str(),
+			std::to_string(fieldData.m_defaultValue).c_str());
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaInstanceReferenceData& fieldData) override
 	{
-		WriteVariable("std::string", field.m_fieldName.c_str(), "");
+		WriteVariableDeclaration("std::string", field.m_fieldName.c_str(), "");
 		return Flow::Visit;
 	}
 
@@ -71,7 +72,7 @@ public:
 
 		m_output.NewLine();
 		m_output.AppendCapitalized(groupName);
-		m_output << " " << lowerFirst << (groupName + 1) << ";";
+		m_output << " m_" << lowerFirst << (groupName + 1) << ";";
 
 		// Do not visit the fields within the group because they were visited by the subVisitor.
 		return Flow::Skip;
@@ -88,14 +89,14 @@ public:
 		}
 		typeString += typeStringSuffix;
 
-		WriteVariable(typeString.c_str(), field.m_fieldName.c_str(), "");
+		WriteVariableDeclaration(typeString.c_str(), field.m_fieldName.c_str(), "");
 
 		// Do not visit the element field of the list because it was already visited when determining the type string.
 		return Flow::Skip;
 	}
 
 private:
-	void WriteVariable(const char* const type, const char* const rawName, const char* const defaultValue)
+	void WriteVariableDeclaration(const char* const type, const char* const rawName, const char* const defaultValue)
 	{
 		const char lowerFirst = static_cast<char>(rawName[0]);
 
