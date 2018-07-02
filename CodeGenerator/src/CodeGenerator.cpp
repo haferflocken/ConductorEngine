@@ -128,7 +128,8 @@ int main(const int argc, const char* argv[])
 		}
 
 		// Generate and output code.
-		CodeGen::StructGenParams structGenParams{ parentStack, parentStackSize, schema };
+		Collection::ArrayView<std::string> namespaceNames{ parentStack, parentStackSize };
+		CodeGen::StructGenParams structGenParams{ namespaceNames, "", schema };
 
 		switch (generationType)
 		{
@@ -136,8 +137,8 @@ int main(const int argc, const char* argv[])
 		{
 			std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
 			CodeGen::GenerateStructFromRecordSchema(structGenParams, outputStream);
-			CodeGen::GenerateInfoInstanceSaveFunction(parentStack, parentStackSize, schema, outputStream);
-			// CodeGen::GenerateInfoInstanceLoadFunction(parentStack, parentStackSize, schema, outputStream);
+			CodeGen::GenerateInfoInstanceSaveFunction(namespaceNames, schema, outputStream);
+			// CodeGen::GenerateInfoInstanceLoadFunction(namespaceNames, schema, outputStream);
 			break;
 		}
 		case GenerationType::Component:

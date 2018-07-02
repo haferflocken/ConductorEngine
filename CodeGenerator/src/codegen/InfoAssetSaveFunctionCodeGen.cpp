@@ -275,8 +275,7 @@ private:
 }
 
 void CodeGen::GenerateInfoInstanceSaveFunction(
-	const std::string* namespaceNames,
-	const size_t numNamespaceNames,
+	const Collection::ArrayView<std::string>& namespaceNames,
 	const Asset::RecordSchema& schema,
 	std::ostream& outputStream)
 {
@@ -296,7 +295,7 @@ void CodeGen::GenerateInfoInstanceSaveFunction(
 
 	// Write out the namespaces.
 	output.NewLine();
-	WriteNamespaceDeclaration(namespaceNames, numNamespaceNames, output);
+	WriteNamespaceDeclaration(namespaceNames, output);
 	output << "\n{";
 
 	// Write out the save function.

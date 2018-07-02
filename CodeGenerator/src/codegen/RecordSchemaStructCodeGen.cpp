@@ -221,7 +221,7 @@ void CodeGen::GenerateStructFromRecordSchema(
 
 	// Write out the namespaces.
 	output.NewLine();
-	WriteNamespaceDeclaration(params.namespaceNames, params.numNamespaceNames, output);
+	WriteNamespaceDeclaration(params.namespaceNames, output);
 	output << "\n{";
 	
 	// Write out the struct.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <collection/ArrayView.h>
+
 #include <ostream>
 #include <string>
 
@@ -9,8 +11,8 @@ namespace CodeGen
 {
 struct StructGenParams
 {
-	const std::string* namespaceNames;
-	size_t numNamespaceNames;
+	const Collection::ArrayView<std::string> namespaceNames;
+	std::string parentNames;
 	const Asset::RecordSchema& schema;
 };
 
