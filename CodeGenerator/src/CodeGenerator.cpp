@@ -2,7 +2,7 @@
 
 #include <asset/RecordSchema.h>
 #include <codegen/InfoAssetSaveFunctionCodeGen.h>
-#include <codegen/InfoAssetStructCodeGen.h>
+#include <codegen/RecordSchemaStructCodeGen.h>
 #include <file/JSONReader.h>
 #include <json/JSONTypes.h>
 #include <mem/UniquePtr.h>
@@ -128,12 +128,14 @@ int main(const int argc, const char* argv[])
 		}
 
 		// Generate and output code.
+		CodeGen::StructGenParams structGenParams{ parentStack, parentStackSize, schema };
+
 		switch (generationType)
 		{
 		case GenerationType::InfoAsset:
 		{
 			std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
-			CodeGen::GenerateInfoInstanceStruct(parentStack, parentStackSize, schema, outputStream);
+			CodeGen::GenerateStructFromRecordSchema(structGenParams, outputStream);
 			CodeGen::GenerateInfoInstanceSaveFunction(parentStack, parentStackSize, schema, outputStream);
 			// CodeGen::GenerateInfoInstanceLoadFunction(parentStack, parentStackSize, schema, outputStream);
 			break;

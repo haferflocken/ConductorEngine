@@ -2,8 +2,8 @@
 
 #include <asset/RecordSchema.h>
 #include <asset/RecordSchemaVisitor.h>
+#include <codegen/CodeGenUtil.h>
 #include <codegen/CppStream.h>
-#include <codegen/InfoAssetCodeGenUtil.h>
 
 namespace Internal_InfoAssetSaveFunction
 {

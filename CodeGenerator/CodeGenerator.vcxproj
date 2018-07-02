@@ -129,15 +129,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\CodeGenerator.cpp" />
-    <ClCompile Include="src\codegen\InfoAssetCodeGenUtil.cpp" />
+    <ClCompile Include="src\codegen\CodeGenUtil.cpp" />
     <ClCompile Include="src\codegen\InfoAssetSaveFunctionCodeGen.cpp" />
-    <ClCompile Include="src\codegen\InfoAssetStructCodeGen.cpp" />
+    <ClCompile Include="src\codegen\RecordSchemaStructCodeGen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="codegen\CppStream.h" />
-    <ClInclude Include="codegen\InfoAssetCodeGenUtil.h" />
+    <ClInclude Include="codegen\CodeGenUtil.h" />
     <ClInclude Include="codegen\InfoAssetSaveFunctionCodeGen.h" />
-    <ClInclude Include="codegen\InfoAssetStructCodeGen.h" />
+    <ClInclude Include="codegen\RecordSchemaStructCodeGen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,4 @@
-#include <codegen/InfoAssetCodeGenUtil.h>
+#include <codegen/CodeGenUtil.h>
 
 #include <codegen/CppStream.h>
 

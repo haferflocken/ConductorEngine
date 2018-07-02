@@ -1,21 +1,21 @@
-#include <codegen/InfoAssetStructCodeGen.h>
+#include <codegen/RecordSchemaStructCodeGen.h>
 
 #include <asset/RecordSchema.h>
 #include <asset/RecordSchemaVisitor.h>
+#include <codegen/CodeGenUtil.h>
 #include <codegen/CppStream.h>
-#include <codegen/InfoAssetCodeGenUtil.h>
 #include <dev/Dev.h>
 
-namespace Internal_InfoAssetStructCodeGen
+namespace Internal_RecordSchemaStructCodeGen
 {
-class WriteInfoInstanceStructVisitor : public Asset::RecordSchemaVisitor
+class WriteStructVisitor : public Asset::RecordSchemaVisitor
 {
 	const Asset::RecordSchema& m_schema;
 	CodeGen::CppStream& m_output;
 	const uint16_t m_rootFieldID;
 
 public:
-	WriteInfoInstanceStructVisitor(
+	WriteStructVisitor(
 		const Asset::RecordSchema& schema,
 		CodeGen::CppStream& output,
 		uint16_t rootFieldID)
@@ -24,7 +24,7 @@ public:
 		, m_rootFieldID(rootFieldID)
 	{}
 
-	virtual ~WriteInfoInstanceStructVisitor() {}
+	virtual ~WriteStructVisitor() {}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaBooleanData& fieldData) override
 	{
@@ -116,7 +116,7 @@ private:
 		m_output.Indent([&]()
 		{
 			// Treat this group as the root of another visitor so that the schema handles traversing the member fields.
-			WriteInfoInstanceStructVisitor subVisitor{ m_schema, m_output, field.m_fieldID };
+			WriteStructVisitor subVisitor{ m_schema, m_output, field.m_fieldID };
 			m_schema.Accept(subVisitor, field.m_fieldID);
 		});
 		m_output.NewLine();
@@ -199,15 +199,13 @@ private:
 };
 }
 
-void CodeGen::GenerateInfoInstanceStruct(
-	const std::string* namespaceNames,
-	const size_t numNamespaceNames,
-	const Asset::RecordSchema& schema,
+void CodeGen::GenerateStructFromRecordSchema(
+	const StructGenParams& params,
 	std::ostream& outputStream)
 {
-	using namespace Internal_InfoAssetStructCodeGen;
+	using namespace Internal_RecordSchemaStructCodeGen;
 
-	const char* const name = schema.GetName().c_str();
+	const char* const name = params.schema.GetName().c_str();
 	if (name == nullptr || name[0] == '\0')
 	{
 		return;
@@ -223,10 +221,10 @@ void CodeGen::GenerateInfoInstanceStruct(
 
 	// Write out the namespaces.
 	output.NewLine();
-	WriteNamespaceDeclaration(namespaceNames, numNamespaceNames, output);
+	WriteNamespaceDeclaration(params.namespaceNames, params.numNamespaceNames, output);
 	output << "\n{";
 	
-	// Write out the instance struct.
+	// Write out the struct.
 	output.NewLine();
 	output << "struct ";
 	output.AppendCapitalized(name);
@@ -234,8 +232,8 @@ void CodeGen::GenerateInfoInstanceStruct(
 
 	output.Indent([&]()
 	{
-		WriteInfoInstanceStructVisitor writeVisitor{ schema, output, 0 };
-		schema.Accept(writeVisitor, 0);
+		WriteStructVisitor writeVisitor{ params.schema, output, 0 };
+		params.schema.Accept(writeVisitor, 0);
 	});
 
 	output.NewLine();

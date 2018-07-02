@@ -129,22 +129,22 @@
     <ClCompile Include="src\CodeGenerator.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\codegen\InfoAssetCodeGenUtil.cpp">
+    <ClCompile Include="src\codegen\CodeGenUtil.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\codegen\InfoAssetSaveFunctionCodeGen.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\codegen\InfoAssetStructCodeGen.cpp">
+    <ClCompile Include="src\codegen\RecordSchemaStructCodeGen.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\CodeGenerator\CodeGenerator1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="codegen\CppStream.h" />
-    <ClInclude Include="codegen\InfoAssetCodeGenUtil.h" />
+    <ClInclude Include="codegen\CodeGenUtil.h" />
     <ClInclude Include="codegen\InfoAssetSaveFunctionCodeGen.h" />
-    <ClInclude Include="codegen\InfoAssetStructCodeGen.h" />
+    <ClInclude Include="codegen\RecordSchemaStructCodeGen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
