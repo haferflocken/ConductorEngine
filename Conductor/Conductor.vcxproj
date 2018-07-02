@@ -255,6 +255,7 @@
     <ClCompile Include="src\behave\nodes\SequenceNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="schemas\Behave\Components\ComponentTest.json" />
     <None Include="schemas\InfoAsset\Test.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

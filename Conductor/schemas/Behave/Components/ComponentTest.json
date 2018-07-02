@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "name": "ComponentTest",
+  "fields": {
+    "0": {
+      "name": "root",
+      "type": "group",
+      "memberIDs": [ 1, 2 ]
+    },
+    "1": {
+      "name": "foo",
+      "type": "bool",
+      "defaultValue": true
+    },
+    "2": {
+      "name": "bar",
+      "type": "group",
+      "memberIDs": [ 3 ]
+    },
+    "3": {
+      "name": "baz",
+      "type": "list",
+      "elementID": 4
+    },
+    "4": {
+      "name": "innerList",
+      "type": "list",
+      "elementID": 5
+    },
+    "5": {
+      "name": "car",
+      "type": "group",
+      "memberIDs": [ 6, 7 ]
+    },
+    "6": {
+      "name": "numWheels",
+      "type": "int",
+      "defaultValue": 4
+    },
+    "7": {
+      "name": "topSpeed",
+      "type": "float",
+      "minValue": 0.0
+    }
+  }
+}

@@ -70,7 +70,7 @@ int main(const int argc, const char* argv[])
 			parentStack[parentStackSize++] = current.filename().string();
 		}
 
-		// Determine the type of code generation to do based on the top of the stack.
+		// Determine the type of code generation to do based on the parent stack.
 		if (parentStackSize == 0)
 		{
 			std::cerr << "!> Cannot determine code generation type at the top level directory." << std::endl;
@@ -79,22 +79,28 @@ int main(const int argc, const char* argv[])
 		
 		enum class GenerationType
 		{
+			Invalid,
 			InfoAsset,
 			Component
 		};
-		GenerationType generationType;
-		if (strcmp(parentStack[parentStackSize - 1].c_str(), "InfoAsset") == 0)
+		GenerationType generationType = GenerationType::Invalid;
+
+		for (size_t i = 0; i < parentStackSize; ++i)
 		{
-			generationType = GenerationType::InfoAsset;
+			if (strcmp(parentStack[i].c_str(), "InfoAsset") == 0)
+			{
+				generationType = GenerationType::InfoAsset;
+				break;
+			}
+			if (strcmp(parentStack[i].c_str(), "Components") == 0)
+			{
+				generationType = GenerationType::Component;
+				break;
+			}
 		}
-		else if (strcmp(parentStack[parentStackSize - 1].c_str(), "Component") == 0)
+		if (generationType == GenerationType::Invalid)
 		{
-			generationType = GenerationType::Component;
-		}
-		else
-		{
-			std::cerr << "!> Unrecognized code generation type [";
-			std::cerr << parentStack[parentStackSize - 1].c_str() << ']' << std::endl;
+			std::cerr << "!> Unrecognized code generation type." << std::endl;
 			return false;
 		}
 
@@ -128,22 +134,21 @@ int main(const int argc, const char* argv[])
 		}
 
 		// Generate and output code.
+		std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
 		Collection::ArrayView<std::string> namespaceNames{ parentStack, parentStackSize };
-		CodeGen::StructGenParams structGenParams{ namespaceNames, "", schema };
-
+		
 		switch (generationType)
 		{
 		case GenerationType::InfoAsset:
 		{
-			std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
-			CodeGen::GenerateStructFromRecordSchema(structGenParams, outputStream);
+			CodeGen::GenerateInfoAssetStructFromRecordSchema(namespaceNames, schema, outputStream);
 			CodeGen::GenerateInfoInstanceSaveFunction(namespaceNames, schema, outputStream);
 			// CodeGen::GenerateInfoInstanceLoadFunction(namespaceNames, schema, outputStream);
 			break;
 		}
 		case GenerationType::Component:
 		{
-			// TODO
+			CodeGen::GenerateComponentClassFromRecordSchema(namespaceNames, schema, outputStream);
 			break;
 		}
 		}

@@ -5,7 +5,7 @@
 
 namespace InfoAsset
 {
-struct Test
+struct Test final
 {
 	bool m_foo{ true };
 	struct Bar

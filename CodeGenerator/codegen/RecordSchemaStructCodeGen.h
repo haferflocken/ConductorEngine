@@ -9,12 +9,8 @@ namespace Asset { class RecordSchema; }
 
 namespace CodeGen
 {
-struct StructGenParams
-{
-	const Collection::ArrayView<std::string> namespaceNames;
-	std::string parentNames;
-	const Asset::RecordSchema& schema;
-};
-
-void GenerateStructFromRecordSchema(const StructGenParams& params, std::ostream& outputStream);
+void GenerateInfoAssetStructFromRecordSchema(const Collection::ArrayView<std::string> namespaceNames,
+	const Asset::RecordSchema& schema, std::ostream& outputStream);
+void GenerateComponentClassFromRecordSchema(const Collection::ArrayView<std::string> namespaceNames,
+	const Asset::RecordSchema& schema, std::ostream& outputStream);
 }
