@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Collection::Vector&lt;*&gt;">
+    <Expand>
+      <Item Name="m_capacity">m_capacity</Item>
+      <Item Name="m_count">m_count</Item>
+      <ArrayItems>
+        <Size>m_count</Size>
+        <ValuePointer>m_data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>
