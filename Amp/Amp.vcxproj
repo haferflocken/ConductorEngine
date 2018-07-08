@@ -167,6 +167,7 @@
     <ClCompile Include="src\util\StringHash.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Natvis Include="collection\Vector.natvis" />
     <Natvis Include="unit\UnitTempl.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

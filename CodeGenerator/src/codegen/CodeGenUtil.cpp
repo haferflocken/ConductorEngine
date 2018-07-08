@@ -39,26 +39,28 @@ public:
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaBooleanData& fieldData) override
 	{
-		WriteVariableDeclaration("bool", field.m_fieldName.c_str(), fieldData.m_defaultValue ? "true" : "false");
+		WriteVariableDeclaration("bool", field.m_fieldName.c_str(), field.m_fieldDescription.c_str(),
+			fieldData.m_defaultValue ? "true" : "false");
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaFloatData& fieldData) override
 	{
-		WriteVariableDeclaration("float", field.m_fieldName.c_str(), std::to_string(fieldData.m_defaultValue).c_str());
+		WriteVariableDeclaration("float", field.m_fieldName.c_str(), field.m_fieldDescription.c_str(),
+			std::to_string(fieldData.m_defaultValue).c_str());
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaIntegerData& fieldData) override
 	{
-		WriteVariableDeclaration("int32_t", field.m_fieldName.c_str(),
+		WriteVariableDeclaration("int32_t", field.m_fieldName.c_str(), field.m_fieldDescription.c_str(),
 			std::to_string(fieldData.m_defaultValue).c_str());
 		return Flow::Visit;
 	}
 
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaInstanceReferenceData& fieldData) override
 	{
-		WriteVariableDeclaration("std::string", field.m_fieldName.c_str(), "");
+		WriteVariableDeclaration("std::string", field.m_fieldName.c_str(), field.m_fieldDescription.c_str(), "");
 		return Flow::Visit;
 	}
 
@@ -100,20 +102,35 @@ public:
 		}
 		typeString += typeStringSuffix;
 
-		WriteVariableDeclaration(typeString.c_str(), field.m_fieldName.c_str(), "");
+		WriteVariableDeclaration(typeString.c_str(), field.m_fieldName.c_str(), field.m_fieldDescription.c_str(), "");
 
 		// Do not visit the element field of the list because it was already visited when determining the type string.
 		return Flow::Skip;
 	}
 
 private:
-	void WriteVariableDeclaration(const char* const type, const char* const rawName, const char* const defaultValue)
+	void WriteVariableDeclaration(const char* const type, const char* const rawName, const char* const description,
+		const char* const defaultValue)
 	{
+		if (description != nullptr && description[0] != '\0')
+		{
+			m_output.NewLine();
+			m_output << "// " << description;
+		}
+
 		const char lowerFirst = static_cast<char>(rawName[0]);
 
 		m_output.NewLine();
 		m_output << type << " m_" << lowerFirst << (rawName + 1);
-		m_output << "{ " << defaultValue << " };";
+		
+		if (defaultValue != nullptr && defaultValue[0] != '\0')
+		{
+			m_output << "{ " << defaultValue << " };";
+		}
+		else
+		{
+			m_output << ";";
+		}
 	}
 
 	void WriteGroupStruct(const Asset::RecordSchemaField& field, const char* const groupName)

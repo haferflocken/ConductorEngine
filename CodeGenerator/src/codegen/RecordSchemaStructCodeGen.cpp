@@ -29,7 +29,19 @@ void CodeGen::GenerateInfoAssetStructFromRecordSchema(
 	output.NewLine();
 	WriteNamespaceDeclaration(namespaceNames, output);
 	output << "\n{";
-	
+
+	// Write out the root group's description as a struct-level description.
+	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
+	if (rootGroup != nullptr && !rootGroup->m_fieldDescription.empty())
+	{
+		output.NewLine();
+		output << "/**";
+		output.NewLine();
+		output << " * " << rootGroup->m_fieldDescription.c_str();
+		output.NewLine();
+		output << " */";
+	}
+
 	// Write out the struct.
 	output.NewLine();
 	output << "struct ";
@@ -84,7 +96,19 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	output << "Info;";
 	output.NewLine();
 
-	// Write out the struct.
+	// Write out the root group's description as a class-level description.
+	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
+	if (rootGroup != nullptr && !rootGroup->m_fieldDescription.empty())
+	{
+		output.NewLine();
+		output << "/**";
+		output.NewLine();
+		output << " * " << rootGroup->m_fieldDescription.c_str();
+		output.NewLine();
+		output << " */";
+	}
+
+	// Write out the class.
 	output.NewLine();
 	output << "class ";
 	output.AppendCapitalized(name);

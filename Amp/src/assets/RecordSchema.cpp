@@ -15,6 +15,7 @@ const Util::StringHash k_nameHash = Util::CalcHash("name");
 const Util::StringHash k_fieldsHash = Util::CalcHash("fields");
 
 const Util::StringHash k_fieldNameHash = Util::CalcHash("name");
+const Util::StringHash k_fieldDescriptionHash = Util::CalcHash("description");
 const Util::StringHash k_fieldTypeHash = Util::CalcHash("type");
 
 const Util::StringHash k_fieldDefaultValueHash = Util::CalcHash("defaultValue");
@@ -121,12 +122,16 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			continue;
 		}
 
+		const JSON::JSONString* const candidateDescription = field.FindString(k_fieldDescriptionHash);
+		const char* const fieldDescription =
+			(candidateDescription != nullptr) ? candidateDescription->m_string.c_str() : "";
+
 		// Create the field.
 		switch (fieldType)
 		{
 		case RecordSchemaFieldType::Boolean:
 		{
-			RecordSchemaField booleanField = RecordSchemaField::MakeBooleanField(fieldID, fieldName);
+			RecordSchemaField booleanField = RecordSchemaField::MakeBooleanField(fieldID, fieldName, fieldDescription);
 
 			const JSON::JSONBoolean* const candidateDefault = field.FindBoolean(k_fieldDefaultValueHash);
 			if (candidateDefault != nullptr)
@@ -139,7 +144,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::Float:
 		{
-			RecordSchemaField floatField = RecordSchemaField::MakeFloatField(fieldID, fieldName);
+			RecordSchemaField floatField = RecordSchemaField::MakeFloatField(fieldID, fieldName, fieldDescription);
 
 			const JSON::JSONNumber* const candidateDefault = field.FindNumber(k_fieldDefaultValueHash);
 			const JSON::JSONNumber* const candidateMin = field.FindNumber(k_fieldMinValueHash);
@@ -162,7 +167,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::Integer:
 		{
-			RecordSchemaField integerField = RecordSchemaField::MakeIntegerField(fieldID, fieldName);
+			RecordSchemaField integerField = RecordSchemaField::MakeIntegerField(fieldID, fieldName, fieldDescription);
 
 			const JSON::JSONNumber* const candidateDefault = field.FindNumber(k_fieldDefaultValueHash);
 			const JSON::JSONNumber* const candidateMin = field.FindNumber(k_fieldMinValueHash);
@@ -186,7 +191,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		case RecordSchemaFieldType::InstanceReference:
 		{
 			RecordSchemaField instanceReferenceField =
-				RecordSchemaField::MakeInstanceReferenceField(fieldID, fieldName);
+				RecordSchemaField::MakeInstanceReferenceField(fieldID, fieldName, fieldDescription);
 
 			const JSON::JSONArray* const candidateAcceptedTypes = field.FindArray(k_fieldAcceptedTypesHash);
 			if (candidateAcceptedTypes != nullptr)
@@ -209,7 +214,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::Group:
 		{
-			RecordSchemaField groupField = RecordSchemaField::MakeGroupField(fieldID, fieldName);
+			RecordSchemaField groupField = RecordSchemaField::MakeGroupField(fieldID, fieldName, fieldDescription);
 
 			const JSON::JSONArray* const candidateMemberFieldIDs = field.FindArray(k_fieldMemberIDsHash);
 			if (candidateMemberFieldIDs != nullptr)
@@ -232,7 +237,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		case RecordSchemaFieldType::List:
 		{
-			RecordSchemaField listField = RecordSchemaField::MakeListField(fieldID, fieldName);
+			RecordSchemaField listField = RecordSchemaField::MakeListField(fieldID, fieldName, fieldDescription);
 
 			const JSON::JSONNumber* const candidateElementID = field.FindNumber(k_fieldElementIDHash);
 			if (candidateElementID != nullptr)

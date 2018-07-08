@@ -10,6 +10,9 @@ namespace Behave::Components
 {
 class ComponentTestInfo;
 
+/**
+ * Component Test
+ */
 class ComponentTest final : public Behave::ActorComponent
 {
 public:
@@ -29,15 +32,17 @@ public:
 	
 	virtual ~ComponentTest() {}
 	
+	// Description of Foo
 	bool m_foo{ true };
 	struct Bar
 	{
 		struct Car
 		{
+			// Description of numWheels
 			int32_t m_numWheels{ 4 };
 			float m_topSpeed{ 0.000000 };
 		};
-		Collection::Vector<Collection::Vector<Car>> m_baz{  };
+		Collection::Vector<Collection::Vector<Car>> m_baz;
 	};
 	Bar m_bar;
 };

@@ -64,6 +64,7 @@ struct RecordSchemaField
 	RecordSchemaFieldType m_type{ RecordSchemaFieldType::Invalid };
 	uint16_t m_fieldID{ UINT16_MAX };
 	std::string m_fieldName{};
+	std::string m_fieldDescription{};
 	union
 	{
 		RecordSchemaBooleanData m_booleanData;
@@ -83,11 +84,11 @@ struct RecordSchemaField
 	RecordSchemaField(RecordSchemaField&& o);
 	void operator=(RecordSchemaField&& rhs);
 
-	static RecordSchemaField MakeBooleanField(uint16_t fieldID, const char* name);
-	static RecordSchemaField MakeFloatField(uint16_t fieldID, const char* name);
-	static RecordSchemaField MakeIntegerField(uint16_t fieldID, const char* name);
-	static RecordSchemaField MakeInstanceReferenceField(uint16_t fieldID, const char* name);
-	static RecordSchemaField MakeGroupField(uint16_t fieldID, const char* name);
-	static RecordSchemaField MakeListField(uint16_t fieldID, const char* name);
+	static RecordSchemaField MakeBooleanField(uint16_t fieldID, const char* name, const char* description);
+	static RecordSchemaField MakeFloatField(uint16_t fieldID, const char* name, const char* description);
+	static RecordSchemaField MakeIntegerField(uint16_t fieldID, const char* name, const char* description);
+	static RecordSchemaField MakeInstanceReferenceField(uint16_t fieldID, const char* name, const char* description);
+	static RecordSchemaField MakeGroupField(uint16_t fieldID, const char* name, const char* description);
+	static RecordSchemaField MakeListField(uint16_t fieldID, const char* name, const char* description);
 };
 }

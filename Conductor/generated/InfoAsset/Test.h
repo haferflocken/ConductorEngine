@@ -15,7 +15,7 @@ struct Test final
 			int32_t m_numWheels{ 4 };
 			float m_topSpeed{ 0.000000 };
 		};
-		Collection::Vector<Collection::Vector<Car>> m_baz{  };
+		Collection::Vector<Collection::Vector<Car>> m_baz;
 	};
 	Bar m_bar;
 };
