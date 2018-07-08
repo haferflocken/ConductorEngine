@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "name": "BehaviourTreeComponent",
+  "fields": {
+    "0": {
+      "name": "root",
+      "type": "group",
+      "description": "A BehaviourTreeComponent allows an Actor to run behaviour trees.",
+      "memberIDs": [ 1 ]
+    },
+    "1": {
+      "name": "treeEvaluators",
+      "type": "list",
+      "elementID": 2
+    },
+    "2": {
+      "name": "evaluator",
+      "type": "int"
+    }
+  }
+}

@@ -19,6 +19,7 @@ void CodeGen::GenerateInfoAssetStructFromRecordSchema(
 
 	CppStream output{ outputStream };
 	output << "// GENERATED CODE\n";
+	output << "#pragma once\n\n";
 
 	// Write out the required includes.
 	output << "#include <collection/Vector.h>\n";
@@ -73,6 +74,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 
 	CppStream output{ outputStream };
 	output << "// GENERATED CODE\n";
+	output << "#pragma once\n\n";
 
 	// Write out the required includes.
 	output << "#include <behave/ActorComponent.h>\n";

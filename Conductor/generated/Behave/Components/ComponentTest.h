@@ -1,4 +1,6 @@
 // GENERATED CODE
+#pragma once
+
 #include <behave/ActorComponent.h>
 #include <collection/Vector.h>
 #include <cstdint>
