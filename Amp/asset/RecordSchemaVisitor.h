@@ -29,6 +29,7 @@ public:
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaFloatData& fieldData) = 0;
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaIntegerData& fieldData) = 0;
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaInstanceReferenceData& fieldData) = 0;
+	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaImportedTypeData& fieldData) = 0;
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaGroupData& fieldData) = 0;
 	virtual Flow Visit(const RecordSchemaField& field, const RecordSchemaListData& fieldData) = 0;
 };

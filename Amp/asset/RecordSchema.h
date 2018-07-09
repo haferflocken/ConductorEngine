@@ -2,6 +2,7 @@
 
 #include <asset/RecordSchemaField.h>
 #include <collection/Vector.h>
+#include <collection/VectorMap.h>
 
 #include <string>
 
@@ -22,6 +23,9 @@ class RecordSchema
 	// The name of this schema.
 	std::string m_name;
 
+	// A mapping of types to includes this schema depends on.
+	Collection::VectorMap<std::string, std::string> m_importedTypes{};
+
 	// A list of fields sorted by field ID.
 	Collection::Vector<RecordSchemaField> m_fields{};
 
@@ -32,6 +36,8 @@ public:
 
 	uint32_t GetVersion() const { return m_version; }
 	const std::string& GetName() const { return m_name; }
+
+	const Collection::VectorMap<std::string, std::string>& GetImportedTypes() const { return m_importedTypes; }
 
 	RecordSchemaField* FindField(uint16_t fieldID);
 	const RecordSchemaField* FindField(uint16_t fieldID) const;

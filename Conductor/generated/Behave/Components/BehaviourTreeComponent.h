@@ -2,6 +2,7 @@
 #pragma once
 
 #include <behave/ActorComponent.h>
+#include <behave/BehaviourTreeEvaluator.h>
 #include <collection/Vector.h>
 #include <cstdint>
 #include <string>
@@ -34,6 +35,6 @@ public:
 	
 	virtual ~BehaviourTreeComponent() {}
 	
-	Collection::Vector<int32_t> m_treeEvaluators;
+	Collection::Vector<BehaviourTreeEvaluator> m_treeEvaluators;
 };
 }

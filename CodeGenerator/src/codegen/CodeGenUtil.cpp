@@ -64,6 +64,13 @@ public:
 		return Flow::Visit;
 	}
 
+	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaImportedTypeData& fieldData) override
+	{
+		WriteVariableDeclaration(fieldData.m_importedTypeName.c_str(), field.m_fieldName.c_str(),
+			field.m_fieldDescription.c_str(), "");
+		return Flow::Visit;
+	}
+
 	Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaGroupData& fieldData) override
 	{
 		// If this group is the root field, it does not need a struct generated for it.
@@ -192,6 +199,11 @@ private:
 			{
 				outType += "std::string";
 			}
+			return true;
+		}
+		case Asset::RecordSchemaFieldType::ImportedType:
+		{
+			outType += elementField->m_importedTypeData.m_importedTypeName.c_str();
 			return true;
 		}
 		case Asset::RecordSchemaFieldType::Group:

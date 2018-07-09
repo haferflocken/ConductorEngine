@@ -12,6 +12,7 @@ namespace Internal_RecordSchema
 {
 const Util::StringHash k_versionHash = Util::CalcHash("version");
 const Util::StringHash k_nameHash = Util::CalcHash("name");
+const Util::StringHash k_importedTypesHash = Util::CalcHash("importedTypes");
 const Util::StringHash k_fieldsHash = Util::CalcHash("fields");
 
 const Util::StringHash k_fieldNameHash = Util::CalcHash("name");
@@ -22,6 +23,7 @@ const Util::StringHash k_fieldDefaultValueHash = Util::CalcHash("defaultValue");
 const Util::StringHash k_fieldMinValueHash = Util::CalcHash("minValue");
 const Util::StringHash k_fieldMaxValueHash = Util::CalcHash("maxValue");
 
+const Util::StringHash k_fieldImportedTypeHash = Util::CalcHash("importedType");
 const Util::StringHash k_fieldAcceptedTypesHash = Util::CalcHash("acceptedTypes");
 const Util::StringHash k_fieldMemberIDsHash = Util::CalcHash("memberIDs");
 const Util::StringHash k_fieldElementIDHash = Util::CalcHash("elementID");
@@ -43,6 +45,10 @@ RecordSchemaFieldType ParseType(const char* const typeString)
 	if (strcmp("instanceReference", typeString) == 0)
 	{
 		return RecordSchemaFieldType::InstanceReference;
+	}
+	if (strcmp("importedType", typeString) == 0)
+	{
+		return RecordSchemaFieldType::ImportedType;
 	}
 	if (strcmp("group", typeString) == 0)
 	{
@@ -83,6 +89,22 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 
 	outSchema.m_version = static_cast<uint32_t>(version->m_number);
 	outSchema.m_name = name->m_string;
+
+	const JSON::JSONObject* const importedTypes = jsonObject.FindObject(k_importedTypesHash);
+	if (importedTypes != nullptr)
+	{
+		for (const auto& entry : *importedTypes)
+		{
+			if (entry.second->GetType() != JSON::ValueType::String)
+			{
+				continue;
+			}
+
+			const char* const importedType =
+				dynamic_cast<const JSON::JSONString*>(entry.second.Get())->m_string.c_str();
+			outSchema.m_importedTypes[entry.first] = importedType;
+		}
+	}
 
 	for (const auto& candidateEntry : *fieldMap)
 	{
@@ -212,6 +234,31 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			outSchema.m_fields.Add(std::move(instanceReferenceField));
 			break;
 		}
+		case RecordSchemaFieldType::ImportedType:
+		{
+			RecordSchemaField importedTypeField =
+				RecordSchemaField::MakeImportedTypeField(fieldID, fieldName, fieldDescription);
+
+			const JSON::JSONString* const candidateImportedType = field.FindString(k_fieldImportedTypeHash);
+			if (candidateImportedType == nullptr)
+			{
+				Dev::LogWarning("Skipped non-string imported type in field [%u].", fieldID);
+				continue;
+			}
+
+			const auto* const importEntry = outSchema.m_importedTypes.Find(candidateImportedType->m_string);
+			if (importEntry == nullptr)
+			{
+				Dev::LogWarning("Skipped imported type in field [%u] because it was not declared in the schema's"
+					" imported types.", fieldID);
+				continue;
+			}
+
+			importedTypeField.m_importedTypeData.m_importedTypeName = candidateImportedType->m_string;
+
+			outSchema.m_fields.Add(std::move(importedTypeField));
+			break;
+		}
 		case RecordSchemaFieldType::Group:
 		{
 			RecordSchemaField groupField = RecordSchemaField::MakeGroupField(fieldID, fieldName, fieldDescription);
@@ -321,6 +368,11 @@ bool RecordSchema::Accept(RecordSchemaVisitor& visitor, uint16_t fieldID) const
 		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_instanceReferenceData);
 		return (result != RecordSchemaVisitor::Flow::Stop);
 	}
+	case RecordSchemaFieldType::ImportedType:
+	{
+		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_importedTypeData);
+		return (result != RecordSchemaVisitor::Flow::Stop);
+	}
 	case RecordSchemaFieldType::Group:
 	{
 		const RecordSchemaVisitor::Flow result = visitor.Visit(*field, field->m_groupData);
@@ -404,6 +456,11 @@ public:
 		return Flow::Visit;
 	}
 
+	Flow Visit(const RecordSchemaField& field, const RecordSchemaImportedTypeData& fieldData) override
+	{
+		return Flow::Visit;
+	}
+
 	Flow Visit(const RecordSchemaField& field, const RecordSchemaGroupData& fieldData) override
 	{
 		if (field.m_fieldID == m_parentID)
@@ -474,6 +531,7 @@ bool RecordSchema::CheckIsErrorFree() const
 		case RecordSchemaFieldType::Float:
 		case RecordSchemaFieldType::Integer:
 		case RecordSchemaFieldType::InstanceReference:
+		case RecordSchemaFieldType::ImportedType:
 		case RecordSchemaFieldType::Group:
 		case RecordSchemaFieldType::List:
 		{

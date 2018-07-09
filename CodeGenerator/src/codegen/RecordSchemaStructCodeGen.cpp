@@ -6,11 +6,50 @@
 #include <codegen/CppStream.h>
 #include <dev/Dev.h>
 
+namespace Internal_RecordSchemaStructCodeGen
+{
+void WriteImportedTypeIncludes(const Asset::RecordSchema& schema, CodeGen::CppStream& output)
+{
+	const auto& importedTypes = schema.GetImportedTypes();
+	Collection::VectorMap<std::string, char> includeSet;
+	for (const auto& entry : importedTypes)
+	{
+		includeSet[entry.second] = '\0';
+	}
+
+	for (const auto& entry : includeSet)
+	{
+		const auto& includeString = entry.first;
+		if (!includeString.empty())
+		{
+			output.NewLine();
+			output << "#include <" << includeString.c_str() << '>';
+		}
+	}
+}
+
+void WriteRootDescription(const Asset::RecordSchema& schema, CodeGen::CppStream& output)
+{
+	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
+	if (rootGroup != nullptr && !rootGroup->m_fieldDescription.empty())
+	{
+		output.NewLine();
+		output << "/**";
+		output.NewLine();
+		output << " * " << rootGroup->m_fieldDescription.c_str();
+		output.NewLine();
+		output << " */";
+	}
+}
+}
+
 void CodeGen::GenerateInfoAssetStructFromRecordSchema(
 	const Collection::ArrayView<std::string> namespaceNames,
 	const Asset::RecordSchema& schema,
 	std::ostream& outputStream)
 {
+	using namespace Internal_RecordSchemaStructCodeGen;
+
 	const char* const name = schema.GetName().c_str();
 	if (name == nullptr || name[0] == '\0')
 	{
@@ -22,6 +61,8 @@ void CodeGen::GenerateInfoAssetStructFromRecordSchema(
 	output << "#pragma once\n\n";
 
 	// Write out the required includes.
+	WriteImportedTypeIncludes(schema, output);
+	output.NewLine();
 	output << "#include <collection/Vector.h>\n";
 	output << "#include <cstdint>\n";
 	output << "#include <string>\n";
@@ -32,16 +73,7 @@ void CodeGen::GenerateInfoAssetStructFromRecordSchema(
 	output << "\n{";
 
 	// Write out the root group's description as a struct-level description.
-	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
-	if (rootGroup != nullptr && !rootGroup->m_fieldDescription.empty())
-	{
-		output.NewLine();
-		output << "/**";
-		output.NewLine();
-		output << " * " << rootGroup->m_fieldDescription.c_str();
-		output.NewLine();
-		output << " */";
-	}
+	WriteRootDescription(schema, output);
 
 	// Write out the struct.
 	output.NewLine();
@@ -66,6 +98,8 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	const Asset::RecordSchema& schema,
 	std::ostream& outputStream)
 {
+	using namespace Internal_RecordSchemaStructCodeGen;
+
 	const char* const name = schema.GetName().c_str();
 	if (name == nullptr || name[0] == '\0')
 	{
@@ -77,7 +111,9 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	output << "#pragma once\n\n";
 
 	// Write out the required includes.
-	output << "#include <behave/ActorComponent.h>\n";
+	output << "#include <behave/ActorComponent.h>";
+	WriteImportedTypeIncludes(schema, output);
+	output.NewLine();
 	output << "#include <collection/Vector.h>\n";
 	output << "#include <cstdint>\n";
 	output << "#include <string>\n";
@@ -99,16 +135,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	output.NewLine();
 
 	// Write out the root group's description as a class-level description.
-	const Asset::RecordSchemaField* const rootGroup = schema.FindField(0);
-	if (rootGroup != nullptr && !rootGroup->m_fieldDescription.empty())
-	{
-		output.NewLine();
-		output << "/**";
-		output.NewLine();
-		output << " * " << rootGroup->m_fieldDescription.c_str();
-		output.NewLine();
-		output << " */";
-	}
+	WriteRootDescription(schema, output);
 
 	// Write out the class.
 	output.NewLine();

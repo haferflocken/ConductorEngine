@@ -21,6 +21,7 @@ enum class RecordSchemaFieldType : uint8_t
 	Float,
 	Integer,
 	InstanceReference,
+	ImportedType,
 	Group,
 	List
 };
@@ -49,6 +50,11 @@ struct RecordSchemaInstanceReferenceData
 	Collection::Vector<std::string> m_acceptedTypes;
 };
 
+struct RecordSchemaImportedTypeData
+{
+	std::string m_importedTypeName;
+};
+
 struct RecordSchemaGroupData
 {
 	Collection::Vector<uint16_t> m_memberFieldIDs;
@@ -71,6 +77,7 @@ struct RecordSchemaField
 		RecordSchemaFloatData m_floatData;
 		RecordSchemaIntegerData m_integerData;
 		RecordSchemaInstanceReferenceData m_instanceReferenceData;
+		RecordSchemaImportedTypeData m_importedTypeData;
 		RecordSchemaGroupData m_groupData;
 		RecordSchemaListData m_listData;
 	};
@@ -88,6 +95,7 @@ struct RecordSchemaField
 	static RecordSchemaField MakeFloatField(uint16_t fieldID, const char* name, const char* description);
 	static RecordSchemaField MakeIntegerField(uint16_t fieldID, const char* name, const char* description);
 	static RecordSchemaField MakeInstanceReferenceField(uint16_t fieldID, const char* name, const char* description);
+	static RecordSchemaField MakeImportedTypeField(uint16_t fieldID, const char* name, const char* description);
 	static RecordSchemaField MakeGroupField(uint16_t fieldID, const char* name, const char* description);
 	static RecordSchemaField MakeListField(uint16_t fieldID, const char* name, const char* description);
 };

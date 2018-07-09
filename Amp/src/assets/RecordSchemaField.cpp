@@ -6,6 +6,57 @@ namespace Asset
 {
 namespace Internal_RecordSchemaField
 {
+void ConstructData(RecordSchemaField& destination, RecordSchemaField&& source)
+{
+	switch (destination.m_type)
+	{
+	case RecordSchemaFieldType::Invalid:
+	{
+		break;
+	}
+	case RecordSchemaFieldType::Boolean:
+	{
+		new (&destination.m_booleanData) RecordSchemaBooleanData(std::move(source.m_booleanData));
+		break;
+	}
+	case RecordSchemaFieldType::Float:
+	{
+		new (&destination.m_floatData) RecordSchemaFloatData(std::move(source.m_floatData));
+		break;
+	}
+	case RecordSchemaFieldType::Integer:
+	{
+		new (&destination.m_integerData) RecordSchemaIntegerData(std::move(source.m_integerData));
+		break;
+	}
+	case RecordSchemaFieldType::InstanceReference:
+	{
+		new (&destination.m_instanceReferenceData) RecordSchemaInstanceReferenceData(std::move(source.m_instanceReferenceData));
+		break;
+	}
+	case RecordSchemaFieldType::ImportedType:
+	{
+		new (&destination.m_importedTypeData) RecordSchemaImportedTypeData(std::move(source.m_importedTypeData));
+		break;
+	}
+	case RecordSchemaFieldType::Group:
+	{
+		new (&destination.m_groupData) RecordSchemaGroupData(std::move(source.m_groupData));
+		break;
+	}
+	case RecordSchemaFieldType::List:
+	{
+		new (&destination.m_listData) RecordSchemaListData(std::move(source.m_listData));
+		break;
+	}
+	default:
+	{
+		Dev::FatalError("Unknown field type [%d]", static_cast<int32_t>(destination.m_type));
+		break;
+	}
+	}
+}
+
 void MoveData(RecordSchemaField& destination, RecordSchemaField&& source)
 {
 	switch (destination.m_type)
@@ -32,6 +83,11 @@ void MoveData(RecordSchemaField& destination, RecordSchemaField&& source)
 	case RecordSchemaFieldType::InstanceReference:
 	{
 		destination.m_instanceReferenceData = std::move(source.m_instanceReferenceData);
+		break;
+	}
+	case RecordSchemaFieldType::ImportedType:
+	{
+		destination.m_importedTypeData = std::move(source.m_importedTypeData);
 		break;
 	}
 	case RecordSchemaFieldType::Group:
@@ -86,6 +142,11 @@ void DestroyInfoSchemaField(RecordSchemaField& field)
 		MoveDestroy(field.m_instanceReferenceData);
 		break;
 	}
+	case RecordSchemaFieldType::ImportedType:
+	{
+		MoveDestroy(field.m_importedTypeData);
+		break;
+	}
 	case RecordSchemaFieldType::Group:
 	{
 		MoveDestroy(field.m_groupData);
@@ -120,7 +181,7 @@ RecordSchemaField::RecordSchemaField(RecordSchemaField&& o)
 	, m_fieldName(std::move(o.m_fieldName))
 	, m_fieldDescription(std::move(o.m_fieldDescription))
 {
-	Internal_RecordSchemaField::MoveData(*this, std::move(o));
+	Internal_RecordSchemaField::ConstructData(*this, std::move(o));
 }
 
 void RecordSchemaField::operator=(RecordSchemaField&& rhs)
@@ -188,6 +249,20 @@ RecordSchemaField RecordSchemaField::MakeInstanceReferenceField(
 	field.m_fieldDescription = description;
 
 	new(&field.m_instanceReferenceData) RecordSchemaInstanceReferenceData();
+
+	return field;
+}
+
+RecordSchemaField RecordSchemaField::MakeImportedTypeField(
+	uint16_t fieldID, const char* name, const char* description)
+{
+	RecordSchemaField field;
+	field.m_type = RecordSchemaFieldType::ImportedType;
+	field.m_fieldID = fieldID;
+	field.m_fieldName = name;
+	field.m_fieldDescription = description;
+
+	new(&field.m_importedTypeData) RecordSchemaImportedTypeData();
 
 	return field;
 }

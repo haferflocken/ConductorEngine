@@ -67,6 +67,12 @@ public:
 		return Flow::Visit;
 	}
 
+	virtual Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaImportedTypeData& fieldData) override
+	{
+		// TODO this likely requires that imported types be imported within code, not JSON
+		return Flow::Visit;
+	}
+
 	virtual Flow Visit(const Asset::RecordSchemaField& field, const Asset::RecordSchemaGroupData& fieldData) override
 	{
 		// If this group is the root, just visit its children.
