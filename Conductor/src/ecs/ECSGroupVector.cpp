@@ -1,13 +1,13 @@
-#include <ecs/ActorComponentGroupVector.h>
+#include <ecs/ECSGroupVector.h>
 
 #include <dev/Dev.h>
 
 #include <array>
 
-void ECS::ActorComponentGroupVector::Add(const Collection::Vector<size_t>& indices)
+void ECS::ECSGroupVector::Add(const Collection::Vector<size_t>& indices)
 {
 	Dev::FatalAssert(indices.Size() == m_groupSize,
-		"Can only add actor component groups with the correct group size.");
+		"Can only add ECS groups with the correct group size.");
 	
 	for (const auto& index : indices)
 	{
@@ -15,7 +15,7 @@ void ECS::ActorComponentGroupVector::Add(const Collection::Vector<size_t>& indic
 	}
 }
 
-namespace Internal_ActorComponentGroupVector
+namespace Internal_ECSGroupVector
 {
 template <uint32_t GroupSize>
 void SortGroups(Collection::Vector<size_t>& data, const uint32_t numGroups)
@@ -31,9 +31,9 @@ void SortGroups(Collection::Vector<size_t>& data, const uint32_t numGroups)
 }
 }
 
-void ECS::ActorComponentGroupVector::Sort()
+void ECS::ECSGroupVector::Sort()
 {
-	using namespace Internal_ActorComponentGroupVector;
+	using namespace Internal_ECSGroupVector;
 
 	if (IsEmpty())
 	{

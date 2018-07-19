@@ -2,12 +2,9 @@
 
 #include <collection/PolyStack.h>
 #include <collection/Vector.h>
-#include <ecs/ActorID.h>
+#include <ecs/EntityID.h>
 
-namespace ECS
-{
-class Actor;
-}
+namespace ECS { class Entity; }
 
 namespace Behave
 {
@@ -53,7 +50,7 @@ public:
 	Collection::PolyStack<BehaviourNodeState>& GetCallStack() { return m_callStack; }
 	Collection::Vector<DomainEntry>& GetDomainStack() { return m_domainStack; }
 	
-	void Update(ECS::Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
+	void Update(ECS::Entity& entity, Collection::Vector<std::function<void()>>& deferredFunctions,
 		const BehaveContext& context);
 
 private:

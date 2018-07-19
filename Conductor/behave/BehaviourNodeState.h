@@ -3,7 +3,7 @@
 #include <functional>
 
 namespace Collection { template <typename T> class Vector; }
-namespace ECS { class Actor; }
+namespace ECS { class Entity; }
 
 namespace Behave
 {
@@ -25,7 +25,7 @@ class BehaviourNodeState
 public:
 	virtual const BehaviourNode* GetNode() const = 0;
 	
-	virtual EvaluateResult Evaluate(ECS::Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
+	virtual EvaluateResult Evaluate(ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
 		const BehaveContext& context) = 0;
 

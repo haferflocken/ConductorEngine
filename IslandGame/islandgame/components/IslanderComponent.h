@@ -1,14 +1,14 @@
 #pragma once
 
-#include <ecs/ActorComponent.h>
+#include <ecs/Component.h>
 
 #include <util/StringHash.h>
 
 namespace ECS
 {
-class ActorComponentInfo;
-class ActorComponentVector;
-class ActorManager;
+class ComponentInfo;
+class ComponentVector;
+class EntityManager;
 }
 
 namespace IslandGame
@@ -23,16 +23,16 @@ class IslanderComponentInfo;
  * - To perform its job
  * Islander behaviour is implemented by behaviour trees.
  */
-class IslanderComponent final : public ECS::ActorComponent
+class IslanderComponent final : public ECS::Component
 {
 public:
 	using Info = IslanderComponentInfo;
 
 	static bool TryCreateFromInfo(const IslanderComponentInfo& componentInfo,
-		const ECS::ActorComponentID reservedID, ECS::ActorComponentVector& destination);
+		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 	
-	explicit IslanderComponent(const ECS::ActorComponentID id)
-		: ActorComponent(id)
+	explicit IslanderComponent(const ECS::ComponentID id)
+		: Component(id)
 		, m_hunger(0)
 		, m_tiredness(0)
 	{}

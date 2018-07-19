@@ -8,14 +8,14 @@
 namespace ECS
 {
 /**
- * Holds groups of actor indices and actor component indices in contiguous storage.
+ * Holds groups of entity indices and component indices in contiguous storage.
  */
-class ActorComponentGroupVector
+class ECSGroupVector
 {
 public:
-	ActorComponentGroupVector() = default;
+	ECSGroupVector() = default;
 
-	explicit ActorComponentGroupVector(const uint32_t groupSize, const uint32_t initialCapacity = 8)
+	explicit ECSGroupVector(const uint32_t groupSize, const uint32_t initialCapacity = 8)
 		: m_groupSize(groupSize)
 		, m_data(groupSize * initialCapacity)
 	{}
@@ -25,7 +25,7 @@ public:
 	uint32_t NumComponentsInGroup() const { return m_groupSize; }
 	bool IsEmpty() const { return m_data.IsEmpty(); }
 
-	// Add an actor component group to this component group vector.
+	// Add an ECS group to this component group vector.
 	void Add(const Collection::Vector<size_t>& indices); 
 	
 	// Sort the component groups of this vector by the first index in each component group.
@@ -34,16 +34,16 @@ public:
 	void Clear() { m_data.Clear(); }
 
 	// Return an iterable view into this which iterates with the given group type.
-	template <typename ActorComponentGroupType>
-	Collection::ArrayView<ActorComponentGroupType> GetView()
+	template <typename ECSGroupType>
+	Collection::ArrayView<ECSGroupType> GetView()
 	{
-		Dev::FatalAssert((ActorComponentGroupType::k_size * sizeof(size_t)) == sizeof(ActorComponentGroupType),
+		Dev::FatalAssert((ECSGroupType::k_size * sizeof(size_t)) == sizeof(ECSGroupType),
 			"Component group type has mismatch between its size constant and its actual size.");
-		Dev::FatalAssert(m_groupSize == ActorComponentGroupType::k_size,
+		Dev::FatalAssert(m_groupSize == ECSGroupType::k_size,
 			"Component group type has the wrong number of components.");
 		
-		ActorComponentGroupType* const data = reinterpret_cast<ActorComponentGroupType*>(&m_data[0]);
-		return Collection::ArrayView<ActorComponentGroupType>(data, Size());
+		ECSGroupType* const data = reinterpret_cast<ECSGroupType*>(&m_data[0]);
+		return Collection::ArrayView<ECSGroupType>(data, Size());
 	}
 
 private:

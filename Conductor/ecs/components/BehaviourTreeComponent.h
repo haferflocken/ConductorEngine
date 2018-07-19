@@ -1,29 +1,29 @@
 #pragma once
 
 #include <behave/BehaviourTreeEvaluator.h>
-#include <ecs/ActorComponent.h>
+#include <ecs/Component.h>
 
 namespace ECS
 {
-class ActorComponentVector;
+class ComponentVector;
 
 namespace Components
 {
 class BehaviourTreeComponentInfo;
 
 /**
- * A BehaviourTreeComponent allows an Actor to run behaviour trees.
+ * A BehaviourTreeComponent allows an Entity to run behaviour trees.
  */
-class BehaviourTreeComponent final : public ActorComponent
+class BehaviourTreeComponent final : public Component
 {
 public:
 	using Info = BehaviourTreeComponentInfo;
 
-	static bool TryCreateFromInfo(const BehaviourTreeComponentInfo& componentInfo, const ActorComponentID reservedID,
-		ActorComponentVector& destination);
+	static bool TryCreateFromInfo(const BehaviourTreeComponentInfo& componentInfo, const ComponentID reservedID,
+		ComponentVector& destination);
 
-	explicit BehaviourTreeComponent(const ActorComponentID id)
-		: ActorComponent(id)
+	explicit BehaviourTreeComponent(const ComponentID id)
+		: Component(id)
 		, m_treeEvaluators()
 	{}
 

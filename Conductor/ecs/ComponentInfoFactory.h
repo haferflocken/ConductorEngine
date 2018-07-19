@@ -9,22 +9,22 @@ namespace JSON { class JSONObject; }
 
 namespace ECS
 {
-class ActorComponentInfo;
+class ComponentInfo;
 
 /**
- * Creates actor component info structs from JSON files.
+ * Creates component info structs from JSON files.
  */
-class ActorComponentInfoFactory
+class ComponentInfoFactory
 {
 public:
-	using FactoryFunction = Mem::UniquePtr<ActorComponentInfo>(*)(const Behave::BehaviourTreeManager&, const JSON::JSONObject&);
+	using FactoryFunction = Mem::UniquePtr<ComponentInfo>(*)(const Behave::BehaviourTreeManager&, const JSON::JSONObject&);
 
-	ActorComponentInfoFactory();
+	ComponentInfoFactory();
 
 	template <typename ComponentInfoType>
 	void RegisterFactoryFunction();
 
-	Mem::UniquePtr<ActorComponentInfo> MakeComponentInfo(
+	Mem::UniquePtr<ComponentInfo> MakeComponentInfo(
 		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject) const;
 
 private:
@@ -35,7 +35,7 @@ private:
 };
 
 template <typename ComponentInfoType>
-void ActorComponentInfoFactory::RegisterFactoryFunction()
+void ComponentInfoFactory::RegisterFactoryFunction()
 {
 	RegisterFactoryFunction(ComponentInfoType::sk_typeName, &ComponentInfoType::LoadFromJSON);
 }

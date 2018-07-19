@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/ActorComponentInfo.h>
+#include <ecs/ComponentInfo.h>
 
 namespace Behave
 {
@@ -13,13 +13,13 @@ namespace Mem { template <typename T> class UniquePtr; }
 
 namespace ECS::Components
 {
-class BehaviourTreeComponentInfo final : public ActorComponentInfo
+class BehaviourTreeComponentInfo final : public ComponentInfo
 {
 public:
 	static constexpr char* sk_typeName = "behaviour_tree_component";
 	static const Util::StringHash sk_typeHash;
 
-	static Mem::UniquePtr<ECS::ActorComponentInfo> LoadFromJSON(
+	static Mem::UniquePtr<ComponentInfo> LoadFromJSON(
 		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject);
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }

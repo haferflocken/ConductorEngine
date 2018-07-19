@@ -4,10 +4,10 @@
 
 namespace ECS
 {
-class ActorComponentInfo
+class ComponentInfo
 {
 public:
-	virtual ~ActorComponentInfo() {}
+	virtual ~ComponentInfo() {}
 
 	virtual const char* GetTypeName() const = 0;
 	virtual Util::StringHash GetTypeHash() const = 0;

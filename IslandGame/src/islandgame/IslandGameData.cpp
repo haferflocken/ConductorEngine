@@ -4,21 +4,21 @@
 
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourTreeManager.h>
-#include <ecs/ActorComponentFactory.h>
-#include <ecs/ActorComponentInfoFactory.h>
-#include <ecs/ActorInfoManager.h>
+#include <ecs/ComponentFactory.h>
+#include <ecs/ComponentInfoFactory.h>
+#include <ecs/EntityInfoManager.h>
 
 IslandGame::IslandGameData::IslandGameData()
 	: m_behaviourNodeFactory(Mem::MakeUnique<Behave::BehaviourNodeFactory>())
 	, m_behaviourTreeManager(Mem::MakeUnique<Behave::BehaviourTreeManager>(*m_behaviourNodeFactory))
-	, m_actorComponentInfoFactory(Mem::MakeUnique<ECS::ActorComponentInfoFactory>())
-	, m_actorInfoManager(Mem::MakeUnique<ECS::ActorInfoManager>(*m_actorComponentInfoFactory, *m_behaviourTreeManager))
-	, m_actorComponentFactory(Mem::MakeUnique<ECS::ActorComponentFactory>())
+	, m_componentInfoFactory(Mem::MakeUnique<ECS::ComponentInfoFactory>())
+	, m_entityInfoManager(Mem::MakeUnique<ECS::EntityInfoManager>(*m_componentInfoFactory, *m_behaviourTreeManager))
+	, m_componentFactory(Mem::MakeUnique<ECS::ComponentFactory>())
 {
 	using namespace IslandGame::Components;
 
-	m_actorComponentInfoFactory->RegisterFactoryFunction<IslanderComponentInfo>();
-	m_actorComponentFactory->RegisterComponentType<IslanderComponent>();
+	m_componentInfoFactory->RegisterFactoryFunction<IslanderComponentInfo>();
+	m_componentFactory->RegisterComponentType<IslanderComponent>();
 }
 
 IslandGame::IslandGameData::~IslandGameData()
@@ -31,5 +31,5 @@ void IslandGame::IslandGameData::LoadBehaviourTreesInDirectory(const File::Path&
 
 void IslandGame::IslandGameData::LoadActorInfosInDirectory(const File::Path& directory)
 {
-	m_actorInfoManager->LoadActorInfosInDirectory(directory);
+	m_entityInfoManager->LoadEntityInfosInDirectory(directory);
 }

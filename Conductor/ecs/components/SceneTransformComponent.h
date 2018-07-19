@@ -1,29 +1,29 @@
 #pragma once
 
-#include <ecs/ActorComponent.h>
+#include <ecs/Component.h>
 #include <math/Matrix4x4.h>
 
 namespace ECS
 {
-class ActorComponentVector;
+class ComponentVector;
 
 namespace Components
 {
 class SceneTransformComponentInfo;
 
 /**
- * Actors with a SceneTransformComponent have a position, orientation, and scale within the scene.
+ * Entities with a SceneTransformComponent have a position, orientation, and scale within the scene.
  */
-class SceneTransformComponent final : public ActorComponent
+class SceneTransformComponent final : public Component
 {
 public:
 	using Info = SceneTransformComponentInfo;
 
-	static bool TryCreateFromInfo(const SceneTransformComponentInfo& componentInfo, const ActorComponentID reservedID,
-		ActorComponentVector& destination);
+	static bool TryCreateFromInfo(const SceneTransformComponentInfo& componentInfo, const ComponentID reservedID,
+		ComponentVector& destination);
 
-	explicit SceneTransformComponent(const ActorComponentID id)
-		: ActorComponent(id)
+	explicit SceneTransformComponent(const ComponentID id)
+		: Component(id)
 		, m_matrix()
 	{}
 

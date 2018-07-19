@@ -136,28 +136,28 @@
     <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="src\ecs\Actor.cpp">
+    <ClCompile Include="src\ecs\Entity.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ecs\ActorComponentFactory.cpp">
+    <ClCompile Include="src\ecs\ComponentFactory.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ecs\ActorComponentGroupVector.cpp">
+    <ClCompile Include="src\ecs\ECSGroupVector.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ecs\ActorComponentInfoFactory.cpp">
+    <ClCompile Include="src\ecs\ComponentInfoFactory.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ecs\ActorComponentVector.cpp">
+    <ClCompile Include="src\ecs\ComponentVector.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ecs\ActorInfo.cpp">
+    <ClCompile Include="src\ecs\EntityInfo.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ecs\ActorInfoManager.cpp">
+    <ClCompile Include="src\ecs\EntityInfoManager.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\ecs\ActorManager.cpp">
+    <ClCompile Include="src\ecs\EntityManager.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\behave\BehaviourNodeFactory.cpp">
@@ -252,23 +252,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="generated\**\*.h" />
-    <ClInclude Include="ecs\Actor.h" />
-    <ClInclude Include="ecs\ActorComponent.h" />
-    <ClInclude Include="ecs\ActorComponentFactory.h" />
-    <ClInclude Include="ecs\ActorComponentGroup.h" />
-    <ClInclude Include="ecs\ActorComponentGroupVector.h" />
-    <ClInclude Include="ecs\ActorComponentID.h" />
-    <ClInclude Include="ecs\ActorComponentInfo.h" />
-    <ClInclude Include="ecs\ActorComponentVector.h" />
-    <ClInclude Include="ecs\ActorID.h" />
-    <ClInclude Include="ecs\ActorInfo.h" />
-    <ClInclude Include="ecs\ActorInfoManager.h" />
-    <ClInclude Include="ecs\ActorManager.h" />
+    <ClInclude Include="ecs\Entity.h" />
+    <ClInclude Include="ecs\Component.h" />
+    <ClInclude Include="ecs\ComponentFactory.h" />
+    <ClInclude Include="ecs\ECSGroup.h" />
+    <ClInclude Include="ecs\ECSGroupVector.h" />
+    <ClInclude Include="ecs\ComponentID.h" />
+    <ClInclude Include="ecs\ComponentInfo.h" />
+    <ClInclude Include="ecs\ComponentVector.h" />
+    <ClInclude Include="ecs\EntityID.h" />
+    <ClInclude Include="ecs\EntityInfo.h" />
+    <ClInclude Include="ecs\EntityInfoManager.h" />
+    <ClInclude Include="ecs\EntityManager.h" />
     <ClInclude Include="behave\BehaveContext.h" />
     <ClInclude Include="behave\BehaviourCondition.h" />
     <ClInclude Include="behave\BehaviourNodeFactory.h" />
     <ClInclude Include="behave\BehaviourNodeState.h" />
-    <ClInclude Include="ecs\BehaviourSystem.h" />
+    <ClInclude Include="ecs\System.h" />
     <ClInclude Include="behave\BehaviourTree.h" />
     <ClInclude Include="behave\BehaviourTreeEvaluator.h" />
     <ClInclude Include="behave\BehaviourTreeManager.h" />
@@ -283,7 +283,7 @@
     <ClInclude Include="behave\nodes\CallNode.h" />
     <ClInclude Include="behave\nodes\ConditionalNode.h" />
     <ClInclude Include="behave\nodes\DomainNode.h" />
-    <ClInclude Include="ecs\ActorComponentInfoFactory.h" />
+    <ClInclude Include="ecs\ComponentInfoFactory.h" />
     <ClInclude Include="behave\nodes\LogNode.h" />
     <ClInclude Include="behave\nodes\ReturnNode.h" />
     <ClInclude Include="behave\nodes\SelectorNode.h" />

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <client/IClient.h>
-#include <ecs/ActorManager.h>
+#include <ecs/EntityManager.h>
 
 namespace IslandGame { class IslandGameData; }
 
@@ -10,7 +10,7 @@ namespace IslandGame::Client
 class IslandGameClient : public ::Client::IClient
 {
 	const IslandGameData& m_gameData;
-	ECS::ActorManager m_actorManager;
+	ECS::EntityManager m_entityManager;
 
 public:
 	IslandGameClient(const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost);

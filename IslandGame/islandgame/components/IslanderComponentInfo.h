@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/ActorComponentInfo.h>
+#include <ecs/ComponentInfo.h>
 
 namespace Behave { class BehaviourTreeManager; }
 namespace JSON { class JSONObject; }
@@ -10,13 +10,13 @@ namespace IslandGame
 {
 namespace Components
 {
-class IslanderComponentInfo final : public ECS::ActorComponentInfo
+class IslanderComponentInfo final : public ECS::ComponentInfo
 {
 public:
 	static constexpr char* sk_typeName = "islander_component";
 	static const Util::StringHash sk_typeHash;
 
-	static Mem::UniquePtr<ECS::ActorComponentInfo> LoadFromJSON(
+	static Mem::UniquePtr<ECS::ComponentInfo> LoadFromJSON(
 		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject);
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }

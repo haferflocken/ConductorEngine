@@ -1,6 +1,6 @@
-#include <ecs/ActorComponent.h>
-#include <ecs/ActorComponentFactory.h>
-#include <ecs/ActorComponentInfo.h>
+#include <ecs/Component.h>
+#include <ecs/ComponentFactory.h>
+#include <ecs/ComponentInfo.h>
 #include <ecs/components/BehaviourTreeComponent.h>
 #include <ecs/components/BehaviourTreeComponentInfo.h>
 #include <ecs/components/BlackboardComponent.h>
@@ -10,14 +10,14 @@
 
 #include <dev/Dev.h>
 
-ECS::ActorComponentFactory::ActorComponentFactory()
+ECS::ComponentFactory::ComponentFactory()
 {
 	RegisterComponentType<Components::BehaviourTreeComponent>();
 	RegisterComponentType<Components::BlackboardComponent>();
 	RegisterComponentType<Components::SceneTransformComponent>();
 }
 
-void ECS::ActorComponentFactory::RegisterComponentType(const char* const componentTypeName,
+void ECS::ComponentFactory::RegisterComponentType(const char* const componentTypeName,
 	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponentInBytes,
 	FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn)
 {
@@ -29,7 +29,7 @@ void ECS::ActorComponentFactory::RegisterComponentType(const char* const compone
 		&& m_factoryFunctions.Find(componentTypeHash) == m_factoryFunctions.end()
 		&& m_destructorFunctions.Find(componentTypeHash) == m_destructorFunctions.end()
 		&& m_swapFunctions.Find(componentTypeHash) == m_swapFunctions.end(),
-		"Attempted to register component type \"%s\", but it has already been registerd.", componentTypeName);
+		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
 	
 	m_componentSizesInBytes[componentTypeHash] = sizeOfComponentInBytes;
 	m_factoryFunctions[componentTypeHash] = std::move(factoryFn);
@@ -37,7 +37,7 @@ void ECS::ActorComponentFactory::RegisterComponentType(const char* const compone
 	m_swapFunctions[componentTypeHash] = std::move(swapFn);
 }
 
-Unit::ByteCount64 ECS::ActorComponentFactory::GetSizeOfComponentInBytes(
+Unit::ByteCount64 ECS::ComponentFactory::GetSizeOfComponentInBytes(
 	const Util::StringHash componentTypeHash) const
 {
 	const auto sizeItr = m_componentSizesInBytes.Find(componentTypeHash);
@@ -50,8 +50,8 @@ Unit::ByteCount64 ECS::ActorComponentFactory::GetSizeOfComponentInBytes(
 	return sizeItr->second;
 }
 
-bool ECS::ActorComponentFactory::TryMakeComponent(const ActorComponentInfo& componentInfo,
-	const ActorComponentID reservedID, ActorComponentVector& destination) const
+bool ECS::ComponentFactory::TryMakeComponent(const ComponentInfo& componentInfo,
+	const ComponentID reservedID, ComponentVector& destination) const
 {
 	const auto factoryItr = m_factoryFunctions.Find(componentInfo.GetTypeHash());
 	if (factoryItr == m_factoryFunctions.end())
@@ -63,7 +63,7 @@ bool ECS::ActorComponentFactory::TryMakeComponent(const ActorComponentInfo& comp
 	return factoryItr->second(componentInfo, reservedID, destination);
 }
 
-void ECS::ActorComponentFactory::DestroyComponent(ActorComponent& component) const
+void ECS::ComponentFactory::DestroyComponent(Component& component) const
 {
 	const auto& destructorItr = m_destructorFunctions.Find(component.m_id.GetType());
 	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
@@ -73,7 +73,7 @@ void ECS::ActorComponentFactory::DestroyComponent(ActorComponent& component) con
 	destructorItr->second(component);
 }
 
-void ECS::ActorComponentFactory::SwapComponents(ActorComponent& a, ActorComponent& b) const
+void ECS::ComponentFactory::SwapComponents(Component& a, Component& b) const
 {
 	const auto& swapItr = m_swapFunctions.Find(a.m_id.GetType());
 	Dev::FatalAssert(swapItr != m_swapFunctions.end() && swapItr == m_swapFunctions.Find(b.m_id.GetType()),

@@ -22,7 +22,7 @@ public:
 
 	virtual const BehaviourNode* GetNode() const override { return m_node; }
 
-	virtual EvaluateResult Evaluate(ECS::Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
+	virtual EvaluateResult Evaluate(ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
 		const BehaveContext& context) override
 	{
@@ -33,7 +33,7 @@ public:
 			for (size_t i = 0, iEnd = m_node->GetChildCount(); i < iEnd; ++i)
 			{
 				const BehaviourCondition* const condition = m_node->GetCondition(i);
-				if (condition->Check(actor))
+				if (condition->Check(entity))
 				{
 					const BehaviourNode* const childNode = m_node->GetChild(i);
 					childNode->PushState(treeEvaluator);

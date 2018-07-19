@@ -24,7 +24,7 @@ public:
 
 	virtual const BehaviourNode* GetNode() const override { return m_node; }
 
-	virtual EvaluateResult Evaluate(ECS::Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
+	virtual EvaluateResult Evaluate(ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
 		const BehaveContext& context) override
 	{

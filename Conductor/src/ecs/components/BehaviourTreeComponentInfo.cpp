@@ -13,7 +13,7 @@ const Util::StringHash k_behaviourTreesArray = Util::CalcHash("behaviour_trees")
 const Util::StringHash ECS::Components::BehaviourTreeComponentInfo::sk_typeHash =
 	Util::CalcHash(BehaviourTreeComponentInfo::sk_typeName);
 
-Mem::UniquePtr<ECS::ActorComponentInfo> ECS::Components::BehaviourTreeComponentInfo::LoadFromJSON(
+Mem::UniquePtr<ECS::ComponentInfo> ECS::Components::BehaviourTreeComponentInfo::LoadFromJSON(
 	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
 {
 	auto componentInfo = Mem::MakeUnique<BehaviourTreeComponentInfo>();
@@ -30,7 +30,7 @@ Mem::UniquePtr<ECS::ActorComponentInfo> ECS::Components::BehaviourTreeComponentI
 	{
 		if (value->GetType() != JSON::ValueType::String)
 		{
-			Dev::LogWarning("Encountered a non-string element in an actor info behaviour tree array.");
+			Dev::LogWarning("Encountered a non-string element in an entity info behaviour tree array.");
 			continue;
 		}
 		const JSON::JSONString& valueString = static_cast<const JSON::JSONString&>(*value);

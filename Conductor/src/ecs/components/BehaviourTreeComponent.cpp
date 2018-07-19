@@ -1,11 +1,12 @@
 #include <ecs/components/BehaviourTreeComponent.h>
 
+#include <behave/BehaviourNode.h>
 #include <behave/BehaviourTree.h>
-#include <ecs/ActorComponentVector.h>
+#include <ecs/ComponentVector.h>
 #include <ecs/components/BehaviourTreeComponentInfo.h>
 
 bool ECS::Components::BehaviourTreeComponent::TryCreateFromInfo(const BehaviourTreeComponentInfo& componentInfo,
-	const ActorComponentID reservedID, ActorComponentVector& destination)
+	const ComponentID reservedID, ComponentVector& destination)
 {
 	BehaviourTreeComponent& component = destination.Emplace<BehaviourTreeComponent>(reservedID);
 

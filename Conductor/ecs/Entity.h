@@ -1,49 +1,49 @@
 #pragma once
 
-#include <ecs/ActorComponentID.h>
-#include <ecs/ActorID.h>
+#include <ecs/ComponentID.h>
+#include <ecs/EntityID.h>
 
 #include <collection/Vector.h>
 
 namespace ECS
 {
-class ActorInfo;
+class EntityInfo;
 
 /**
- * An actor runs behaviour trees.
+ * An entity is anything in the world.
  */
-class Actor final
+class Entity final
 {
 public:
-	using Info = ActorInfo;
+	using Info = EntityInfo;
 
-	explicit Actor(const ActorID& id)
+	explicit Entity(const EntityID& id)
 		: m_id(id)
 		, m_components()
 	{}
 
-	Actor(const Actor&) = delete;
-	Actor& operator=(const Actor&) = delete;
+	Entity(const Entity&) = delete;
+	Entity& operator=(const Entity&) = delete;
 
-	Actor(Actor&&) = default;
-	Actor& operator=(Actor&&) = default;
+	Entity(Entity&&) = default;
+	Entity& operator=(Entity&&) = default;
 
-	~Actor() {}
+	~Entity() {}
 
 	template <typename ComponentType>
-	ActorComponentID FindComponentID() const;
+	ComponentID FindComponentID() const;
 
 public:
-	// A unique ID for this actor.
-	ActorID m_id;
-	// The components this actor is composed of.
-	Collection::Vector<ActorComponentID> m_components;
+	// A unique ID for this entity.
+	EntityID m_id;
+	// The components this entity is composed of.
+	Collection::Vector<ComponentID> m_components;
 	// Explicit padding.
 	uint8_t padding[8];
 };
 
 template <typename ComponentType>
-ActorComponentID Actor::FindComponentID() const
+ComponentID Entity::FindComponentID() const
 {
 	// TODO This is currently a linear search, which callers will typically follow up with a binary search
 	//      to actually get the component. It's worth remembering that this may be a performance concern.

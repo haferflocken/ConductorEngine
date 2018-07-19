@@ -5,7 +5,7 @@
 const Util::StringHash ECS::Components::SceneTransformComponentInfo::sk_typeHash =
 	Util::CalcHash(SceneTransformComponentInfo::sk_typeName);
 
-Mem::UniquePtr<ECS::ActorComponentInfo> ECS::Components::SceneTransformComponentInfo::LoadFromJSON(
+Mem::UniquePtr<ECS::ComponentInfo> ECS::Components::SceneTransformComponentInfo::LoadFromJSON(
 	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
 {
 	return Mem::MakeUnique<SceneTransformComponentInfo>();

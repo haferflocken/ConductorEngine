@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/ActorManager.h>
+#include <ecs/EntityManager.h>
 #include <host/IHost.h>
 #include <navigation/NavigationManager.h>
 
@@ -12,7 +12,7 @@ class IslandGameHost : public ::Host::IHost
 {
 	const IslandGameData& m_gameData;
 	Navigation::NavigationManager m_navigationManager;
-	ECS::ActorManager m_actorManager;
+	ECS::EntityManager m_entityManager;
 
 public:
 	IslandGameHost(const IslandGameData& gameData);

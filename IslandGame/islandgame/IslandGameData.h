@@ -12,9 +12,9 @@ class BehaviourTreeManager;
 
 namespace ECS
 {
-class ActorComponentFactory;
-class ActorComponentInfoFactory;
-class ActorInfoManager;
+class ComponentFactory;
+class ComponentInfoFactory;
+class EntityInfoManager;
 }
 
 namespace IslandGame
@@ -31,10 +31,10 @@ public:
 	const Behave::BehaviourNodeFactory& GetBehaviourNodeFactory() const { return *m_behaviourNodeFactory; }
 	const Behave::BehaviourTreeManager& GetBehaviourTreeManager() const { return *m_behaviourTreeManager; }
 	
-	const ECS::ActorComponentInfoFactory& GetActorComponentInfoFactory() const { return *m_actorComponentInfoFactory; }
-	const ECS::ActorInfoManager& GetActorInfoManager() const { return *m_actorInfoManager; }
+	const ECS::ComponentInfoFactory& GetComponentInfoFactory() const { return *m_componentInfoFactory; }
+	const ECS::EntityInfoManager& GetEntityInfoManager() const { return *m_entityInfoManager; }
 	
-	const ECS::ActorComponentFactory& GetActorComponentFactory() const { return *m_actorComponentFactory; }
+	const ECS::ComponentFactory& GetComponentFactory() const { return *m_componentFactory; }
 
 	void LoadBehaviourTreesInDirectory(const File::Path& directory);
 	void LoadActorInfosInDirectory(const File::Path& directory);
@@ -43,9 +43,9 @@ private:
 	Mem::UniquePtr<Behave::BehaviourNodeFactory> m_behaviourNodeFactory;
 	Mem::UniquePtr<Behave::BehaviourTreeManager> m_behaviourTreeManager;
 
-	Mem::UniquePtr<ECS::ActorComponentInfoFactory> m_actorComponentInfoFactory;
-	Mem::UniquePtr<ECS::ActorInfoManager> m_actorInfoManager;
+	Mem::UniquePtr<ECS::ComponentInfoFactory> m_componentInfoFactory;
+	Mem::UniquePtr<ECS::EntityInfoManager> m_entityInfoManager;
 
-	Mem::UniquePtr<ECS::ActorComponentFactory> m_actorComponentFactory;
+	Mem::UniquePtr<ECS::ComponentFactory> m_componentFactory;
 };
 }

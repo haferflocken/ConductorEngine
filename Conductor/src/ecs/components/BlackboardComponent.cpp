@@ -1,9 +1,9 @@
 #include <ecs/components/BlackboardComponent.h>
 
-#include <ecs/ActorComponentVector.h>
+#include <ecs/ComponentVector.h>
 
 bool ECS::Components::BlackboardComponent::TryCreateFromInfo(const BlackboardComponentInfo& componentInfo,
-	const ActorComponentID reservedID, ActorComponentVector& destination)
+	const ComponentID reservedID, ComponentVector& destination)
 {
 	destination.Emplace<BlackboardComponent>(reservedID);
 	return true;

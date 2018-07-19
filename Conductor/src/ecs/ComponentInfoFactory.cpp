@@ -1,5 +1,5 @@
-#include <ecs/ActorComponentInfo.h>
-#include <ecs/ActorComponentInfoFactory.h>
+#include <ecs/ComponentInfo.h>
+#include <ecs/ComponentInfoFactory.h>
 #include <ecs/components/BehaviourTreeComponentInfo.h>
 #include <ecs/components/BlackboardComponentInfo.h>
 #include <ecs/components/SceneTransformComponentInfo.h>
@@ -12,7 +12,7 @@ namespace Internal_ActorComponentInfoFactory
 const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 }
 
-ECS::ActorComponentInfoFactory::ActorComponentInfoFactory()
+ECS::ComponentInfoFactory::ComponentInfoFactory()
 	: m_factoryFunctions()
 {
 	RegisterFactoryFunction<Components::BehaviourTreeComponentInfo>();
@@ -20,7 +20,7 @@ ECS::ActorComponentInfoFactory::ActorComponentInfoFactory()
 	RegisterFactoryFunction<Components::SceneTransformComponentInfo>();
 }
 
-void ECS::ActorComponentInfoFactory::RegisterFactoryFunction(
+void ECS::ComponentInfoFactory::RegisterFactoryFunction(
 	const char* const componentTypeName, FactoryFunction fn)
 {
 	const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeName);
@@ -29,7 +29,7 @@ void ECS::ActorComponentInfoFactory::RegisterFactoryFunction(
 	m_factoryFunctions[componentTypeHash] = std::move(fn);
 }
 
-Mem::UniquePtr<ECS::ActorComponentInfo> ECS::ActorComponentInfoFactory::MakeComponentInfo(
+Mem::UniquePtr<ECS::ComponentInfo> ECS::ComponentInfoFactory::MakeComponentInfo(
 	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject) const
 {
 	const JSON::JSONString* const jsonTypeName =

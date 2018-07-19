@@ -1,28 +1,27 @@
 #include <ecs/systems/BehaviourTreeEvaluationSystem.h>
 
 #include <behave/BehaviourTreeEvaluator.h>
-#include <ecs/ActorComponentGroup.h>
-#include <ecs/ActorManager.h>
 #include <ecs/components/BehaviourTreeComponent.h>
+#include <ecs/ECSGroup.h>
+#include <ecs/EntityManager.h>
 
 void ECS::Systems::BehaviourTreeEvaluationSystem::Update(
-	ActorManager& actorManager,
+	EntityManager& entityManager,
 	const Behave::BehaveContext& context,
-	const Collection::ArrayView<ActorComponentGroupType>& actorComponentGroups,
+	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void()>>& deferredFunctions) const
 {
-	// Update the actors in parallel, as their trees can't access other actors.
-	// TODO When MSVC supports the <execution> header, make this parallel,
-	//      with a vector of deferred functions for each parallel list.
-	std::for_each(actorComponentGroups.begin(), actorComponentGroups.end(),
-		[&](const ActorComponentGroupType& actorComponentGroup)
+	// Update the entities in parallel, as their trees can't access other entities.
+	// TODO make this parallel with a vector of deferred functions for each parallel list.
+	std::for_each(ecsGroups.begin(), ecsGroups.end(),
+		[&](const ECSGroupType& ecsGroup)
 	{
-		// Update this actor's tree evaluators.
-		auto& actor = actorComponentGroup.Get<Actor>(actorManager);
-		auto& behaviourTreeComponent = actorComponentGroup.Get<Components::BehaviourTreeComponent>(actorManager);
+		// Update this entity's tree evaluators.
+		auto& entity = ecsGroup.Get<Entity>(entityManager);
+		auto& behaviourTreeComponent = ecsGroup.Get<Components::BehaviourTreeComponent>(entityManager);
 		for (auto& evaluator : behaviourTreeComponent.m_treeEvaluators)
 		{
-			evaluator.Update(actor, deferredFunctions, context);
+			evaluator.Update(entity, deferredFunctions, context);
 		}
 
 		// Destroy any evaluators which are no longer running a tree.
@@ -34,7 +33,7 @@ void ECS::Systems::BehaviourTreeEvaluationSystem::Update(
 		behaviourTreeComponent.m_treeEvaluators.Remove(removeIndex, behaviourTreeComponent.m_treeEvaluators.Size());
 	});
 
-	// Destroy any actors which are no longer running any trees.
+	// Destroy any entities which are no longer running any trees.
 	// TODO Is this desired?
 	/*const size_t removeIndex = m_actors.Partition([](const Actor& actor)
 	{

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ecs/BehaviourSystem.h>
 #include <ecs/components/BehaviourTreeComponent.h>
 #include <ecs/components/BehaviourTreeComponentInfo.h>
+#include <ecs/System.h>
 
 #include <functional>
 
@@ -19,21 +19,21 @@ template <typename T> class Vector;
 
 namespace ECS
 {
-class Actor;
-class ActorManager;
+class Entity;
+class EntityManager;
 
 namespace Systems
 {
 /**
- * The behaviour tree evaluation system evaluates the behaviour trees of actors.
+ * The behaviour tree evaluation system evaluates the behaviour trees of entities.
  */
-class BehaviourTreeEvaluationSystem : public BehaviourSystemTempl<
+class BehaviourTreeEvaluationSystem : public SystemTempl<
 	Util::TypeList<>,
-	Util::TypeList<Actor, Components::BehaviourTreeComponent>>
+	Util::TypeList<Entity, Components::BehaviourTreeComponent>>
 {
 public:
-	void Update(ActorManager& actorManager, const Behave::BehaveContext& context,
-		const Collection::ArrayView<ActorComponentGroupType>& actorComponentGroups,
+	void Update(EntityManager& actorManager, const Behave::BehaveContext& context,
+		const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		Collection::Vector<std::function<void()>>& deferredFunctions) const;
 };
 }

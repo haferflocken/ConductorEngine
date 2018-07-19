@@ -3,7 +3,7 @@
 #include <islandgame/IslandGameData.h>
 
 #include <behave/BehaveContext.h>
-#include <ecs/ActorInfoManager.h>
+#include <ecs/EntityInfoManager.h>
 
 #include <navigation/AStar.h>
 #include <navigation/NavMesh.h>
@@ -47,13 +47,13 @@ Navigation::NavMesh MakeTestNavMesh()
 IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 	: m_gameData(gameData)
 	, m_navigationManager(Internal_IslandGameHost::MakeTestNavMesh())
-	, m_actorManager(gameData.GetActorComponentFactory())
+	, m_entityManager(gameData.GetComponentFactory())
 {
 	// TODO create this at the right place
 	const Navigation::NavigatorID navigatorID = m_navigationManager.CreateNavigator(
 		Math::Vector3(), Math::Vector3(1.0f, 0.0f, 0.0f));
 
-	m_actorManager.CreateActor(*m_gameData.GetActorInfoManager().FindActorInfo(Util::CalcHash("islander.json")));
+	m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("islander.json")));
 }
 
 IslandGame::Host::IslandGameHost::~IslandGameHost()
@@ -65,5 +65,5 @@ void IslandGame::Host::IslandGameHost::Update()
 	m_navigationManager.Update();
 
 	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
-	m_actorManager.Update(context);
+	m_entityManager.Update(context);
 }

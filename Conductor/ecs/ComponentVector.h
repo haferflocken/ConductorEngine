@@ -7,24 +7,24 @@
 
 namespace ECS
 {
-class ActorComponent;
-class ActorComponentFactory;
-class ActorComponentID;
-class ActorManager;
+class Component;
+class ComponentFactory;
+class ComponentID;
+class EntityManager;
 
 /**
- * A vector of actor components of a certain type stored in contiguous memory.
+ * A vector of components of a certain type stored in contiguous memory.
  */
-class ActorComponentVector
+class ComponentVector
 {
 public:
-	using value_type = ActorComponent;
-	using const_iterator = Collection::IndexIterator<const ActorComponentVector, const ActorComponent>;
-	using iterator = Collection::IndexIterator<ActorComponentVector, ActorComponent>;
+	using value_type = Component;
+	using const_iterator = Collection::IndexIterator<const ComponentVector, const Component>;
+	using iterator = Collection::IndexIterator<ComponentVector, Component>;
 
-	ActorComponentVector() = default;
+	ComponentVector() = default;
 
-	explicit ActorComponentVector(const Util::StringHash componentType, const Unit::ByteCount64 alignedComponentSize,
+	ComponentVector(const Util::StringHash componentType, const Unit::ByteCount64 alignedComponentSize,
 		const uint32_t initialCapacity = 8);
 
 	Util::StringHash GetComponentType() const { return m_componentType; }
@@ -33,8 +33,8 @@ public:
 	uint32_t Capacity() const { return m_capacity; }
 	bool IsEmpty() const { return m_count == 0; }
 
-	ActorComponent& operator[](const size_t i) { return reinterpret_cast<ActorComponent&>(m_data[i * m_alignedComponentSize.GetN()]); }
-	const ActorComponent& operator[](const size_t i) const { return reinterpret_cast<const ActorComponent&>(m_data[i * m_alignedComponentSize.GetN()]); }
+	Component& operator[](const size_t i) { return reinterpret_cast<Component&>(m_data[i * m_alignedComponentSize.GetN()]); }
+	const Component& operator[](const size_t i) const { return reinterpret_cast<const Component&>(m_data[i * m_alignedComponentSize.GetN()]); }
 
 	iterator begin() { return iterator(*this, 0); }
 	const_iterator begin() const { return const_iterator(*this, 0); }
@@ -47,7 +47,7 @@ public:
 	template <typename T, typename... Args>
 	T& Emplace(Args&&... args);
 
-	void Remove(const ActorComponentID id, const ActorComponentFactory& componentFactory);
+	void Remove(const ComponentID id, const ComponentFactory& componentFactory);
 
 private:
 	template <typename T>
@@ -61,7 +61,7 @@ private:
 	uint32_t m_count{ 0 };
 };
 
-inline ActorComponentVector::ActorComponentVector(const Util::StringHash componentType,
+inline ComponentVector::ComponentVector(const Util::StringHash componentType,
 	const Unit::ByteCount64 alignedComponentSize, const uint32_t initialCapacity)
 	: m_componentType(componentType)
 	, m_alignedComponentSize(alignedComponentSize)
@@ -70,7 +70,7 @@ inline ActorComponentVector::ActorComponentVector(const Util::StringHash compone
 {}
 
 template <typename T, typename... Args>
-inline T& ActorComponentVector::Emplace(Args&&... args)
+inline T& ComponentVector::Emplace(Args&&... args)
 {
 	const size_t i = m_count;
 	EnsureCapacity<T>(i + 1);
@@ -82,7 +82,7 @@ inline T& ActorComponentVector::Emplace(Args&&... args)
 }
 
 template <typename T>
-inline void ActorComponentVector::EnsureCapacity(const size_t desiredCapacity)
+inline void ComponentVector::EnsureCapacity(const size_t desiredCapacity)
 {
 	if (desiredCapacity > Capacity())
 	{

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <behave/Blackboard.h>
-#include <ecs/ActorComponent.h>
+#include <ecs/Component.h>
 
 namespace ECS
 {
-class ActorComponentVector;
+class ComponentVector;
 
 namespace Components
 {
@@ -14,16 +14,16 @@ class BlackboardComponentInfo;
 /**
  * A BlackboardComponent contains a blackboard: a data-driven key/value store.
  */
-class BlackboardComponent final : public ActorComponent
+class BlackboardComponent final : public Component
 {
 public:
 	using Info = BlackboardComponentInfo;
 
-	static bool TryCreateFromInfo(const BlackboardComponentInfo& componentInfo, const ActorComponentID reservedID,
-		ActorComponentVector& destination);
+	static bool TryCreateFromInfo(const BlackboardComponentInfo& componentInfo, const ComponentID reservedID,
+		ComponentVector& destination);
 
-	explicit BlackboardComponent(const ActorComponentID id)
-		: ActorComponent(id)
+	explicit BlackboardComponent(const ComponentID id)
+		: Component(id)
 		, m_blackboard()
 	{}
 

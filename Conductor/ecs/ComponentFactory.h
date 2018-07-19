@@ -6,33 +6,34 @@
 
 namespace ECS
 {
-class ActorComponentID;
-class ActorComponentInfo;
-class ActorComponentVector;
+class Component;
+class ComponentID;
+class ComponentInfo;
+class ComponentVector;
 
 /**
- * Creates actor components from actor component info. Component types can be registered using RegisterComponentType().
+ * Creates components from component info. Component types can be registered using RegisterComponentType().
  */
-class ActorComponentFactory
+class ComponentFactory
 {
 public:
-	using FactoryFunction = bool(*)(const ActorComponentInfo&, const ActorComponentID, ActorComponentVector&);
-	using DestructorFunction = void(*)(ActorComponent&);
-	using SwapFunction = void(*)(ActorComponent&, ActorComponent&);
+	using FactoryFunction = bool(*)(const ComponentInfo&, const ComponentID, ComponentVector&);
+	using DestructorFunction = void(*)(Component&);
+	using SwapFunction = void(*)(Component&, Component&);
 
-	ActorComponentFactory();
+	ComponentFactory();
 
 	template <typename ComponentType>
 	void RegisterComponentType();
 
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const Util::StringHash componentTypeHash) const;
 
-	bool TryMakeComponent(const ActorComponentInfo& componentInfo, const ActorComponentID reservedID,
-		ActorComponentVector& destination) const;
+	bool TryMakeComponent(const ComponentInfo& componentInfo, const ComponentID reservedID,
+		ComponentVector& destination) const;
 
-	void DestroyComponent(ActorComponent& component) const;
+	void DestroyComponent(Component& component) const;
 
-	void SwapComponents(ActorComponent& a, ActorComponent& b) const;
+	void SwapComponents(Component& a, Component& b) const;
 
 private:
 	void RegisterComponentType(const char* componentTypeName, const Util::StringHash componentTypeHash,
@@ -53,25 +54,25 @@ private:
 };
 
 template <typename ComponentType>
-void ActorComponentFactory::RegisterComponentType()
+void ComponentFactory::RegisterComponentType()
 {
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
 	{
-		static bool TryCreateFromInfo(const ActorComponentInfo& componentInfo, const ActorComponentID reservedID,
-			ActorComponentVector& destination)
+		static bool TryCreateFromInfo(const ComponentInfo& componentInfo, const ComponentID reservedID,
+			ComponentVector& destination)
 		{
 			return ComponentType::TryCreateFromInfo(
 				static_cast<const ComponentType::Info&>(componentInfo), reservedID, destination);
 		}
 
-		static void Destroy(ActorComponent& rawComponent)
+		static void Destroy(Component& rawComponent)
 		{
 			ComponentType& component = static_cast<ComponentType&>(rawComponent);
 			component.~ComponentType();
 		}
 
-		static void Swap(ActorComponent& rawLHS, ActorComponent& rawRHS)
+		static void Swap(Component& rawLHS, Component& rawRHS)
 		{
 			ComponentType& lhs = static_cast<ComponentType&>(rawLHS);
 			ComponentType& rhs = static_cast<ComponentType&>(rawRHS);

@@ -22,7 +22,7 @@ public:
 
 	virtual const BehaviourNode* GetNode() const override { return m_node; }
 
-	virtual EvaluateResult Evaluate(ECS::Actor& actor, BehaviourTreeEvaluator& treeEvaluator,
+	virtual EvaluateResult Evaluate(ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
 		Collection::Vector<std::function<void()>>& deferredFunctions,
 		const BehaveContext& context) override
 	{
@@ -42,7 +42,7 @@ public:
 	{
 		if (child == nullptr)
 		{
-			// A null child signals that the domain condition failed and the actor terminated this node's subtree.
+			// A null child signals that the domain condition failed and the entity terminated this node's subtree.
 			// Set m_childResult to failure so that this node returns Failure on the next call to Evaluate().
 			m_childResult = EvaluateResult::Failure;
 		}

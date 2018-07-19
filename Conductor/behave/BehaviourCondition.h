@@ -1,15 +1,12 @@
 #pragma once
 
-namespace ECS
-{
-class Actor;
-}
+namespace ECS { class Entity; }
 
 namespace Behave
 {
 class BehaviourCondition
 {
 public:
-	virtual bool Check(ECS::Actor& actor) const = 0;
+	virtual bool Check(ECS::Entity& entity) const = 0;
 };
 }
