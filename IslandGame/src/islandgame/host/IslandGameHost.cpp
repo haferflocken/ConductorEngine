@@ -2,8 +2,8 @@
 
 #include <islandgame/IslandGameData.h>
 
-#include <behave/ActorInfoManager.h>
 #include <behave/BehaveContext.h>
+#include <ecs/ActorInfoManager.h>
 
 #include <navigation/AStar.h>
 #include <navigation/NavMesh.h>

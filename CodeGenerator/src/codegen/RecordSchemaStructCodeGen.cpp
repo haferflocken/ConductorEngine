@@ -111,7 +111,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	output << "#pragma once\n\n";
 
 	// Write out the required includes.
-	output << "#include <behave/ActorComponent.h>";
+	output << "#include <ecs/ActorComponent.h>";
 	WriteImportedTypeIncludes(schema, output);
 	output.NewLine();
 	output << "#include <collection/Vector.h>\n";
@@ -120,7 +120,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 
 	// Write out forward declarations.
 	output.NewLine();
-	output << "namespace Behave { class ActorComponentVector; }\n";
+	output << "namespace ECS { class ActorComponentVector; }\n";
 
 	// Write out the namespaces.
 	output.NewLine();
@@ -141,7 +141,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	output.NewLine();
 	output << "class ";
 	output.AppendCapitalized(name);
-	output << " final : public Behave::ActorComponent\n{";
+	output << " final : public ECS::ActorComponent\n{";
 	output.NewLine();
 	output << "public:";
 
@@ -163,9 +163,9 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 		output.NewLine();
 		output << "explicit ";
 		output.AppendCapitalized(name);
-		output << "(const Behave::ActorComponentID id)";
+		output << "(const ECS::ActorComponentID id)";
 		output.NewLine();
-		output << "\t: Behave::ActorComponent(id)";
+		output << "\t: ECS::ActorComponent(id)";
 		output.NewLine();
 		output << "{}";
 		output.NewLine();

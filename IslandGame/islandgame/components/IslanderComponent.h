@@ -1,10 +1,10 @@
 #pragma once
 
-#include <behave/ActorComponent.h>
+#include <ecs/ActorComponent.h>
 
 #include <util/StringHash.h>
 
-namespace Behave
+namespace ECS
 {
 class ActorComponentInfo;
 class ActorComponentVector;
@@ -23,15 +23,15 @@ class IslanderComponentInfo;
  * - To perform its job
  * Islander behaviour is implemented by behaviour trees.
  */
-class IslanderComponent final : public Behave::ActorComponent
+class IslanderComponent final : public ECS::ActorComponent
 {
 public:
 	using Info = IslanderComponentInfo;
 
 	static bool TryCreateFromInfo(const IslanderComponentInfo& componentInfo,
-		const Behave::ActorComponentID reservedID, Behave::ActorComponentVector& destination);
+		const ECS::ActorComponentID reservedID, ECS::ActorComponentVector& destination);
 	
-	explicit IslanderComponent(const Behave::ActorComponentID id)
+	explicit IslanderComponent(const ECS::ActorComponentID id)
 		: ActorComponent(id)
 		, m_hunger(0)
 		, m_tiredness(0)

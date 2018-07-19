@@ -1,12 +1,12 @@
 // GENERATED CODE
 #pragma once
 
-#include <behave/ActorComponent.h>
+#include <ecs/ActorComponent.h>
 #include <collection/Vector.h>
 #include <cstdint>
 #include <string>
 
-namespace Behave { class ActorComponentVector; }
+namespace ECS { class ActorComponentVector; }
 
 namespace Behave::Components
 {
@@ -15,15 +15,15 @@ class ComponentTestInfo;
 /**
  * Component Test
  */
-class ComponentTest final : public Behave::ActorComponent
+class ComponentTest final : public ECS::ActorComponent
 {
 public:
 	using Info = ComponentTestInfo;
 	static bool TryCreateFromInfo(const Info& componentInfo, 
 		const ActorComponentID reservedID, ActorComponentVector& destination);
 	
-	explicit ComponentTest(const Behave::ActorComponentID id)
-		: Behave::ActorComponent(id)
+	explicit ComponentTest(const ECS::ActorComponentID id)
+		: ECS::ActorComponent(id)
 	{}
 	
 	ComponentTest(const ComponentTest&) = delete;

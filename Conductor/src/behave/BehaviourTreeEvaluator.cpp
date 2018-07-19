@@ -11,7 +11,9 @@ const Behave::BehaviourTree* Behave::BehaviourTreeEvaluator::GetCurrentTree() co
 	return (!m_callStack.IsEmpty()) ? &m_callStack.Peek()->GetNode()->GetTree() : nullptr;
 }
 
-void Behave::BehaviourTreeEvaluator::Update(Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
+void Behave::BehaviourTreeEvaluator::Update(
+	ECS::Actor& actor,
+	Collection::Vector<std::function<void()>>& deferredFunctions,
 	const BehaveContext& context)
 {
 	Dev::FatalAssert(!m_callStack.IsEmpty(), "Cannot update without a call stack.");

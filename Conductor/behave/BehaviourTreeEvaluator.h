@@ -1,13 +1,16 @@
 #pragma once
 
-#include <behave/ActorID.h>
+#include <collection/PolyStack.h>
+#include <collection/Vector.h>
+#include <ecs/ActorID.h>
 
-#include <Collection/PolyStack.h>
-#include <Collection/Vector.h>
+namespace ECS
+{
+class Actor;
+}
 
 namespace Behave
 {
-class Actor;
 class BehaveContext;
 class BehaviourCondition;
 class BehaviourNodeState;
@@ -50,7 +53,7 @@ public:
 	Collection::PolyStack<BehaviourNodeState>& GetCallStack() { return m_callStack; }
 	Collection::Vector<DomainEntry>& GetDomainStack() { return m_domainStack; }
 	
-	void Update(Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
+	void Update(ECS::Actor& actor, Collection::Vector<std::function<void()>>& deferredFunctions,
 		const BehaveContext& context);
 
 private:
