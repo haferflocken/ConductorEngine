@@ -8,7 +8,7 @@
     "0": {
       "name": "root",
       "type": "group",
-      "description": "A BehaviourTreeComponent allows an Actor to run behaviour trees.",
+      "description": "A BehaviourTreeComponent allows an Entity to run behaviour trees.",
       "memberIDs": [ 1 ]
     },
     "1": {

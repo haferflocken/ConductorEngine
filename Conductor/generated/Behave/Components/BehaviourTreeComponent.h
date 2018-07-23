@@ -14,7 +14,7 @@ namespace Behave::Components
 class BehaviourTreeComponentInfo;
 
 /**
- * A BehaviourTreeComponent allows an Actor to run behaviour trees.
+ * A BehaviourTreeComponent allows an Entity to run behaviour trees.
  */
 class BehaviourTreeComponent final : public ECS::ActorComponent
 {
