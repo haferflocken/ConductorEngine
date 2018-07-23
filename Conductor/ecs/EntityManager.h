@@ -131,6 +131,8 @@ void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... c
 	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
 		"EntityManager because there is not currently support for initializing the system's component groups.");
 
+	// TODO compile time detection of invalid concurrent combinations
+
 	RegisteredConcurrentSystemGroup& newGroup = m_concurrentSystemGroups.Emplace();
 	RegisterSystemInGroup<SystemTypes>(std::move(concurrentSystems), newGroup)...;
 }
