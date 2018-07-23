@@ -154,8 +154,8 @@
     <ClCompile Include="src\behave\BehaviourTreeEvaluator.cpp" />
     <ClCompile Include="src\behave\BehaviourTreeManager.cpp" />
     <ClCompile Include="src\behave\Blackboard.cpp" />
-    <ClCompile Include="src\ecs\components\BehaviourTreeComponent.cpp" />
-    <ClCompile Include="src\ecs\components\BehaviourTreeComponentInfo.cpp" />
+    <ClCompile Include="src\behave\BehaviourTreeComponent.cpp" />
+    <ClCompile Include="src\behave\BehaviourTreeComponentInfo.cpp" />
     <ClCompile Include="src\ecs\components\BlackboardComponent.cpp" />
     <ClCompile Include="src\ecs\components\BlackboardComponentInfo.cpp" />
     <ClCompile Include="src\ecs\components\SceneTransformComponent.cpp" />
@@ -166,7 +166,7 @@
     <ClCompile Include="src\behave\nodes\LogNode.cpp" />
     <ClCompile Include="src\behave\nodes\ReturnNode.cpp" />
     <ClCompile Include="src\behave\nodes\SelectorNode.cpp" />
-    <ClCompile Include="src\ecs\systems\BehaviourTreeEvaluationSystem.cpp" />
+    <ClCompile Include="src\behave\BehaviourTreeEvaluationSystem.cpp" />
     <ClCompile Include="src\client\ClientNetworkWorld.cpp" />
     <ClCompile Include="src\client\ClientWorld.cpp" />
     <ClCompile Include="src\client\ConnectedHost.cpp" />
@@ -181,7 +181,8 @@
     <ClCompile Include="src\network\Socket.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="generated\**\*.h" />
+    <ClInclude Include="generated\Behave\Components\ComponentTest.h" />
+    <ClInclude Include="generated\InfoAsset\Test.h" />
     <ClInclude Include="ecs\Entity.h" />
     <ClInclude Include="ecs\Component.h" />
     <ClInclude Include="ecs\ComponentFactory.h" />
@@ -204,8 +205,8 @@
     <ClInclude Include="behave\BehaviourTreeManager.h" />
     <ClInclude Include="behave\BehaviourNode.h" />
     <ClInclude Include="behave\Blackboard.h" />
-    <ClInclude Include="ecs\components\BehaviourTreeComponent.h" />
-    <ClInclude Include="ecs\components\BehaviourTreeComponentInfo.h" />
+    <ClInclude Include="behave\BehaviourTreeComponent.h" />
+    <ClInclude Include="behave\BehaviourTreeComponentInfo.h" />
     <ClInclude Include="ecs\components\BlackboardComponent.h" />
     <ClInclude Include="ecs\components\BlackboardComponentInfo.h" />
     <ClInclude Include="ecs\components\SceneTransformComponent.h" />
@@ -218,7 +219,7 @@
     <ClInclude Include="behave\nodes\ReturnNode.h" />
     <ClInclude Include="behave\nodes\SelectorNode.h" />
     <ClInclude Include="behave\nodes\SequenceNode.h" />
-    <ClInclude Include="ecs\systems\BehaviourTreeEvaluationSystem.h" />
+    <ClInclude Include="behave\BehaviourTreeEvaluationSystem.h" />
     <ClInclude Include="client\ClientID.h" />
     <ClInclude Include="client\ClientNetworkWorld.h" />
     <ClInclude Include="client\MessageToHost.h" />
@@ -255,7 +256,6 @@
     <ClCompile Include="src\behave\nodes\SequenceNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="schemas\Behave\Components\BehaviourTreeComponent.json" />
     <None Include="schemas\Behave\Components\ComponentTest.json" />
     <None Include="schemas\InfoAsset\Test.json" />
   </ItemGroup>

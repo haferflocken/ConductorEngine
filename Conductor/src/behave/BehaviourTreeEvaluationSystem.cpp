@@ -1,12 +1,11 @@
-#include <ecs/systems/BehaviourTreeEvaluationSystem.h>
+#include <behave/BehaviourTreeEvaluationSystem.h>
 
 #include <behave/BehaviourTreeEvaluator.h>
-#include <ecs/components/BehaviourTreeComponent.h>
 #include <ecs/ECSGroup.h>
 #include <ecs/EntityManager.h>
 
-void ECS::Systems::BehaviourTreeEvaluationSystem::Update(
-	EntityManager& entityManager,
+void Behave::BehaviourTreeEvaluationSystem::Update(
+	ECS::EntityManager& entityManager,
 	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void()>>& deferredFunctions) const
 {
@@ -16,8 +15,8 @@ void ECS::Systems::BehaviourTreeEvaluationSystem::Update(
 		[&](const ECSGroupType& ecsGroup)
 	{
 		// Update this entity's tree evaluators.
-		auto& entity = ecsGroup.Get<Entity>(entityManager);
-		auto& behaviourTreeComponent = ecsGroup.Get<Components::BehaviourTreeComponent>(entityManager);
+		auto& entity = ecsGroup.Get<ECS::Entity>(entityManager);
+		auto& behaviourTreeComponent = ecsGroup.Get<Behave::BehaviourTreeComponent>(entityManager);
 		for (auto& evaluator : behaviourTreeComponent.m_treeEvaluators)
 		{
 			evaluator.Update(entity, deferredFunctions, m_context);

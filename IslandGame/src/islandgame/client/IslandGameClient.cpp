@@ -3,8 +3,8 @@
 #include <islandgame/IslandGameData.h>
 
 #include <behave/BehaveContext.h>
+#include <behave/BehaviourTreeEvaluationSystem.h>
 #include <client/ConnectedHost.h>
-#include <ecs/systems/BehaviourTreeEvaluationSystem.h>
 
 IslandGame::Client::IslandGameClient::IslandGameClient(
 	const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost)
@@ -13,7 +13,7 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	, m_entityManager(gameData.GetComponentFactory())
 {
 	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
-	m_entityManager.RegisterSystem(Mem::MakeUnique<ECS::Systems::BehaviourTreeEvaluationSystem>(context));
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 }
 
 void IslandGame::Client::IslandGameClient::Update()

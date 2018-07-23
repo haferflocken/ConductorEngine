@@ -1,4 +1,4 @@
-#include <ecs/components/BehaviourTreeComponentInfo.h>
+#include <behave/BehaviourTreeComponentInfo.h>
 
 #include <behave/BehaviourTreeManager.h>
 #include <json/JSONTypes.h>
@@ -10,10 +10,10 @@ namespace Internal_BehaviourTreeComponentInfo
 const Util::StringHash k_behaviourTreesArray = Util::CalcHash("behaviour_trees");
 }
 
-const Util::StringHash ECS::Components::BehaviourTreeComponentInfo::sk_typeHash =
+const Util::StringHash Behave::BehaviourTreeComponentInfo::sk_typeHash =
 	Util::CalcHash(BehaviourTreeComponentInfo::sk_typeName);
 
-Mem::UniquePtr<ECS::ComponentInfo> ECS::Components::BehaviourTreeComponentInfo::LoadFromJSON(
+Mem::UniquePtr<ECS::ComponentInfo> Behave::BehaviourTreeComponentInfo::LoadFromJSON(
 	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
 {
 	auto componentInfo = Mem::MakeUnique<BehaviourTreeComponentInfo>();

@@ -1,6 +1,7 @@
-#include <ecs/ComponentInfo.h>
 #include <ecs/ComponentInfoFactory.h>
-#include <ecs/components/BehaviourTreeComponentInfo.h>
+
+#include <behave/BehaviourTreeComponentInfo.h>
+#include <ecs/ComponentInfo.h>
 #include <ecs/components/BlackboardComponentInfo.h>
 #include <ecs/components/SceneTransformComponentInfo.h>
 
@@ -15,7 +16,7 @@ const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 ECS::ComponentInfoFactory::ComponentInfoFactory()
 	: m_factoryFunctions()
 {
-	RegisterFactoryFunction<Components::BehaviourTreeComponentInfo>();
+	RegisterFactoryFunction<Behave::BehaviourTreeComponentInfo>();
 	RegisterFactoryFunction<Components::BlackboardComponentInfo>();
 	RegisterFactoryFunction<Components::SceneTransformComponentInfo>();
 }

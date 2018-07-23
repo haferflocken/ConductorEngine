@@ -2,24 +2,21 @@
 
 #include <ecs/ComponentInfo.h>
 
+namespace JSON { class JSONObject; }
+namespace Mem { template <typename T> class UniquePtr; }
+
 namespace Behave
 {
 class BehaviourTree;
 class BehaviourTreeManager;
-}
 
-namespace JSON { class JSONObject; }
-namespace Mem { template <typename T> class UniquePtr; }
-
-namespace ECS::Components
-{
-class BehaviourTreeComponentInfo final : public ComponentInfo
+class BehaviourTreeComponentInfo final : public ECS::ComponentInfo
 {
 public:
 	static constexpr char* sk_typeName = "behaviour_tree_component";
 	static const Util::StringHash sk_typeHash;
 
-	static Mem::UniquePtr<ComponentInfo> LoadFromJSON(
+	static Mem::UniquePtr<ECS::ComponentInfo> LoadFromJSON(
 		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject);
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
