@@ -4,6 +4,7 @@
 
 #include <behave/BehaveContext.h>
 #include <ecs/EntityInfoManager.h>
+#include <ecs/systems/BehaviourTreeEvaluationSystem.h>
 
 #include <navigation/AStar.h>
 #include <navigation/NavMesh.h>
@@ -49,6 +50,8 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 	, m_navigationManager(Internal_IslandGameHost::MakeTestNavMesh())
 	, m_entityManager(gameData.GetComponentFactory())
 {
+	m_entityManager.RegisterSystem(Mem::MakeUnique<ECS::Systems::BehaviourTreeEvaluationSystem>());
+
 	// TODO create this at the right place
 	const Navigation::NavigatorID navigatorID = m_navigationManager.CreateNavigator(
 		Math::Vector3(), Math::Vector3(1.0f, 0.0f, 0.0f));

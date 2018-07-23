@@ -8,7 +8,6 @@
 #include <ecs/Entity.h>
 #include <ecs/EntityInfo.h>
 #include <ecs/System.h>
-#include <ecs/systems/BehaviourTreeEvaluationSystem.h>
 
 #include <collection/ArrayView.h>
 
@@ -21,7 +20,6 @@ namespace ECS
 EntityManager::EntityManager(const ComponentFactory& componentFactory)
 	: m_componentFactory(componentFactory)
 {
-	RegisterSystem(Mem::MakeUnique<Systems::BehaviourTreeEvaluationSystem>());
 }
 
 EntityManager::~EntityManager()
@@ -177,81 +175,9 @@ EntityManager::RegisteredSystem::RegisteredSystem(
 	, m_ecsGroups(m_system->GetImmutableTypes().Size() + m_system->GetMutableTypes().Size())
 {}
 
-void EntityManager::RegisterSystem(
-	Mem::UniquePtr<System>&& system,
-	SystemUpdateFn updateFn)
-{
-	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
-		"EntityManager because there is not currently support for initializing the system's component groups.");
-
-	// Try to find an execution group for which this system does not mutate instances of the referenced types of any system
-	// in the group and for which none of the systems in the group mutate instances of the referenced types of this system.
-	// Systems which read or write Entities and not just Components are always placed in their own execution group.
-	const auto TypeIsEntity = [](const Util::StringHash& type)
-	{
-		return type == EntityInfo::sk_typeHash;
-	};
-	const bool systemReferencesEntities =
-		std::any_of(system->GetMutableTypes().begin(), system->GetMutableTypes().end(), TypeIsEntity)
-		|| std::any_of(system->GetImmutableTypes().begin(), system->GetImmutableTypes().end(), TypeIsEntity);
-	
-	if (!systemReferencesEntities)
-	{
-		for (auto& executionGroup : m_systemExecutionGroups)
-		{
-			std::set<Util::StringHash> groupTotalTypes;
-			std::set<Util::StringHash> groupMutableTypes;
-			for (const auto& registeredSystem : executionGroup.m_systems)
-			{
-				for (const auto& type : registeredSystem.m_system->GetImmutableTypes())
-				{
-					groupTotalTypes.insert(type);
-				}
-				for (const auto& type : registeredSystem.m_system->GetMutableTypes())
-				{
-					groupTotalTypes.insert(type);
-					groupMutableTypes.insert(type);
-				}
-			}
-
-			const bool systemMutatesGroup = std::any_of(system->GetMutableTypes().begin(),
-				system->GetMutableTypes().end(),
-				[&](const Util::StringHash& type)
-			{
-				return (groupTotalTypes.find(type) != groupTotalTypes.end());
-			});
-			if (systemMutatesGroup)
-			{
-				continue;
-			}
-
-			const bool groupMutatesSystem = std::any_of(groupMutableTypes.begin(), groupMutableTypes.end(),
-				[&](const Util::StringHash& type)
-			{
-				return (std::find(system->GetImmutableTypes().begin(), system->GetImmutableTypes().end(), type)
-					!= system->GetImmutableTypes().end())
-					|| (std::find(system->GetMutableTypes().begin(), system->GetMutableTypes().end(), type)
-						!= system->GetMutableTypes().end());
-			});
-			if (groupMutatesSystem)
-			{
-				continue;
-			}
-
-			// The system does not conflict with any other systems in the group, so add it and return.
-			executionGroup.m_systems.Emplace(std::move(system), updateFn);
-			return;
-		}
-	}
-
-	// If we fail to find an execution group for the system, create a new one for it.
-	SystemExecutionGroup& newGroup = m_systemExecutionGroups.Emplace();
-	newGroup.m_systems.Emplace(std::move(system), updateFn);
-}
-
 void EntityManager::AddECSIndicesToSystems(const Collection::ArrayView<Entity>& entitiesToAdd)
 {
-	for (auto& executionGroup : m_systemExecutionGroups)
+	for (auto& executionGroup : m_concurrentSystemGroups)
 	{
 		// Gather the entity indices and component indices each member of the execution group needs.
 		for (auto& registeredSystem : executionGroup.m_systems)
@@ -317,9 +243,9 @@ void EntityManager::UpdateSystems(const Behave::BehaveContext& context)
 	{
 		if (m_ecsGroupVectorsNeedRecalculation)
 		{
-			for (auto& executionGroup : m_systemExecutionGroups)
+			for (auto& concurrentGroup : m_concurrentSystemGroups)
 			{
-				for (auto& registeredSystem : executionGroup.m_systems)
+				for (auto& registeredSystem : concurrentGroup.m_systems)
 				{
 					registeredSystem.m_ecsGroups.Clear();
 				}
@@ -333,18 +259,18 @@ void EntityManager::UpdateSystems(const Behave::BehaveContext& context)
 	// Recalculate ECS group vectors before updating the systems to ensure they have the latest data.
 	RecalculateECSGroupVectors();
 
-	// Update the system execution groups.
-	for (auto& executionGroup : m_systemExecutionGroups)
+	// Update the concurrent system groups.
+	for (auto& concurrentGroup : m_concurrentSystemGroups)
 	{
 		// The systems in each group can update in parallel.
-		std::for_each(std::execution::par, executionGroup.m_systems.begin(), executionGroup.m_systems.end(),
+		std::for_each(std::execution::par, concurrentGroup.m_systems.begin(), concurrentGroup.m_systems.end(),
 			[&](RegisteredSystem& registeredSystem)
 		{
 			registeredSystem.m_updateFunction(*this, context, registeredSystem);
 		});
 
 		// Resolve deferred functions single-threaded.
-		for (auto& registeredSystem : executionGroup.m_systems)
+		for (auto& registeredSystem : concurrentGroup.m_systems)
 		{
 			for (auto& deferredFunction : registeredSystem.m_deferredFunctions)
 			{

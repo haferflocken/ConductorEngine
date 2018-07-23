@@ -2,6 +2,7 @@
 
 #include <ecs/components/BehaviourTreeComponent.h>
 #include <ecs/components/BehaviourTreeComponentInfo.h>
+#include <ecs/Entity.h>
 #include <ecs/System.h>
 
 #include <functional>
