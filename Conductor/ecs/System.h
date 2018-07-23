@@ -13,7 +13,9 @@ namespace ECS
  * A System updates entities which have a set of components which match the system's input components.
  * Behaviour systems should be defined by extending SystemTempl.
  * All systems must define an update function which encapsulates their logic with this signature:
- *   void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups) const;
+ *   void Update(EntityManager& entityManager,
+ *      const Collection::ArrayView<ECSGroupType>& ecsGroups,
+ *      Collection::Vector<std::function<void()>>& deferredFunctions) const;
  */
 class System
 {

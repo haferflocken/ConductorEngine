@@ -7,7 +7,6 @@
 
 void ECS::Systems::BehaviourTreeEvaluationSystem::Update(
 	EntityManager& entityManager,
-	const Behave::BehaveContext& context,
 	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void()>>& deferredFunctions) const
 {
@@ -21,7 +20,7 @@ void ECS::Systems::BehaviourTreeEvaluationSystem::Update(
 		auto& behaviourTreeComponent = ecsGroup.Get<Components::BehaviourTreeComponent>(entityManager);
 		for (auto& evaluator : behaviourTreeComponent.m_treeEvaluators)
 		{
-			evaluator.Update(entity, deferredFunctions, context);
+			evaluator.Update(entity, deferredFunctions, m_context);
 		}
 
 		// Destroy any evaluators which are no longer running a tree.

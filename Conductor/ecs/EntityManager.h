@@ -15,11 +15,6 @@
 #include <functional>
 #include <type_traits>
 
-namespace Behave
-{
-class BehaveContext;
-}
-
 namespace Collection
 {
 template <typename T>
@@ -69,11 +64,11 @@ public:
 	template <typename... SystemTypes>
 	void RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems);
 
-	void Update(const Behave::BehaveContext& context);
+	void Update();
 
 private:
 	struct RegisteredSystem;
-	using SystemUpdateFn = void(*)(EntityManager&, const Behave::BehaveContext&, RegisteredSystem&);
+	using SystemUpdateFn = void(*)(EntityManager&, RegisteredSystem&);
 
 	struct RegisteredSystem
 	{
@@ -96,7 +91,7 @@ private:
 
 	void AddECSIndicesToSystems(const Collection::ArrayView<Entity>& entitiesToAdd);
 
-	void UpdateSystems(const Behave::BehaveContext& context);
+	void UpdateSystems();
 
 	// The factory this manager uses to create components.
 	const ComponentFactory& m_componentFactory;
@@ -146,14 +141,13 @@ void EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
 {
 	struct SystemTypeFunctions
 	{
-		static void Update(EntityManager& entityManager, const Behave::BehaveContext& context,
-			RegisteredSystem& registeredSystem)
+		static void Update(EntityManager& entityManager, RegisteredSystem& registeredSystem)
 		{
 			const auto& system = static_cast<const SystemType&>(*registeredSystem.m_system);
 			const auto ecsGroupsView =
 				registeredSystem.m_ecsGroups.GetView<SystemType::ECSGroupType>();
 
-			system.Update(entityManager, context, ecsGroupsView, registeredSystem.m_deferredFunctions);
+			system.Update(entityManager, ecsGroupsView, registeredSystem.m_deferredFunctions);
 		}
 	};
 	outGroup.m_systems.Emplace(std::move(system), &SystemTypeFunctions::Update);

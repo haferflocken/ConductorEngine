@@ -21,10 +21,10 @@ public:
 	static constexpr size_t k_size{ sizeof...(ECSTypes) };
 
 	template <typename DesiredType>
-	DesiredType& Get(EntityManager& actorManager) const
+	DesiredType& Get(EntityManager& entityManager) const
 	{
 		constexpr size_t Index = Util::IndexOfType<DesiredType, ECSTypes...>;
-		return ComponentGroupDetail::GetByIndexStruct<DesiredType, ECSTypes...>::Get(actorManager, m_array[Index]);
+		return ComponentGroupDetail::GetByIndexStruct<DesiredType, ECSTypes...>::Get(entityManager, m_array[Index]);
 	}
 
 private:

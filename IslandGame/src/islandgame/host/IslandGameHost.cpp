@@ -50,7 +50,8 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 	, m_navigationManager(Internal_IslandGameHost::MakeTestNavMesh())
 	, m_entityManager(gameData.GetComponentFactory())
 {
-	m_entityManager.RegisterSystem(Mem::MakeUnique<ECS::Systems::BehaviourTreeEvaluationSystem>());
+	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
+	m_entityManager.RegisterSystem(Mem::MakeUnique<ECS::Systems::BehaviourTreeEvaluationSystem>(context));
 
 	// TODO create this at the right place
 	const Navigation::NavigatorID navigatorID = m_navigationManager.CreateNavigator(
@@ -66,7 +67,5 @@ IslandGame::Host::IslandGameHost::~IslandGameHost()
 void IslandGame::Host::IslandGameHost::Update()
 {
 	m_navigationManager.Update();
-
-	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
-	m_entityManager.Update(context);
+	m_entityManager.Update();
 }

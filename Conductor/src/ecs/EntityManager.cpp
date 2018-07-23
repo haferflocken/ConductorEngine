@@ -1,6 +1,5 @@
 #include <ecs/EntityManager.h>
 
-#include <behave/BehaveContext.h>
 #include <ecs/Component.h>
 #include <ecs/ComponentFactory.h>
 #include <ecs/ComponentVector.h>
@@ -232,12 +231,12 @@ void EntityManager::AddECSIndicesToSystems(const Collection::ArrayView<Entity>& 
 	}
 }
 
-void EntityManager::Update(const Behave::BehaveContext& context)
+void EntityManager::Update()
 {
-	UpdateSystems(context);
+	UpdateSystems();
 }
 
-void EntityManager::UpdateSystems(const Behave::BehaveContext& context)
+void EntityManager::UpdateSystems()
 {
 	const auto RecalculateECSGroupVectors = [this]()
 	{
@@ -266,7 +265,7 @@ void EntityManager::UpdateSystems(const Behave::BehaveContext& context)
 		std::for_each(std::execution::par, concurrentGroup.m_systems.begin(), concurrentGroup.m_systems.end(),
 			[&](RegisteredSystem& registeredSystem)
 		{
-			registeredSystem.m_updateFunction(*this, context, registeredSystem);
+			registeredSystem.m_updateFunction(*this, registeredSystem);
 		});
 
 		// Resolve deferred functions single-threaded.

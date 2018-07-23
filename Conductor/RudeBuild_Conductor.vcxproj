@@ -251,7 +251,6 @@
     <ClCompile Include="C:\RudeBuildCache\ConductorEngine_692cac266560fc26897d42f69f553e20\Debug-x64\Conductor\Conductor1.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ecs\ConcurrentSystemGroup.h" />
     <ClInclude Include="generated\**\*.h" />
     <ClInclude Include="ecs\Entity.h" />
     <ClInclude Include="ecs\Component.h" />

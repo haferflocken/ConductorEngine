@@ -1,16 +1,12 @@
 #pragma once
 
+#include <behave/BehaveContext.h>
 #include <ecs/components/BehaviourTreeComponent.h>
 #include <ecs/components/BehaviourTreeComponentInfo.h>
 #include <ecs/Entity.h>
 #include <ecs/System.h>
 
 #include <functional>
-
-namespace Behave
-{
-class BehaveContext;
-}
 
 namespace Collection
 {
@@ -33,9 +29,16 @@ class BehaviourTreeEvaluationSystem : public SystemTempl<
 	Util::TypeList<Entity, Components::BehaviourTreeComponent>>
 {
 public:
-	void Update(EntityManager& actorManager, const Behave::BehaveContext& context,
+	explicit BehaviourTreeEvaluationSystem(const Behave::BehaveContext& context)
+		: m_context(context)
+	{}
+
+	void Update(EntityManager& entityManager,
 		const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		Collection::Vector<std::function<void()>>& deferredFunctions) const;
+
+private:
+	Behave::BehaveContext m_context;
 };
 }
 }

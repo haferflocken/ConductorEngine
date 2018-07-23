@@ -12,12 +12,12 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	, m_gameData(gameData)
 	, m_entityManager(gameData.GetComponentFactory())
 {
-	m_entityManager.RegisterSystem(Mem::MakeUnique<ECS::Systems::BehaviourTreeEvaluationSystem>());
+	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
+	m_entityManager.RegisterSystem(Mem::MakeUnique<ECS::Systems::BehaviourTreeEvaluationSystem>(context));
 }
 
 void IslandGame::Client::IslandGameClient::Update()
 {
 	// TODO somehow stuff gets mirrored from the host??
-	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
-	m_entityManager.Update(context);
+	m_entityManager.Update();
 }
