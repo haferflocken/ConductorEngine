@@ -111,7 +111,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	output << "#pragma once\n\n";
 
 	// Write out the required includes.
-	output << "#include <ecs/ActorComponent.h>";
+	output << "#include <ecs/Component.h>";
 	WriteImportedTypeIncludes(schema, output);
 	output.NewLine();
 	output << "#include <collection/Vector.h>\n";
@@ -120,7 +120,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 
 	// Write out forward declarations.
 	output.NewLine();
-	output << "namespace ECS { class ActorComponentVector; }\n";
+	output << "namespace ECS { class ComponentVector; }\n";
 
 	// Write out the namespaces.
 	output.NewLine();
@@ -141,7 +141,7 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 	output.NewLine();
 	output << "class ";
 	output.AppendCapitalized(name);
-	output << " final : public ECS::ActorComponent\n{";
+	output << " final : public ECS::Component\n{";
 	output.NewLine();
 	output << "public:";
 
@@ -156,16 +156,16 @@ void CodeGen::GenerateComponentClassFromRecordSchema(
 		// Factory function.
 		output << "static bool TryCreateFromInfo(const Info& componentInfo, ";
 		output.NewLine();
-		output << "\tconst ActorComponentID reservedID, ActorComponentVector& destination);";
+		output << "\tconst ECS::ComponentID reservedID, ECS::ComponentVector& destination);";
 		output.NewLine();
 
 		// Main constructor.
 		output.NewLine();
 		output << "explicit ";
 		output.AppendCapitalized(name);
-		output << "(const ECS::ActorComponentID id)";
+		output << "(const ECS::ComponentID id)";
 		output.NewLine();
-		output << "\t: ECS::ActorComponent(id)";
+		output << "\t: ECS::Component(id)";
 		output.NewLine();
 		output << "{}";
 		output.NewLine();
