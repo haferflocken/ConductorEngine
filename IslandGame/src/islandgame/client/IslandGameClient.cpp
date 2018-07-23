@@ -4,13 +4,16 @@
 
 #include <behave/BehaveContext.h>
 #include <client/ConnectedHost.h>
+#include <ecs/systems/BehaviourTreeEvaluationSystem.h>
 
 IslandGame::Client::IslandGameClient::IslandGameClient(
 	const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost)
 	: IClient(connectedHost)
 	, m_gameData(gameData)
 	, m_entityManager(gameData.GetComponentFactory())
-{}
+{
+	m_entityManager.RegisterSystem(Mem::MakeUnique<ECS::Systems::BehaviourTreeEvaluationSystem>());
+}
 
 void IslandGame::Client::IslandGameClient::Update()
 {

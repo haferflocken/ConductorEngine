@@ -37,7 +37,8 @@ class EntityInfo;
 class System;
 
 /**
- * An entity manager owns and updates entities.
+ * An entity manager owns and updates Entities composed of Components using Systems.
+ * Systems run in the order they are registered.
  */
 class EntityManager final
 {
@@ -60,8 +61,13 @@ public:
 
 	void RemoveComponent(const ComponentID id);
 
-	template <typename BehaviourSystemType>
-	void RegisterSystem(Mem::UniquePtr<BehaviourSystemType>&& system);
+	// Register a system to run by itself. Systems run in the order they are registered.
+	template <typename SystemType>
+	void RegisterSystem(Mem::UniquePtr<SystemType>&& system);
+
+	// Register multiple systems to run concurrently. 
+	template <typename... SystemTypes>
+	void RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems);
 
 	void Update(const Behave::BehaveContext& context);
 
@@ -80,12 +86,13 @@ private:
 		Collection::Vector<std::function<void()>> m_deferredFunctions;
 	};
 
-	struct SystemExecutionGroup
+	struct RegisteredConcurrentSystemGroup
 	{
 		Collection::Vector<RegisteredSystem> m_systems;
 	};
 
-	void RegisterSystem(Mem::UniquePtr<System>&& system, SystemUpdateFn updateFn);
+	template <typename SystemType>
+	void RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system, RegisteredConcurrentSystemGroup& outGroup);
 
 	void AddECSIndicesToSystems(const Collection::ArrayView<Entity>& entitiesToAdd);
 
@@ -107,7 +114,7 @@ private:
 	size_t m_nextComponentID{ 0 };
 
 	// The systems that this entity manager is running, sorted into groups which can run concurrently.
-	Collection::Vector<SystemExecutionGroup> m_systemExecutionGroups{};
+	Collection::Vector<RegisteredConcurrentSystemGroup> m_concurrentSystemGroups{};
 
 	// Whether or not the ECS group vectors need to be recalculated.
 	bool m_ecsGroupVectorsNeedRecalculation{ false };
@@ -115,6 +122,27 @@ private:
 
 template <typename SystemType>
 void EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
+{
+	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
+		"EntityManager because there is not currently support for initializing the system's component groups.");
+
+	RegisteredConcurrentSystemGroup& newGroup = m_concurrentSystemGroups.Emplace();
+	RegisterSystemInGroup<SystemType>(std::move(system), newGroup);
+}
+
+template <typename... SystemTypes>
+void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems)
+{
+	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
+		"EntityManager because there is not currently support for initializing the system's component groups.");
+
+	RegisteredConcurrentSystemGroup& newGroup = m_concurrentSystemGroups.Emplace();
+	RegisterSystemInGroup<SystemTypes>(std::move(concurrentSystems), newGroup)...;
+}
+
+template <typename SystemType>
+void EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
+	RegisteredConcurrentSystemGroup& outGroup)
 {
 	struct SystemTypeFunctions
 	{
@@ -128,6 +156,6 @@ void EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
 			system.Update(entityManager, context, ecsGroupsView, registeredSystem.m_deferredFunctions);
 		}
 	};
-	RegisterSystem(std::move(system), &SystemTypeFunctions::Update);
+	outGroup.m_systems.Emplace(std::move(system), &SystemTypeFunctions::Update);
 }
 }
