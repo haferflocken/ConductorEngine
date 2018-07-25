@@ -7,6 +7,7 @@
 #include <ecs/ComponentID.h>
 #include <ecs/ECSGroupVector.h>
 #include <ecs/EntityID.h>
+#include <ecs/SystemUtil.h>
 
 #include <mem/UniquePtr.h>
 
@@ -60,7 +61,7 @@ public:
 	template <typename SystemType>
 	void RegisterSystem(Mem::UniquePtr<SystemType>&& system);
 
-	// Register multiple systems to run concurrently. 
+	// Register multiple systems to run concurrently.
 	template <typename... SystemTypes>
 	void RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems);
 
@@ -128,13 +129,14 @@ void EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
 template <typename... SystemTypes>
 void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems)
 {
+	static_assert(SystemUtil::AreSystemsWriteCompatible<SystemTypes...>(),
+		"The given systems can't run concurrently due to write conflicts.");
+
 	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
 		"EntityManager because there is not currently support for initializing the system's component groups.");
 
-	// TODO compile time detection of invalid concurrent combinations
-
 	RegisteredConcurrentSystemGroup& newGroup = m_concurrentSystemGroups.Emplace();
-	RegisterSystemInGroup<SystemTypes>(std::move(concurrentSystems), newGroup)...;
+	(... , RegisterSystemInGroup<SystemTypes>(std::move(concurrentSystems), newGroup));
 }
 
 template <typename SystemType>

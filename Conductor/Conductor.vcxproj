@@ -181,6 +181,7 @@
     <ClCompile Include="src\network\Socket.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ecs\SystemUtil.h" />
     <ClInclude Include="generated\Behave\Components\ComponentTest.h" />
     <ClInclude Include="generated\InfoAsset\Test.h" />
     <ClInclude Include="ecs\Entity.h" />

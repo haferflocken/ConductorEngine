@@ -10,7 +10,7 @@ namespace Util
  * MaxSizeOf
  */
 template <typename... Types>
-constexpr size_t MaxSizeOf()
+inline constexpr size_t MaxSizeOf()
 {
 	size_t max = 0;
 	const auto sizes = { sizeof(Types)... };
@@ -19,6 +19,21 @@ constexpr size_t MaxSizeOf()
 		max = (size > max) ? size : max;
 	}
 	return max;
+}
+
+/**
+ * Logical Operations
+ */
+template <typename... Args>
+inline constexpr bool And(Args&&... args)
+{
+	return (... && args);
+}
+
+template <typename... Args>
+inline constexpr bool Or(Args&&... args)
+{
+	return (... || args);
 }
 
 /**
@@ -59,6 +74,22 @@ template <typename TargetType, typename... Types>
 constexpr size_t IndexOfType = IndexOfTypeStruct<TargetType, Types...>::value;
 
 /**
+ * ContainsType
+ */
+template <typename TargetType, typename... Types>
+struct ContainsTypeStruct;
+
+template <typename TargetType>
+struct ContainsTypeStruct<TargetType> : std::bool_constant<false> {};
+
+template <typename TargetType, typename... Types>
+struct ContainsTypeStruct<TargetType, TargetType, Types...> : std::bool_constant<true> {};
+
+template <typename TargetType, typename FirstType, typename... RestTypes>
+struct ContainsTypeStruct<TargetType, FirstType, RestTypes...>
+	: std::bool_constant<ContainsTypeStruct<TargetType, RestTypes...>::value> {};
+
+/**
  * TypeList
  */
 template <typename... Types>
@@ -77,13 +108,26 @@ public:
 	template <typename TargetType>
 	static constexpr size_t IndexOfType() { return IndexOfType<TargetType, Types...>; }
 
+	template <typename TargetType>
+	static constexpr bool ContainsType() { return ContainsTypeStruct<TargetType, Types...>::value; }
+
+	template <typename... OtherTypes>
+	static constexpr bool ContainsAny() { return (... || ContainsType<OtherTypes>()); }
+	template <typename... OtherTypes>
+	static constexpr bool ContainsAny(TypeList<OtherTypes...>) { return ContainsAny<OtherTypes...>(); }
+
+	template <typename... OtherTypes>
+	static constexpr bool ContainsAll() { return (... && ContainsType<OtherTypes>()); }
+	template <typename... OtherTypes>
+	static constexpr bool ContainsAll(TypeList<OtherTypes...>) { return ContainsAll<OtherTypes...>(); }
+
+	using ConstList = TypeList<std::add_const_t<Types>...>;
+
 	template <typename... OtherTypes>
 	using AppendType = TypeList<Types..., OtherTypes...>;
 
 	template <typename OtherListType>
 	using ConcatType = decltype(ConcatTypeFn(OtherListType()));
-
-	using ConstList = TypeList<std::add_const_t<Types>...>;
 };
 
 /**

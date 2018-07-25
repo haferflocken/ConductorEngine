@@ -20,7 +20,7 @@ namespace ECS
 class System
 {
 public:
-	explicit System(Collection::Vector<Util::StringHash>&& immutableTypes,
+	System(Collection::Vector<Util::StringHash>&& immutableTypes,
 		Collection::Vector<Util::StringHash>&& mutableTypes)
 		: m_immutableTypes(std::move(immutableTypes))
 		, m_mutableTypes(std::move(mutableTypes))
@@ -63,12 +63,32 @@ using ECSGroupForTypeList = decltype(ECSGroupForTypeListFn(ECSTypeList()));
 template <typename ImmutableTL, typename MutableTL>
 class SystemTempl : public System
 {
+	using ThisType = SystemTempl<ImmutableTL, MutableTL>;
+
 public:
 	using ImmutableTypesList = typename ImmutableTL::ConstList;
 	using MutableTypesList = MutableTL;
 
 	using ECSTypeList = typename ImmutableTypesList::template ConcatType<MutableTypesList>;
 	using ECSGroupType = SystemDetail::ECSGroupForTypeList<ECSTypeList>;
+
+	template <typename OtherSystemType>
+	static constexpr bool WritesToInputsOf() { return MutableTypesList::ConstList::ContainsAny(OtherSystemType::ImmutableTypesList()); }
+
+	template <typename... OtherSystemTypes>
+	static constexpr bool WritesToInputsOfAny() { return (... || WritesToInputsOf<OtherSystemTypes>()); }
+
+	template <typename OtherSystemType>
+	static constexpr bool WritesToOutputsOf() { return MutableTypesList::ContainsAny(OtherSystemType::MutableTypesList()); }
+
+	template <typename... OtherSystemTypes>
+	static constexpr bool WritesToOutputsOfAny() { return (... || WritesToOutputsOf<OtherSystemTypes>()); }
+
+	template <typename... OtherSystemTypes>
+	static constexpr bool IsWriteCompatibleWithAll() { return (!WritesToInputsOfAny<OtherSystemTypes...>()) && (!WritesToOutputsOfAny<OtherSystemTypes...>()); }
+
+	template <typename... OtherSystemTypes>
+	static constexpr bool IsWriteCompatibleWithAll(Util::TypeList<OtherSystemTypes...>) { return IsWriteCompatibleWithAll<OtherSystemTypes...>(); }
 
 	SystemTempl()
 		: System(SystemDetail::MapTupleTypeHashesToVector<ImmutableTypesList>(),
