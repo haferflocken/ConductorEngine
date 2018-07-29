@@ -22,7 +22,8 @@ struct AreSystemsWriteCompatibleStruct<SeenTypeList, TestType, NextTypes...>
 
 /**
  * Test if a set of systems is write-compatible.
- * This means that none of the systems write to a component that another system reads or writes.
+ * This means that none of the systems write to a component that another system reads or writes
+ * and none of the systems read or write directly to entities.
  */
 template <typename... SystemTypes>
 inline constexpr bool AreSystemsWriteCompatible()

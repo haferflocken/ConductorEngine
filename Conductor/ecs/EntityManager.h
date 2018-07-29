@@ -39,7 +39,7 @@ class System;
 class EntityManager final
 {
 public:
-	EntityManager(const ComponentFactory& componentFactory);
+	explicit EntityManager(const ComponentFactory& componentFactory);
 	~EntityManager();
 
 	Entity& CreateEntity(const EntityInfo& actorInfo);
