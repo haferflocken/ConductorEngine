@@ -70,40 +70,6 @@ int main(const int argc, const char* argv[])
 			parentStack[parentStackSize++] = current.filename().string();
 		}
 
-		// Determine the type of code generation to do based on the parent stack.
-		if (parentStackSize == 0)
-		{
-			std::cerr << "!> Cannot determine code generation type at the top level directory." << std::endl;
-			return false;
-		}
-		
-		enum class GenerationType
-		{
-			Invalid,
-			InfoAsset,
-			Component
-		};
-		GenerationType generationType = GenerationType::Invalid;
-
-		for (size_t i = 0; i < parentStackSize; ++i)
-		{
-			if (strcmp(parentStack[i].c_str(), "InfoAsset") == 0)
-			{
-				generationType = GenerationType::InfoAsset;
-				break;
-			}
-			if (strcmp(parentStack[i].c_str(), "Components") == 0)
-			{
-				generationType = GenerationType::Component;
-				break;
-			}
-		}
-		if (generationType == GenerationType::Invalid)
-		{
-			std::cerr << "!> Unrecognized code generation type." << std::endl;
-			return false;
-		}
-
 		// Determine the output filepath.
 		File::Path outputFile = outputDir;
 		for (int64_t i = parentStackSize - 1; i >= 0; --i)
@@ -137,21 +103,9 @@ int main(const int argc, const char* argv[])
 		std::fstream outputStream{ outputFile, std::ios_base::out | std::ios_base::trunc };
 		Collection::ArrayView<std::string> namespaceNames{ parentStack, parentStackSize };
 		
-		switch (generationType)
-		{
-		case GenerationType::InfoAsset:
-		{
-			CodeGen::GenerateInfoAssetStructFromRecordSchema(namespaceNames, schema, outputStream);
-			CodeGen::GenerateInfoInstanceSaveFunction(namespaceNames, schema, outputStream);
-			// CodeGen::GenerateInfoInstanceLoadFunction(namespaceNames, schema, outputStream);
-			break;
-		}
-		case GenerationType::Component:
-		{
-			CodeGen::GenerateComponentClassFromRecordSchema(namespaceNames, schema, outputStream);
-			break;
-		}
-		}
+		CodeGen::GenerateInfoAssetStructFromRecordSchema(namespaceNames, schema, outputStream);
+		CodeGen::GenerateInfoInstanceSaveFunction(namespaceNames, schema, outputStream);
+		// CodeGen::GenerateInfoInstanceLoadFunction(namespaceNames, schema, outputStream);
 		return true;
 	});
 	return (result ? 0 : -2);

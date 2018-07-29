@@ -1,7 +1,6 @@
 // GENERATED CODE
 #pragma once
 
-
 #include <collection/Vector.h>
 #include <cstdint>
 #include <string>

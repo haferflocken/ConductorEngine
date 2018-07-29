@@ -182,7 +182,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ecs\SystemUtil.h" />
-    <ClInclude Include="generated\Behave\Components\ComponentTest.h" />
     <ClInclude Include="generated\InfoAsset\Test.h" />
     <ClInclude Include="ecs\Entity.h" />
     <ClInclude Include="ecs\Component.h" />
@@ -257,7 +256,6 @@
     <ClCompile Include="src\behave\nodes\SequenceNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="schemas\Behave\Components\ComponentTest.json" />
     <None Include="schemas\InfoAsset\Test.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

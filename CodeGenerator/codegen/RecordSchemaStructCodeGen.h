@@ -11,6 +11,4 @@ namespace CodeGen
 {
 void GenerateInfoAssetStructFromRecordSchema(const Collection::ArrayView<std::string> namespaceNames,
 	const Asset::RecordSchema& schema, std::ostream& outputStream);
-void GenerateComponentClassFromRecordSchema(const Collection::ArrayView<std::string> namespaceNames,
-	const Asset::RecordSchema& schema, std::ostream& outputStream);
 }
