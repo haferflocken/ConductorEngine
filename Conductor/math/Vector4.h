@@ -1,11 +1,13 @@
 #pragma once
 
+#include <cfloat>
+
 namespace Math
 {
 class Vector4
 {
 public:
-	// Zero vector constructor.
+	// Max value constructor.
 	Vector4();
 
 	// Element-specifying constructor.
@@ -14,27 +16,17 @@ public:
 	Vector4(const Vector4&) = default;
 	Vector4& operator=(const Vector4&) = default;
 
-	float& operator[](const size_t i) { return elements[i]; }
-	const float& operator[](const size_t i) const { return elements[i]; }
-
-	union
-	{
-		float elements[4];
-		struct
-		{
-			float x;
-			float y;
-			float z;
-			float w;
-		};
-	};
+	float x;
+	float y;
+	float z;
+	float w;
 };
 
 inline Vector4::Vector4()
-	: x(0.0f)
-	, y(0.0f)
-	, z(0.0f)
-	, w(0.0f)
+	: x(FLT_MAX)
+	, y(FLT_MAX)
+	, z(FLT_MAX)
+	, w(FLT_MAX)
 {}
 
 inline Vector4::Vector4(float _x, float _y, float _z, float _w)
