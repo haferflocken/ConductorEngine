@@ -34,27 +34,7 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 	// Create the entity's components using our component factory.
 	for (const auto& componentInfo : entityInfo.m_componentInfos)
 	{
-		const Util::StringHash componentTypeHash = componentInfo->GetTypeHash();
-		const ComponentID componentID{ componentTypeHash, m_nextComponentID };
-
-		ComponentVector& componentVector = m_components[componentTypeHash];
-		if (componentVector.GetComponentType() == Util::StringHash())
-		{
-			// This is a type that has not yet been encountered and therefore must be initialized.
-			componentVector = ComponentVector(componentTypeHash,
-				m_componentFactory.GetSizeOfComponentInBytes(componentTypeHash));
-		}
-		Dev::FatalAssert(componentVector.GetComponentType() == componentTypeHash,
-			"Mismatch between component vector type and the key it is stored at.");
-
-		if (!m_componentFactory.TryMakeComponent(*componentInfo, componentID, componentVector))
-		{
-			Dev::LogWarning("Failed to create component of type [%s].", componentInfo->GetTypeName());
-			continue;
-		}
-
-		++m_nextComponentID;
-		entity.m_components.Add(componentID);
+		AddComponentToEntity(*componentInfo, entity);
 	}
 	
 	// Update the next unique ID.
@@ -65,6 +45,42 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 
 	// Return the entity after it is fully initialized.
 	return entity;
+}
+
+void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity)
+{
+	// Remove any components the entity no longer needs.
+	for (size_t i = 0; i < entity.m_components.Size();)
+	{
+		const ComponentID& componentID = entity.m_components[i];
+
+		const auto* const matchingComponentInfo = entityInfo.m_componentInfos.Find(
+			[&](const Mem::UniquePtr<ComponentInfo>& componentInfo)
+		{
+			return componentInfo->GetTypeHash() == componentID.GetType();
+		});
+
+		if (matchingComponentInfo == nullptr)
+		{
+			RemoveComponent(componentID);
+			entity.m_components.SwapWithAndRemoveLast(i);
+		}
+		else
+		{
+			++i;
+		}
+	}
+
+	// Add any components the entity is missing.
+	for (const auto& componentInfo : entityInfo.m_componentInfos)
+	{
+		const ComponentID componentID = entity.FindComponentID(componentInfo->GetTypeHash());
+		if (componentID != ComponentID())
+		{
+			continue;
+		}
+		AddComponentToEntity(*componentInfo, entity);
+	}
 }
 
 Entity* EntityManager::FindEntity(const EntityID id)
@@ -145,6 +161,31 @@ Entity& EntityManager::GetEntityByIndex(const size_t index)
 Component& EntityManager::GetComponentByIndex(const Util::StringHash typeHash, const size_t index)
 {
 	return m_components.Find(typeHash)->second[index];
+}
+
+void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity)
+{
+	const Util::StringHash componentTypeHash = componentInfo.GetTypeHash();
+	const ComponentID componentID{ componentTypeHash, m_nextComponentID };
+
+	ComponentVector& componentVector = m_components[componentTypeHash];
+	if (componentVector.GetComponentType() == Util::StringHash())
+	{
+		// This is a type that has not yet been encountered and therefore must be initialized.
+		componentVector = ComponentVector(componentTypeHash,
+			m_componentFactory.GetSizeOfComponentInBytes(componentTypeHash));
+	}
+	Dev::FatalAssert(componentVector.GetComponentType() == componentTypeHash,
+		"Mismatch between component vector type and the key it is stored at.");
+
+	if (!m_componentFactory.TryMakeComponent(componentInfo, componentID, componentVector))
+	{
+		Dev::LogWarning("Failed to create component of type [%s].", componentInfo.GetTypeName());
+		return;
+	}
+
+	++m_nextComponentID;
+	entity.m_components.Add(componentID);
 }
 
 void EntityManager::RemoveComponent(const ComponentID id)

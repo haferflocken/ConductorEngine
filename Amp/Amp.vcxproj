@@ -130,6 +130,7 @@
     <ClInclude Include="collection\Array2D.h" />
     <ClInclude Include="collection\ArrayView.h" />
     <ClInclude Include="collection\BitVector.h" />
+    <ClInclude Include="collection\HashMap.h" />
     <ClInclude Include="collection\Heap.h" />
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\IntegralRange.h" />

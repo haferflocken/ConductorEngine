@@ -15,7 +15,7 @@ namespace ECS
  * All systems must define an update function which encapsulates their logic with this signature:
  *   void Update(EntityManager& entityManager,
  *      const Collection::ArrayView<ECSGroupType>& ecsGroups,
- *      Collection::Vector<std::function<void()>>& deferredFunctions) const;
+ *      Collection::Vector<std::function<void()>>& deferredFunctions);
  */
 class System
 {

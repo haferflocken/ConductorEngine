@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ecs/ComponentID.h>
+#include <json/JSONTypes.h>
 
 namespace ECS
 {
@@ -17,6 +18,11 @@ public:
 	{}
 
 	virtual ~Component() {}
+
+	// Save() must generate a JSONObject which can be used to restore the state of the component using Load(...).
+	// The JSONObject returned by Save() must have a "type" string field.
+	virtual JSON::JSONObject Save() const { return JSON::JSONObject(); }
+	virtual void Load(const JSON::JSONObject& jsonData) {}
 
 	ComponentID m_id;
 };

@@ -67,6 +67,7 @@ public:
 
 	void RemoveLast();
 	void Remove(const size_t start, const size_t end);
+	void SwapWithAndRemoveLast(const size_t i);
 
 	void Clear();
 
@@ -285,6 +286,14 @@ inline void Vector<T>::Remove(const size_t start, const size_t end)
 		(&m_data[i])->~T();
 	}
 	m_count -= static_cast<uint32_t>(removeCount);
+}
+
+template <typename T>
+inline void Vector<T>::SwapWithAndRemoveLast(const size_t i)
+{
+	--m_count;
+	m_data[i] = std::move(m_data[m_count]);
+	(&m_data[m_count])->~T();
 }
 
 template <typename T>

@@ -33,6 +33,8 @@ public:
 	template <typename ComponentType>
 	ComponentID FindComponentID() const;
 
+	ComponentID FindComponentID(const Util::StringHash& typeHash) const;
+
 public:
 	// A unique ID for this entity.
 	EntityID m_id;
@@ -45,15 +47,20 @@ public:
 template <typename ComponentType>
 ComponentID Entity::FindComponentID() const
 {
+	return FindComponentID(ComponentType::Info::sk_typeHash);
+}
+
+ComponentID Entity::FindComponentID(const Util::StringHash& typeHash) const
+{
 	// TODO This is currently a linear search, which callers will typically follow up with a binary search
 	//      to actually get the component. It's worth remembering that this may be a performance concern.
 	for (const auto& id : m_components)
 	{
-		if (id.GetType() == ComponentType::Info::sk_typeHash)
+		if (id.GetType() == typeHash)
 		{
 			return id;
 		}
 	}
-	return ActorComponentID();
+	return ComponentID();
 }
 }

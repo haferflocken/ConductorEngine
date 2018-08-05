@@ -26,6 +26,7 @@ namespace ECS
 {
 class Component;
 class ComponentFactory;
+class ComponentInfo;
 class ComponentVector;
 class ECSGroupVector;
 class Entity;
@@ -42,7 +43,8 @@ public:
 	explicit EntityManager(const ComponentFactory& componentFactory);
 	~EntityManager();
 
-	Entity& CreateEntity(const EntityInfo& actorInfo);
+	Entity& CreateEntity(const EntityInfo& entityInfo);
+	void SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity);
 
 	Entity* FindEntity(const EntityID id);
 	const Entity* FindEntity(const EntityID id) const;
@@ -54,8 +56,6 @@ public:
 
 	Entity& GetEntityByIndex(const size_t index);
 	Component& GetComponentByIndex(const Util::StringHash typeHash, const size_t index);
-
-	void RemoveComponent(const ComponentID id);
 
 	// Register a system to run by itself. Systems run in the order they are registered.
 	template <typename SystemType>
@@ -86,6 +86,11 @@ private:
 	{
 		Collection::Vector<RegisteredSystem> m_systems;
 	};
+
+	// Add a component to an entity.
+	void AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity);
+	// Remove a component from this EntityManager. Does not remove it from the entity references it.
+	void RemoveComponent(const ComponentID id);
 
 	template <typename SystemType>
 	void RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system, RegisteredConcurrentSystemGroup& outGroup);

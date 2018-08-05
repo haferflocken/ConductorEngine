@@ -179,6 +179,8 @@
     <ClCompile Include="src\navigation\NavigationManager.cpp" />
     <ClCompile Include="src\navigation\NavMesh.cpp" />
     <ClCompile Include="src\network\Socket.cpp" />
+    <ClCompile Include="src\scene\Chunk.cpp" />
+    <ClCompile Include="src\scene\UnboundedScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ecs\SystemUtil.h" />
@@ -251,6 +253,9 @@
     <ClInclude Include="navigation\NavMeshTriangleID.h" />
     <ClInclude Include="network\Socket.h" />
     <ClInclude Include="client\IRenderInstance.h" />
+    <ClInclude Include="scene\Chunk.h" />
+    <ClInclude Include="scene\ChunkID.h" />
+    <ClInclude Include="scene\UnboundedScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\behave\nodes\SequenceNode.cpp" />

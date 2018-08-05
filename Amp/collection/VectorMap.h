@@ -40,6 +40,9 @@ public:
 
 	bool TryRemove(const KeyType& key);
 
+	template <typename Predicate>
+	void RemoveAllMatching(Predicate&& pred);
+
 	iterator begin() { return reinterpret_cast<value_type*>(m_vector.begin()); }
 	const_iterator begin() const { return reinterpret_cast<const value_type*>(m_vector.begin()); }
 	const_iterator cbegin() const { return begin(); }
@@ -128,5 +131,14 @@ inline bool VectorMap<KeyType, ValueType, ComparisonType>::TryRemove(const KeyTy
 	const size_t i = std::distance(begin(), itr);
 	m_vector.Remove(i, i + 1);
 	return true;
+}
+
+template <typename KeyType, typename ValueType, typename ComparisonType>
+template <typename Predicate>
+inline void VectorMap<KeyType, ValueType, ComparisonType>::RemoveAllMatching(Predicate&& pred)
+{
+	const auto iter = std::remove_if(m_vector.begin(), m_vector.end(), std::forward<Predicate>(pred));
+	const size_t i = std::distance(m_vector.begin(), iter);
+	m_vector.Remove(i, m_vector.Size());
 }
 }

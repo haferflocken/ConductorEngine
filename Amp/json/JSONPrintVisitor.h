@@ -2,13 +2,16 @@
 
 #include <json/JSONTypes.h>
 
+#include <ostream>
+
 namespace JSON
 {
 class PrintVisitor : public Visitor
 {
 public:
-	PrintVisitor()
-		: m_prefix("")
+	PrintVisitor(std::ostream& output)
+		: m_output(output)
+		, m_prefix("")
 	{}
 
 	virtual VisitorFlow Visit(const JSONString& value) override;
@@ -19,6 +22,7 @@ public:
 	virtual VisitorFlow Visit(const JSONObject& value) override;
 
 private:
+	std::ostream& m_output;
 	std::string m_prefix;
 };
 }
