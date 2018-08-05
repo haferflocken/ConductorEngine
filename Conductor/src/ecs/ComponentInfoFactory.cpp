@@ -8,7 +8,7 @@
 #include <dev/Dev.h>
 #include <json/JSONTypes.h>
 
-namespace Internal_ActorComponentInfoFactory
+namespace Internal_ComponentInfoFactory
 {
 const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 }
@@ -34,7 +34,7 @@ Mem::UniquePtr<ECS::ComponentInfo> ECS::ComponentInfoFactory::MakeComponentInfo(
 	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject) const
 {
 	const JSON::JSONString* const jsonTypeName =
-		jsonObject.FindString(Internal_ActorComponentInfoFactory::k_typeKeyHash);
+		jsonObject.FindString(Internal_ComponentInfoFactory::k_typeKeyHash);
 	if (jsonTypeName == nullptr)
 	{
 		Dev::LogWarning("Failed to find a type name.");
