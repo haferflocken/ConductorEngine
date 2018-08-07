@@ -30,20 +30,4 @@ void Behave::BehaviourTreeEvaluationSystem::Update(
 		});
 		behaviourTreeComponent.m_treeEvaluators.Remove(removeIndex, behaviourTreeComponent.m_treeEvaluators.Size());
 	});
-
-	// Destroy any entities which are no longer running any trees.
-	// TODO Is this desired?
-	/*const size_t removeIndex = m_actors.Partition([](const Actor& actor)
-	{
-		return !actor.m_treeEvaluators.IsEmpty();
-	});
-	for (size_t i = removeIndex, iEnd = m_actors.Size(); i < iEnd; ++i)
-	{
-		const Actor& actor = m_actors[i];
-		for (const auto& componentID : actor.m_components)
-		{
-			RemoveComponent(componentID);
-		}
-	}
-	m_actors.Remove(removeIndex, m_actors.Size());*/
 }

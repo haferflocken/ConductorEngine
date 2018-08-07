@@ -49,6 +49,12 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 
 void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity)
 {
+	// Early out if the entity is already using the given info.
+	if (entity.GetInfoNameHash() == entityInfo.m_nameHash)
+	{
+		return;
+	}
+
 	// Remove any components the entity no longer needs.
 	for (size_t i = 0; i < entity.m_components.Size();)
 	{
@@ -81,6 +87,30 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 		}
 		AddComponentToEntity(*componentInfo, entity);
 	}
+}
+
+void EntityManager::DeleteEntities(const Collection::ArrayView<const Entity* const>& entitiesToDelete)
+{
+	const size_t removeIndex = m_entities.Partition([&](const Entity& entity)
+	{
+		for (const auto& entityToDelete : entitiesToDelete)
+		{
+			if (entityToDelete == &entity)
+			{
+				return false;
+			}
+		}
+		return true;
+	});
+	for (size_t i = removeIndex, iEnd = m_entities.Size(); i < iEnd; ++i)
+	{
+		const Entity& entity = m_entities[i];
+		for (const auto& componentID : entity.GetComponentIDs())
+		{
+			RemoveComponent(componentID);
+		}
+	}
+	m_entities.Remove(removeIndex, m_entities.Size());
 }
 
 Entity* EntityManager::FindEntity(const EntityID id)
