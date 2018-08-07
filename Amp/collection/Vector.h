@@ -54,6 +54,10 @@ public:
 	const_iterator end() const { return begin() + m_count; }
 	const_iterator cend() const { return end(); }
 
+	Collection::ArrayView<T> GetView() { return { m_data, m_count }; }
+	Collection::ArrayView<const T> GetView() const { return { m_data, m_count }; }
+	Collection::ArrayView<const T> GetConstView() const { return { m_data, m_count }; }
+
 	void Resize(const uint32_t count, const T& defaultValue = T());
 
 	void Add(const T& e);
