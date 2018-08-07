@@ -1,5 +1,6 @@
 #include <scene/UnboundedScene.h>
 
+#include <ecs/EntityManager.h>
 #include <json/JSONPrintVisitor.h>
 
 #include <fstream>
@@ -99,6 +100,7 @@ void UnboundedScene::Update(ECS::EntityManager& entityManager,
 	}
 
 	// Apply all pending chunk changes.
+	// This invalidates ecsGroups by adding and removing entities as well as changing the components on them.
 	FlushPendingChunks(entityManager);
 }
 
@@ -109,7 +111,7 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 	{
 		if (entry.second <= ChunkRefCount(1))
 		{
-			SaveAndUnloadChunk(entityManager, entry.first);
+			SaveChunkAndQueueEntitiesForUnload(entityManager, entry.first);
 			return true;
 		}
 		return false;
@@ -118,9 +120,15 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 	// Save and unload any chunks pending removal.
 	for (const auto& chunkID : m_chunksPendingRemoval)
 	{
-		SaveAndUnloadChunk(entityManager, chunkID);
+		SaveChunkAndQueueEntitiesForUnload(entityManager, chunkID);
 	}
 	m_chunksPendingRemoval.Clear();
+
+	// Unload all entities from chunks that were saved. This will invalidate pointers in m_spatialHashMap,
+	// so it should not be used at any further point of FlushPendingChunks.
+	// TODO partial unloading support for RoPEs
+	entityManager.DeleteEntities(m_entitiesPendingUnload.GetConstView());
+	m_entitiesPendingUnload.Clear();
 
 	// Synchronize with any chunks that are loading. There is a fixed amount of time that the scene
 	// will spend waiting for a chunk before it is deferred to the next frame.
@@ -149,7 +157,7 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 	}
 }
 
-void UnboundedScene::SaveAndUnloadChunk(ECS::EntityManager& entityManager, const ChunkID chunkID)
+void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& entityManager, const ChunkID chunkID)
 {
 	// Determine the entities that are in the chunk.
 	const Math::Vector3 chunkOrigin = Math::Vector3(
@@ -186,12 +194,13 @@ void UnboundedScene::SaveAndUnloadChunk(ECS::EntityManager& entityManager, const
 
 	fileOutput.flush();
 	fileOutput.close();
-	
-	// Unload the entities in the chunk.
-	// TODO support partial unloading for RoPEs.
-	for (auto& entity : entitiesInChunk)
+
+	// Add the entities in the chunk to the list of entities to unload. This is deferred
+	// (as opposed to unloading entities immediately) because removing entities from the EntityManager
+	// will invalidate the pointers in m_spatialHashMap.
+	for (const auto& entity : entitiesInChunk)
 	{
-		// TODO
+		m_entitiesPendingUnload.Add(entity);
 	}
 }
 

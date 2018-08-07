@@ -35,6 +35,9 @@ namespace Scene
  * Each chunk in an unbounded scene is either in-play or out-of-play. In-play chunks run a full simulation of their
  * entities. Out-of-play chunks run an extremely simplified simulation. Chunks on the boundary of in-play and
  * out-of-play are called "transition" chunks which buffer the scene from in/out of play oscillations.
+ *
+ * UnboundedScenes are ECS::Systems and should not run concurrently with other systems because they add entities,
+ * remove entities, and change the EntityInfo of entities as they run.
  */
 class UnboundedScene final : public ECS::SystemTempl<
 	Util::TypeList<ECS::Components::SceneTransformComponent>,
@@ -52,7 +55,7 @@ public:
 
 private:
 	void FlushPendingChunks(ECS::EntityManager& entityManager);
-	void SaveAndUnloadChunk(ECS::EntityManager& entityManager, const ChunkID chunkID);
+	void SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& entityManager, const ChunkID chunkID);
 
 	// The EntityInfoManager is needed for chunk loading.
 	const ECS::EntityInfoManager& m_entityInfoManager;
@@ -90,5 +93,7 @@ private:
 		{}
 	};
 	Collection::VectorMap<ChunkID, ChunkRefCount> m_transitionChunksToRefCounts;
+
+	Collection::Vector<const ECS::Entity*> m_entitiesPendingUnload;
 };
 }
