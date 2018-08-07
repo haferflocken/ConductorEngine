@@ -1,12 +1,11 @@
 #include <ecs/ComponentInfoFactory.h>
 
 #include <behave/BehaviourTreeComponentInfo.h>
+#include <dev/Dev.h>
 #include <ecs/ComponentInfo.h>
 #include <ecs/components/BlackboardComponentInfo.h>
-#include <ecs/components/SceneTransformComponentInfo.h>
-
-#include <dev/Dev.h>
 #include <json/JSONTypes.h>
+#include <scene/SceneTransformComponentInfo.h>
 
 namespace Internal_ComponentInfoFactory
 {
@@ -18,7 +17,7 @@ ECS::ComponentInfoFactory::ComponentInfoFactory()
 {
 	RegisterFactoryFunction<Behave::BehaviourTreeComponentInfo>();
 	RegisterFactoryFunction<Components::BlackboardComponentInfo>();
-	RegisterFactoryFunction<Components::SceneTransformComponentInfo>();
+	RegisterFactoryFunction<Scene::SceneTransformComponentInfo>();
 }
 
 void ECS::ComponentInfoFactory::RegisterFactoryFunction(

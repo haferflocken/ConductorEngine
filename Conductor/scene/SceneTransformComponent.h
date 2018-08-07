@@ -3,27 +3,25 @@
 #include <ecs/Component.h>
 #include <math/Matrix4x4.h>
 
-namespace ECS
-{
-class ComponentVector;
+namespace ECS { class ComponentVector; }
 
-namespace Components
+namespace Scene
 {
 class SceneTransformComponentInfo;
 
 /**
  * Entities with a SceneTransformComponent have a position, orientation, and scale within the scene.
  */
-class SceneTransformComponent final : public Component
+class SceneTransformComponent final : public ECS::Component
 {
 public:
 	using Info = SceneTransformComponentInfo;
 
-	static bool TryCreateFromInfo(const SceneTransformComponentInfo& componentInfo, const ComponentID reservedID,
-		ComponentVector& destination);
+	static bool TryCreateFromInfo(const SceneTransformComponentInfo& componentInfo, const ECS::ComponentID reservedID,
+		ECS::ComponentVector& destination);
 
-	explicit SceneTransformComponent(const ComponentID id)
-		: Component(id)
+	explicit SceneTransformComponent(const ECS::ComponentID id)
+		: ECS::Component(id)
 		, m_matrix()
 	{}
 
@@ -32,5 +30,4 @@ public:
 	// A 4x4 transform matrix in scene space.
 	Math::Matrix4x4 m_matrix;
 };
-}
 }

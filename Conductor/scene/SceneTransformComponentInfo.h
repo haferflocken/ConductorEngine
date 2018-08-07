@@ -6,9 +6,9 @@ namespace Behave { class BehaviourTreeManager; }
 namespace JSON { class JSONObject; }
 namespace Mem { template <typename T> class UniquePtr; }
 
-namespace ECS::Components
+namespace Scene
 {
-class SceneTransformComponentInfo final : public ComponentInfo
+class SceneTransformComponentInfo final : public ECS::ComponentInfo
 {
 public:
 	static constexpr char* sk_typeName = "scene_transform_component";

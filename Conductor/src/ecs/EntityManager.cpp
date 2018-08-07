@@ -27,7 +27,7 @@ EntityManager::~EntityManager()
 
 Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 {
-	// Create the enttiy.
+	// Create the entity.
 	const EntityID entityID = m_nextEntityID;
 	Entity& entity = m_entities.Emplace(entityID, entityInfo.m_nameHash);
 

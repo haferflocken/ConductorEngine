@@ -158,8 +158,8 @@
     <ClCompile Include="src\behave\BehaviourTreeComponentInfo.cpp" />
     <ClCompile Include="src\ecs\components\BlackboardComponent.cpp" />
     <ClCompile Include="src\ecs\components\BlackboardComponentInfo.cpp" />
-    <ClCompile Include="src\ecs\components\SceneTransformComponent.cpp" />
-    <ClCompile Include="src\ecs\components\SceneTransformComponentInfo.cpp" />
+    <ClCompile Include="src\scene\SceneTransformComponent.cpp" />
+    <ClCompile Include="src\scene\SceneTransformComponentInfo.cpp" />
     <ClCompile Include="src\behave\nodes\CallNode.cpp" />
     <ClCompile Include="src\behave\nodes\ConditionalNode.cpp" />
     <ClCompile Include="src\behave\nodes\DomainNode.cpp" />
@@ -211,8 +211,8 @@
     <ClInclude Include="behave\BehaviourTreeComponentInfo.h" />
     <ClInclude Include="ecs\components\BlackboardComponent.h" />
     <ClInclude Include="ecs\components\BlackboardComponentInfo.h" />
-    <ClInclude Include="ecs\components\SceneTransformComponent.h" />
-    <ClInclude Include="ecs\components\SceneTransformComponentInfo.h" />
+    <ClInclude Include="scene\SceneTransformComponent.h" />
+    <ClInclude Include="scene\SceneTransformComponentInfo.h" />
     <ClInclude Include="behave\nodes\CallNode.h" />
     <ClInclude Include="behave\nodes\ConditionalNode.h" />
     <ClInclude Include="behave\nodes\DomainNode.h" />

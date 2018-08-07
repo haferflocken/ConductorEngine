@@ -4,7 +4,6 @@
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
 
-#include <ecs/components/SceneTransformComponent.h>
 #include <ecs/Entity.h>
 #include <ecs/System.h>
 
@@ -12,6 +11,7 @@
 #include <math/Vector3.h>
 #include <scene/Chunk.h>
 #include <scene/ChunkID.h>
+#include <scene/SceneTransformComponent.h>
 #include <unit/UnitTempl.h>
 
 #include <future>
@@ -40,7 +40,7 @@ namespace Scene
  * remove entities, and change the EntityInfo of entities as they run.
  */
 class UnboundedScene final : public ECS::SystemTempl<
-	Util::TypeList<ECS::Components::SceneTransformComponent>,
+	Util::TypeList<Scene::SceneTransformComponent>,
 	Util::TypeList<ECS::Entity>>
 {
 public:

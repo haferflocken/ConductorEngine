@@ -94,7 +94,7 @@ void UnboundedScene::Update(ECS::EntityManager& entityManager,
 	for (const auto& ecsGroup : ecsGroups)
 	{
 		const ECS::Entity& entity = ecsGroup.Get<ECS::Entity>(entityManager);
-		const auto& sceneTransformComponent = ecsGroup.Get<const ECS::Components::SceneTransformComponent>(entityManager);
+		const auto& sceneTransformComponent = ecsGroup.Get<const SceneTransformComponent>(entityManager);
 		const Math::Vector3& position = sceneTransformComponent.m_matrix.GetTranslation();
 		m_spatialHashMap[position] = &entity;
 	}

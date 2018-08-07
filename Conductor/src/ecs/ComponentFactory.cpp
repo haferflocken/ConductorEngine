@@ -6,8 +6,8 @@
 #include <ecs/ComponentInfo.h>
 #include <ecs/components/BlackboardComponent.h>
 #include <ecs/components/BlackboardComponentInfo.h>
-#include <ecs/components/SceneTransformComponent.h>
-#include <ecs/components/SceneTransformComponentInfo.h>
+#include <scene/SceneTransformComponent.h>
+#include <scene/SceneTransformComponentInfo.h>
 
 #include <dev/Dev.h>
 
@@ -15,7 +15,7 @@ ECS::ComponentFactory::ComponentFactory()
 {
 	RegisterComponentType<Behave::BehaviourTreeComponent>();
 	RegisterComponentType<Components::BlackboardComponent>();
-	RegisterComponentType<Components::SceneTransformComponent>();
+	RegisterComponentType<Scene::SceneTransformComponent>();
 }
 
 void ECS::ComponentFactory::RegisterComponentType(const char* const componentTypeName,
