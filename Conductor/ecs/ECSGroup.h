@@ -48,7 +48,7 @@ struct GetByIndexStruct<Entity, ECSTypes...>
 template <typename ComponentType, typename... ECSTypes>
 struct GetByIndexStruct
 {
-	static std::enable_if_t<std::is_convertible_v<ComponentType&, Component&>, ComponentType>& Get(
+	static std::enable_if_t<std::is_convertible_v<ComponentType&, const Component&>, ComponentType>& Get(
 		EntityManager& entityManager, const size_t index)
 	{
 		return static_cast<ComponentType&>(entityManager.GetComponentByIndex(ComponentType::Info::sk_typeHash, index));
