@@ -192,13 +192,25 @@ public:
 
 	size_t Size() const { return m_pairs.Size(); }
 
+	JSONValue* FindAny(const Util::StringHash keyHash);
 	const JSONValue* FindAny(const Util::StringHash keyHash) const;
 
+	JSONString* FindString(const Util::StringHash keyHash);
 	const JSONString* FindString(const Util::StringHash keyHash) const;
+
+	JSONNumber* FindNumber(const Util::StringHash keyHash);
 	const JSONNumber* FindNumber(const Util::StringHash keyHash) const;
+
+	JSONBoolean* FindBoolean(const Util::StringHash keyHash);
 	const JSONBoolean* FindBoolean(const Util::StringHash keyHash) const;
+
+	JSONNull* FindNull(const Util::StringHash keyHash);
 	const JSONNull* FindNull(const Util::StringHash keyHash) const;
+
+	JSONArray* FindArray(const Util::StringHash keyHash);
 	const JSONArray* FindArray(const Util::StringHash keyHash) const;
+
+	JSONObject* FindObject(const Util::StringHash keyHash);
 	const JSONObject* FindObject(const Util::StringHash keyHash) const;
 
 	Entry& Emplace(const std::string& key, Mem::UniquePtr<JSONValue>&& value);

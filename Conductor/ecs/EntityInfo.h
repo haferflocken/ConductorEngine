@@ -12,6 +12,7 @@ public:
 	static constexpr char* sk_typeName = "entity";
 	static const Util::StringHash sk_typeHash;
 
+	Util::StringHash m_nameHash;
 	Collection::Vector<Mem::UniquePtr<ComponentInfo>> m_componentInfos;
 };
 }

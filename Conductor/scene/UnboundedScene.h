@@ -3,9 +3,11 @@
 #include <collection/HashMap.h>
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
+
+#include <ecs/components/SceneTransformComponent.h>
 #include <ecs/Entity.h>
-#include <ecs/EntityID.h>
 #include <ecs/System.h>
+
 #include <file/Path.h>
 #include <math/Vector3.h>
 #include <scene/Chunk.h>
@@ -34,7 +36,9 @@ namespace Scene
  * entities. Out-of-play chunks run an extremely simplified simulation. Chunks on the boundary of in-play and
  * out-of-play are called "transition" chunks which buffer the scene from in/out of play oscillations.
  */
-class UnboundedScene final : public ECS::SystemTempl<Util::TypeList<>, Util::TypeList<ECS::Entity>>
+class UnboundedScene final : public ECS::SystemTempl<
+	Util::TypeList<ECS::Components::SceneTransformComponent>,
+	Util::TypeList<ECS::Entity>>
 {
 public:
 	explicit UnboundedScene(const ECS::EntityInfoManager& entityInfoManager);
@@ -50,10 +54,13 @@ private:
 	void FlushPendingChunks(ECS::EntityManager& entityManager);
 	void SaveAndUnloadChunk(ECS::EntityManager& entityManager, const ChunkID chunkID);
 
+	// The EntityInfoManager is needed for chunk loading.
 	const ECS::EntityInfoManager& m_entityInfoManager;
+	// The directory the scene's chunks will be stored in.
 	File::Path m_filePath;
 
-	class PositionHashFunctor
+	// A spatial hash that buckets entities by the chunk they are in.
+	class ChunkHashFunctor
 	{
 		int64_t m_a;
 		int64_t m_b;
@@ -61,12 +68,12 @@ private:
 		int64_t m_d;
 
 	public:
-		PositionHashFunctor();
+		ChunkHashFunctor();
 
 		uint64_t Hash(const Math::Vector3& position) const;
 		void Rehash();
 	};
-	Collection::HashMap<Math::Vector3, ECS::EntityID, PositionHashFunctor> m_spatialHashMap;
+	Collection::HashMap<Math::Vector3, const ECS::Entity*, ChunkHashFunctor> m_spatialHashMap;
 
 	Collection::Vector<ChunkID> m_chunksInPlay;
 	Collection::Vector<ChunkID> m_chunksPendingRemoval;

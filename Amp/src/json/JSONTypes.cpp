@@ -76,6 +76,12 @@ bool JSON::JSONObject::Accept(Visitor* visitor) const
 	return true;
 }
 
+JSON::JSONValue* JSON::JSONObject::FindAny(const Util::StringHash keyHash)
+{
+	const auto itr = m_map.find(keyHash);
+	return (itr != m_map.end()) ? itr->second : nullptr;
+}
+
 const JSON::JSONValue* JSON::JSONObject::FindAny(const Util::StringHash keyHash) const
 {
 	const auto itr = m_map.find(keyHash);
@@ -85,6 +91,17 @@ const JSON::JSONValue* JSON::JSONObject::FindAny(const Util::StringHash keyHash)
 namespace Internal_JSONTypes
 {
 using namespace JSON;
+
+template <typename T, ValueType type>
+T* FindWithType(JSONObject& jsonObject, const Util::StringHash keyHash)
+{
+	JSONValue* const value = jsonObject.FindAny(keyHash);
+	if (value == nullptr)
+	{
+		return nullptr;
+	}
+	return (value->GetType() == type) ? static_cast<T*>(value) : nullptr;
+}
 
 template <typename T, ValueType type>
 const T* FindWithType(const JSONObject& jsonObject, const Util::StringHash keyHash)
@@ -98,9 +115,19 @@ const T* FindWithType(const JSONObject& jsonObject, const Util::StringHash keyHa
 }
 }
 
+JSON::JSONString* JSON::JSONObject::FindString(const Util::StringHash keyHash)
+{
+	return Internal_JSONTypes::FindWithType<JSONString, ValueType::String>(*this, keyHash);
+}
+
 const JSON::JSONString* JSON::JSONObject::FindString(const Util::StringHash keyHash) const
 {
 	return Internal_JSONTypes::FindWithType<JSONString, ValueType::String>(*this, keyHash);
+}
+
+JSON::JSONNumber* JSON::JSONObject::FindNumber(const Util::StringHash keyHash)
+{
+	return Internal_JSONTypes::FindWithType<JSONNumber, ValueType::Number>(*this, keyHash);
 }
 
 const JSON::JSONNumber* JSON::JSONObject::FindNumber(const Util::StringHash keyHash) const
@@ -108,9 +135,19 @@ const JSON::JSONNumber* JSON::JSONObject::FindNumber(const Util::StringHash keyH
 	return Internal_JSONTypes::FindWithType<JSONNumber, ValueType::Number>(*this, keyHash);
 }
 
+JSON::JSONBoolean* JSON::JSONObject::FindBoolean(const Util::StringHash keyHash)
+{
+	return Internal_JSONTypes::FindWithType<JSONBoolean, ValueType::Boolean>(*this, keyHash);
+}
+
 const JSON::JSONBoolean* JSON::JSONObject::FindBoolean(const Util::StringHash keyHash) const
 {
 	return Internal_JSONTypes::FindWithType<JSONBoolean, ValueType::Boolean>(*this, keyHash);
+}
+
+JSON::JSONNull* JSON::JSONObject::FindNull(const Util::StringHash keyHash)
+{
+	return Internal_JSONTypes::FindWithType<JSONNull, ValueType::Null>(*this, keyHash);
 }
 
 const JSON::JSONNull* JSON::JSONObject::FindNull(const Util::StringHash keyHash) const
@@ -118,9 +155,19 @@ const JSON::JSONNull* JSON::JSONObject::FindNull(const Util::StringHash keyHash)
 	return Internal_JSONTypes::FindWithType<JSONNull, ValueType::Null>(*this, keyHash);
 }
 
+JSON::JSONArray* JSON::JSONObject::FindArray(const Util::StringHash keyHash)
+{
+	return Internal_JSONTypes::FindWithType<JSONArray, ValueType::Array>(*this, keyHash);
+}
+
 const JSON::JSONArray* JSON::JSONObject::FindArray(const Util::StringHash keyHash) const
 {
 	return Internal_JSONTypes::FindWithType<JSONArray, ValueType::Array>(*this, keyHash);
+}
+
+JSON::JSONObject* JSON::JSONObject::FindObject(const Util::StringHash keyHash)
+{
+	return Internal_JSONTypes::FindWithType<JSONObject, ValueType::Object>(*this, keyHash);
 }
 
 const JSON::JSONObject* JSON::JSONObject::FindObject(const Util::StringHash keyHash) const

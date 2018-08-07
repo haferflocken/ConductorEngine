@@ -4,10 +4,12 @@
 #include <ecs/EntityID.h>
 
 #include <collection/Vector.h>
+#include <util/StringHash.h>
 
 namespace ECS
 {
 class EntityInfo;
+class EntityManager;
 
 /**
  * An entity is anything in the world.
@@ -17,9 +19,10 @@ class Entity final
 public:
 	using Info = EntityInfo;
 
-	explicit Entity(const EntityID& id)
+	explicit Entity(const EntityID& id, const Util::StringHash infoNameHash)
 		: m_id(id)
 		, m_components()
+		, m_infoNameHash(infoNameHash)
 	{}
 
 	Entity(const Entity&) = delete;
@@ -30,27 +33,33 @@ public:
 
 	~Entity() {}
 
+	const EntityID& GetID() const { return m_id; }
+	const Collection::Vector<ComponentID>& GetComponentIDs() const { return m_components; }
+	const Util::StringHash& GetInfoNameHash() const { return m_infoNameHash; }
+
 	template <typename ComponentType>
 	ComponentID FindComponentID() const;
 
 	ComponentID FindComponentID(const Util::StringHash& typeHash) const;
 
-public:
+private:
+	friend class EntityManager;
+
 	// A unique ID for this entity.
 	EntityID m_id;
 	// The components this entity is composed of.
 	Collection::Vector<ComponentID> m_components;
-	// Explicit padding.
-	uint8_t padding[8];
+	// The hash of the EntityInfo this entity was created from.
+	Util::StringHash m_infoNameHash;
 };
 
 template <typename ComponentType>
-ComponentID Entity::FindComponentID() const
+inline ComponentID Entity::FindComponentID() const
 {
 	return FindComponentID(ComponentType::Info::sk_typeHash);
 }
 
-ComponentID Entity::FindComponentID(const Util::StringHash& typeHash) const
+inline ComponentID Entity::FindComponentID(const Util::StringHash& typeHash) const
 {
 	// TODO This is currently a linear search, which callers will typically follow up with a binary search
 	//      to actually get the component. It's worth remembering that this may be a performance concern.

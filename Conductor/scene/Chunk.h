@@ -3,6 +3,7 @@
 #include <ecs/EntityID.h>
 #include <file/Path.h>
 #include <json/JSONTypes.h>
+#include <math/Vector3.h>
 #include <scene/ChunkID.h>
 #include <util/StringHash.h>
 
@@ -23,8 +24,13 @@ namespace Scene
 class Chunk final
 {
 public:
+	// The dimensions of a Chunk must always be a power of two.
+	static constexpr float k_sideLengthMeters = 64.0f;
+	static constexpr uint32_t k_lgSideLength = 6;
+
 	// TODO Long term, I don't think text serialization will be fast enough for chunk save & load.
-	static JSON::JSONObject SaveInPlayChunk(const ChunkID chunkID, const ECS::EntityManager& entityManager);
+	static JSON::JSONObject SaveInPlayChunk(const ChunkID chunkID, const ECS::EntityManager& entityManager,
+		const Collection::Vector<const ECS::Entity*>& entitiesInChunk);
 	static Chunk LoadChunkForPlay(const File::Path& chunkFilePath);
 
 	Chunk();

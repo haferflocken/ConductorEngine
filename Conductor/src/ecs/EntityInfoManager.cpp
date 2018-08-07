@@ -15,7 +15,8 @@ using namespace ECS;
 const Util::StringHash k_componentsHash = Util::CalcHash("components");
 
 Mem::UniquePtr<EntityInfo> MakeEntityInfo(const ComponentInfoFactory& componentInfoFactory,
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
+	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject,
+	const Util::StringHash nameHash)
 {
 	const JSON::JSONArray* const componentsArray = jsonObject.FindArray(k_componentsHash);
 	if (componentsArray == nullptr)
@@ -25,6 +26,7 @@ Mem::UniquePtr<EntityInfo> MakeEntityInfo(const ComponentInfoFactory& componentI
 	}
 
 	auto entityInfo = Mem::MakeUnique<EntityInfo>();
+	entityInfo->m_nameHash = nameHash;
 
 	for (const auto& value : *componentsArray)
 	{
@@ -66,12 +68,14 @@ void ECS::EntityInfoManager::LoadEntityInfosInDirectory(const File::Path& direct
 		{
 			const JSON::JSONObject& jsonObject = *static_cast<const JSON::JSONObject*>(jsonValue.Get());
 
+			const File::Path& fileName = file.filename();
+			const Util::StringHash fileNameHash = Util::CalcHash(fileName.string());
+
 			Mem::UniquePtr<EntityInfo> entityInfo = Internal_EntityInfoManager::MakeEntityInfo(
-				m_componentInfoFactory, m_behaviourTreeManager, jsonObject);
+				m_componentInfoFactory, m_behaviourTreeManager, jsonObject, fileNameHash);
 			if (entityInfo != nullptr)
 			{
-				const File::Path& fileName = file.filename();
-				m_entityInfos[Util::CalcHash(fileName.string())] = std::move(*entityInfo);
+				m_entityInfos[fileNameHash] = std::move(*entityInfo);
 			}
 			else
 			{

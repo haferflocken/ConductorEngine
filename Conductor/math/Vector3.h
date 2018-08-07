@@ -12,7 +12,7 @@ public:
 	Vector3();
 
 	// Element-specifying constructor.
-	Vector3(float _x, float _y, float _z);
+	constexpr Vector3(float _x, float _y, float _z);
 
 	Vector3(const Vector3&) = default;
 	Vector3& operator=(const Vector3&) = default;
@@ -50,7 +50,7 @@ inline Vector3::Vector3()
 	, z(FLT_MAX)
 {}
 
-inline Vector3::Vector3(float _x, float _y, float _z)
+inline constexpr Vector3::Vector3(float _x, float _y, float _z)
 	: x(_x)
 	, y(_y)
 	, z(_z)

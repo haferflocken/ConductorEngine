@@ -8,24 +8,103 @@
 
 namespace Internal_Chunk
 {
+const Util::StringHash k_entitiesHash = Util::CalcHash("entities");
+const Util::StringHash k_idHash = Util::CalcHash("id");
+const Util::StringHash k_infoHash = Util::CalcHash("info");
+const Util::StringHash k_componentsHash = Util::CalcHash("components");
+
 const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 }
 
 namespace Scene
 {
-JSON::JSONObject Chunk::SaveInPlayChunk(const ChunkID chunkID, const ECS::EntityManager& entityManager)
+JSON::JSONObject Chunk::SaveInPlayChunk(const ChunkID chunkID, const ECS::EntityManager& entityManager,
+	const Collection::Vector<const ECS::Entity*>& entitiesInChunk)
 {
-	// TODO save the entities in the chunk
-	return JSON::JSONObject();
+	// Save the entities in the chunk.
+	auto serializedEntities = Mem::MakeUnique<JSON::JSONArray>();
+
+	for (const auto& entity : entitiesInChunk)
+	{
+		auto serializedEntity = Mem::MakeUnique<JSON::JSONObject>();
+		{
+			auto serializedID = Mem::MakeUnique<JSON::JSONNumber>();
+			serializedID->m_number = entity->GetID().GetUniqueID();
+			serializedEntity->Emplace("id", std::move(serializedID));
+		}
+		{
+			auto serializedInfoName = Mem::MakeUnique<JSON::JSONString>();
+			serializedInfoName->m_hash = entity->GetInfoNameHash();
+			serializedInfoName->m_string = Util::ReverseHash(entity->GetInfoNameHash());
+			serializedEntity->Emplace("info", std::move(serializedInfoName));
+		}
+		{
+			auto serializedComponents = Mem::MakeUnique<JSON::JSONArray>();
+
+			for (const auto& componentID : entity->GetComponentIDs())
+			{
+				const ECS::Component& component = *entityManager.FindComponent(componentID);
+				JSON::JSONObject serializedComponent = component.Save();
+				serializedComponents->Add(Mem::MakeUnique<JSON::JSONObject>(std::move(serializedComponent)));
+			}
+
+			serializedEntity->Emplace("components", std::move(serializedComponents));
+		}
+
+		serializedEntities->Add(std::move(serializedEntity));
+	}
+
+	JSON::JSONObject serializedChunk;
+	serializedChunk.Emplace("entities", std::move(serializedEntities));
+	return serializedChunk;
 }
 
 Chunk Chunk::LoadChunkForPlay(const File::Path& chunkFilePath)
 {
+	using namespace Internal_Chunk;
+	Chunk outChunk;
+
 	Mem::UniquePtr<JSON::JSONObject> serializedChunk = File::ReadJSONFile(chunkFilePath);
 
-	// TODO load the entities in the chunk
+	// Load the entities in the chunk.
+	JSON::JSONArray* const serializedEntities = serializedChunk->FindArray(k_entitiesHash);
+	if (serializedEntities == nullptr)
+	{
+		return outChunk;
+	}
 
-	return Chunk();
+	for (auto& rawSerializedEntity : *serializedEntities)
+	{
+		if (rawSerializedEntity->GetType() != JSON::ValueType::Object)
+		{
+			continue;
+		}
+		auto& serializedEntity = *static_cast<JSON::JSONObject*>(rawSerializedEntity.Get());
+
+		const auto serializedID = serializedEntity.FindNumber(k_idHash);
+		const auto serializedInfoName = serializedEntity.FindString(k_infoHash);
+		auto serializedComponents = serializedEntity.FindArray(k_componentsHash);
+		if (serializedID == nullptr || serializedInfoName == nullptr || serializedComponents == nullptr)
+		{
+			continue;
+		}
+
+		SerializedEntity& entityDatum = outChunk.m_entityData.Emplace();
+		entityDatum.m_entityID = ECS::EntityID(static_cast<uint32_t>(serializedID->m_number));
+		entityDatum.m_entityInfoNameHash = serializedInfoName->m_hash;
+
+		for (auto& rawSerializedComponent : *serializedComponents)
+		{
+			if (rawSerializedComponent->GetType() != JSON::ValueType::Object)
+			{
+				continue;
+			}
+			JSON::JSONObject& serializedComponent = *static_cast<JSON::JSONObject*>(rawSerializedComponent.Get());
+			entityDatum.m_serializedComponents.Add(std::move(serializedComponent));
+		}
+	}
+
+	return outChunk;
 }
 
 Chunk::Chunk()

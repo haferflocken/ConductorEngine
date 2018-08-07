@@ -18,7 +18,7 @@ namespace Scene
 {
 UnboundedScene::UnboundedScene(const ECS::EntityInfoManager& entityInfoManager)
 	: m_entityInfoManager(entityInfoManager)
-	, m_spatialHashMap(PositionHashFunctor(), 14)
+	, m_spatialHashMap(ChunkHashFunctor(), 12)
 	, m_chunksInPlay()
 	, m_transitionChunksToRefCounts()
 {}
@@ -88,7 +88,17 @@ void UnboundedScene::Update(ECS::EntityManager& entityManager,
 	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void()>>& deferredFunctions)
 {
-	// TODO use the system interface to hash entities
+	// Update the hash map with the location of all entities.
+	m_spatialHashMap.Clear();
+	for (const auto& ecsGroup : ecsGroups)
+	{
+		const ECS::Entity& entity = ecsGroup.Get<ECS::Entity>(entityManager);
+		const auto& sceneTransformComponent = ecsGroup.Get<const ECS::Components::SceneTransformComponent>(entityManager);
+		const Math::Vector3& position = sceneTransformComponent.m_matrix.GetTranslation();
+		m_spatialHashMap[position] = &entity;
+	}
+
+	// Apply all pending chunk changes.
 	FlushPendingChunks(entityManager);
 }
 
@@ -141,7 +151,32 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 
 void UnboundedScene::SaveAndUnloadChunk(ECS::EntityManager& entityManager, const ChunkID chunkID)
 {
-	const JSON::JSONObject serializedChunk = Chunk::SaveInPlayChunk(chunkID, entityManager);
+	// Determine the entities that are in the chunk.
+	const Math::Vector3 chunkOrigin = Math::Vector3(
+		static_cast<float>(chunkID.GetX()),
+		static_cast<float>(chunkID.GetY()),
+		static_cast<float>(chunkID.GetZ())) * Chunk::k_sideLengthMeters;
+
+	const Math::Vector3 chunkCenter = chunkOrigin + (Math::Vector3(0.5f, 0.5f, 0.5f) * Chunk::k_sideLengthMeters);
+	const Math::Vector3 chunkBound = chunkOrigin + (Math::Vector3(1.0f, 1.0f, 1.0f) * Chunk::k_sideLengthMeters);
+
+	const auto chunkBucketView = m_spatialHashMap.GetBucketView(chunkCenter);
+
+	Collection::Vector<const ECS::Entity*> entitiesInChunk;
+	for (size_t i = 0, iEnd = chunkBucketView.m_keys.Size(); i < iEnd; ++i)
+	{
+		const Math::Vector3& position = chunkBucketView.m_keys[i];
+		const ECS::Entity* const entity = chunkBucketView.m_values[i];
+
+		if (position.x >= chunkOrigin.x && position.y >= chunkOrigin.y && position.z >= chunkOrigin.z
+			&& position.x < chunkBound.x && position.y < chunkBound.y && position.z < chunkBound.z)
+		{
+			entitiesInChunk.Add(entity);
+		}
+	}
+
+	// Save the chunk to its file.
+	const JSON::JSONObject serializedChunk = Chunk::SaveInPlayChunk(chunkID, entityManager, entitiesInChunk);
 
 	std::ofstream fileOutput;
 	fileOutput.open(m_filePath / Internal_UnboundedScene::MakeChunkIDString(chunkID));
@@ -152,10 +187,15 @@ void UnboundedScene::SaveAndUnloadChunk(ECS::EntityManager& entityManager, const
 	fileOutput.flush();
 	fileOutput.close();
 	
-	// TODO unload the entities in the chunk
+	// Unload the entities in the chunk.
+	// TODO support partial unloading for RoPEs.
+	for (auto& entity : entitiesInChunk)
+	{
+		// TODO
+	}
 }
 
-UnboundedScene::PositionHashFunctor::PositionHashFunctor()
+UnboundedScene::ChunkHashFunctor::ChunkHashFunctor()
 	: m_a()
 	, m_b()
 	, m_c()
@@ -164,9 +204,9 @@ UnboundedScene::PositionHashFunctor::PositionHashFunctor()
 	Rehash();
 }
 
-uint64_t UnboundedScene::PositionHashFunctor::Hash(const Math::Vector3& position) const
+uint64_t UnboundedScene::ChunkHashFunctor::Hash(const Math::Vector3& position) const
 {
-	constexpr int64_t k_bucketSideLengthMetersShift = 4;
+	constexpr int64_t k_bucketSideLengthMetersShift = Chunk::k_lgSideLength;
 	const int64_t bucketX = static_cast<int64_t>(position.x) >> k_bucketSideLengthMetersShift;
 	const int64_t bucketY = static_cast<int64_t>(position.y) >> k_bucketSideLengthMetersShift;
 	const int64_t bucketZ = static_cast<int64_t>(position.z) >> k_bucketSideLengthMetersShift;
@@ -174,7 +214,7 @@ uint64_t UnboundedScene::PositionHashFunctor::Hash(const Math::Vector3& position
 	return static_cast<uint64_t>((bucketX * m_a) + (bucketY * m_b) + (bucketZ * m_c) + m_d);
 }
 
-void UnboundedScene::PositionHashFunctor::Rehash()
+void UnboundedScene::ChunkHashFunctor::Rehash()
 {
 	std::random_device device;
 	std::mt19937_64 generator{ device() };

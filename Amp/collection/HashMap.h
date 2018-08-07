@@ -1,5 +1,6 @@
 #pragma once
 
+#include <collection/ArrayView.h>
 #include <collection/Vector.h>
 
 namespace Collection
@@ -16,8 +17,16 @@ template <typename KeyType, typename ValueType, typename HashFn>
 class HashMap
 {
 public:
-	class iterator;
-	class const_iterator;
+	struct BucketView
+	{
+		Collection::ArrayView<const KeyType> m_keys;
+		Collection::ArrayView<ValueType> m_values;
+	};
+	struct ConstBucketView
+	{
+		Collection::ArrayView<const KeyType> m_keys;
+		Collection::ArrayView<const ValueType> m_values;
+	};
 
 	HashMap(HashFn&& hashFn, uint32_t numBucketsShift)
 		: m_hashFunction(std::move(hashFn))
@@ -32,16 +41,13 @@ public:
 	
 	ValueType* Find(const KeyType& key);
 	const ValueType* Find(const KeyType& key) const;
+
+	BucketView GetBucketView(const KeyType& key);
+	ConstBucketView GetBucketView(const KeyType& key) const;
+
+	void Clear();
 	
 	bool TryRemove(const KeyType& key, ValueType* outRemovedValue = nullptr);
-
-	/*iterator begin();
-	const_iterator begin() const;
-	const_iterator cbegin() const;
-
-	iterator end();
-	const_iterator end() const;
-	const_iterator cend() const;*/
 
 private:
 	HashFn m_hashFunction;
@@ -65,8 +71,16 @@ inline ValueType& HashMap<KeyType, ValueType, HashFn>::operator[](const KeyType&
 	const uint64_t hash = m_hashFunction.Hash(key);
 	const uint64_t bucketIndex = hash >> m_shift;
 	Bucket& bucket = m_buckets[bucketIndex];
+	for (size_t i = 0, iEnd = bucket.m_keys.Size(); i < iEnd; ++i)
+	{
+		if (bucket.m_keys[i] == key)
+		{
+			return bucket.m_values[i];
+		}
+	}
+
 	bucket.m_keys.Add(key);
-	bucket.m_values.Add(value);
+	return bucket.m_values.Emplace();
 }
 
 template <typename KeyType, typename ValueType, typename HashFn>
@@ -75,8 +89,16 @@ inline ValueType& HashMap<KeyType, ValueType, HashFn>::operator[](KeyType&& key)
 	const uint64_t hash = m_hashFunction.Hash(key);
 	const uint64_t bucketIndex = hash >> m_shift;
 	Bucket& bucket = m_buckets[bucketIndex];
+	for (size_t i = 0, iEnd = bucket.m_keys.Size(); i < iEnd; ++i)
+	{
+		if (bucket.m_keys[i] == key)
+		{
+			return bucket.m_values[i];
+		}
+	}
+
 	bucket.m_keys.Add(std::move(key));
-	bucket.m_values.Add(value);
+	return bucket.m_values.Emplace();
 }
 
 template <typename KeyType, typename ValueType, typename HashFn>
@@ -91,7 +113,7 @@ inline const ValueType* HashMap<KeyType, ValueType, HashFn>::Find(const KeyType&
 	const uint64_t hash = m_hashFunction.Hash(key);
 	const uint64_t bucketIndex = hash >> m_shift;
 	const Bucket& bucket = m_buckets[bucketIndex];
-	for (size_t i = 0, iEnd = bucket.m_keys.size(); i < iEnd; ++i)
+	for (size_t i = 0, iEnd = bucket.m_keys.Size(); i < iEnd; ++i)
 	{
 		if (bucket.m_keys[i] == key)
 		{
@@ -99,6 +121,32 @@ inline const ValueType* HashMap<KeyType, ValueType, HashFn>::Find(const KeyType&
 		}
 	}
 	return nullptr;
+}
+
+template <typename KeyType, typename ValueType, typename HashFn>
+inline typename HashMap<KeyType, ValueType, HashFn>::BucketView HashMap<KeyType, ValueType, HashFn>::GetBucketView(
+	const KeyType& key)
+{
+	const uint64_t hash = m_hashFunction.Hash(key);
+	const uint64_t bucketIndex = hash >> m_shift;
+	Bucket& bucket = m_buckets[bucketIndex];
+	return BucketView{ bucket.m_keys.GetConstView(), bucket.m_values.GetView() };
+}
+
+template <typename KeyType, typename ValueType, typename HashFn>
+inline typename HashMap<KeyType, ValueType, HashFn>::ConstBucketView HashMap<KeyType, ValueType, HashFn>::GetBucketView(
+	const KeyType& key) const
+{
+	const uint64_t hash = m_hashFunction.Hash(key);
+	const uint64_t bucketIndex = hash >> m_shift;
+	const Bucket& bucket = m_buckets[bucketIndex].m_values.GetView();
+	return ConstBucketView{ bucket.m_keys.GetConstView(), bucket.m_values.GetView() };
+}
+
+template <typename KeyType, typename ValueType, typename HashFn>
+inline void HashMap<KeyType, ValueType, HashFn>::Clear()
+{
+	m_buckets.Clear();
 }
 
 template <typename KeyType, typename ValueType, typename HashFn>

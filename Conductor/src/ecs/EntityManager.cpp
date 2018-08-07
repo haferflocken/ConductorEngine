@@ -29,7 +29,7 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 {
 	// Create the enttiy.
 	const EntityID entityID = m_nextEntityID;
-	Entity& entity = m_entities.Emplace(entityID);
+	Entity& entity = m_entities.Emplace(entityID, entityInfo.m_nameHash);
 
 	// Create the entity's components using our component factory.
 	for (const auto& componentInfo : entityInfo.m_componentInfos)
