@@ -29,7 +29,7 @@ void IslandGame::IslandGameData::LoadBehaviourTreesInDirectory(const File::Path&
 	m_behaviourTreeManager->LoadTreesInDirectory(directory);
 }
 
-void IslandGame::IslandGameData::LoadActorInfosInDirectory(const File::Path& directory)
+void IslandGame::IslandGameData::LoadEntityInfosInDirectory(const File::Path& directory)
 {
 	m_entityInfoManager->LoadEntityInfosInDirectory(directory);
 }

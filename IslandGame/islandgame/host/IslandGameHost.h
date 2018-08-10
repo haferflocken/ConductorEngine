@@ -11,7 +11,6 @@ namespace IslandGame::Host
 class IslandGameHost : public ::Host::IHost
 {
 	const IslandGameData& m_gameData;
-	Navigation::NavigationManager m_navigationManager;
 	ECS::EntityManager m_entityManager;
 
 public:

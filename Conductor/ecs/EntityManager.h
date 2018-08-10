@@ -153,7 +153,7 @@ void EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
 	{
 		static void Update(EntityManager& entityManager, RegisteredSystem& registeredSystem)
 		{
-			const auto& system = static_cast<const SystemType&>(*registeredSystem.m_system);
+			SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
 			const auto ecsGroupsView =
 				registeredSystem.m_ecsGroups.GetView<SystemType::ECSGroupType>();
 

@@ -55,8 +55,8 @@ private:
 
 	struct Bucket
 	{
-		Collection::Vector<KeyType> m_keys{};
-		Collection::Vector<ValueType> m_values{};
+		Collection::Vector<KeyType> m_keys;
+		Collection::Vector<ValueType> m_values;
 	};
 	Collection::Vector<Bucket> m_buckets;
 };
@@ -146,7 +146,11 @@ inline typename HashMap<KeyType, ValueType, HashFn>::ConstBucketView HashMap<Key
 template <typename KeyType, typename ValueType, typename HashFn>
 inline void HashMap<KeyType, ValueType, HashFn>::Clear()
 {
-	m_buckets.Clear();
+	for (auto& bucket : m_buckets)
+	{
+		bucket.m_keys.Clear();
+		bucket.m_values.Clear();
+	}
 }
 
 template <typename KeyType, typename ValueType, typename HashFn>

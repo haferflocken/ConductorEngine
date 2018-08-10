@@ -37,7 +37,7 @@ public:
 	const ECS::ComponentFactory& GetComponentFactory() const { return *m_componentFactory; }
 
 	void LoadBehaviourTreesInDirectory(const File::Path& directory);
-	void LoadActorInfosInDirectory(const File::Path& directory);
+	void LoadEntityInfosInDirectory(const File::Path& directory);
 
 private:
 	Mem::UniquePtr<Behave::BehaviourNodeFactory> m_behaviourNodeFactory;

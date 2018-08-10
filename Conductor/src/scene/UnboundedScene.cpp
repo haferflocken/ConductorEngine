@@ -132,6 +132,11 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 
 	// Synchronize with any chunks that are loading. There is a fixed amount of time that the scene
 	// will spend waiting for a chunk before it is deferred to the next frame.
+	if (m_chunkLoadingFutures.IsEmpty())
+	{
+		return;
+	}
+
 	constexpr size_t k_syncBudgetMilliseconds = 8;
 	constexpr size_t k_syncBudgetMicroseconds = k_syncBudgetMilliseconds * 1000;
 	

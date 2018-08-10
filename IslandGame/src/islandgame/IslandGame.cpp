@@ -37,7 +37,7 @@ constexpr char* k_vertexShaderPath = "shaders/vertex_shader.glsl";
 constexpr char* k_fragmentShaderPath = "shaders/fragment_shader.glsl";
 
 constexpr char* k_behaviourTreesPath = "behaviour_trees";
-constexpr char* k_actorInfosPath = "actor_infos";
+constexpr char* k_entityInfosPath = "entity_infos";
 
 constexpr char* k_applicationModeClientParameter = "-client";
 constexpr char* k_applicationModeHostParameter = "-host";
@@ -74,7 +74,7 @@ Conductor::GameDataFactory MakeGameDataFactory()
 	{
 		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
 		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
-		gameData->LoadActorInfosInDirectory(dataDirectory / k_actorInfosPath);
+		gameData->LoadEntityInfosInDirectory(dataDirectory / k_entityInfosPath);
 		return gameData;
 	};
 }
