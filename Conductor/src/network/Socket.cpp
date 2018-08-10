@@ -206,7 +206,7 @@ Network::Socket Network::CreateConnectedSocket(const char* hostName, const char*
 		return Socket();
 	}
 
-	// TODO try to connect to all the results rather than just the first
+	// TODO(network) try to connect to all the results rather than just the first
 
 	// Free the addrinfo after it is no longer needed.
 	freeaddrinfo(result);

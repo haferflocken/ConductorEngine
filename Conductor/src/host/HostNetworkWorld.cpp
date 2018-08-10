@@ -44,8 +44,8 @@ void ProcessConsoleMessage(Client::ConnectedHost& localHost, const std::string& 
 	{
 		localHost.Disconnect();
 	}
-	// TODO kick clients
-	// TODO print client list
+	// TODO(network) kick clients
+	// TODO(network) print client list
 }
 }
 
@@ -91,11 +91,11 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 			const Client::ClientID clientID = entry.first;
 			Mem::UniquePtr<NetworkConnectedClient>& networkConnectedClient = entry.second;
 
-			// TODO Receive any pending data from the client.
+			// TODO(network) Receive any pending data from the client.
 
-			// TODO Process client to host messages, including disconnection messages.
+			// TODO(network) Process client to host messages, including disconnection messages.
 			
-			// TODO Check if the client disconnected without notice.
+			// TODO(network) Check if the client disconnected without notice.
 
 			// Transmit host messages to each client.
 			Host::MessageToClient messageToClient;
@@ -106,7 +106,7 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 					disconnectedClientIDs.Add(clientID);
 				}
 
-				// TODO transmit the message over the network
+				// TODO(network) transmit the message over the network
 			}
 		}
 

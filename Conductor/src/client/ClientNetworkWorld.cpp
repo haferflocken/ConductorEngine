@@ -5,7 +5,7 @@ Client::ClientNetworkWorld::ClientNetworkWorld(const char* hostName, const char*
 {
 	if (m_socket.IsValid())
 	{
-		// TODO Get the client ID from the host.
+		// TODO(network) Get the client ID from the host.
 
 		// Start the network thread after getting the client ID because
 		// the network thread runs until the client ID is invalid.
@@ -28,7 +28,7 @@ void Client::ClientNetworkWorld::NetworkThreadFunction()
 	// Run the thread so long as the client ID is valid.
 	while (m_clientID.IsValid())
 	{
-		// TODO Receive any pending data from the host.
+		// TODO(network) Receive any pending data from the host.
 
 		// Transmit client messages to the host.
 		Client::MessageToHost messageToHost;
@@ -39,7 +39,7 @@ void Client::ClientNetworkWorld::NetworkThreadFunction()
 				m_clientID = ClientID();
 			}
 
-			// TODO transmit the message over the network
+			// TODO(network) transmit the message over the network
 		}
 
 		std::this_thread::yield();

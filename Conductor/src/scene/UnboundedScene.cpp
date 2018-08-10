@@ -126,7 +126,7 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 
 	// Unload all entities from chunks that were saved. This will invalidate pointers in m_spatialHashMap,
 	// so it should not be used at any further point of FlushPendingChunks.
-	// TODO partial unloading support for RoPEs
+	// TODO(scene) partial unloading support for RoPEs
 	entityManager.DeleteEntities(m_entitiesPendingUnload.GetConstView());
 	m_entitiesPendingUnload.Clear();
 
