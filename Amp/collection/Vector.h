@@ -95,15 +95,15 @@ private:
 
 template <typename T>
 inline Vector<T>::Vector(const uint32_t initialCapacity)
-	: m_data(static_cast<T*>(malloc(initialCapacity * Unit::AlignedSizeOf<T>())))
-	, m_capacity(initialCapacity)
+	: m_data(static_cast<T*>(malloc(std::max<uint32_t>(initialCapacity, 1) * Unit::AlignedSizeOf<T>())))
+	, m_capacity(std::max<uint32_t>(initialCapacity, 1))
 	, m_count(0)
 {}
 
 template <typename T>
 inline Vector<T>::Vector(std::initializer_list<T> initialElements)
-	: m_data(static_cast<T*>(malloc(initialElements.size()* Unit::AlignedSizeOf<T>())))
-	, m_capacity(static_cast<uint32_t>(initialElements.size()))
+	: m_data(static_cast<T*>(malloc(std::max<size_t>(initialElements.size(), 1) * Unit::AlignedSizeOf<T>())))
+	, m_capacity(static_cast<uint32_t>(std::max<size_t>(initialElements.size(), 1)))
 	, m_count(0)
 {
 	for (const auto& element : initialElements)
@@ -114,8 +114,8 @@ inline Vector<T>::Vector(std::initializer_list<T> initialElements)
 
 template <typename T>
 inline Vector<T>::Vector(const ArrayView<const T>& initialElements)
-	: m_data(static_cast<T*>(malloc(initialElements.Size()* Unit::AlignedSizeOf<T>())))
-	, m_capacity(static_cast<uint32_t>(initialElements.Size()))
+	: m_data(static_cast<T*>(malloc(std::max<uint32_t>(initialElements.Size(), 1) * Unit::AlignedSizeOf<T>())))
+	, m_capacity(std::max<uint32_t>(initialElements.Size(), 1))
 	, m_count(0)
 {
 	for (const auto& element : initialElements)
@@ -138,8 +138,8 @@ inline void Vector<T>::operator=(const Vector<T>& rhs)
 		free(m_data);
 	}
 
-	m_data = static_cast<T*>(malloc(rhs.m_count * Unit::AlignedSizeOf<T>()));
-	m_capacity = rhs.m_count;
+	m_data = static_cast<T*>(malloc(rhs.m_capacity * Unit::AlignedSizeOf<T>()));
+	m_capacity = rhs.m_capacity;
 	m_count = rhs.m_count;
 
 	if (Traits::IsMemCopyAFullCopy<T>::value)
