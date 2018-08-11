@@ -8,7 +8,7 @@
 namespace Collection
 {
 template <typename... Types>
-class Variant final
+class alignas(Types...) Variant final
 {
 public:
 	Variant()
