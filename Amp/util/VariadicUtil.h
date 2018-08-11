@@ -1,5 +1,9 @@
 #pragma once
 
+#include <unit/CountUnits.h>
+
+#include <algorithm>
+#include <tuple>
 #include <type_traits>
 
 namespace Collection { template <typename T> class Vector; }
@@ -12,13 +16,25 @@ namespace Util
 template <typename... Types>
 inline constexpr size_t MaxSizeOf()
 {
-	size_t max = 0;
-	const auto sizes = { sizeof(Types)... };
-	for (const auto& size : sizes)
-	{
-		max = (size > max) ? size : max;
-	}
-	return max;
+	return std::max<size_t>({ sizeof(Types)... });
+}
+
+/**
+ * MaxAlignedSizeOf
+ */
+template <typename... Types>
+inline constexpr size_t MaxAlignedSizeOf()
+{
+	return std::max<size_t>({ Unit::AlignedSizeOf<Types>()... });
+}
+
+/**
+ * MaxAlignOf
+ */
+template <typename... Types>
+inline constexpr size_t MaxAlignOf()
+{
+	return std::max<size_t>({ alignof(Types)... });
 }
 
 /**
@@ -143,7 +159,7 @@ TupleType MapArrayToTuple(ArrayValueType* input, std::index_sequence<Indices...>
 #define ELEMENT_CAST static_cast
 #endif
 	// Cast each element of the array to its corresponding type in the tuple.
-	return std::make_tuple(ELEMENT_CAST<std::tuple_element<Indices, TupleType>::type>(input[Indices])...);
+	return std::make_tuple(ELEMENT_CAST<typename std::tuple_element<Indices, TupleType>::type>(input[Indices])...);
 #undef ELEMENT_CAST
 }
 
