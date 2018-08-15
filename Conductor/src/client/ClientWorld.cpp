@@ -85,14 +85,15 @@ void Client::ClientWorld::ClientThreadFunction()
 
 void Client::ClientWorld::ProcessMessageFromHost(Host::MessageToClient& message)
 {
-	switch (message.m_type)
-	{
-	case Host::MessageToClientType::NotifyOfHostDisconnected:
-	{
-		NotifyOfHostDisconnected();
-		break;
-	}
-	}
+	message.Match(
+		[this](Host::NotifyOfHostDisconnected_MessageToClient& hostDisconnectedPayload)
+		{
+			NotifyOfHostDisconnected();
+		},
+		[this](Host::ECSUpdate_MessageToClient& ecsUpdatePayload)
+		{
+			// TODO(network) apply a received ECS update
+		});
 }
 
 void Client::ClientWorld::ProcessInputMessage(Client::InputMessage& message)

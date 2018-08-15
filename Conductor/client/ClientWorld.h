@@ -1,5 +1,6 @@
 #pragma once
 
+#include <host/MessageToClient.h>
 #include <mem/UniquePtr.h>
 
 #include <functional>
@@ -7,7 +8,6 @@
 
 namespace Collection { template <typename T> class LocklessQueue; }
 namespace Conductor { class IGameData; }
-namespace Host { struct MessageToClient; }
 
 namespace Client
 {

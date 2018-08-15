@@ -2,6 +2,7 @@
 
 #include <client/ClientID.h>
 #include <collection/Vector.h>
+#include <host/MessageToClient.h>
 #include <mem/UniquePtr.h>
 
 #include <thread>
@@ -14,7 +15,6 @@ namespace Host
 {
 class ConnectedClient;
 class IHost;
-struct MessageToClient;
 
 /**
  * HostWorld runs a headless game simulation which clients can connect to and interact with.

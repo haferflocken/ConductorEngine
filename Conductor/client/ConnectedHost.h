@@ -1,9 +1,9 @@
 #pragma once
 
 #include <client/ClientID.h>
+#include <host/MessageToClient.h>
 
 namespace Collection { template <typename T> class LocklessQueue; }
-namespace Host { struct MessageToClient; }
 
 namespace Client
 {

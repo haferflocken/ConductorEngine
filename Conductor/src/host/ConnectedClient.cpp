@@ -6,8 +6,7 @@
 
 void Host::ConnectedClient::NotifyOfHostDisconnected()
 {
-	MessageToClient message;
-	message.m_type = MessageToClientType::NotifyOfHostDisconnected;
-
+	MessageToClient message = MessageToClient::Make<NotifyOfHostDisconnected_MessageToClient>();
+	
 	m_hostToClientMessages.TryPush(std::move(message));
 }

@@ -101,7 +101,7 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 			Host::MessageToClient messageToClient;
 			while (networkConnectedClient->m_hostToClientMessageQueue.TryPop(messageToClient))
 			{
-				if (messageToClient.m_type == Host::MessageToClientType::NotifyOfHostDisconnected)
+				if (messageToClient.Is<Host::NotifyOfHostDisconnected_MessageToClient>())
 				{
 					disconnectedClientIDs.Add(clientID);
 				}

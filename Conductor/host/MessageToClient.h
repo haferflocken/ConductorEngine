@@ -1,17 +1,19 @@
 #pragma once
 
+#include <collection/Variant.h>
+#include <collection/Vector.h>
 #include <cstdint>
 
 namespace Host
 {
-enum class MessageToClientType : uint8_t
+struct NotifyOfHostDisconnected_MessageToClient {};
+
+struct ECSUpdate_MessageToClient
 {
-	NotifyOfHostDisconnected = 0,
-	Count
+	Collection::Vector<uint8_t> m_bytes;
 };
 
-struct MessageToClient
-{
-	MessageToClientType m_type{ MessageToClientType::Count };
-};
+using MessageToClient = Collection::Variant<
+	NotifyOfHostDisconnected_MessageToClient,
+	ECSUpdate_MessageToClient>;
 }
