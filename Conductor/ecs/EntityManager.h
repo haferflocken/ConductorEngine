@@ -66,7 +66,15 @@ public:
 	template <typename... SystemTypes>
 	void RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems);
 
+	// Run the EntityManager one step.
 	void Update();
+
+	// Calculate a delta update transmission for the entitites in the manager.
+	// This is a delta since the last delta package was requested.
+	Collection::Vector<uint8_t> SerializeDeltaTransmission();
+
+	// Apply a delta update transmission to the entities in the manager.
+	void ApplyDeltaTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 
 private:
 	struct RegisteredSystem;
@@ -99,7 +107,7 @@ private:
 	void AddECSIndicesToSystems(const Collection::ArrayView<Entity>& entitiesToAdd);
 
 	void UpdateSystems();
-
+	
 	// The factory this manager uses to create components.
 	const ComponentFactory& m_componentFactory;
 
@@ -108,6 +116,10 @@ private:
 
 	// The components this manager owns on behalf of its entities, grouped by type.
 	Collection::VectorMap<Util::StringHash, ComponentVector> m_components{};
+
+	// The buffered components this manager stores in order to calculate delta updates.
+	// Only components that are network-enabled have a buffered copy stored.
+	Collection::VectorMap<Util::StringHash, ComponentVector> m_bufferedComponents;
 
 	// The next entity ID that will be assigned.
 	EntityID m_nextEntityID{ 0 };

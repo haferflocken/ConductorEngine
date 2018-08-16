@@ -21,10 +21,28 @@ public:
 	using DestructorFunction = void(*)(Component&);
 	using SwapFunction = void(*)(Component&, Component&);
 
+	struct TransmissionFunctions
+	{
+		using SerializeDeltaTransmissionFunction = void(*)(const Component&, const Component&, Collection::Vector<uint8_t>&);
+		using SerializeFullTransmissionFunction = void(*)(const Component&, Collection::Vector<uint8_t>&);
+
+		using ApplyDeltaTransmissionFunction = void(*)(Component&, const uint8_t*&, const uint8_t*);
+		using ApplyFullTransmissionFunction = void(*)(Component&, const uint8_t*&, const uint8_t*);
+
+		SerializeDeltaTransmissionFunction m_serializeDeltaTransmissionFunction;
+		SerializeFullTransmissionFunction m_serializeFullTransmissionFunction;
+
+		ApplyDeltaTransmissionFunction m_applyDeltaTransmissionFunction;
+		ApplyFullTransmissionFunction m_applyFullTransmissionFunction;
+	};
+
 	ComponentFactory();
 
 	template <typename ComponentType>
 	void RegisterComponentType();
+
+	template <typename ComponentType>
+	void RegisterNetworkedComponentType();
 
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const Util::StringHash componentTypeHash) const;
 
@@ -35,26 +53,23 @@ public:
 
 	void SwapComponents(Component& a, Component& b) const;
 
+	TransmissionFunctions FindTransmissionFunctions(const Util::StringHash componentTypeHash) const;
+
 private:
 	void RegisterComponentType(const char* componentTypeName, const Util::StringHash componentTypeHash,
 		const Unit::ByteCount64 sizeOfComponentInBytes, FactoryFunction factoryFn, DestructorFunction destructorFn,
 		SwapFunction swapFn);
 
-	// Maps component type hashes to the size in bytes of those components.
+	// Maps of component type hashes to functions for those component types.
 	Collection::VectorMap<Util::StringHash, Unit::ByteCount64> m_componentSizesInBytes;
-
-	// Maps component type hashes to factory functions for those component types.
 	Collection::VectorMap<Util::StringHash, FactoryFunction> m_factoryFunctions;
-
-	// Maps component type hashes to destructor functions for those component types.
 	Collection::VectorMap<Util::StringHash, DestructorFunction> m_destructorFunctions;
-
-	// Maps component type hashes to swap functions for those component types.
 	Collection::VectorMap<Util::StringHash, SwapFunction> m_swapFunctions;
+	Collection::VectorMap<Util::StringHash, TransmissionFunctions> m_transmissionFunctions;
 };
 
 template <typename ComponentType>
-void ComponentFactory::RegisterComponentType()
+inline void ComponentFactory::RegisterComponentType()
 {
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
@@ -86,5 +101,49 @@ void ComponentFactory::RegisterComponentType()
 	RegisterComponentType(ComponentType::Info::sk_typeName, ComponentType::Info::sk_typeHash,
 		Unit::ByteCount64(sizeof(ComponentType)), &ComponentTypeFunctions::TryCreateFromInfo,
 		&ComponentTypeFunctions::Destroy, &ComponentTypeFunctions::Swap);
+}
+
+template <typename ComponentType>
+inline void ComponentFactory::RegisterNetworkedComponentType()
+{
+	RegisterComponentType<ComponentType>();
+
+	// Utilize the type to handle as much boilerplate casting and definition as possible.
+	struct ComponentTypeFunctions
+	{
+		static void SerializeDeltaTransmission(const Component& rawLHS, const Component& rawRHS,
+			Collection::Vector<uint8_t>& outBytes)
+		{
+			const ComponentType& lhs = static_cast<const ComponentType&>(rawLHS);
+			const ComponentType& rhs = static_cast<const ComponentType&>(rawRHS);
+
+			lhs.SerializeDeltaTransmission(rhs, outBytes);
+		}
+
+		static void SerializeFullTransmission(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
+		{
+			const ComponentType& component = static_cast<const ComponentType&>(rawComponent);
+
+			lhs.SerializeTransmission(rhs);
+		}
+
+		static void ApplyDeltaTransmission(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
+		{
+			ComponentType& component = static_cast<ComponentType&>(rawComponent);
+			component.ApplyDeltaTransmission(bytes, bytesEnd);
+		}
+
+		static void ApplyFullTransmission(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
+		{
+			ComponentType& component = static_cast<ComponentType&>(rawComponent);
+			component.ApplyFullTransmission(bytes, bytesEnd);
+		}
+	};
+
+	const TransmissionFunctions transmissionFunctions{
+		&ComponentTypeFunctions::SerializeDeltaTransmission, &ComponentTypeFunctions::SerializeDeltaTransmission,
+		&ComponentTypeFunctions::ApplyDeltaTransmission, &ComponentTypeFunctions::ApplyFullTransmission };
+
+	m_transmissionFunctions[ComponentType::Info::sk_typeHash] = transmissionFunctions;
 }
 }

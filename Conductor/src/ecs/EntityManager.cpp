@@ -9,6 +9,7 @@
 #include <ecs/System.h>
 
 #include <collection/ArrayView.h>
+#include <mem/Serialize.h>
 
 #include <algorithm>
 #include <execution>
@@ -16,6 +17,16 @@
 
 namespace ECS
 {
+namespace Internal_EntityManager
+{
+enum class ComponentTransmissionType : uint8_t
+{
+	Added = 0,
+	Removed,
+	DeltaUpdate
+};
+}
+
 EntityManager::EntityManager(const ComponentFactory& componentFactory)
 	: m_componentFactory(componentFactory)
 {
@@ -191,6 +202,150 @@ Entity& EntityManager::GetEntityByIndex(const size_t index)
 Component& EntityManager::GetComponentByIndex(const Util::StringHash typeHash, const size_t index)
 {
 	return m_components.Find(typeHash)->second[index];
+}
+
+Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
+{
+	using namespace Internal_EntityManager;
+
+	Collection::Vector<uint8_t> transmissionBytes;
+
+	for (auto& entry : m_bufferedComponents)
+	{
+		// Serialize the component type string to start the delta update for this component type.
+		Mem::Serialize(Util::ReverseHash(entry.first), transmissionBytes);
+
+		const auto serializer = m_componentFactory.FindTransmissionFunctions(entry.first);
+
+		ComponentVector& bufferedComponents = entry.second;
+		const ComponentVector& currentComponents = m_components.Find(entry.first)->second;
+
+		auto bufferedIter = bufferedComponents.begin();
+		auto currentIter = currentComponents.begin();
+		const auto bufferedEnd = bufferedComponents.end();
+		const auto currentEnd = currentComponents.end();
+
+		// Each vector of components is sorted by ID. Because of this, they can be iterated over at the same time.
+		// Components are each serialized first with their ID and then with a ComponentTransmissionType.
+		while (true)
+		{
+			while (bufferedIter->m_id < currentIter->m_id && (bufferedIter + 1) < bufferedEnd)
+			{
+				// If the buffered component ID is less than the current component ID,
+				// the buffered component was deleted.
+				Mem::Serialize(bufferedIter->m_id.GetUniqueID(), transmissionBytes);
+				Mem::Serialize(static_cast<uint8_t>(ComponentTransmissionType::Removed), transmissionBytes);
+
+				++bufferedIter;
+			}
+
+			if (bufferedIter->m_id == currentIter->m_id)
+			{
+				// If the IDs are equal, a delta update can be made.
+				Mem::Serialize(bufferedIter->m_id.GetUniqueID(), transmissionBytes);
+				Mem::Serialize(static_cast<uint8_t>(ComponentTransmissionType::DeltaUpdate), transmissionBytes);
+				serializer.m_serializeDeltaTransmissionFunction(*bufferedIter, *currentIter, transmissionBytes);
+
+				++bufferedIter;
+				++currentIter;
+			}
+			else
+			{
+				// If the buffered component ID is greater than the current component ID,
+				// the current component was created and it must be fully serialized.
+				Mem::Serialize(currentIter->m_id.GetUniqueID(), transmissionBytes);
+				Mem::Serialize(static_cast<uint8_t>(ComponentTransmissionType::Added), transmissionBytes);
+				serializer.m_serializeFullTransmissionFunction(*currentIter, transmissionBytes);
+				
+				++currentIter;
+			}
+		}
+		
+		// Serialize the invalid component ID to indicate the end of the component type.
+		Mem::Serialize(ComponentID::sk_invalidUniqueID, transmissionBytes);
+		
+		// Copy the current component data into the buffered component data.
+		bufferedComponents = currentComponents;
+	}
+
+	return transmissionBytes;
+}
+
+void EntityManager::ApplyDeltaTransmission(const Collection::Vector<uint8_t>& transmissionBytes)
+{
+	using namespace Internal_EntityManager;
+
+	// The transmission is a series of updates partitioned by component type.
+	// Components are assumed to be sorted by ID within each type.
+	const uint8_t* iter = transmissionBytes.begin();
+	const uint8_t* const iterEnd = transmissionBytes.end();
+
+	while (iter < iterEnd)
+	{
+		char componentTypeBuffer[64];
+		if (!Mem::DeserializeString(iter, iterEnd, componentTypeBuffer))
+		{
+			break;
+		}
+
+		const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeBuffer);
+		const auto componenVectorIter = m_components.Find(componentTypeHash);
+		if (componenVectorIter == m_components.end())
+		{
+			break;
+		}
+		ComponentVector& components = componenVectorIter->second;
+
+		const auto deserializer = m_componentFactory.FindTransmissionFunctions(componentTypeHash);
+
+		auto componentIter = components.begin();
+		const auto componentsEnd = components.end();
+
+		while (true)
+		{
+			const auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
+			if ((!maybeComponentID.second) || maybeComponentID.first == ComponentID::sk_invalidUniqueID)
+			{
+				break;
+			}
+			const uint64_t componentID = maybeComponentID.first;
+			
+			const auto maybeTransmissionType = Mem::DeserializeUi8(iter, iterEnd);
+			if ((!maybeTransmissionType.second))
+			{
+				break;
+			}
+			const ComponentTransmissionType transmissionType{ maybeTransmissionType.first };
+
+			while (componentIter->m_id.GetUniqueID() < componentID && (componentIter + 1) < componentsEnd)
+			{
+				++componentIter;
+			}
+			if (componentIter->m_id.GetUniqueID() != componentID)
+			{
+				continue;
+			}
+			
+			switch (transmissionType)
+			{
+			case ComponentTransmissionType::Added:
+			{
+				// TODO(network)
+				break;
+			}
+			case ComponentTransmissionType::Removed:
+			{
+				// TODO(network)
+				break;
+			}
+			case ComponentTransmissionType::DeltaUpdate:
+			{
+				deserializer.m_applyDeltaTransmissionFunction(*componentIter, iter, iterEnd);
+				break;
+			}
+			}
+		}
+	}
 }
 
 void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity)

@@ -148,6 +148,7 @@
     <ClInclude Include="file\Path.h" />
     <ClInclude Include="json\JSONPrintVisitor.h" />
     <ClInclude Include="json\JSONTypes.h" />
+    <ClInclude Include="mem\Serialize.h" />
     <ClInclude Include="mem\UniquePtr.h" />
     <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
     <ClInclude Include="unit\CountUnits.h" />

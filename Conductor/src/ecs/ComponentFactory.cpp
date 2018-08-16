@@ -29,13 +29,14 @@ void ECS::ComponentFactory::RegisterComponentType(const char* const componentTyp
 	Dev::FatalAssert(m_componentSizesInBytes.Find(componentTypeHash) == m_componentSizesInBytes.end()
 		&& m_factoryFunctions.Find(componentTypeHash) == m_factoryFunctions.end()
 		&& m_destructorFunctions.Find(componentTypeHash) == m_destructorFunctions.end()
-		&& m_swapFunctions.Find(componentTypeHash) == m_swapFunctions.end(),
+		&& m_swapFunctions.Find(componentTypeHash) == m_swapFunctions.end()
+		&& m_transmissionFunctions.Find(componentTypeHash) == m_transmissionFunctions.end(),
 		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
 	
 	m_componentSizesInBytes[componentTypeHash] = sizeOfComponentInBytes;
-	m_factoryFunctions[componentTypeHash] = std::move(factoryFn);
-	m_destructorFunctions[componentTypeHash] = std::move(destructorFn);
-	m_swapFunctions[componentTypeHash] = std::move(swapFn);
+	m_factoryFunctions[componentTypeHash] = factoryFn;
+	m_destructorFunctions[componentTypeHash] = destructorFn;
+	m_swapFunctions[componentTypeHash] = swapFn;
 }
 
 Unit::ByteCount64 ECS::ComponentFactory::GetSizeOfComponentInBytes(
@@ -82,4 +83,15 @@ void ECS::ComponentFactory::SwapComponents(Component& a, Component& b) const
 		Util::ReverseHash(a.m_id.GetType()));
 
 	swapItr->second(a, b);
+}
+
+ECS::ComponentFactory::TransmissionFunctions ECS::ComponentFactory::FindTransmissionFunctions(
+	const Util::StringHash componentTypeHash) const
+{
+	const auto& transmissionItr = m_transmissionFunctions.Find(componentTypeHash);
+	Dev::FatalAssert(transmissionItr != m_transmissionFunctions.end(),
+		"Failed to find transmission functions for component type \"%s\".",
+		Util::ReverseHash(componentTypeHash));
+
+	return transmissionItr->second;
 }
