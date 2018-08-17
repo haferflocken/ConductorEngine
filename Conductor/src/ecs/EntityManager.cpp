@@ -1,7 +1,7 @@
 #include <ecs/EntityManager.h>
 
 #include <ecs/Component.h>
-#include <ecs/ComponentFactory.h>
+#include <ecs/ComponentReflector.h>
 #include <ecs/ComponentVector.h>
 #include <ecs/ECSGroupVector.h>
 #include <ecs/Entity.h>
@@ -27,8 +27,8 @@ enum class ComponentTransmissionType : uint8_t
 };
 }
 
-EntityManager::EntityManager(const ComponentFactory& componentFactory)
-	: m_componentFactory(componentFactory)
+EntityManager::EntityManager(const ComponentReflector& componentReflector)
+	: m_componentReflector(componentReflector)
 {
 }
 
@@ -42,7 +42,7 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 	const EntityID entityID = m_nextEntityID;
 	Entity& entity = m_entities.Emplace(entityID, entityInfo.m_nameHash);
 
-	// Create the entity's components using our component factory.
+	// Create the entity's components using our component reflector.
 	for (const auto& componentInfo : entityInfo.m_componentInfos)
 	{
 		AddComponentToEntity(*componentInfo, entity);
@@ -215,7 +215,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		// Serialize the component type string to start the delta update for this component type.
 		Mem::Serialize(Util::ReverseHash(entry.first), transmissionBytes);
 
-		const auto serializer = m_componentFactory.FindTransmissionFunctions(entry.first);
+		const auto serializer = m_componentReflector.FindTransmissionFunctions(entry.first);
 
 		ComponentVector& bufferedComponents = entry.second;
 		const ComponentVector& currentComponents = m_components.Find(entry.first)->second;
@@ -296,7 +296,7 @@ void EntityManager::ApplyDeltaTransmission(const Collection::Vector<uint8_t>& tr
 		}
 		ComponentVector& components = componenVectorIter->second;
 
-		const auto deserializer = m_componentFactory.FindTransmissionFunctions(componentTypeHash);
+		const auto deserializer = m_componentReflector.FindTransmissionFunctions(componentTypeHash);
 
 		auto componentIter = components.begin();
 		const auto componentsEnd = components.end();
@@ -358,12 +358,12 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 	{
 		// This is a type that has not yet been encountered and therefore must be initialized.
 		componentVector = ComponentVector(componentTypeHash,
-			m_componentFactory.GetSizeOfComponentInBytes(componentTypeHash));
+			m_componentReflector.GetSizeOfComponentInBytes(componentTypeHash));
 	}
 	Dev::FatalAssert(componentVector.GetComponentType() == componentTypeHash,
 		"Mismatch between component vector type and the key it is stored at.");
 
-	if (!m_componentFactory.TryMakeComponent(componentInfo, componentID, componentVector))
+	if (!m_componentReflector.TryMakeComponent(componentInfo, componentID, componentVector))
 	{
 		Dev::LogWarning("Failed to create component of type [%s].", componentInfo.GetTypeName());
 		return;
@@ -379,7 +379,7 @@ void EntityManager::RemoveComponent(const ComponentID id)
 	Collection::Pair<const Util::StringHash, ComponentVector>* const componentsEntry =
 		m_components.Find(id.GetType());
 	ComponentVector& components = componentsEntry->second;
-	components.Remove(id, m_componentFactory);
+	components.Remove(id, m_componentReflector);
 
 	// Flag the ECS group vectors for recalculation.
 	m_ecsGroupVectorsNeedRecalculation = true;

@@ -142,7 +142,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="src\ecs\Entity.cpp" />
-    <ClCompile Include="src\ecs\ComponentFactory.cpp" />
+    <ClCompile Include="src\ecs\ComponentReflector.cpp" />
     <ClCompile Include="src\ecs\ECSGroupVector.cpp" />
     <ClCompile Include="src\ecs\ComponentInfoFactory.cpp" />
     <ClCompile Include="src\ecs\ComponentVector.cpp" />
@@ -187,7 +187,7 @@
     <ClInclude Include="generated\InfoAsset\Test.h" />
     <ClInclude Include="ecs\Entity.h" />
     <ClInclude Include="ecs\Component.h" />
-    <ClInclude Include="ecs\ComponentFactory.h" />
+    <ClInclude Include="ecs\ComponentReflector.h" />
     <ClInclude Include="ecs\ECSGroup.h" />
     <ClInclude Include="ecs\ECSGroupVector.h" />
     <ClInclude Include="ecs\ComponentID.h" />

@@ -13,7 +13,7 @@ namespace Internal_IslandGameHost
 
 IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 	: m_gameData(gameData)
-	, m_entityManager(gameData.GetComponentFactory())
+	, m_entityManager(gameData.GetComponentReflector())
 {
 	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
