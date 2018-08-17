@@ -4,8 +4,8 @@
 
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourTreeManager.h>
-#include <ecs/ComponentFactory.h>
 #include <ecs/ComponentInfoFactory.h>
+#include <ecs/ComponentReflector.h>
 #include <ecs/EntityInfoManager.h>
 
 IslandGame::IslandGameData::IslandGameData()
@@ -13,12 +13,12 @@ IslandGame::IslandGameData::IslandGameData()
 	, m_behaviourTreeManager(Mem::MakeUnique<Behave::BehaviourTreeManager>(*m_behaviourNodeFactory))
 	, m_componentInfoFactory(Mem::MakeUnique<ECS::ComponentInfoFactory>())
 	, m_entityInfoManager(Mem::MakeUnique<ECS::EntityInfoManager>(*m_componentInfoFactory, *m_behaviourTreeManager))
-	, m_componentFactory(Mem::MakeUnique<ECS::ComponentFactory>())
+	, m_componentReflector(Mem::MakeUnique<ECS::ComponentReflector>())
 {
 	using namespace IslandGame::Components;
 
 	m_componentInfoFactory->RegisterFactoryFunction<IslanderComponentInfo>();
-	m_componentFactory->RegisterComponentType<IslanderComponent>();
+	m_componentReflector->RegisterComponentType<IslanderComponent>();
 }
 
 IslandGame::IslandGameData::~IslandGameData()

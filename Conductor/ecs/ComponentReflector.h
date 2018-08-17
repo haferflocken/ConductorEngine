@@ -12,9 +12,12 @@ class ComponentInfo;
 class ComponentVector;
 
 /**
- * Creates components from component info. Component types can be registered using RegisterComponentType().
+ * Reflects functions of components using templates and storing function pointers. This is used to provide
+ * more type safety and more flexible interfaces for components than is straightforwardly possible with virtual
+ * function interfaces.
+ * Component types can be registered using RegisterComponentType().
  */
-class ComponentFactory
+class ComponentReflector final
 {
 public:
 	using FactoryFunction = bool(*)(const ComponentInfo&, const ComponentID, ComponentVector&);
@@ -36,7 +39,7 @@ public:
 		ApplyFullTransmissionFunction m_applyFullTransmissionFunction;
 	};
 
-	ComponentFactory();
+	ComponentReflector();
 
 	template <typename ComponentType>
 	void RegisterComponentType();
@@ -69,7 +72,7 @@ private:
 };
 
 template <typename ComponentType>
-inline void ComponentFactory::RegisterComponentType()
+inline void ComponentReflector::RegisterComponentType()
 {
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
@@ -104,7 +107,7 @@ inline void ComponentFactory::RegisterComponentType()
 }
 
 template <typename ComponentType>
-inline void ComponentFactory::RegisterNetworkedComponentType()
+inline void ComponentReflector::RegisterNetworkedComponentType()
 {
 	RegisterComponentType<ComponentType>();
 

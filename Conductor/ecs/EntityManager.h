@@ -25,8 +25,8 @@ class ArrayView;
 namespace ECS
 {
 class Component;
-class ComponentFactory;
 class ComponentInfo;
+class ComponentReflector;
 class ComponentVector;
 class ECSGroupVector;
 class Entity;
@@ -40,7 +40,7 @@ class System;
 class EntityManager final
 {
 public:
-	explicit EntityManager(const ComponentFactory& componentFactory);
+	explicit EntityManager(const ComponentReflector& componentFactory);
 	~EntityManager();
 
 	Entity& CreateEntity(const EntityInfo& entityInfo);
@@ -108,8 +108,8 @@ private:
 
 	void UpdateSystems();
 	
-	// The factory this manager uses to create components.
-	const ComponentFactory& m_componentFactory;
+	// A reflected database of functions for manipulating components.
+	const ComponentReflector& m_componentReflector;
 
 	// The entities this manager is in charge of updating, sorted by ID.
 	Collection::Vector<Entity> m_entities{};

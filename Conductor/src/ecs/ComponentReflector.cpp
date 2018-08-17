@@ -1,4 +1,4 @@
-#include <ecs/ComponentFactory.h>
+#include <ecs/ComponentReflector.h>
 
 #include <behave/BehaviourTreeComponent.h>
 #include <behave/BehaviourTreeComponentInfo.h>
@@ -11,14 +11,14 @@
 
 #include <dev/Dev.h>
 
-ECS::ComponentFactory::ComponentFactory()
+ECS::ComponentReflector::ComponentReflector()
 {
 	RegisterComponentType<Behave::BehaviourTreeComponent>();
 	RegisterComponentType<Components::BlackboardComponent>();
 	RegisterComponentType<Scene::SceneTransformComponent>();
 }
 
-void ECS::ComponentFactory::RegisterComponentType(const char* const componentTypeName,
+void ECS::ComponentReflector::RegisterComponentType(const char* const componentTypeName,
 	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponentInBytes,
 	FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn)
 {
@@ -39,7 +39,7 @@ void ECS::ComponentFactory::RegisterComponentType(const char* const componentTyp
 	m_swapFunctions[componentTypeHash] = swapFn;
 }
 
-Unit::ByteCount64 ECS::ComponentFactory::GetSizeOfComponentInBytes(
+Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(
 	const Util::StringHash componentTypeHash) const
 {
 	const auto sizeItr = m_componentSizesInBytes.Find(componentTypeHash);
@@ -52,7 +52,7 @@ Unit::ByteCount64 ECS::ComponentFactory::GetSizeOfComponentInBytes(
 	return sizeItr->second;
 }
 
-bool ECS::ComponentFactory::TryMakeComponent(const ComponentInfo& componentInfo,
+bool ECS::ComponentReflector::TryMakeComponent(const ComponentInfo& componentInfo,
 	const ComponentID reservedID, ComponentVector& destination) const
 {
 	const auto factoryItr = m_factoryFunctions.Find(componentInfo.GetTypeHash());
@@ -65,7 +65,7 @@ bool ECS::ComponentFactory::TryMakeComponent(const ComponentInfo& componentInfo,
 	return factoryItr->second(componentInfo, reservedID, destination);
 }
 
-void ECS::ComponentFactory::DestroyComponent(Component& component) const
+void ECS::ComponentReflector::DestroyComponent(Component& component) const
 {
 	const auto& destructorItr = m_destructorFunctions.Find(component.m_id.GetType());
 	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
@@ -75,7 +75,7 @@ void ECS::ComponentFactory::DestroyComponent(Component& component) const
 	destructorItr->second(component);
 }
 
-void ECS::ComponentFactory::SwapComponents(Component& a, Component& b) const
+void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 {
 	const auto& swapItr = m_swapFunctions.Find(a.m_id.GetType());
 	Dev::FatalAssert(swapItr != m_swapFunctions.end() && swapItr == m_swapFunctions.Find(b.m_id.GetType()),
@@ -85,7 +85,7 @@ void ECS::ComponentFactory::SwapComponents(Component& a, Component& b) const
 	swapItr->second(a, b);
 }
 
-ECS::ComponentFactory::TransmissionFunctions ECS::ComponentFactory::FindTransmissionFunctions(
+ECS::ComponentReflector::TransmissionFunctions ECS::ComponentReflector::FindTransmissionFunctions(
 	const Util::StringHash componentTypeHash) const
 {
 	const auto& transmissionItr = m_transmissionFunctions.Find(componentTypeHash);

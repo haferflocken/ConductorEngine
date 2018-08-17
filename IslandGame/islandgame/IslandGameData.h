@@ -12,8 +12,8 @@ class BehaviourTreeManager;
 
 namespace ECS
 {
-class ComponentFactory;
 class ComponentInfoFactory;
+class ComponentReflector;
 class EntityInfoManager;
 }
 
@@ -34,7 +34,7 @@ public:
 	const ECS::ComponentInfoFactory& GetComponentInfoFactory() const { return *m_componentInfoFactory; }
 	const ECS::EntityInfoManager& GetEntityInfoManager() const { return *m_entityInfoManager; }
 	
-	const ECS::ComponentFactory& GetComponentFactory() const { return *m_componentFactory; }
+	const ECS::ComponentReflector& GetComponentReflector() const { return *m_componentReflector; }
 
 	void LoadBehaviourTreesInDirectory(const File::Path& directory);
 	void LoadEntityInfosInDirectory(const File::Path& directory);
@@ -46,6 +46,6 @@ private:
 	Mem::UniquePtr<ECS::ComponentInfoFactory> m_componentInfoFactory;
 	Mem::UniquePtr<ECS::EntityInfoManager> m_entityInfoManager;
 
-	Mem::UniquePtr<ECS::ComponentFactory> m_componentFactory;
+	Mem::UniquePtr<ECS::ComponentReflector> m_componentReflector;
 };
 }

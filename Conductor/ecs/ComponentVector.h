@@ -8,8 +8,8 @@
 namespace ECS
 {
 class Component;
-class ComponentFactory;
 class ComponentID;
+class ComponentReflector;
 class EntityManager;
 
 /**
@@ -47,7 +47,7 @@ public:
 	template <typename T, typename... Args>
 	T& Emplace(Args&&... args);
 
-	void Remove(const ComponentID id, const ComponentFactory& componentFactory);
+	void Remove(const ComponentID id, const ComponentReflector& componentReflector);
 
 private:
 	template <typename T>
