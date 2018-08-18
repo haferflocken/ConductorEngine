@@ -205,7 +205,7 @@ void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& enti
 	// will invalidate the pointers in m_spatialHashMap.
 	for (const auto& entity : entitiesInChunk)
 	{
-		m_entitiesPendingUnload.Add(entity);
+		m_entitiesPendingUnload.Add(entity->GetID());
 	}
 }
 

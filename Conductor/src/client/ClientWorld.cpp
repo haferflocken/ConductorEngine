@@ -92,7 +92,7 @@ void Client::ClientWorld::ProcessMessageFromHost(Host::MessageToClient& message)
 		},
 		[this](Host::ECSUpdate_MessageToClient& ecsUpdatePayload)
 		{
-			// TODO(network) apply a received ECS update
+			m_client->NotifyOfECSUpdateTransmission(ecsUpdatePayload.m_bytes);
 		});
 }
 

@@ -183,6 +183,7 @@
     <ClCompile Include="src\scene\UnboundedScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ecs\ApplyDeltaTransmissionResult.h" />
     <ClInclude Include="ecs\SystemUtil.h" />
     <ClInclude Include="generated\InfoAsset\Test.h" />
     <ClInclude Include="ecs\Entity.h" />

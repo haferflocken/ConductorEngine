@@ -1,9 +1,11 @@
 #pragma once
 
 #include <collection/ArrayView.h>
+#include <collection/Variant.h>
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
 
+#include <ecs/ApplyDeltaTransmissionResult.h>
 #include <ecs/ComponentID.h>
 #include <ecs/ECSGroupVector.h>
 #include <ecs/EntityID.h>
@@ -40,12 +42,13 @@ class System;
 class EntityManager final
 {
 public:
-	explicit EntityManager(const ComponentReflector& componentFactory);
+
+	explicit EntityManager(const ComponentReflector& componentReflector, bool transmitsState);
 	~EntityManager();
 
 	Entity& CreateEntity(const EntityInfo& entityInfo);
 	void SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity);
-	void DeleteEntities(const Collection::ArrayView<const Entity* const>& entitiesToDelete);
+	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
 
 	Entity* FindEntity(const EntityID id);
 	const Entity* FindEntity(const EntityID id) const;
@@ -74,7 +77,7 @@ public:
 	Collection::Vector<uint8_t> SerializeDeltaTransmission();
 
 	// Apply a delta update transmission to the entities in the manager.
-	void ApplyDeltaTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
+	ApplyDeltaTransmissionResult ApplyDeltaTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 
 private:
 	struct RegisteredSystem;
@@ -98,7 +101,7 @@ private:
 
 	// Add a component to an entity.
 	void AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity);
-	// Remove a component from this EntityManager. Does not remove it from the entity references it.
+	// Remove a component from this EntityManager. Does not remove it from the entity referencing it.
 	void RemoveComponent(const ComponentID id);
 
 	template <typename SystemType>
@@ -117,9 +120,20 @@ private:
 	// The components this manager owns on behalf of its entities, grouped by type.
 	Collection::VectorMap<Util::StringHash, ComponentVector> m_components{};
 
-	// The buffered components this manager stores in order to calculate delta updates.
-	// Only components that are network-enabled have a buffered copy stored.
-	Collection::VectorMap<Util::StringHash, ComponentVector> m_bufferedComponents;
+	// The buffered state this manager stores in order to calculate delta updates for transmission.
+	// m_transmissionBuffers is null for managers that do not transmit state.
+	struct TransmissionBuffers
+	{
+		// Only components that are network-enabled have a buffered copy stored.
+		Collection::VectorMap<Util::StringHash, ComponentVector> m_bufferedComponents;
+
+		Collection::Vector<EntityID> m_entitiesAddedSinceLastTransmission;
+		Collection::Vector<EntityID> m_entitiesChangedSinceLastTransmission;
+		Collection::Vector<EntityID> m_entitiesRemovedSinceLastTransmission;
+		Collection::Vector<ComponentID> m_componentsAddedSinceLastTransmission;
+		Collection::Vector<ComponentID> m_componentsRemovedSinceLastTransmission;
+	};
+	Mem::UniquePtr<TransmissionBuffers> m_transmissionBuffers;
 
 	// The next entity ID that will be assigned.
 	EntityID m_nextEntityID{ 0 };

@@ -94,6 +94,6 @@ private:
 	};
 	Collection::VectorMap<ChunkID, ChunkRefCount> m_transitionChunksToRefCounts;
 
-	Collection::Vector<const ECS::Entity*> m_entitiesPendingUnload;
+	Collection::Vector<ECS::EntityID> m_entitiesPendingUnload;
 };
 }

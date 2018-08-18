@@ -85,6 +85,17 @@ void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 	swapItr->second(a, b);
 }
 
+ECS::ComponentReflector::DestructorFunction ECS::ComponentReflector::FindDestructorFunction(
+	const Util::StringHash componentTypeHash) const
+{
+	const auto& destructorItr = m_destructorFunctions.Find(componentTypeHash);
+	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
+		"Failed to find destructor function for component type \"%s\".",
+		Util::ReverseHash(componentTypeHash));
+
+	return destructorItr->second;
+}
+
 ECS::ComponentReflector::TransmissionFunctions ECS::ComponentReflector::FindTransmissionFunctions(
 	const Util::StringHash componentTypeHash) const
 {

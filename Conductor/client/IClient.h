@@ -1,5 +1,7 @@
 #pragma once
 
+#include <collection/Vector.h>
+
 namespace Client
 {
 class ConnectedHost;
@@ -22,5 +24,6 @@ public:
 	virtual void NotifyOfKeyUp(const char key) {};
 	virtual void NotifyOfKeyDown(const char key) {};
 	virtual void NotifyOfInputMessage(Client::InputMessage& message) {}
+	virtual void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes) = 0;
 };
 }

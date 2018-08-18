@@ -16,5 +16,6 @@ public:
 	IslandGameClient(const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost);
 
 	void Update() override;
+	void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes) override;
 };
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <collection/ArrayView.h>
 #include <collection/IndexIterator.h>
 #include <traits/IsMemCopyAFullCopy.h>
 #include <unit/CountUnits.h>
@@ -22,10 +23,20 @@ public:
 	using const_iterator = Collection::IndexIterator<const ComponentVector, const Component>;
 	using iterator = Collection::IndexIterator<ComponentVector, Component>;
 
-	ComponentVector() = default;
+	ComponentVector();
+	~ComponentVector();
 
-	ComponentVector(const Util::StringHash componentType, const Unit::ByteCount64 alignedComponentSize,
-		const uint32_t initialCapacity = 8);
+	ComponentVector(const ComponentReflector& componentReflector, const Util::StringHash componentType,
+		const Unit::ByteCount64 alignedComponentSize, const uint32_t initialCapacity = 8);
+
+	ComponentVector(const ComponentVector&) = delete;
+	ComponentVector& operator=(const ComponentVector&) = delete;
+
+	ComponentVector(ComponentVector&& other);
+	ComponentVector& operator=(ComponentVector&& rhs);
+
+	// Copy is only supported on vectors of networked components.
+	void Copy(const ComponentVector& other);
 
 	Util::StringHash GetComponentType() const { return m_componentType; }
 
@@ -47,11 +58,14 @@ public:
 	template <typename T, typename... Args>
 	T& Emplace(Args&&... args);
 
-	void Remove(const ComponentID id, const ComponentReflector& componentReflector);
+	void Remove(const ComponentID id);
+	void RemoveSorted(const Collection::ArrayView<const uint64_t> ids);
 
 private:
 	template <typename T>
 	void EnsureCapacity(const size_t desiredCapacity);
+
+	const ComponentReflector* m_componentReflector{ nullptr };
 
 	Util::StringHash m_componentType{};
 	Unit::ByteCount64 m_alignedComponentSize{ 0 };
@@ -60,14 +74,6 @@ private:
 	uint32_t m_capacity{ 0 };
 	uint32_t m_count{ 0 };
 };
-
-inline ComponentVector::ComponentVector(const Util::StringHash componentType,
-	const Unit::ByteCount64 alignedComponentSize, const uint32_t initialCapacity)
-	: m_componentType(componentType)
-	, m_alignedComponentSize(alignedComponentSize)
-	, m_data(static_cast<uint8_t*>(malloc(initialCapacity * alignedComponentSize.GetN())))
-	, m_capacity(initialCapacity)
-{}
 
 template <typename T, typename... Args>
 inline T& ComponentVector::Emplace(Args&&... args)
@@ -111,7 +117,7 @@ inline void ComponentVector::EnsureCapacity(const size_t desiredCapacity)
 		// Move the new buffer into m_data and delete the old buffer.
 		if (m_data != nullptr)
 		{
-			delete m_data;
+			free(m_data);
 		}
 		m_data = reinterpret_cast<uint8_t*>(newData);
 	}
