@@ -141,6 +141,7 @@
     <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="src\client\IClient.cpp" />
     <ClCompile Include="src\ecs\Entity.cpp" />
     <ClCompile Include="src\ecs\ComponentReflector.cpp" />
     <ClCompile Include="src\ecs\ECSGroupVector.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="src\behave\BehaviourTreeComponentInfo.cpp" />
     <ClCompile Include="src\ecs\components\BlackboardComponent.cpp" />
     <ClCompile Include="src\ecs\components\BlackboardComponentInfo.cpp" />
+    <ClCompile Include="src\host\IHost.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponent.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponentInfo.cpp" />
     <ClCompile Include="src\behave\nodes\CallNode.cpp" />

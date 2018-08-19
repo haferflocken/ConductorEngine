@@ -23,5 +23,6 @@ public:
 	Client::ClientID GetClientID() const { return m_clientID; }
 
 	void NotifyOfHostDisconnected();
+	void TransmitECSUpdate(const Collection::Vector<uint8_t>& transmissionBytes);
 };
 }

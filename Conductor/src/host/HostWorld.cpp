@@ -66,7 +66,14 @@ void Host::HostWorld::HostThreadFunction()
 		// Update the game simulation.
 		m_host->Update();
 
-		// TODO transmit game state to clients
+		// Transmit ECS state to clients. So long as the host implements the networked part of their game simulation
+		// using entities and components, this is all that needs to be sent.
+		const Collection::Vector<uint8_t> ecsUpdateTransmission = m_host->SerializeECSUpdateTransmission();
+		for (auto& connectedClient : m_connectedClients)
+		{
+			connectedClient->TransmitECSUpdate(ecsUpdateTransmission);
+		}
+
 		std::this_thread::yield();
 	}
 

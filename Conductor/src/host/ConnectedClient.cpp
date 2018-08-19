@@ -10,3 +10,14 @@ void Host::ConnectedClient::NotifyOfHostDisconnected()
 	
 	m_hostToClientMessages.TryPush(std::move(message));
 }
+
+void Host::ConnectedClient::TransmitECSUpdate(const Collection::Vector<uint8_t>& transmissionBytes)
+{
+	MessageToClient message = MessageToClient::Make<ECSUpdate_MessageToClient>();
+	auto& ecsUpdateMessage = message.Get<ECSUpdate_MessageToClient>();
+
+	ecsUpdateMessage.m_bytes.Resize(transmissionBytes.Size());
+	memcpy(&ecsUpdateMessage.m_bytes.Front(), &transmissionBytes.Front(), transmissionBytes.Size());
+
+	m_hostToClientMessages.TryPush(std::move(message));
+}

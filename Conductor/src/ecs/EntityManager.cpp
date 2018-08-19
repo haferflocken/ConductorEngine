@@ -233,8 +233,6 @@ Component& EntityManager::GetComponentByIndex(const Util::StringHash typeHash, c
 	return m_components.Find(typeHash)->second[index];
 }
 
-#define ECS_TRANSMISSION_DEBUG 1
-
 Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 {
 	using namespace Internal_EntityManager;
@@ -242,11 +240,6 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		"Cannot serialize an EntityManager that was not flagged at creation to support transmission.");
 
 	Collection::Vector<uint8_t> transmissionBytes;
-
-#if ECS_TRANSMISSION_DEBUG == 1
-	Collection::Vector<ComponentID> debugAddedComponentIDs;
-	Collection::Vector<ComponentID> debugRemovedComponentIDs;
-#endif
 
 	// Serialize components that were removed.
 	if (!m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.IsEmpty())
@@ -300,11 +293,8 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		{
 			while (bufferedIter->m_id < currentIter->m_id && (bufferedIter + 1) < bufferedEnd)
 			{
-#if ECS_TRANSMISSION_DEBUG == 1
 				// If the buffered component ID is less than the current component ID,
 				// the buffered component was deleted.
-				debugRemovedComponentIDs.Add(bufferedIter->m_id);
-#endif
 				++bufferedIter;
 			}
 
@@ -319,25 +309,11 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 			}
 			else
 			{
-#if ECS_TRANSMISSION_DEBUG == 1
 				// If the buffered component ID is greater than the current component ID,
 				// the current component was created.
-				debugAddedComponentIDs.Add(currentIter->m_id);
-#endif
 				++currentIter;
 			}
 		}
-
-#if ECS_TRANSMISSION_DEBUG == 1
-		for (; currentIter < currentEnd; ++currentIter)
-		{
-			debugAddedComponentIDs.Add(currentIter->m_id);
-		}
-		for (; bufferedIter < bufferedEnd; ++bufferedIter)
-		{
-			debugRemovedComponentIDs.Add(bufferedIter->m_id);
-		}
-#endif
 		
 		// Serialize the invalid component ID to indicate the end of the component type.
 		Mem::Serialize(ComponentID::sk_invalidUniqueID, transmissionBytes);
@@ -387,13 +363,6 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 			Mem::Serialize(ComponentID::sk_invalidUniqueID, transmissionBytes);
 		}
 	}
-
-#if ECS_TRANSMISSION_DEBUG == 1
-	Dev::FatalAssert(debugAddedComponentIDs.Size() == m_transmissionBuffers->m_componentsAddedSinceLastTransmission.Size(),
-		"Mismatch between the number of components tracked as added and the numer of components actually added.");
-	Dev::FatalAssert(debugRemovedComponentIDs.Size() == m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.Size(),
-		"Mismatch between the number of components tracked as removed and the number of components actually removed.");
-#endif
 
 	// Serialize entities that were removed.
 	Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::EntitiesRemoved), transmissionBytes);
@@ -462,7 +431,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	const uint8_t* iter = transmissionBytes.begin();
 	const uint8_t* const iterEnd = transmissionBytes.end();
 
-	const auto maybeSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
+	auto maybeSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
 	if (!maybeSectionMarker.second)
 	{
 		return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
@@ -607,12 +576,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	}
 
 	// Deserialize entity removals.
-	const auto maybeEntityRemovalSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
-	if (!maybeEntityRemovalSectionMarker.second)
-	{
-		return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
-	}
-	if (maybeEntityRemovalSectionMarker.first == static_cast<uint8_t>(TransmissionSectionType::EntitiesRemoved))
+	if (sectionMarker == TransmissionSectionType::EntitiesRemoved)
 	{
 		Collection::Vector<EntityID> entitiesToRemove;
 
@@ -626,15 +590,18 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		}
 
 		DeleteEntities(entitiesToRemove.GetConstView());
+		
+		// Read the next section marker.
+		maybeSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
+		if (!maybeSectionMarker.second)
+		{
+			return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+		}
+		sectionMarker = TransmissionSectionType{ maybeSectionMarker.first };
 	}
 
 	// Deserialize entities that changed.
-	const auto maybeEntitiesChangedSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
-	if (!maybeEntitiesChangedSectionMarker.second)
-	{
-		return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
-	}
-	if (maybeEntitiesChangedSectionMarker.first == static_cast<uint8_t>(TransmissionSectionType::EntitiesChanged))
+	if (sectionMarker == TransmissionSectionType::EntitiesChanged)
 	{
 		auto maybeEntityID = Mem::DeserializeUi32(iter, iterEnd);
 		while (maybeEntityID.second && maybeEntityID.first != EntityID::sk_invalidValue)
@@ -696,15 +663,18 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 
 			maybeEntityID = Mem::DeserializeUi32(iter, iterEnd);
 		}
+
+		// Read the next section marker.
+		maybeSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
+		if (!maybeSectionMarker.second)
+		{
+			return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+		}
+		sectionMarker = TransmissionSectionType{ maybeSectionMarker.first };
 	}
 
 	// Deserialize new entities.
-	const auto maybeEntityAdditionSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
-	if (!maybeEntityAdditionSectionMarker.second)
-	{
-		return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
-	}
-	if (maybeEntityAdditionSectionMarker.first == static_cast<uint8_t>(TransmissionSectionType::EntitiesAdded))
+	if (sectionMarker == TransmissionSectionType::EntitiesAdded)
 	{
 		auto maybeEntityID = Mem::DeserializeUi32(iter, iterEnd);
 		while (maybeEntityID.second && maybeEntityID.first != EntityID::sk_invalidValue)
@@ -762,6 +732,8 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 
 			maybeEntityID = Mem::DeserializeUi32(iter, iterEnd);
 		}
+
+		// No need to deserialize the next section marker because there is no next section.
 	}
 
 	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_Success>();

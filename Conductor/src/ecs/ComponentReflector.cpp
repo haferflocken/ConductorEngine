@@ -87,7 +87,7 @@ void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 
 bool ECS::ComponentReflector::IsNetworkedComponent(const Util::StringHash componentTypeHash) const
 {
-	return (m_transmissionFunctions.Find(componentTypeHash) != nullptr);
+	return (m_transmissionFunctions.Find(componentTypeHash) != m_transmissionFunctions.end());
 }
 
 ECS::ComponentReflector::DestructorFunction ECS::ComponentReflector::FindDestructorFunction(

@@ -8,9 +8,8 @@
 
 IslandGame::Client::IslandGameClient::IslandGameClient(
 	const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost)
-	: IClient(connectedHost)
+	: IClient(gameData.GetComponentReflector(), connectedHost)
 	, m_gameData(gameData)
-	, m_entityManager(gameData.GetComponentReflector(), false)
 {
 	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
@@ -19,10 +18,4 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 void IslandGame::Client::IslandGameClient::Update()
 {
 	m_entityManager.Update();
-}
-
-void IslandGame::Client::IslandGameClient::NotifyOfECSUpdateTransmission(
-	const Collection::Vector<uint8_t>& transmissionBytes)
-{
-	m_entityManager.ApplyDeltaTransmission(transmissionBytes);
 }

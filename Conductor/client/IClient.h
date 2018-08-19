@@ -1,6 +1,7 @@
 #pragma once
 
 #include <collection/Vector.h>
+#include <ecs/EntityManager.h>
 
 namespace Client
 {
@@ -12,11 +13,15 @@ class IClient
 {
 protected:
 	ConnectedHost& m_connectedHost;
+	ECS::EntityManager m_entityManager;
 
 public:
-	IClient(ConnectedHost& connectedHost)
+	IClient(const ECS::ComponentReflector& componentReflector, ConnectedHost& connectedHost)
 		: m_connectedHost(connectedHost)
+		, m_entityManager(componentReflector, false)
 	{}
+
+	void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 
 	virtual void Update() = 0;
 
@@ -24,6 +29,5 @@ public:
 	virtual void NotifyOfKeyUp(const char key) {};
 	virtual void NotifyOfKeyDown(const char key) {};
 	virtual void NotifyOfInputMessage(Client::InputMessage& message) {}
-	virtual void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes) = 0;
 };
 }
