@@ -67,8 +67,10 @@ public:
 	void DestroyComponent(Component& component) const;
 	void SwapComponents(Component& a, Component& b) const;
 
+	bool IsNetworkedComponent(const Util::StringHash componentTypeHash) const;
+
 	DestructorFunction FindDestructorFunction(const Util::StringHash componentTypeHash) const;
-	TransmissionFunctions FindTransmissionFunctions(const Util::StringHash componentTypeHash) const;
+	const TransmissionFunctions* FindTransmissionFunctions(const Util::StringHash componentTypeHash) const;
 
 private:
 	void RegisterComponentType(const char* componentTypeName, const Util::StringHash componentTypeHash,

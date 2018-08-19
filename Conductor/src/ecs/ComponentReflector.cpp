@@ -85,6 +85,11 @@ void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 	swapItr->second(a, b);
 }
 
+bool ECS::ComponentReflector::IsNetworkedComponent(const Util::StringHash componentTypeHash) const
+{
+	return (m_transmissionFunctions.Find(componentTypeHash) != nullptr);
+}
+
 ECS::ComponentReflector::DestructorFunction ECS::ComponentReflector::FindDestructorFunction(
 	const Util::StringHash componentTypeHash) const
 {
@@ -96,13 +101,13 @@ ECS::ComponentReflector::DestructorFunction ECS::ComponentReflector::FindDestruc
 	return destructorItr->second;
 }
 
-ECS::ComponentReflector::TransmissionFunctions ECS::ComponentReflector::FindTransmissionFunctions(
+const ECS::ComponentReflector::TransmissionFunctions* ECS::ComponentReflector::FindTransmissionFunctions(
 	const Util::StringHash componentTypeHash) const
 {
-	const auto& transmissionItr = m_transmissionFunctions.Find(componentTypeHash);
-	Dev::FatalAssert(transmissionItr != m_transmissionFunctions.end(),
-		"Failed to find transmission functions for component type \"%s\".",
-		Util::ReverseHash(componentTypeHash));
-
-	return transmissionItr->second;
+	const auto transmissionItr = m_transmissionFunctions.Find(componentTypeHash);
+	if (transmissionItr != m_transmissionFunctions.end())
+	{
+		return &transmissionItr->second;
+	}
+	return nullptr;
 }

@@ -284,7 +284,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::ComponentsDeltaUpdate), transmissionBytes);
 		Mem::Serialize(Util::ReverseHash(entry.first), transmissionBytes);
 
-		const auto serializer = m_componentReflector.FindTransmissionFunctions(entry.first);
+		const auto& serializer = *m_componentReflector.FindTransmissionFunctions(entry.first);
 
 		ComponentVector& bufferedComponents = entry.second;
 		const ComponentVector& currentComponents = m_components.Find(entry.first)->second;
@@ -360,7 +360,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		while (iter < iterEnd)
 		{
 			const Util::StringHash typeHash = iter->GetType();
-			const auto serializer = m_componentReflector.FindTransmissionFunctions(typeHash);
+			const auto* const serializer = m_componentReflector.FindTransmissionFunctions(typeHash);
 
 			Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::ComponentsAdded), transmissionBytes);
 			Mem::Serialize(Util::ReverseHash(typeHash), transmissionBytes);
@@ -375,7 +375,10 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 				if (component != nullptr)
 				{
 					Mem::Serialize(iter->GetUniqueID(), transmissionBytes);
-					serializer.m_serializeFullTransmissionFunction(*component, transmissionBytes);
+					if (serializer != nullptr)
+					{
+						serializer->m_serializeFullTransmissionFunction(*component, transmissionBytes);
+					}
 				}
 				++iter;
 			}
@@ -530,7 +533,12 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		[](const ComponentReflector& componentReflector, const Util::StringHash componentTypeHash,
 			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
 		{
-			const auto deserializer = componentReflector.FindTransmissionFunctions(componentTypeHash);
+			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentTypeHash);
+			if (deserializer == nullptr)
+			{
+				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_UnrecognizedComponentType>(
+					Util::ReverseHash(componentTypeHash));
+			}
 
 			auto componentIter = components.begin();
 			const auto componentsEnd = components.end();
@@ -549,7 +557,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 					continue;
 				}
 
-				deserializer.m_applyDeltaTransmissionFunction(*componentIter, iter, iterEnd);
+				deserializer->m_applyDeltaTransmissionFunction(*componentIter, iter, iterEnd);
 
 				maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			}
@@ -565,7 +573,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		[](const ComponentReflector& componentReflector, const Util::StringHash componentTypeHash,
 			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
 		{
-			const auto deserializer = componentReflector.FindTransmissionFunctions(componentTypeHash);
+			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentTypeHash);
 
 			auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			while (maybeComponentID.second && maybeComponentID.first != ComponentID::sk_invalidUniqueID)
@@ -578,8 +586,15 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				}
 
 				// TODO(network) what should be done if a component fails to be created?
-				deserializer.m_tryCreateFromTransmissionFunction(iter, iterEnd,
-					ComponentID(componentTypeHash, componentID), components);
+				if (deserializer != nullptr)
+				{
+					deserializer->m_tryCreateFromTransmissionFunction(iter, iterEnd,
+						ComponentID(componentTypeHash, componentID), components);
+				}
+				else
+				{
+					// TODO(network) make the component even though it wasn't serialized
+				}
 
 				maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			}
@@ -765,7 +780,7 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 
 		componentVector = ComponentVector(m_componentReflector, componentTypeHash, componentSize);
 
-		if (m_transmissionBuffers != nullptr)
+		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentTypeHash))
 		{
 			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentTypeHash];
 			Dev::FatalAssert(bufferedComponentVector.GetComponentType() == Util::StringHash(),

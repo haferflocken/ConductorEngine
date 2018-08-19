@@ -92,11 +92,12 @@ void ECS::ComponentVector::Copy(const ComponentVector& other)
 		m_capacity = other.m_capacity;
 	}
 
-	const auto transmissionFns = m_componentReflector->FindTransmissionFunctions(m_componentType);
+	const auto* const transmissionFns = m_componentReflector->FindTransmissionFunctions(m_componentType);
+	Dev::FatalAssert(transmissionFns != nullptr, "ComponentVector::Copy() only supports networked component types.");
 	for (const auto& component : other)
 	{
 		void* place = &(*this)[m_count];
-		transmissionFns.m_copyConstructFunction(place, component);
+		transmissionFns->m_copyConstructFunction(place, component);
 		++m_count;
 	}
 }
