@@ -1,0 +1,85 @@
+EXAMPLE OF SYNTAX:
+
+tree ExampleTree
+domain
+	{ HasComponent($blackboard_component) & GetBool($blackboard_component, "is_alive") }
+	sequence
+		call(OtherTree)
+		select
+			call(A)
+			call(B)
+		select
+			sequence
+				call(C)
+				call(D)
+			sequence(call(E), call(F))
+
+tree OtherTree
+sequence
+	log("other tree message")
+	return(success)
+
+tree TreeC
+domain
+	{ GetInt(BlackboardComponent, "health") < GetInt(WalkComponent, "speed") }
+	log("whee")
+
+#####################################################################################################################################
+
+PARSING RULES:
+	a file contains one or more trees.
+	a tree is the keyword tree, followed by a tree name, followed by the tree's root node on the next line.
+		The tree keyword must not be indented. The tree's root node must not be indented.
+
+	a line comment begins with a # and continues to the end of that line
+
+	an indent is a tab character
+
+	a node name is may be any string that is not a keyword, begins with a lowercase letter, and consists only of letters and numbers
+	a function name may be any string that is not a keyword and:
+		begins with an uppercase letter and consists only of letters and numbers
+		or is a sequence of: < > = + - * / ^ ~ ! %
+	a tree name may be any string that is not a keyword, is not a function name in use, begins with an uppercase letter,
+		and consists only of letters and numbers
+	
+	an expression is one of the following:
+		a node-expression
+		a function-expression
+		an identifier-expression
+		a literal-expression
+
+	a node-expression is a node name followed by a series of expressions for its arguments
+
+	a series of expressions follows one of two syntaxes:
+		an open parenthesis followed by a series of comma-separated expressions followed by a closing parenthesis, all on one line
+		or a series of expressions each beginning on a line indented exactly one indent more than the current line
+	
+	a function-expression follows one of two syntaxes:
+		a function name followed by a series of expressions for its arguments
+		an open curly brace followed by the first argument, followed by the function name, followed by the second argument,
+			all on one line, and all delimited by whitespace. This is only available for binary functions.
+
+	an identifier-expression is a tree-identifier
+		a tree-identifier is a tree name
+
+	a literal-expression is one of the following:
+		a numeric literal
+		a string literal enclosed in quotes
+		a result literal (success or failure)
+		a boolean literal (true or false)
+		a component type literal (a $ followed by a string of letters and numbers)
+
+keywords:
+	tree
+	success
+	failure
+	true
+	false
+
+builtin nodes:
+	domain (execute a node so long as a condition holds, and terminate the node if the condition fails. Succeeds only if its child node succeeds)
+	sequence (execute child nodes sequentially until one fails or all succeed. Succeeds only if all its children succeed, like an AND)
+	select (execute child nodes sequentially until one succeeds or all fail. Succeeds if one of its children succeeds, like an OR)
+	call (execute a different tree. Succeeds only if that tree succeeds)
+	return (exit the current tree with a provided result literal)
+	log (print a message in the debug log. Always succeeds)
