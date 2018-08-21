@@ -54,6 +54,10 @@ struct BooleanLiteral
 
 struct ComponentTypeLiteral
 {
+	explicit ComponentTypeLiteral(const char* typeString)
+		: m_typeString(typeString)
+	{}
+
 	std::string m_typeString;
 };
 
