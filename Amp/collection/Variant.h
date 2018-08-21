@@ -43,6 +43,9 @@ public:
 	template <typename... FnTypes>
 	void Match(FnTypes&&... functions);
 
+	template <typename... FnTypes>
+	void Match(FnTypes&&... functions) const;
+
 private:
 	static constexpr uint8_t k_invalidTag = UINT8_MAX;
 	static constexpr size_t k_numTagBytes = Util::MaxAlignOf<Types...>();
@@ -182,6 +185,24 @@ inline void Variant<Types...>::Match(FnTypes&&... functions)
 
 	auto lambdas = std::make_tuple(
 		[&]() { functions(reinterpret_cast<Types&>(m_data)); }...
+	);
+
+	auto indexSequence = std::index_sequence_for<Types...>();
+	Internal_Variant::CallIndexInTuple(lambdas, m_tagBytes[0], indexSequence);
+}
+
+template <typename... Types>
+template <typename... FnTypes>
+inline void Variant<Types...>::Match(FnTypes&&... functions) const
+{
+	static_assert(sizeof...(Types) == sizeof...(FnTypes), "There must be exactly one function per type.");
+	if (m_tagBytes[0] == k_invalidTag)
+	{
+		return;
+	}
+
+	auto lambdas = std::make_tuple(
+		[&]() { functions(reinterpret_cast<const Types&>(m_data)); }...
 	);
 
 	auto indexSequence = std::index_sequence_for<Types...>();

@@ -12,8 +12,10 @@ namespace Nodes
 class DomainNode final : public BehaviourNode
 {
 public:
-	static Mem::UniquePtr<BehaviourNode> LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-		const JSON::JSONObject& jsonObject, const BehaviourTree& tree);
+	static constexpr const char* k_dslName = "domain";
+
+	static Mem::UniquePtr<BehaviourNode> CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
+		const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
 
 	explicit DomainNode(const BehaviourTree& tree);
 	virtual ~DomainNode();

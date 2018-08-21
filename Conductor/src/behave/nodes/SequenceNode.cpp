@@ -3,6 +3,7 @@
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTreeEvaluator.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 namespace Internal_SequenceNode
 {
@@ -78,16 +79,14 @@ private:
 	const SequenceNode* m_node;
 	size_t m_activeChildIndex;
 };
-
-const Util::StringHash k_childrenHash = Util::CalcHash("children");
 }
 
-Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::SequenceNode::LoadFromJSON(
-	const BehaviourNodeFactory& nodeFactory, const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::SequenceNode::CreateFromNodeExpression(
+	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
 	auto node = Mem::MakeUnique<SequenceNode>(tree);
 	
-	if (!nodeFactory.TryMakeNodesFrom(jsonObject, tree, Internal_SequenceNode::k_childrenHash, node->m_children))
+	if (!nodeFactory.TryMakeNodesFrom(nodeExpression.m_arguments, tree, node->m_children))
 	{
 		return nullptr;
 	}

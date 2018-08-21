@@ -3,6 +3,7 @@
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTreeEvaluator.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 namespace Internal_SelectorNode
 {
@@ -78,16 +79,14 @@ private:
 	const SelectorNode* m_node;
 	size_t m_activeChildIndex;
 };
-
-const Util::StringHash k_childrenHash = Util::CalcHash("children");
 }
 
-Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::SelectorNode::LoadFromJSON(
-	const BehaviourNodeFactory& nodeFactory, const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::SelectorNode::CreateFromNodeExpression(
+	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
 	auto node = Mem::MakeUnique<SelectorNode>(tree);
 
-	if (!nodeFactory.TryMakeNodesFrom(jsonObject, tree, Internal_SelectorNode::k_childrenHash, node->m_children))
+	if (!nodeFactory.TryMakeNodesFrom(nodeExpression.m_arguments, tree, node->m_children))
 	{
 		return nullptr;
 	}

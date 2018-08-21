@@ -12,6 +12,8 @@ namespace Behave
 class BehaviourNode;
 class BehaviourNodeFactory;
 
+namespace Parse { struct ParsedTree; }
+
 class BehaviourTree final
 {
 public:
@@ -25,7 +27,7 @@ public:
 
 	~BehaviourTree();
 
-	bool LoadFromJSON(const BehaviourNodeFactory& nodeFactory, const JSON::JSONObject& jsonObject);
+	bool LoadFromParsedTree(const BehaviourNodeFactory& nodeFactory, const Parse::ParsedTree& parsedTree);
 
 	const BehaviourNode* GetRoot() const { return m_root.Get(); }
 

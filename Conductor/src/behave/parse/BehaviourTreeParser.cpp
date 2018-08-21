@@ -722,8 +722,16 @@ ParseResult Parser::ParseTrees(const char* const input)
 
 	do
 	{
-		// Parse the "tree" keyword.
+		// Parse the "tree" keyword, skipping blank lines between trees.
 		ParseNextToken(inputIter, indent, token);
+		if (token.m_type == TokenType::Invalid)
+		{
+			break;
+		}
+		if (token.m_type == TokenType::NewLine)
+		{
+			continue;
+		}
 
 		if (token.m_type != TokenType::Text)
 		{
@@ -761,7 +769,7 @@ ParseResult Parser::ParseTrees(const char* const input)
 		}
 
 		// Parse the tree's root node.
-		ParseExpressionResult rootExpressionResult = ParseExpression(inputIter, indent, token);
+		ParseExpressionResult rootExpressionResult = ParseSingleLineExpression(inputIter, indent, token);
 		if (!rootExpressionResult.IsAny())
 		{
 			// This only happens due to internal parser errors and is not part of normal control flow.

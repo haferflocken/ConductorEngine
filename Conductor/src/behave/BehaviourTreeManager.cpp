@@ -1,9 +1,9 @@
 #include <behave/BehaviourTreeManager.h>
 #include <behave/BehaviourTree.h>
+#include <behave/parse/BehaviourTreeParser.h>
 
 #include <dev/Dev.h>
-#include <file/JSONReader.h>
-#include <json/JSONTypes.h>
+#include <file/FullFileReader.h>
 
 Behave::BehaviourTreeManager::BehaviourTreeManager(const BehaviourNodeFactory& nodeFactory)
 	: m_nodeFactory(nodeFactory)
@@ -24,37 +24,42 @@ void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& direct
 	}
 
 	File::ForEachFileInDirectory(directory, [this](const File::Path& file) -> bool
-	{
-		Mem::UniquePtr<JSON::JSONValue> jsonValue = File::ReadJSONFile(file);
-
-		switch (jsonValue->GetType())
 		{
-		case JSON::ValueType::Object:
-		{
-			const JSON::JSONObject& jsonObject = *static_cast<const JSON::JSONObject*>(jsonValue.Get());
-
-			BehaviourTree tree;
-			if (tree.LoadFromJSON(m_nodeFactory, jsonObject))
+			if ((!file.has_extension())
+				|| wcscmp(file.extension().c_str(), L".behave") != 0)
 			{
-				const File::Path& fileName = file.filename();
-				m_trees[Util::CalcHash(fileName.string())] = std::move(tree);
+				// Return true to keep iterating over the files.
+				return true;
 			}
-			else
-			{
-				Dev::LogWarning("Failed to load behaviour tree from \"%s\".", file.c_str());
-			}
-			break;
-		}
-		default:
-		{
-			Dev::LogWarning("Failed to find a JSON object at the root of \"%s\".", file.c_str());
-			break;
-		}
-		}
 
-		// Return true to keep iterating over the files.
-		return true;
-	});
+			const std::string fileContents = File::ReadFullTextFile(file);
+			const Parse::ParseResult parseResult = Parse::Parser::ParseTrees(fileContents.c_str());
+
+			parseResult.Match(
+				[&](const Collection::Vector<Parse::ParsedTree>& parsedTrees)
+				{
+					for (const auto& parsedTree : parsedTrees)
+					{
+						BehaviourTree tree;
+						if (tree.LoadFromParsedTree(m_nodeFactory, parsedTree))
+						{
+							m_trees[Util::CalcHash(parsedTree.m_treeName)] = std::move(tree);
+						}
+						else
+						{
+							Dev::LogWarning("Failed to load behaviour tree \"%s\" from file \"%s\".",
+								parsedTree.m_treeName.c_str(), file.c_str());
+						}
+					}
+				},
+				[&](const Parse::SyntaxError& syntaxError)
+				{
+					Dev::LogWarning("Syntax error: %s", syntaxError.m_message.c_str());
+				});
+
+			// Return true to keep iterating over the files.
+			return true;
+		});
 }
 
 const Behave::BehaviourTree* Behave::BehaviourTreeManager::FindTree(const Util::StringHash treeNameHash) const

@@ -2,8 +2,7 @@
 
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTreeEvaluator.h>
-
-#include <json/JSONTypes.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 #include <mem/UniquePtr.h>
 
@@ -31,21 +30,28 @@ public:
 private:
 	const ReturnNode* m_node;
 };
-
-const Util::StringHash k_returnsSuccessHash = Util::CalcHash("returns_success");
 }
 
-Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ReturnNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ReturnNode::CreateFromNodeExpression(
+	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
-	const JSON::JSONBoolean* const returnsSuccess = jsonObject.FindBoolean(Internal_ReturnNode::k_returnsSuccessHash);
-	if (returnsSuccess != nullptr)
+	if (nodeExpression.m_arguments.Size() != 1
+		|| !nodeExpression.m_arguments.Front().m_variant.Is<Parse::LiteralExpression>())
 	{
-		auto node = Mem::MakeUnique<ReturnNode>(tree);
-		node->m_returnsSuccess = returnsSuccess->m_boolean;
-		return node;
+		Dev::LogWarning("Return nodes take only one argument: a result literal.");
+		return nullptr;
 	}
-	return nullptr;
+
+	const auto& literalExpression = nodeExpression.m_arguments.Front().m_variant.Get<Parse::LiteralExpression>();
+	if (!literalExpression.Is<Parse::ResultLiteral>())
+	{
+		Dev::LogWarning("Return nodes take only one argument: a result literal.");
+		return nullptr;
+	}
+
+	auto node = Mem::MakeUnique<ReturnNode>(tree);
+	node->m_returnsSuccess = literalExpression.Get<Parse::ResultLiteral>().m_isSuccess;
+	return node;
 }
 
 void Behave::Nodes::ReturnNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const

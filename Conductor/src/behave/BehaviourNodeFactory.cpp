@@ -2,6 +2,7 @@
 
 #include <behave/BehaviourCondition.h>
 #include <behave/BehaviourNode.h>
+#include <behave/parse/BehaveParsedTree.h>
 #include <behave/nodes/CallNode.h>
 #include <behave/nodes/ConditionalNode.h>
 #include <behave/nodes/DomainNode.h>
@@ -11,27 +12,20 @@
 #include <behave/nodes/SequenceNode.h>
 
 #include <dev/Dev.h>
-#include <json/JSONTypes.h>
 
 #include <algorithm>
 #include <string>
 
-using namespace Behave;
-
-namespace
+namespace Behave
 {
-const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
-}
-
 BehaviourNodeFactory::BehaviourNodeFactory()
 {
-	RegisterNodeFactoryFunction("call", &Nodes::CallNode::LoadFromJSON);
-	RegisterNodeFactoryFunction("conditional", &Nodes::ConditionalNode::LoadFromJSON);
-	RegisterNodeFactoryFunction("domain", &Nodes::DomainNode::LoadFromJSON);
-	RegisterNodeFactoryFunction("log", &Nodes::LogNode::LoadFromJSON);
-	RegisterNodeFactoryFunction("return", &Nodes::ReturnNode::LoadFromJSON);
-	RegisterNodeFactoryFunction("selector", &Nodes::SelectorNode::LoadFromJSON);
-	RegisterNodeFactoryFunction("sequence", &Nodes::SequenceNode::LoadFromJSON);
+	RegisterNodeType<Nodes::CallNode>();
+	RegisterNodeType<Nodes::DomainNode>();
+	RegisterNodeType<Nodes::LogNode>();
+	RegisterNodeType<Nodes::ReturnNode>();
+	RegisterNodeType<Nodes::SelectorNode>();
+	RegisterNodeType<Nodes::SequenceNode>();
 }
 
 void BehaviourNodeFactory::RegisterNodeFactoryFunction(
@@ -55,33 +49,29 @@ void BehaviourNodeFactory::RegisterConditionFactoryFunction(
 }
 
 Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
-	const JSON::JSONObject& jsonObject,
+	const Parse::NodeExpression& nodeExpression,
 	const BehaviourTree& tree) const
 {
-	const JSON::JSONString* const jsonTypeName = jsonObject.FindString(k_typeKeyHash);
-	if (jsonTypeName == nullptr)
-	{
-		Dev::LogWarning("Failed to find a node type name.");
-		return nullptr;
-	}
-
-	const auto factoryItr = m_nodeFactoryFunctions.Find(jsonTypeName->m_hash);
+	const auto factoryItr = m_nodeFactoryFunctions.Find(Util::CalcHash(nodeExpression.m_nodeName));
 	if (factoryItr == m_nodeFactoryFunctions.end())
 	{
 		for (const auto& entry : m_nodeFactoryFunctions)
 		{
 			Dev::Log("%s", Util::ReverseHash(entry.first));
 		}
-		Dev::LogWarning("Failed to find a factory function for node type \"%s\".", jsonTypeName->m_string.c_str());
+		Dev::LogWarning("Failed to find a factory function for node type \"%s\".", nodeExpression.m_nodeName.c_str());
 		return nullptr;
 	}
 
-	return factoryItr->second(*this, jsonObject, tree);
+	return factoryItr->second(*this, nodeExpression, tree);
 }
 
-Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const JSON::JSONObject& jsonObject) const
+Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Parse::Expression& expression) const
 {
-	const JSON::JSONString* const jsonTypeName = jsonObject.FindString(k_typeKeyHash);
+	// TODO(behave) condition loading
+	return nullptr;
+
+	/*const JSON::JSONString* const jsonTypeName = jsonObject.FindString(k_typeKeyHash);
 	if (jsonTypeName == nullptr)
 	{
 		Dev::LogWarning("Failed to find a condition type name.");
@@ -95,37 +85,30 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const JSO
 		return nullptr;
 	}
 
-	return factoryItr->second(jsonObject);
+	return factoryItr->second(jsonObject);*/
 }
 
 bool BehaviourNodeFactory::TryMakeNodesFrom(
-	const JSON::JSONObject& jsonObject,
+	const Collection::Vector<Parse::Expression>& expressions,
 	const BehaviourTree& tree,
-	const Util::StringHash nodesKeyHash,
 	Collection::Vector<Mem::UniquePtr<BehaviourNode>>& outNodes) const
 {
-	const JSON::JSONArray* const nodesArray = jsonObject.FindArray(nodesKeyHash);
-	if (nodesArray == nullptr)
+	for (const auto& expression : expressions)
 	{
-		Dev::LogWarning("Failed to find an array at \"%s\".", Util::ReverseHash(nodesKeyHash));
-		return false;
-	}
-
-	for (const auto& value : *nodesArray)
-	{
-		if (value->GetType() != JSON::ValueType::Object)
+		if (!expression.m_variant.Is<Parse::NodeExpression>())
 		{
-			Dev::LogWarning("Encountered a non-object value within \"%s\".", Util::ReverseHash(nodesKeyHash));
+			Dev::LogWarning("Cannot create a node from an expression that is not a node expression.");
 			return false;
 		}
-		Mem::UniquePtr<BehaviourNode> node = MakeNode(*static_cast<const JSON::JSONObject*>(value.Get()), tree);
+
+		Mem::UniquePtr<BehaviourNode> node = MakeNode(expression.m_variant.Get<Parse::NodeExpression>(), tree);
 		if (node == nullptr)
 		{
-			Dev::LogWarning("Failed to make node within \"%s\".", Util::ReverseHash(nodesKeyHash));
 			return false;
 		}
 		outNodes.Add(std::move(node));
 	}
 
 	return true;
+}
 }

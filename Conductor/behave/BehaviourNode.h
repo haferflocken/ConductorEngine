@@ -1,15 +1,12 @@
 #pragma once
 
-namespace JSON
-{
-class JSONObject;
-}
-
 namespace Behave
 {
 class BehaviourNodeFactory;
 class BehaviourTree;
 class BehaviourTreeEvaluator;
+
+namespace Parse { struct NodeExpression; }
 
 class BehaviourNode
 {

@@ -4,8 +4,7 @@
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTreeEvaluator.h>
-
-#include <json/JSONTypes.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 namespace Internal_ConditionalNode
 {
@@ -64,46 +63,47 @@ const Util::StringHash k_conditionHash = Util::CalcHash("condition");
 const Util::StringHash k_nodeHash = Util::CalcHash("node");
 }
 
-Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::LoadFromJSON(
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFromNodeExpression(
 	const Behave::BehaviourNodeFactory& nodeFactory,
-	const JSON::JSONObject& jsonObject,
+	const Parse::NodeExpression& nodeExpression,
 	const BehaviourTree& tree)
 {
-	using namespace Internal_ConditionalNode;
-
-	const JSON::JSONArray* const children = jsonObject.FindArray(k_childrenHash);
-	if (children == nullptr)
+	if (nodeExpression.m_arguments.IsEmpty() || (nodeExpression.m_arguments.Size() & 1) == 1)
 	{
-		Dev::LogWarning("Failed to find an array at \"children\".");
+		Dev::LogWarning("Condition nodes require a positive, even number of arguments. "
+			"Its arguments should be a alternating series of conditions and nodes.");
 		return nullptr;
 	}
 
 	auto node = Mem::MakeUnique<ConditionalNode>(tree);
-	for (const auto& entry : *children)
+
+	for (size_t i = 0, iEnd = nodeExpression.m_arguments.Size(); i < iEnd; i += 2)
 	{
-		if (entry->GetType() != JSON::ValueType::Object)
+		const auto& conditionExpression = nodeExpression.m_arguments[i];
+		const auto& childExpression = nodeExpression.m_arguments[i + 1];
+
+		if (!childExpression.m_variant.Is<Parse::NodeExpression>())
 		{
-			Dev::LogWarning("Encountered a non-object value within \"children\".");
+			Dev::LogWarning("Failed to create condition node: argument %zu was not a node expression.", i + 1);
 			return nullptr;
 		}
 
-		const JSON::JSONObject* const pair = static_cast<const JSON::JSONObject*>(entry.Get());
-		const JSON::JSONObject* const condition = pair->FindObject(k_conditionHash);
+		const auto& childNodeExpression = childExpression.m_variant.Get<Parse::NodeExpression>();
+
+		Mem::UniquePtr<BehaviourCondition> condition = nodeFactory.MakeCondition(conditionExpression);
 		if (condition == nullptr)
 		{
-			Dev::LogWarning("Failed to find a condition within a conditional node's child.");
-			return nullptr;
-		}
-		
-		const JSON::JSONObject* const childNode = pair->FindObject(k_nodeHash);
-		if (childNode == nullptr)
-		{
-			Dev::LogWarning("Failed to find a node within a conditional node's child.");
 			return nullptr;
 		}
 
-		node->m_conditions.Add(nodeFactory.MakeCondition(*condition));
-		node->m_children.Add(nodeFactory.MakeNode(*childNode, tree));
+		Mem::UniquePtr<BehaviourNode> childNode = nodeFactory.MakeNode(childNodeExpression, tree);
+		if (childNode == nullptr)
+		{
+			return nullptr;
+		}
+
+		node->m_conditions.Add(std::move(condition));
+		node->m_children.Add(std::move(childNode));
 	}
 
 	return node;

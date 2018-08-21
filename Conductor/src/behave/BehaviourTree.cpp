@@ -1,8 +1,7 @@
 #include <behave/BehaviourTree.h>
 #include <behave/BehaviourNode.h>
 #include <behave/BehaviourNodeFactory.h>
-
-#include <json/JSONTypes.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 Behave::BehaviourTree::BehaviourTree()
 	: m_root()
@@ -20,8 +19,10 @@ void Behave::BehaviourTree::operator=(BehaviourTree&& rhs)
 Behave::BehaviourTree::~BehaviourTree()
 {}
 
-bool Behave::BehaviourTree::LoadFromJSON(const BehaviourNodeFactory& nodeFactory, const JSON::JSONObject& jsonObject)
+bool Behave::BehaviourTree::LoadFromParsedTree(
+	const BehaviourNodeFactory& nodeFactory,
+	const Parse::ParsedTree& parsedTree)
 {
-	m_root = nodeFactory.MakeNode(jsonObject, *this);
+	m_root = nodeFactory.MakeNode(parsedTree.m_rootNode, *this);
 	return (m_root != nullptr);
 }

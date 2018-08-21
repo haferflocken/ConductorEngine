@@ -3,7 +3,7 @@
     {
       "type": "behaviour_tree_component",
       "behaviour_trees": [
-        "testCall.json"
+        "TestCall"
       ]
     },
     { "type": "scene_transform_component" },

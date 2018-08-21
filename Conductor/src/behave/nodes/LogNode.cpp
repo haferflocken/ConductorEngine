@@ -3,10 +3,9 @@
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTree.h>
 #include <behave/BehaviourTreeEvaluator.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 #include <dev/Dev.h>
-
-#include <json/JSONTypes.h>
 
 #include <mem/UniquePtr.h>
 
@@ -35,21 +34,28 @@ public:
 private:
 	const LogNode* m_node;
 };
-
-const Util::StringHash k_messageHash = Util::CalcHash("message");
 }
 
-Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::LogNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::LogNode::CreateFromNodeExpression(
+	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
-	const JSON::JSONString* const message = jsonObject.FindString(Internal_LogNode::k_messageHash);
-	if (message != nullptr)
+	if (nodeExpression.m_arguments.Size() != 1
+		|| !nodeExpression.m_arguments.Front().m_variant.Is<Parse::LiteralExpression>())
 	{
-		auto node = Mem::MakeUnique<LogNode>(tree);
-		node->m_message = message->m_string;
-		return node;
+		Dev::LogWarning("Log nodes take only one argument: a string literal.");
+		return nullptr;
 	}
-	return nullptr;
+
+	const auto& literalExpression = nodeExpression.m_arguments.Front().m_variant.Get<Parse::LiteralExpression>();
+	if (!literalExpression.Is<Parse::StringLiteral>())
+	{
+		Dev::LogWarning("Log nodes take only one argument: a string literal.");
+		return nullptr;
+	}
+
+	auto node = Mem::MakeUnique<LogNode>(tree);
+	node->m_message = literalExpression.Get<Parse::StringLiteral>().m_value;
+	return node;
 }
 
 void Behave::Nodes::LogNode::PushState(BehaviourTreeEvaluator& treeEvaluator) const

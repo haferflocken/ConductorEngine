@@ -5,15 +5,15 @@
 
 namespace Mem { template <typename T> class UniquePtr; }
 
-namespace Behave
-{
-namespace Nodes
+namespace Behave::Nodes
 {
 class CallNode final : public BehaviourNode
 {
 public:
-	static Mem::UniquePtr<BehaviourNode> LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-		const JSON::JSONObject& jsonObject, const BehaviourTree& tree);
+	static constexpr const char* k_dslName = "call";
+
+	static Mem::UniquePtr<BehaviourNode> CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
+		const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
 
 	explicit CallNode(const BehaviourTree& tree)
 		: BehaviourNode(tree)
@@ -29,5 +29,4 @@ public:
 private:
 	Util::StringHash m_treeToCall;
 };
-}
 }

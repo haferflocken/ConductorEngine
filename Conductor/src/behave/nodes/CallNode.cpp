@@ -5,8 +5,7 @@
 #include <behave/BehaviourTree.h>
 #include <behave/BehaviourTreeEvaluator.h>
 #include <behave/BehaviourTreeManager.h>
-
-#include <json/JSONTypes.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 #include <mem/UniquePtr.h>
 
@@ -66,18 +65,20 @@ private:
 const Util::StringHash k_treeToCallHash = Util::CalcHash("tree_to_call");
 }
 
-Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::CallNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::CallNode::CreateFromNodeExpression(
+	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
-	const JSON::JSONString* const treeToCall = jsonObject.FindString(Internal_CallNode::k_treeToCallHash);
-	if (treeToCall == nullptr)
+	if (nodeExpression.m_arguments.Size() != 1
+		|| !nodeExpression.m_arguments.Front().m_variant.Is<Parse::IdentifierExpression>())
 	{
-		Dev::LogWarning("CallBehaviour failed to find a tree to call.");
+		Dev::LogWarning("Call nodes take only one argument: a tree identifier.");
 		return nullptr;
 	}
+
+	const auto& identifierExpression = nodeExpression.m_arguments.Front().m_variant.Get<Parse::IdentifierExpression>();
 	
 	auto node = Mem::MakeUnique<CallNode>(tree);
-	node->m_treeToCall = treeToCall->m_hash;
+	node->m_treeToCall = Util::CalcHash(identifierExpression.m_treeName);
 	return node;
 }
 

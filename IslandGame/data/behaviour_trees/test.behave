@@ -1,0 +1,2 @@
+tree TestTree
+select(sequence(log("Hello, world!"), log("Sequence in action!")), sequence(log("Nope, nope, nope!")))

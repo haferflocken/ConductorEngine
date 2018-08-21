@@ -4,8 +4,7 @@
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTreeEvaluator.h>
-
-#include <json/JSONTypes.h>
+#include <behave/parse/BehaveParsedTree.h>
 
 namespace Internal_DomainNode
 {
@@ -66,31 +65,39 @@ private:
 	const DomainNode* m_node;
 	EvaluateResult m_childResult;
 };
-
-const Util::StringHash k_conditionHash = Util::CalcHash("condition");
-const Util::StringHash k_childHash = Util::CalcHash("child");
 }
 
-Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::DomainNode::LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-	const JSON::JSONObject& jsonObject, const BehaviourTree& tree)
+Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::DomainNode::CreateFromNodeExpression(
+	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
-	using namespace Internal_DomainNode;
+	if (nodeExpression.m_arguments.Size() != 2)
+	{
+		Dev::LogWarning("Domain nodes take exactly two arguments: a condition and node expression.");
+		return nullptr;
+	}
 
-	const JSON::JSONObject* const domain = jsonObject.FindObject(k_conditionHash);
-	if (domain == nullptr)
+	Mem::UniquePtr<BehaviourCondition> condition = nodeFactory.MakeCondition(nodeExpression.m_arguments.Front());
+	if (condition == nullptr)
 	{
 		return nullptr;
 	}
-	
-	const JSON::JSONObject* const child = jsonObject.FindObject(k_childHash);
+
+	if (!nodeExpression.m_arguments.Back().m_variant.Is<Parse::NodeExpression>())
+	{
+		Dev::LogWarning("Domain nodes require a node expression as their second argument.");
+		return nullptr;
+	}
+
+	Mem::UniquePtr<BehaviourNode> child = nodeFactory.MakeNode(
+		nodeExpression.m_arguments.Back().m_variant.Get<Parse::NodeExpression>(), tree);
 	if (child == nullptr)
 	{
 		return nullptr;
 	}
 
 	auto node = Mem::MakeUnique<DomainNode>(tree);
-	node->m_condition = nodeFactory.MakeCondition(*domain);
-	node->m_child = nodeFactory.MakeNode(*child, tree);
+	node->m_condition = std::move(condition);
+	node->m_child = std::move(child);
 
 	return node;
 }

@@ -4,15 +4,15 @@
 #include <collection/Vector.h>
 #include <mem/UniquePtr.h>
 
-namespace Behave
-{
-namespace Nodes
+namespace Behave::Nodes
 {
 class SequenceNode final : public BehaviourNode
 {
 public:
-	static Mem::UniquePtr<BehaviourNode> LoadFromJSON(const BehaviourNodeFactory& nodeFactory,
-		const JSON::JSONObject& jsonObject, const BehaviourTree& tree);
+	static constexpr const char* k_dslName = "sequence";
+
+	static Mem::UniquePtr<BehaviourNode> CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
+		const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
 
 	explicit SequenceNode(const BehaviourTree& tree)
 		: BehaviourNode(tree)
@@ -29,5 +29,4 @@ public:
 private:
 	Collection::Vector<Mem::UniquePtr<BehaviourNode>> m_children;
 };
-}
 }
