@@ -35,11 +35,13 @@ PARSING RULES
 
 	an indent is a tab character
 
+	all keywords are lowercase
+
 	a node name is may be any string that is not a keyword, begins with a lowercase letter, and consists only of letters and numbers
-	a function name may be any string that is not a keyword and:
+	a function name may be any string that:
 		begins with an uppercase letter and consists only of letters and numbers
 		or is a sequence of: < > = + - * / ^ ~ ! %
-	a tree name may be any string that is not a keyword, is not a function name in use, begins with an uppercase letter,
+	a tree name may be any string that is not a function name in use, begins with an uppercase letter,
 		and consists only of letters and numbers
 	
 	an expression is one of the following:

@@ -11,6 +11,11 @@ struct Expression;
 
 struct NodeExpression
 {
+	NodeExpression(std::string&& nodeName, Collection::Vector<Expression>&& arguments)
+		: m_nodeName(std::move(nodeName))
+		, m_arguments(std::move(arguments))
+	{}
+
 	// A node name may be any string that is not a keyword, begins with a lowercase letter,
 	// and consists only of letters and numbers.
 	std::string m_nodeName;
@@ -19,6 +24,11 @@ struct NodeExpression
 
 struct FunctionCallExpression
 {
+	FunctionCallExpression(std::string&& functionName, Collection::Vector<Expression>&& arguments)
+		: m_functionName(std::move(functionName))
+		, m_arguments(std::move(arguments))
+	{}
+
 	// A function name may be any string that is not a keyword, begins with an uppercase letter,
 	// and consists only of letters and numbers.
 	std::string m_functionName;
@@ -27,6 +37,10 @@ struct FunctionCallExpression
 
 struct IdentifierExpression
 {
+	explicit IdentifierExpression(std::string&& treeName)
+		: m_treeName(treeName)
+	{}
+
 	// A tree name may be any string that is not a keyword, begins with an uppercase letter,
 	// and consists only of letters and numbers. Tree names may not be any function name that is in use.
 	std::string m_treeName;
@@ -39,16 +53,28 @@ struct NumericLiteral
 
 struct StringLiteral
 {
+	explicit StringLiteral(const char* value)
+		: m_value(value)
+	{}
+
 	std::string m_value;
 };
 
 struct ResultLiteral
 {
+	explicit ResultLiteral(bool isSuccess)
+		: m_isSuccess(isSuccess)
+	{}
+
 	bool m_isSuccess;
 };
 
 struct BooleanLiteral
 {
+	explicit BooleanLiteral(bool v)
+		: m_value(v)
+	{}
+
 	bool m_value;
 };
 
@@ -76,6 +102,6 @@ struct Expression
 struct ParsedTree
 {
 	std::string m_treeName;
-	NodeExpression m_rootNode;
+	NodeExpression m_rootNode{ "", Collection::Vector<Expression>() };
 };
 }
