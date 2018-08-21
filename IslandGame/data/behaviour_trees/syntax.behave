@@ -1,4 +1,4 @@
-EXAMPLE OF SYNTAX:
+EXAMPLE OF SYNTAX
 
 tree ExampleTree
 domain
@@ -25,8 +25,8 @@ domain
 	log("whee")
 
 #####################################################################################################################################
+PARSING RULES
 
-PARSING RULES:
 	a file contains one or more trees.
 	a tree is the keyword tree, followed by a tree name, followed by the tree's root node on the next line.
 		The tree keyword must not be indented. The tree's root node must not be indented.
@@ -44,7 +44,7 @@ PARSING RULES:
 	
 	an expression is one of the following:
 		a node-expression
-		a function-expression
+		a function-call-expression
 		an identifier-expression
 		a literal-expression
 
@@ -54,7 +54,7 @@ PARSING RULES:
 		an open parenthesis followed by a series of comma-separated expressions followed by a closing parenthesis, all on one line
 		or a series of expressions each beginning on a line indented exactly one indent more than the current line
 	
-	a function-expression follows one of two syntaxes:
+	a function-call-expression follows one of two syntaxes:
 		a function name followed by a series of expressions for its arguments
 		an open curly brace followed by the first argument, followed by the function name, followed by the second argument,
 			all on one line, and all delimited by whitespace. This is only available for binary functions.
@@ -76,6 +76,13 @@ keywords:
 	true
 	false
 
+#####################################################################################################################################
+OTHER NOTES
+
+implementation thoughts:
+	component type literals are essentially just string hashes
+	each node type will need a file that defines the node's name and argument types
+
 builtin nodes:
 	domain (execute a node so long as a condition holds, and terminate the node if the condition fails. Succeeds only if its child node succeeds)
 	sequence (execute child nodes sequentially until one fails or all succeed. Succeeds only if all its children succeed, like an AND)
@@ -83,3 +90,4 @@ builtin nodes:
 	call (execute a different tree. Succeeds only if that tree succeeds)
 	return (exit the current tree with a provided result literal)
 	log (print a message in the debug log. Always succeeds)
+

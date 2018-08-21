@@ -141,6 +141,7 @@
     <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="src\behave\parse\BehaviourTreeParser.cpp" />
     <ClCompile Include="src\client\IClient.cpp" />
     <ClCompile Include="src\ecs\Entity.cpp" />
     <ClCompile Include="src\ecs\ComponentReflector.cpp" />
@@ -185,6 +186,8 @@
     <ClCompile Include="src\scene\UnboundedScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="behave\parse\BehaveParsedTree.h" />
+    <ClInclude Include="behave\parse\BehaviourTreeParser.h" />
     <ClInclude Include="ecs\ApplyDeltaTransmissionResult.h" />
     <ClInclude Include="ecs\SystemUtil.h" />
     <ClInclude Include="generated\InfoAsset\Test.h" />
