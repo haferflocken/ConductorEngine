@@ -9,6 +9,7 @@
 
 namespace ECS
 {
+class Entity;
 class EntityInfoManager;
 class EntityManager;
 }
