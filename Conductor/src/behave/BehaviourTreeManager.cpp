@@ -54,7 +54,8 @@ void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& direct
 				},
 				[&](const Parse::SyntaxError& syntaxError)
 				{
-					Dev::LogWarning("Syntax error: %s", syntaxError.m_message.c_str());
+					Dev::LogWarning("%s Ln %d Ch %d: %s", file.string().c_str(), syntaxError.m_lineNumber,
+						syntaxError.m_characterInLine, syntaxError.m_message.c_str());
 				});
 
 			// Return true to keep iterating over the files.
