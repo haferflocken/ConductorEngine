@@ -1,7 +1,15 @@
 tree TestTree
 select
 	sequence
+		select
+			select
+				select
+					log("deeep")
 		log("Hello, world!")
 		log("Sequence in action!")
 	sequence
 		log("Nope, nope, nope!")
+	
+tree SecondTree
+log
+	"nothing important"

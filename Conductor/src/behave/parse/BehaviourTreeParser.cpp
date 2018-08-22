@@ -109,7 +109,7 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 	// Parse the next tokens.
 	if (c == '\r' || c == '\n')
 	{
-		Token& token = outTokens.Emplace(TokenType::NewLine, i, state.lineNumber, state.characterInLine);
+		Token newLineToken{ TokenType::NewLine, i, state.lineNumber, state.characterInLine };
 
 		++i;
 		if (c == '\r' && *i == '\n')
@@ -119,10 +119,9 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 
 		++state.lineNumber;
 		state.characterInLine = 0;
-		token.m_charsEnd = i;
+		newLineToken.m_charsEnd = i;
 
 		// Measure the indentation of the line.
-		Token tabToken{ TokenType::Dedent, i, state.lineNumber, state.characterInLine };
 		int64_t indent = 0;
 		while (*i == '\t')
 		{
@@ -130,23 +129,29 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 			++i;
 			++state.characterInLine;
 		}
-		tabToken.m_charsEnd = i;
-
+		
 		const int64_t indentationDifference = indent - currentIndent;
 		currentIndent = indent;
 
 		if (indentationDifference < 0)
 		{	
-			tabToken.m_type = TokenType::Dedent;
-			outTokens.Add(tabToken);
-
-			// Swap the dedent and newline tokens.
-			std::swap(outTokens.Back(), outTokens[outTokens.Size() - 2]);
+			for (int64_t j = 0; j > indentationDifference; --j)
+			{
+				outTokens.Emplace(TokenType::Dedent, nullptr, state.lineNumber, state.characterInLine);
+			}
+			outTokens.Add(newLineToken);
 		}
 		else if (indentationDifference > 0)
 		{
-			tabToken.m_type = TokenType::Indent;
-			outTokens.Add(tabToken);
+			outTokens.Add(newLineToken);
+			for (int64_t j = 0; j < indentationDifference; ++j)
+			{
+				outTokens.Emplace(TokenType::Indent, nullptr, state.lineNumber, state.characterInLine);
+			}
+		}
+		else
+		{
+			outTokens.Add(newLineToken);
 		}
 	}
 	else if (c == '(')
