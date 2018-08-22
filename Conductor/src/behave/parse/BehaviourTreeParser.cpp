@@ -22,12 +22,11 @@ enum class TokenType : uint8_t
 	Text
 };
 
-constexpr size_t k_maxTokenLength = 129;
-
 struct Token
 {
 	TokenType m_type = TokenType::Invalid;
-	char m_chars[k_maxTokenLength]{ '\0' }; // TODO refactor into a begin and end pointers so that tokenization can be done up front without heavy memory usage
+	const char* m_charsBegin{ nullptr };
+	const char* m_charsEnd{ nullptr };
 	int32_t m_lineNumber{ -1 };
 	int32_t m_characterIndex{ -1 };
 };
@@ -80,9 +79,12 @@ void ParseNextToken(ParsingState& state)
 		}
 	}
 
+	token.m_charsBegin = i;
+
 	const char c = *i;
 	if (c == '\0')
 	{
+		token.m_charsEnd = i;
 		return;
 	}
 
@@ -106,11 +108,9 @@ void ParseNextToken(ParsingState& state)
 			++i;
 			++state.characterInLine;
 		}
+		token.m_charsEnd = i;
 
 		const int64_t indentationDifference = indent - currentIndent;
-		token.m_chars[0] = static_cast<char>(indentationDifference);
-		token.m_chars[1] = '\0';
-
 		currentIndent = indent;
 
 		if (indentationDifference == 0)
@@ -129,58 +129,51 @@ void ParseNextToken(ParsingState& state)
 	else if (c == '(')
 	{
 		token.m_type = TokenType::OpenParen;
-		token.m_chars[0] = c;
-		token.m_chars[1] = '\0';
 		++i;
 		++state.characterInLine;
+		token.m_charsEnd = i;
 	}
 	else if (c == ')')
 	{
 		token.m_type = TokenType::CloseParen;
-		token.m_chars[0] = c;
-		token.m_chars[1] = '\0';
 		++i;
 		++state.characterInLine;
+		token.m_charsEnd = i;
 	}
 	else if (c == '{')
 	{
 		token.m_type = TokenType::OpenCurly;
-		token.m_chars[0] = c;
-		token.m_chars[1] = '\0';
 		++i;
 		++state.characterInLine;
+		token.m_charsEnd = i;
 	}
 	else if (c == '}')
 	{
 		token.m_type = TokenType::CloseCurly;
-		token.m_chars[0] = c;
-		token.m_chars[1] = '\0';
 		++i;
 		++state.characterInLine;
+		token.m_charsEnd = i;
 	}
 	else if (c == ',')
 	{
 		token.m_type = TokenType::Comma;
-		token.m_chars[0] = c;
-		token.m_chars[1] = '\0';
 		++i;
 		++state.characterInLine;
+		token.m_charsEnd = i;
 	}
 	else if (c == '"')
 	{
 		token.m_type = TokenType::StringLiteral;
 		++i;
 		++state.characterInLine;
+		token.m_charsBegin = i;
 
-		size_t index = 0;
-		while (index < (k_maxTokenLength - 1) && *i != '\0' && *i != '"')
+		while (*i != '\0' && *i != '"')
 		{
-			token.m_chars[index] = *i;
 			++i;
-			++index;
+			++state.characterInLine;
 		}
-		token.m_chars[index] = '\0';
-		state.characterInLine += static_cast<int32_t>(index);
+		token.m_charsEnd = i;
 
 		if (*i == '"')
 		{
@@ -195,21 +188,19 @@ void ParseNextToken(ParsingState& state)
 			token.m_type = TokenType::ComponentTypeName;
 			++i;
 			++state.characterInLine;
+			token.m_charsBegin = i;
 		}
 		else
 		{
 			token.m_type = TokenType::Text;
 		}
 
-		size_t index = 0;
-		while (index < (k_maxTokenLength - 1) && !IsDelimiter(*i))
+		while (!IsDelimiter(*i))
 		{
-			token.m_chars[index] = *i;
 			++i;
-			++index;
+			++state.characterInLine;
 		}
-		token.m_chars[index] = '\0';
-		state.characterInLine += static_cast<int32_t>(index);
+		token.m_charsEnd = i;
 	}
 }
 
@@ -223,41 +214,43 @@ enum class KeywordType : uint8_t
 	False
 };
 
-KeywordType ConvertToKeyword(const char* const str)
+KeywordType ConvertToKeyword(const char* const strBegin, const char* const strEnd)
 {
-	if (strcmp(str, "tree") == 0)
+	const std::ptrdiff_t strLength = strEnd - strBegin;
+
+	if (strLength == 4 && strncmp(strBegin, "tree", 4) == 0)
 	{
 		return KeywordType::Tree;
 	}
-	if (strcmp(str, "success") == 0)
+	if (strLength == 7 &&  strncmp(strBegin, "success", 7) == 0)
 	{
 		return KeywordType::Success;
 	}
-	if (strcmp(str, "failure") == 0)
+	if (strLength == 7 && strncmp(strBegin, "failure", 7) == 0)
 	{
 		return KeywordType::Failure;
 	}
-	if (strcmp(str, "true") == 0)
+	if (strLength == 4 && strncmp(strBegin, "true", 4) == 0)
 	{
 		return KeywordType::True;
 	}
-	if (strcmp(str, "false") == 0)
+	if (strLength == 5 && strncmp(strBegin, "false", 5) == 0)
 	{
 		return KeywordType::False;
 	}
 	return KeywordType::Invalid;
 }
 
-bool IsTreeName(const char* const str)
+bool IsTreeName(const char* const strBegin, const char* const strEnd)
 {
-	if (!std::isupper(str[0]))
+	if (!std::isupper(strBegin[0]))
 	{
 		return false;
 	}
 
-	for (size_t i = 1; i < k_maxTokenLength && str[i] != '\0'; ++i)
+	for (const char* i = strBegin + 1; i < strEnd; ++i)
 	{
-		if (!std::isalnum(static_cast<unsigned char>(str[i])))
+		if (!std::isalnum(static_cast<unsigned char>(*i)))
 		{
 			return false;
 		}
@@ -266,19 +259,19 @@ bool IsTreeName(const char* const str)
 	return true;
 }
 
-bool IsNodeName(const char* const str)
+bool IsNodeName(const char* const strBegin, const char* const strEnd)
 {
-	if (!std::islower(str[0]))
+	if (!std::islower(strBegin[0]))
 	{
 		return false;
 	}
 
-	Dev::FatalAssert(ConvertToKeyword(str) == KeywordType::Invalid,
+	Dev::FatalAssert(ConvertToKeyword(strBegin, strEnd) == KeywordType::Invalid,
 		"Keyword strings should not be passed into IsNodeName().");
 
-	for (size_t i = 1; i < k_maxTokenLength && str[i] != '\0'; ++i)
+	for (const char* i = strBegin + 1; i < strEnd; ++i)
 	{
-		if (!std::isalnum(static_cast<unsigned char>(str[i])))
+		if (!std::isalnum(static_cast<unsigned char>(*i)))
 		{
 			return false;
 		}
@@ -287,26 +280,25 @@ bool IsNodeName(const char* const str)
 	return true;
 }
 
-bool IsFunctionName(const char* const str)
+bool IsFunctionName(const char* const strBegin, const char* const strEnd)
 {
 	// A function name may be alphanumeric.
-	if (std::isupper(str[0]))
+	if (std::isupper(strBegin[0]))
 	{
-		for (size_t i = 1; i < k_maxTokenLength && str[i] != '\0'; ++i)
+		for (const char* i = strBegin + 1; i < strEnd; ++i)
 		{
-			if (!std::isalnum(static_cast<unsigned char>(str[i])))
+			if (!std::isalnum(static_cast<unsigned char>(*i)))
 			{
 				return false;
 			}
 		}
-
 		return true;
 	}
 
 	// A function name may be a string of specific symbols.
-	for (size_t i = 0; i < k_maxTokenLength && str[i] != '\0'; ++i)
+	for (const char* i = strBegin; i < strEnd; ++i)
 	{
-		const char c = str[i];
+		const char c = *i;
 		if (c != '<' && c != '>' && c != '=' && c != '+' && c != '-' && c != '*' && c != '/' && c != '^'
 			&& c != '~' && c != '!' && c != '%')
 		{
@@ -324,10 +316,10 @@ bool IsComponentTypeNameToken(const Token& token)
 		return false;
 	}
 
-	for (size_t i = 0; i < k_maxTokenLength && token.m_chars[i] != '\0'; ++i)
+	for (const char* i = token.m_charsBegin; i < token.m_charsEnd; ++i)
 	{
-		if ((!std::isalnum(static_cast<unsigned char>(token.m_chars[i])))
-			&& (token.m_chars[i] != '_'))
+		if ((!std::isalnum(static_cast<unsigned char>(*i)))
+			&& (*i != '_'))
 		{
 			return false;
 		}
@@ -411,7 +403,7 @@ ParseExpressionResult MakeComponentTypeLiteralExpression(const ParsingState& sta
 	Expression& expression = result.Get<Expression>();
 
 	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>(
-		LiteralExpression::Make<ComponentTypeLiteral>(state.token.m_chars));
+		LiteralExpression::Make<ComponentTypeLiteral>(state.token.m_charsBegin, state.token.m_charsEnd));
 
 	return result;
 }
@@ -425,7 +417,8 @@ ParseExpressionResult MakeStringLiteralExpression(const ParsingState& state)
 	Expression& expression = result.Get<Expression>();
 
 	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
-	expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<StringLiteral>(state.token.m_chars);
+	expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<StringLiteral>(
+		state.token.m_charsBegin, state.token.m_charsEnd);
 
 	return result;
 }
@@ -511,7 +504,7 @@ ParseArgumentListResult ParseSingleLineArgumentList(ParsingState& state)
 
 ParseExpressionResult ParseNodeExpression(ParsingState& state)
 {
-	std::string nodeName{ state.token.m_chars };
+	std::string nodeName{ state.token.m_charsBegin, state.token.m_charsEnd };
 
 	ParseArgumentListResult argumentListResult = ParseArgumentList(state);
 	if (argumentListResult.Is<SyntaxError>())
@@ -530,7 +523,7 @@ ParseExpressionResult ParseNodeExpression(ParsingState& state)
 
 ParseExpressionResult ParseSingleLineNodeExpression(ParsingState& state)
 {
-	std::string nodeName{ state.token.m_chars };
+	std::string nodeName{ state.token.m_charsBegin, state.token.m_charsEnd };
 
 	ParseArgumentListResult argumentListResult = ParseSingleLineArgumentList(state);
 	if (argumentListResult.Is<SyntaxError>())
@@ -606,18 +599,18 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 		// There is ambiguity between function names and tree names. They can be differentiated
 		// by the token following the name.
 		// All other tokens are treated as numeric literals.
-		const KeywordType keywordType = ConvertToKeyword(state.token.m_chars);
+		const KeywordType keywordType = ConvertToKeyword(state.token.m_charsBegin, state.token.m_charsEnd);
 		if (keywordType != KeywordType::Invalid)
 		{
 			return MakeLiteralExpressionFromKeywordType(state, keywordType);
 		}
-		else if (IsNodeName(state.token.m_chars))
+		else if (IsNodeName(state.token.m_charsBegin, state.token.m_charsEnd))
 		{
 			return ParseSingleLineNodeExpression(state);
 		}
-		else if (IsFunctionName(state.token.m_chars))
+		else if (IsFunctionName(state.token.m_charsBegin, state.token.m_charsEnd))
 		{
-			std::string name{ state.token.m_chars };
+			std::string name{ state.token.m_charsBegin, state.token.m_charsEnd };
 			
 			// If the next token is an open parenthesis, this is a function call expression.
 			// Otherwise, this is a tree identifier.
@@ -640,7 +633,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 
 				return result;
 			}
-			else if (!IsTreeName(name.c_str()))
+			else if (!IsTreeName(name.data(), name.data() + name.length()))
 			{
 				return ParseExpressionResult::Make<SyntaxError>(
 					"Unexpected function name encountered; expected a tree name.",
@@ -657,7 +650,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 			}
 		}
 		
-		Dev::FatalAssert(!IsTreeName(state.token.m_chars),
+		Dev::FatalAssert(!IsTreeName(state.token.m_charsBegin, state.token.m_charsEnd),
 			"All tree names should be handled by the function name condition.");
 
 		return MakeNumericLiteralExpression(state);
@@ -687,16 +680,16 @@ ParseExpressionResult ParseInfixExpression(ParsingState& state)
 			"Unexpected non-text token encountered; expected a function name.",
 			state.lineNumber, state.characterInLine);
 	}
-	if (!IsFunctionName(state.token.m_chars))
+	if (!IsFunctionName(state.token.m_charsBegin, state.token.m_charsEnd))
 	{
 		std::string message = "Expected a function name; encountered \"";
-		message += state.token.m_chars;
+		message += std::string(state.token.m_charsBegin, state.token.m_charsEnd);
 		message += "\".";
 
 		return ParseExpressionResult::Make<SyntaxError>(std::move(message), state.lineNumber, state.characterInLine);
 	}
 
-	std::string functionName{ state.token.m_chars };
+	std::string functionName{ state.token.m_charsBegin, state.token.m_charsEnd };
 
 	const ParseExpressionResult rightExpressionResult = ParseSingleLineExpression(state);
 	if (!rightExpressionResult.Is<Expression>())
@@ -780,18 +773,18 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 		// There is ambiguity between function names and tree names. They can be differentiated
 		// by the token following the name.
 		// All other tokens are treated as numeric literals.
-		const KeywordType keywordType = ConvertToKeyword(state.token.m_chars);
+		const KeywordType keywordType = ConvertToKeyword(state.token.m_charsBegin, state.token.m_charsEnd);
 		if (keywordType != KeywordType::Invalid)
 		{
 			return MakeLiteralExpressionFromKeywordType(state, keywordType);
 		}
-		else if (IsNodeName(state.token.m_chars))
+		else if (IsNodeName(state.token.m_charsBegin, state.token.m_charsEnd))
 		{
 			return ParseNodeExpression(state);
 		}
-		else if (IsFunctionName(state.token.m_chars))
+		else if (IsFunctionName(state.token.m_charsBegin, state.token.m_charsEnd))
 		{
-			std::string name{ state.token.m_chars };
+			std::string name{ state.token.m_charsBegin, state.token.m_charsEnd };
 
 			// If the next token is an open parenthesis or an indenting newline, this is a function call expression.
 			// Otherwise, this is a tree identifier.
@@ -815,7 +808,7 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 
 				return result;
 			}
-			else if (!IsTreeName(name.c_str()))
+			else if (!IsTreeName(name.data(), name.data() + name.length()))
 			{
 				return ParseExpressionResult::Make<SyntaxError>(
 					"Unexpected function name encountered; expected a tree name.",
@@ -832,7 +825,7 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 			}
 		}
 
-		Dev::FatalAssert(!IsTreeName(state.token.m_chars),
+		Dev::FatalAssert(!IsTreeName(state.token.m_charsBegin, state.token.m_charsEnd),
 			"All tree names should be handled by the function name condition.");
 
 		return MakeNumericLiteralExpression(state);
@@ -888,10 +881,12 @@ ParseResult Parser::ParseTrees(const char* const input)
 			return ParseResult::Make<SyntaxError>("Unexpected non-text token encountered: expected \"tree\".",
 				state.lineNumber, state.characterInLine);
 		}
-		if (strcmp(state.token.m_chars, "tree") != 0)
+
+		const std::ptrdiff_t tokenLength = state.token.m_charsEnd - state.token.m_charsBegin;
+		if (tokenLength != 4 || strncmp(state.token.m_charsBegin, "tree", 4) != 0)
 		{
 			std::string message = "Unexpected token encountered: expected \"tree\", got \"";
-			message += state.token.m_chars;
+			message += std::string(state.token.m_charsBegin, state.token.m_charsEnd);
 			message += "\".";
 			return ParseResult::Make<SyntaxError>(std::move(message), state.lineNumber, state.characterInLine);
 		}
@@ -903,7 +898,7 @@ ParseResult Parser::ParseTrees(const char* const input)
 			return ParseResult::Make<SyntaxError>("Unexpected non-text token encountered: expected a tree name.",
 				state.lineNumber, state.characterInLine);
 		}
-		if (!IsTreeName(state.token.m_chars))
+		if (!IsTreeName(state.token.m_charsBegin, state.token.m_charsEnd))
 		{
 			return ParseResult::Make<SyntaxError>(
 				"Tree names must begin with an uppercase letter and consist only of alphanumeric characters.",
@@ -911,7 +906,7 @@ ParseResult Parser::ParseTrees(const char* const input)
 		}
 
 		ParsedTree& parsedTree = outTrees.Emplace();
-		parsedTree.m_treeName = state.token.m_chars;
+		parsedTree.m_treeName = std::string(state.token.m_charsBegin, state.token.m_charsEnd);
 
 		// Ensure there is a newline after the tree's name.
 		ParseNextToken(state);

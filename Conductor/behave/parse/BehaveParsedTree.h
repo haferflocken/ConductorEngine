@@ -53,8 +53,8 @@ struct NumericLiteral
 
 struct StringLiteral
 {
-	explicit StringLiteral(const char* value)
-		: m_value(value)
+	explicit StringLiteral(const char* vBegin, const char* vEnd)
+		: m_value(vBegin, vEnd)
 	{}
 
 	std::string m_value;
@@ -80,8 +80,8 @@ struct BooleanLiteral
 
 struct ComponentTypeLiteral
 {
-	explicit ComponentTypeLiteral(const char* typeString)
-		: m_typeString(typeString)
+	explicit ComponentTypeLiteral(const char* typeStringBegin, const char* typeStringEnd)
+		: m_typeString(typeStringBegin, typeStringEnd)
 	{}
 
 	std::string m_typeString;
