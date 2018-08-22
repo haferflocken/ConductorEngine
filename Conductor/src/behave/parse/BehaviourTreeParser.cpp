@@ -141,6 +141,9 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 		{	
 			tabToken.m_type = TokenType::Dedent;
 			outTokens.Add(tabToken);
+
+			// Swap the dedent and newline tokens.
+			std::swap(outTokens.Back(), outTokens[outTokens.Size() - 2]);
 		}
 		else if (indentationDifference > 0)
 		{
