@@ -9,8 +9,8 @@ namespace Internal_Parser
 enum class TokenType : uint8_t
 {
 	Invalid,
-	IndentNewLine,
-	DedentNewLine, // TODO separate dedents from their newlines to make multi-line argument lists work
+	Indent,
+	Dedent,
 	NewLine,
 	OpenParen,
 	CloseParen,
@@ -24,20 +24,45 @@ enum class TokenType : uint8_t
 
 struct Token
 {
-	TokenType m_type = TokenType::Invalid;
-	const char* m_charsBegin{ nullptr };
-	const char* m_charsEnd{ nullptr };
-	int32_t m_lineNumber{ -1 };
-	int32_t m_characterIndex{ -1 };
+	Token(const char* charsBegin, int32_t lineNumber, int32_t characterInLine)
+		: m_type(TokenType::Invalid)
+		, m_charsBegin(charsBegin)
+		, m_charsEnd(nullptr)
+		, m_lineNumber(lineNumber)
+		, m_characterInLine(characterInLine)
+	{}
+
+	TokenType m_type;
+	const char* m_charsBegin;
+	const char* m_charsEnd;
+	int32_t m_lineNumber;
+	int32_t m_characterInLine;
 };
 
-struct ParsingState
+struct TokenizingState
 {
 	const char* i;
 	int64_t currentIndent;
-	Token token;
 	int32_t lineNumber;
 	int32_t characterInLine;
+};
+
+class ParsingState
+{
+	const Collection::Vector<Token>& m_tokens;
+	int64_t m_tokenIndex;
+
+public:
+	explicit ParsingState(const Collection::Vector<Token>& tokens)
+		: m_tokens(tokens)
+		, m_tokenIndex(-1)
+	{}
+
+	bool HasMoreTokens() const { return (m_tokenIndex + 1) < m_tokens.Size(); }
+	const Token& GetCurrentToken() const { return m_tokens[m_tokenIndex]; }
+	const Token& PeekNextToken() const { return m_tokens[m_tokenIndex + 1]; }
+
+	void Increment() { ++m_tokenIndex; }
 };
 
 bool IsDelimiter(char c)
@@ -47,13 +72,10 @@ bool IsDelimiter(char c)
 		|| (c == '\0');
 }
 
-void ParseNextToken(ParsingState& state)
+bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outTokens)
 {
 	const char*& i = state.i;
 	int64_t& currentIndent = state.currentIndent;
-	Token& token = state.token;
-
-	token.m_type = TokenType::Invalid;
 
 	// Skip over whitespace characters and comments.
 	while (true)
@@ -79,18 +101,18 @@ void ParseNextToken(ParsingState& state)
 		}
 	}
 
-	token.m_charsBegin = i;
-
 	const char c = *i;
 	if (c == '\0')
 	{
-		token.m_charsEnd = i;
-		return;
+		return false;
 	}
 
-	// Parse the token.
+	Token& token = outTokens.Emplace(i, state.lineNumber, state.characterInLine);
+
+	// Parse the next tokens.
 	if (c == '\r' || c == '\n')
 	{
+		token.m_type = TokenType::NewLine;
 		++i;
 		if (c == '\r' && *i == '\n')
 		{
@@ -99,8 +121,10 @@ void ParseNextToken(ParsingState& state)
 
 		++state.lineNumber;
 		state.characterInLine = 0;
+		token.m_charsEnd = i;
 
 		// Measure the indentation of the line.
+		Token tabToken{ i, state.lineNumber, state.characterInLine };
 		int64_t indent = 0;
 		while (*i == '\t')
 		{
@@ -108,22 +132,20 @@ void ParseNextToken(ParsingState& state)
 			++i;
 			++state.characterInLine;
 		}
-		token.m_charsEnd = i;
+		tabToken.m_charsEnd = i;
 
 		const int64_t indentationDifference = indent - currentIndent;
 		currentIndent = indent;
 
-		if (indentationDifference == 0)
-		{
-			token.m_type = TokenType::NewLine;
+		if (indentationDifference < 0)
+		{	
+			tabToken.m_type = TokenType::Dedent;
+			outTokens.Add(tabToken);
 		}
-		else if (indentationDifference < 0)
+		else if (indentationDifference > 0)
 		{
-			token.m_type = TokenType::DedentNewLine;
-		}
-		else
-		{
-			token.m_type = TokenType::IndentNewLine;
+			tabToken.m_type = TokenType::Indent;
+			outTokens.Add(tabToken);
 		}
 	}
 	else if (c == '(')
@@ -202,6 +224,8 @@ void ParseNextToken(ParsingState& state)
 		}
 		token.m_charsEnd = i;
 	}
+	
+	return true;
 }
 
 enum class KeywordType : uint8_t
@@ -340,7 +364,7 @@ ParseExpressionResult MakeLiteralExpressionFromKeywordType(const ParsingState& s
 	case KeywordType::Tree:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("The \"tree\" keyword cannot be made into a literal.",
-			state.lineNumber, state.characterInLine);
+			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
 	}
 	case KeywordType::Success:
 	{
@@ -390,27 +414,27 @@ ParseExpressionResult MakeLiteralExpressionFromKeywordType(const ParsingState& s
 	}
 }
 
-ParseExpressionResult MakeComponentTypeLiteralExpression(const ParsingState& state)
+ParseExpressionResult MakeComponentTypeLiteralExpression(const Token& token)
 {
-	if (!IsComponentTypeNameToken(state.token))
+	if (!IsComponentTypeNameToken(token))
 	{
 		return ParseExpressionResult::Make<SyntaxError>(
 			"Component type names must consist only of alphanumeric characters and underscores.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 
 	auto result = ParseExpressionResult::Make<Expression>();
 	Expression& expression = result.Get<Expression>();
 
 	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>(
-		LiteralExpression::Make<ComponentTypeLiteral>(state.token.m_charsBegin, state.token.m_charsEnd));
+		LiteralExpression::Make<ComponentTypeLiteral>(token.m_charsBegin, token.m_charsEnd));
 
 	return result;
 }
 
-ParseExpressionResult MakeStringLiteralExpression(const ParsingState& state)
+ParseExpressionResult MakeStringLiteralExpression(const Token& token)
 {
-	Dev::FatalAssert(state.token.m_type == TokenType::StringLiteral,
+	Dev::FatalAssert(token.m_type == TokenType::StringLiteral,
 		"Only string literal tokens should be passed into MakeStringLiteralExpression().");
 
 	auto result = ParseExpressionResult::Make<Expression>();
@@ -418,20 +442,20 @@ ParseExpressionResult MakeStringLiteralExpression(const ParsingState& state)
 
 	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
 	expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<StringLiteral>(
-		state.token.m_charsBegin, state.token.m_charsEnd);
+		token.m_charsBegin, token.m_charsEnd);
 
 	return result;
 }
 
-ParseExpressionResult MakeNumericLiteralExpression(const ParsingState& state)
+ParseExpressionResult MakeNumericLiteralExpression(const Token& token)
 {
-	Dev::FatalAssert(state.token.m_type == TokenType::Text,
+	Dev::FatalAssert(token.m_type == TokenType::Text,
 		"Only text tokens should be passed into MakeNumericLiteralExpression().");
 
 	// TODO numeric literals
 
 	return ParseExpressionResult::Make<SyntaxError>("NUMERIC LITERALS NOT YET SUPPORTED",
-		state.lineNumber, state.characterInLine);
+		token.m_lineNumber, token.m_characterInLine);
 }
 
 using ParseArgumentListResult = Collection::Variant<Collection::Vector<Expression>, SyntaxError>;
@@ -441,9 +465,7 @@ ParseArgumentListResult ParseArgumentListHelper(ParsingState& state,
 {
 	Collection::Vector<Expression> arguments;
 
-	ParsingState peekState = state;
-	ParseNextToken(peekState);
-	while (peekState.token.m_type != closingTokenType)
+	while (state.HasMoreTokens() && state.PeekNextToken().m_type != closingTokenType)
 	{
 		auto argumentResult = singleLineOnly ? ParseSingleLineExpression(state) : ParseExpression(state);
 		if (argumentResult.Is<SyntaxError>())
@@ -453,58 +475,87 @@ ParseArgumentListResult ParseArgumentListHelper(ParsingState& state,
 
 		arguments.Add(std::move(argumentResult.Get<Expression>()));
 
-		peekState = state;
-		ParseNextToken(peekState);
-		if (peekState.token.m_type == separatorTokenType)
+		if (!state.HasMoreTokens())
 		{
-			state = peekState;
+			return ParseArgumentListResult::Make<SyntaxError>("Unexpected end of input encountered.",
+				state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
 		}
-		else if (peekState.token.m_type != closingTokenType)
+		const Token& peekToken = state.PeekNextToken();
+
+		if (peekToken.m_type == separatorTokenType)
+		{
+			state.Increment();
+		}
+		else if (peekToken.m_type != closingTokenType)
 		{
 			return ParseArgumentListResult::Make<SyntaxError>("Arguments must be comma separated "
 				"(in single line argument lists) or new line separated (in multi line argument lists).",
-				state.lineNumber, state.characterInLine);
+				state.PeekNextToken().m_lineNumber, state.PeekNextToken().m_characterInLine);
 		}
 	}
-	state = peekState;
-
+	if (state.HasMoreTokens())
+	{
+		state.Increment();
+	}
+	
 	return ParseArgumentListResult::Make<Collection::Vector<Expression>>(std::move(arguments));
 }
 
 ParseArgumentListResult ParseArgumentList(ParsingState& state)
 {
-	ParseNextToken(state);
-	if (state.token.m_type != TokenType::OpenParen
-		&& state.token.m_type != TokenType::IndentNewLine)
+	if (!state.HasMoreTokens())
 	{
-		return ParseArgumentListResult::Make<SyntaxError>(
-			"Argument lists must be begin with an open parenthesis or an indented new line.",
-			state.lineNumber, state.characterInLine);
+		return ParseArgumentListResult::Make<SyntaxError>("Unexpected end of input encountered.",
+			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
 	}
-	const TokenType separatorTokenType =
-		(state.token.m_type == TokenType::OpenParen) ? TokenType::Comma : TokenType::NewLine;
-	const TokenType closingTokenType =
-		(state.token.m_type == TokenType::OpenParen) ? TokenType::CloseParen : TokenType::DedentNewLine;
+	state.Increment();
 
-	return ParseArgumentListHelper(state, false, separatorTokenType, closingTokenType);
+	const Token& token = state.GetCurrentToken();
+
+	if (token.m_type == TokenType::OpenParen)
+	{
+		return ParseArgumentListHelper(state, true, TokenType::Comma, TokenType::CloseParen);
+	}
+	else if (token.m_type == TokenType::NewLine)
+	{
+		if ((!state.HasMoreTokens()) || state.PeekNextToken().m_type != TokenType::Indent)
+		{
+			return ParseArgumentListResult::Make<SyntaxError>("Multi line argument lists must be indented.",
+				token.m_lineNumber, token.m_characterInLine);
+		}
+		state.Increment();
+		return ParseArgumentListHelper(state, false, TokenType::NewLine, TokenType::Dedent);
+	}
+	
+	return ParseArgumentListResult::Make<SyntaxError>(
+		"Argument lists must be begin with an open parenthesis or an indented new line.",
+		token.m_lineNumber, token.m_characterInLine);
 }
 
 ParseArgumentListResult ParseSingleLineArgumentList(ParsingState& state)
 {
-	ParseNextToken(state);
-	if (state.token.m_type != TokenType::OpenParen)
+	if (!state.HasMoreTokens())
+	{
+		return ParseArgumentListResult::Make<SyntaxError>("Unexpected end of input encountered.",
+			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
+	}
+	state.Increment();
+
+	const Token& token = state.GetCurrentToken();
+
+	if (token.m_type != TokenType::OpenParen)
 	{
 		return ParseArgumentListResult::Make<SyntaxError>(
 			"Argument lists within single-line expressions must begin with an open parenthesis.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 
 	return ParseArgumentListHelper(state, true, TokenType::Comma, TokenType::CloseParen);
 }
 
-ParseExpressionResult ParseNodeExpression(ParsingState& state)
+ParseExpressionResult ParseNodeExpression(const Token& nodeNameToken, ParsingState& state)
 {
-	std::string nodeName{ state.token.m_charsBegin, state.token.m_charsEnd };
+	std::string nodeName{ nodeNameToken.m_charsBegin, nodeNameToken.m_charsEnd };
 
 	ParseArgumentListResult argumentListResult = ParseArgumentList(state);
 	if (argumentListResult.Is<SyntaxError>())
@@ -521,9 +572,9 @@ ParseExpressionResult ParseNodeExpression(ParsingState& state)
 	return result;
 }
 
-ParseExpressionResult ParseSingleLineNodeExpression(ParsingState& state)
+ParseExpressionResult ParseSingleLineNodeExpression(const Token& nodeNameToken, ParsingState& state)
 {
-	std::string nodeName{ state.token.m_charsBegin, state.token.m_charsEnd };
+	std::string nodeName{ nodeNameToken.m_charsBegin, nodeNameToken.m_charsEnd };
 
 	ParseArgumentListResult argumentListResult = ParseSingleLineArgumentList(state);
 	if (argumentListResult.Is<SyntaxError>())
@@ -543,32 +594,39 @@ ParseExpressionResult ParseSingleLineNodeExpression(ParsingState& state)
 // Parse an expression within a single line. Does not necessarily consume the entire line.
 ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 {
-	ParseNextToken(state);
+	if (!state.HasMoreTokens())
+	{
+		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
+			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
+	}
+	state.Increment();
+
+	const Token& token = state.GetCurrentToken();
 	
-	switch (state.token.m_type)
+	switch (token.m_type)
 	{
 	case TokenType::Invalid:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
-	case TokenType::IndentNewLine:
-	case TokenType::DedentNewLine:
+	case TokenType::Indent:
+	case TokenType::Dedent:
 	case TokenType::NewLine:
 	{
 		return ParseExpressionResult::Make<SyntaxError>(
 			"Unexpected new line encountered; expected expression to be on a single line.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::OpenParen:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected '(' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::CloseParen:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected ')' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::OpenCurly:
 	{
@@ -577,20 +635,20 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 	case TokenType::CloseCurly:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected '}' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::Comma:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected ',' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::ComponentTypeName:
 	{
-		return MakeComponentTypeLiteralExpression(state);
+		return MakeComponentTypeLiteralExpression(token);
 	}
 	case TokenType::StringLiteral:
 	{
-		return MakeStringLiteralExpression(state);
+		return MakeStringLiteralExpression(token);
 	}
 	case TokenType::Text:
 	{
@@ -599,25 +657,30 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 		// There is ambiguity between function names and tree names. They can be differentiated
 		// by the token following the name.
 		// All other tokens are treated as numeric literals.
-		const KeywordType keywordType = ConvertToKeyword(state.token.m_charsBegin, state.token.m_charsEnd);
+		const KeywordType keywordType = ConvertToKeyword(token.m_charsBegin, token.m_charsEnd);
 		if (keywordType != KeywordType::Invalid)
 		{
 			return MakeLiteralExpressionFromKeywordType(state, keywordType);
 		}
-		else if (IsNodeName(state.token.m_charsBegin, state.token.m_charsEnd))
+		else if (IsNodeName(token.m_charsBegin, token.m_charsEnd))
 		{
-			return ParseSingleLineNodeExpression(state);
+			return ParseSingleLineNodeExpression(token, state);
 		}
-		else if (IsFunctionName(state.token.m_charsBegin, state.token.m_charsEnd))
+		else if (IsFunctionName(token.m_charsBegin, token.m_charsEnd))
 		{
-			std::string name{ state.token.m_charsBegin, state.token.m_charsEnd };
+			std::string name{ token.m_charsBegin, token.m_charsEnd };
 			
 			// If the next token is an open parenthesis, this is a function call expression.
 			// Otherwise, this is a tree identifier.
-			ParsingState peekState = state;
-			ParseNextToken(peekState);
+			if (!state.HasMoreTokens())
+			{
+				return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
+					token.m_lineNumber, token.m_characterInLine);
+			}
 
-			if (peekState.token.m_type == TokenType::OpenParen)
+			const Token& peekToken = state.PeekNextToken();
+
+			if (peekToken.m_type == TokenType::OpenParen)
 			{
 				auto argumentListResult = ParseSingleLineArgumentList(state);
 				if (argumentListResult.Is<SyntaxError>())
@@ -633,11 +696,11 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 
 				return result;
 			}
-			else if (!IsTreeName(name.data(), name.data() + name.length()))
+			else if (!IsTreeName(token.m_charsBegin, token.m_charsEnd))
 			{
 				return ParseExpressionResult::Make<SyntaxError>(
 					"Unexpected function name encountered; expected a tree name.",
-					state.lineNumber, state.characterInLine);
+					token.m_lineNumber, token.m_characterInLine);
 			}
 			else
 			{
@@ -650,14 +713,14 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 			}
 		}
 		
-		Dev::FatalAssert(!IsTreeName(state.token.m_charsBegin, state.token.m_charsEnd),
+		Dev::FatalAssert(!IsTreeName(token.m_charsBegin, token.m_charsEnd),
 			"All tree names should be handled by the function name condition.");
 
-		return MakeNumericLiteralExpression(state);
+		return MakeNumericLiteralExpression(token);
 	}
 	default:
 	{
-		Dev::FatalError("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(state.token.m_type));
+		Dev::FatalError("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(token.m_type));
 		return ParseExpressionResult();
 	}
 	}
@@ -673,23 +736,31 @@ ParseExpressionResult ParseInfixExpression(ParsingState& state)
 		return leftExpressionResult;
 	}
 
-	ParseNextToken(state);
-	if (state.token.m_type != TokenType::Text)
+	if (!state.HasMoreTokens())
+	{
+		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
+			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
+	}
+
+	const Token& functionNameToken = state.GetCurrentToken();
+
+	if (functionNameToken.m_type != TokenType::Text)
 	{
 		return ParseExpressionResult::Make<SyntaxError>(
 			"Unexpected non-text token encountered; expected a function name.",
-			state.lineNumber, state.characterInLine);
+			functionNameToken.m_lineNumber, functionNameToken.m_characterInLine);
 	}
-	if (!IsFunctionName(state.token.m_charsBegin, state.token.m_charsEnd))
+	if (!IsFunctionName(functionNameToken.m_charsBegin, functionNameToken.m_charsEnd))
 	{
 		std::string message = "Expected a function name; encountered \"";
-		message += std::string(state.token.m_charsBegin, state.token.m_charsEnd);
+		message += std::string(functionNameToken.m_charsBegin, functionNameToken.m_charsEnd);
 		message += "\".";
 
-		return ParseExpressionResult::Make<SyntaxError>(std::move(message), state.lineNumber, state.characterInLine);
+		return ParseExpressionResult::Make<SyntaxError>(std::move(message),
+			functionNameToken.m_lineNumber, functionNameToken.m_characterInLine);
 	}
 
-	std::string functionName{ state.token.m_charsBegin, state.token.m_charsEnd };
+	std::string functionName{ functionNameToken.m_charsBegin, functionNameToken.m_charsEnd };
 
 	const ParseExpressionResult rightExpressionResult = ParseSingleLineExpression(state);
 	if (!rightExpressionResult.Is<Expression>())
@@ -712,23 +783,31 @@ ParseExpressionResult ParseInfixExpression(ParsingState& state)
 
 ParseExpressionResult ParseExpression(ParsingState& state)
 {
-	ParseNextToken(state);
+	if (!state.HasMoreTokens())
+	{
+		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
+			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
+	}
+	state.Increment();
+
+	const Token& token = state.GetCurrentToken();
 	
-	switch (state.token.m_type)
+	switch (token.m_type)
 	{
 	case TokenType::Invalid:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
-	case TokenType::IndentNewLine:
+	case TokenType::Indent:
 	{
-		return ParseExpression(state);
+		return ParseExpressionResult::Make<SyntaxError>("Unexpected indent encountered.",
+			token.m_lineNumber, token.m_characterInLine);
 	}
-	case TokenType::DedentNewLine:
+	case TokenType::Dedent:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected dedent encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::NewLine:
 	{
@@ -737,12 +816,12 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 	case TokenType::OpenParen:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected '(' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::CloseParen:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected ')' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::OpenCurly:
 	{
@@ -751,20 +830,20 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 	case TokenType::CloseCurly:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected '}' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::Comma:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected ',' encountered.",
-			state.lineNumber, state.characterInLine);
+			token.m_lineNumber, token.m_characterInLine);
 	}
 	case TokenType::ComponentTypeName:
 	{
-		return MakeComponentTypeLiteralExpression(state);
+		return MakeComponentTypeLiteralExpression(token);
 	}
 	case TokenType::StringLiteral:
 	{
-		return MakeStringLiteralExpression(state);
+		return MakeStringLiteralExpression(token);
 	}
 	case TokenType::Text:
 	{
@@ -773,26 +852,30 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 		// There is ambiguity between function names and tree names. They can be differentiated
 		// by the token following the name.
 		// All other tokens are treated as numeric literals.
-		const KeywordType keywordType = ConvertToKeyword(state.token.m_charsBegin, state.token.m_charsEnd);
+		const KeywordType keywordType = ConvertToKeyword(token.m_charsBegin, token.m_charsEnd);
 		if (keywordType != KeywordType::Invalid)
 		{
 			return MakeLiteralExpressionFromKeywordType(state, keywordType);
 		}
-		else if (IsNodeName(state.token.m_charsBegin, state.token.m_charsEnd))
+		else if (IsNodeName(token.m_charsBegin, token.m_charsEnd))
 		{
-			return ParseNodeExpression(state);
+			return ParseNodeExpression(token, state);
 		}
-		else if (IsFunctionName(state.token.m_charsBegin, state.token.m_charsEnd))
+		else if (IsFunctionName(token.m_charsBegin, token.m_charsEnd))
 		{
-			std::string name{ state.token.m_charsBegin, state.token.m_charsEnd };
+			std::string name{ token.m_charsBegin, token.m_charsEnd };
 
 			// If the next token is an open parenthesis or an indenting newline, this is a function call expression.
 			// Otherwise, this is a tree identifier.
-			ParsingState peekState = state;
-			ParseNextToken(peekState);
+			if (!state.HasMoreTokens())
+			{
+				return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
+					state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
+			}
+			const Token& peekToken = state.PeekNextToken();
 
-			if (peekState.token.m_type == TokenType::OpenParen
-				|| peekState.token.m_type == TokenType::IndentNewLine)
+			if (peekToken.m_type == TokenType::OpenParen
+				|| peekToken.m_type == TokenType::NewLine)
 			{
 				auto argumentListResult = ParseArgumentList(state);
 				if (argumentListResult.Is<SyntaxError>())
@@ -808,11 +891,11 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 
 				return result;
 			}
-			else if (!IsTreeName(name.data(), name.data() + name.length()))
+			else if (!IsTreeName(token.m_charsBegin, token.m_charsEnd))
 			{
 				return ParseExpressionResult::Make<SyntaxError>(
 					"Unexpected function name encountered; expected a tree name.",
-					state.lineNumber, state.characterInLine);
+					token.m_lineNumber, token.m_characterInLine);
 			}
 			else
 			{
@@ -825,14 +908,14 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 			}
 		}
 
-		Dev::FatalAssert(!IsTreeName(state.token.m_charsBegin, state.token.m_charsEnd),
+		Dev::FatalAssert(!IsTreeName(token.m_charsBegin, token.m_charsEnd),
 			"All tree names should be handled by the function name condition.");
 
-		return MakeNumericLiteralExpression(state);
+		return MakeNumericLiteralExpression(token);
 	}
 	default:
 	{
-		Dev::FatalError("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(state.token.m_type));
+		Dev::FatalError("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(token.m_type));
 		return ParseExpressionResult();
 	}
 	}
@@ -857,75 +940,100 @@ ParseResult Parser::ParseTrees(const char* const input)
 
 	Collection::Vector<ParsedTree> outTrees;
 
-	ParsingState state;
-	state.i = input;
-	state.currentIndent = 0;
-	state.lineNumber = 1;
-	state.characterInLine = 0;
+	TokenizingState tokenizingState;
+	tokenizingState.i = input;
+	tokenizingState.currentIndent = 0;
+	tokenizingState.lineNumber = 1;
+	tokenizingState.characterInLine = 0;
 
-	do
+	// Tokenize the input.
+	Collection::Vector<Token> tokens;
+	while (ParseNextTokens(tokenizingState, tokens)) {}
+
+	// Transform the tokens into a ParsedTree.
+	ParsingState parsingState{ tokens };
+
+	while (parsingState.HasMoreTokens())
 	{
 		// Parse the "tree" keyword, skipping blank lines between trees.
-		ParseNextToken(state);
-		if (state.token.m_type == TokenType::Invalid)
+		parsingState.Increment();
+		if (parsingState.GetCurrentToken().m_type == TokenType::Invalid)
 		{
 			break;
 		}
-		if (state.token.m_type == TokenType::NewLine)
+		if (parsingState.GetCurrentToken().m_type == TokenType::NewLine)
 		{
 			continue;
 		}
 
-		if (state.token.m_type != TokenType::Text)
+		if (parsingState.GetCurrentToken().m_type != TokenType::Text)
 		{
 			return ParseResult::Make<SyntaxError>("Unexpected non-text token encountered: expected \"tree\".",
-				state.lineNumber, state.characterInLine);
+				parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
 		}
 
-		const std::ptrdiff_t tokenLength = state.token.m_charsEnd - state.token.m_charsBegin;
-		if (tokenLength != 4 || strncmp(state.token.m_charsBegin, "tree", 4) != 0)
+		const std::ptrdiff_t tokenLength =
+			parsingState.GetCurrentToken().m_charsEnd - parsingState.GetCurrentToken().m_charsBegin;
+
+		if (tokenLength != 4 || strncmp(parsingState.GetCurrentToken().m_charsBegin, "tree", 4) != 0)
 		{
 			std::string message = "Unexpected token encountered: expected \"tree\", got \"";
-			message += std::string(state.token.m_charsBegin, state.token.m_charsEnd);
+			message += std::string(
+				parsingState.GetCurrentToken().m_charsBegin, parsingState.GetCurrentToken().m_charsEnd);
 			message += "\".";
-			return ParseResult::Make<SyntaxError>(std::move(message), state.lineNumber, state.characterInLine);
+			return ParseResult::Make<SyntaxError>(std::move(message), parsingState.GetCurrentToken().m_lineNumber,
+				parsingState.GetCurrentToken().m_characterInLine);
 		}
 
 		// Parse the tree's name.
-		ParseNextToken(state);
-		if (state.token.m_type != TokenType::Text)
+		if (!parsingState.HasMoreTokens())
+		{
+			return ParseResult::Make<SyntaxError>("Unexpected end of input encountered.",
+				parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
+		}
+		parsingState.Increment();
+
+		if (parsingState.GetCurrentToken().m_type != TokenType::Text)
 		{
 			return ParseResult::Make<SyntaxError>("Unexpected non-text token encountered: expected a tree name.",
-				state.lineNumber, state.characterInLine);
+				parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
 		}
-		if (!IsTreeName(state.token.m_charsBegin, state.token.m_charsEnd))
+		if (!IsTreeName(parsingState.GetCurrentToken().m_charsBegin, parsingState.GetCurrentToken().m_charsEnd))
 		{
 			return ParseResult::Make<SyntaxError>(
 				"Tree names must begin with an uppercase letter and consist only of alphanumeric characters.",
-				state.lineNumber, state.characterInLine);
+				parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
 		}
 
 		ParsedTree& parsedTree = outTrees.Emplace();
-		parsedTree.m_treeName = std::string(state.token.m_charsBegin, state.token.m_charsEnd);
+		parsedTree.m_treeName = std::string(
+			parsingState.GetCurrentToken().m_charsBegin, parsingState.GetCurrentToken().m_charsEnd);
 
 		// Ensure there is a newline after the tree's name.
-		ParseNextToken(state);
-		if (state.token.m_type != TokenType::NewLine)
+		if (!parsingState.HasMoreTokens())
+		{
+			return ParseResult::Make<SyntaxError>("Unexpected end of input encountered.",
+				parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
+		}
+		parsingState.Increment();
+
+		if (parsingState.GetCurrentToken().m_type != TokenType::NewLine)
 		{
 			return ParseResult::Make<SyntaxError>(
 				"A tree's root node must be on the line following the tree's name declaration.",
-				state.lineNumber, state.characterInLine);
+				parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
 		}
 
 		// Parse the tree's root node.
-		ParseExpressionResult rootExpressionResult = ParseExpression(state);
+		ParseExpressionResult rootExpressionResult = ParseExpression(parsingState);
 		if (!rootExpressionResult.IsAny())
 		{
 			// This only happens due to internal parser errors and is not part of normal control flow.
 			return ParseResult();
 		}
 
-		SyntaxError rootSyntaxError{ "", state.lineNumber, state.characterInLine };
+		SyntaxError rootSyntaxError{ "", parsingState.GetCurrentToken().m_lineNumber,
+			parsingState.GetCurrentToken().m_characterInLine };
 
 		rootExpressionResult.Match(
 			[&](Expression& expression)
@@ -948,8 +1056,7 @@ ParseResult Parser::ParseTrees(const char* const input)
 		{
 			return ParseResult::Make<SyntaxError>(std::move(rootSyntaxError));
 		}
-
-	} while (state.token.m_type != TokenType::Invalid);
+	}
 
 	return ParseResult::Make<Collection::Vector<ParsedTree>>(std::move(outTrees));
 }
