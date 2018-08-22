@@ -8,7 +8,6 @@ namespace Internal_Parser
 {
 enum class TokenType : uint8_t
 {
-	Invalid,
 	Indent,
 	Dedent,
 	NewLine,
@@ -24,8 +23,8 @@ enum class TokenType : uint8_t
 
 struct Token
 {
-	Token(const char* charsBegin, int32_t lineNumber, int32_t characterInLine)
-		: m_type(TokenType::Invalid)
+	Token(TokenType tokenType, const char* charsBegin, int32_t lineNumber, int32_t characterInLine)
+		: m_type(tokenType)
 		, m_charsBegin(charsBegin)
 		, m_charsEnd(nullptr)
 		, m_lineNumber(lineNumber)
@@ -107,12 +106,11 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 		return false;
 	}
 
-	Token& token = outTokens.Emplace(i, state.lineNumber, state.characterInLine);
-
 	// Parse the next tokens.
 	if (c == '\r' || c == '\n')
 	{
-		token.m_type = TokenType::NewLine;
+		Token& token = outTokens.Emplace(TokenType::NewLine, i, state.lineNumber, state.characterInLine);
+
 		++i;
 		if (c == '\r' && *i == '\n')
 		{
@@ -124,7 +122,7 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 		token.m_charsEnd = i;
 
 		// Measure the indentation of the line.
-		Token tabToken{ i, state.lineNumber, state.characterInLine };
+		Token tabToken{ TokenType::Dedent, i, state.lineNumber, state.characterInLine };
 		int64_t indent = 0;
 		while (*i == '\t')
 		{
@@ -153,42 +151,42 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 	}
 	else if (c == '(')
 	{
-		token.m_type = TokenType::OpenParen;
+		Token& token = outTokens.Emplace(TokenType::OpenParen, i, state.lineNumber, state.characterInLine);
 		++i;
 		++state.characterInLine;
 		token.m_charsEnd = i;
 	}
 	else if (c == ')')
 	{
-		token.m_type = TokenType::CloseParen;
+		Token& token = outTokens.Emplace(TokenType::CloseParen, i, state.lineNumber, state.characterInLine);
 		++i;
 		++state.characterInLine;
 		token.m_charsEnd = i;
 	}
 	else if (c == '{')
 	{
-		token.m_type = TokenType::OpenCurly;
+		Token& token = outTokens.Emplace(TokenType::OpenCurly, i, state.lineNumber, state.characterInLine);
 		++i;
 		++state.characterInLine;
 		token.m_charsEnd = i;
 	}
 	else if (c == '}')
 	{
-		token.m_type = TokenType::CloseCurly;
+		Token& token = outTokens.Emplace(TokenType::CloseCurly, i, state.lineNumber, state.characterInLine);
 		++i;
 		++state.characterInLine;
 		token.m_charsEnd = i;
 	}
 	else if (c == ',')
 	{
-		token.m_type = TokenType::Comma;
+		Token& token = outTokens.Emplace(TokenType::Comma, i, state.lineNumber, state.characterInLine);
 		++i;
 		++state.characterInLine;
 		token.m_charsEnd = i;
 	}
 	else if (c == '"')
 	{
-		token.m_type = TokenType::StringLiteral;
+		Token& token = outTokens.Emplace(TokenType::StringLiteral, i, state.lineNumber, state.characterInLine);
 		++i;
 		++state.characterInLine;
 		token.m_charsBegin = i;
@@ -208,9 +206,9 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 	}
 	else
 	{
+		Token& token = outTokens.Emplace(TokenType::ComponentTypeName, i, state.lineNumber, state.characterInLine);
 		if (c == '$')
 		{
-			token.m_type = TokenType::ComponentTypeName;
 			++i;
 			++state.characterInLine;
 			token.m_charsBegin = i;
@@ -608,11 +606,6 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 	
 	switch (token.m_type)
 	{
-	case TokenType::Invalid:
-	{
-		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
-			token.m_lineNumber, token.m_characterInLine);
-	}
 	case TokenType::Indent:
 	case TokenType::Dedent:
 	case TokenType::NewLine:
@@ -797,11 +790,6 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 	
 	switch (token.m_type)
 	{
-	case TokenType::Invalid:
-	{
-		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
-			token.m_lineNumber, token.m_characterInLine);
-	}
 	case TokenType::Indent:
 	{
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected indent encountered.",
@@ -960,10 +948,6 @@ ParseResult Parser::ParseTrees(const char* const input)
 	{
 		// Parse the "tree" keyword, skipping blank lines between trees.
 		parsingState.Increment();
-		if (parsingState.GetCurrentToken().m_type == TokenType::Invalid)
-		{
-			break;
-		}
 		if (parsingState.GetCurrentToken().m_type == TokenType::NewLine)
 		{
 			continue;
