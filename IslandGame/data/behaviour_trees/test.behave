@@ -12,5 +12,5 @@ select
 	
 tree SecondTree
 domain
-	HasComponent($blackboard_component)
+	{ HasComponent($blackboard_component) And { false Xor HasComponent($scene_transform_component) } }
 	log("it's alive!")

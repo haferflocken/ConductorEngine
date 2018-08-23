@@ -83,6 +83,7 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 		},
 		[&](const Parse::FunctionCallExpression& functionCallExpression)
 		{
+			// Validate that the function is bound.
 			const auto* const entry = m_boundFunctions.Find(functionCallExpression.m_functionNameHash);
 			if (entry == m_boundFunctions.end())
 			{
@@ -94,17 +95,59 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 				return;
 			}
 
-			Collection::Vector<Expression> compiledArguments;
-			for (const auto& argument : functionCallExpression.m_arguments)
+			// Validate that the function takes the correct number of arguments.
+			const auto& boundArgumentTypes = m_boundFunctionArgumentTypes.Find(
+				functionCallExpression.m_functionNameHash)->second;
+			if (functionCallExpression.m_arguments.Size() != boundArgumentTypes.Size())
 			{
-				ExpressionCompileResult argumentResult = Compile(argument);
+				std::string message = "Expected ";
+				message += boundArgumentTypes.Size();
+				message += " arguments, but encountered ";
+				message += functionCallExpression.m_arguments.Size();
+				message += ".";
+
+				result = ExpressionCompileResult::Make<TypeCheckFailure>(std::move(message));
+				return;
+			}
+
+			// Compile the function's argument expressions and ensure they have the right types.
+			Collection::Vector<Expression> compiledArguments;
+			for (size_t i = 0, iEnd = functionCallExpression.m_arguments.Size(); i < iEnd; ++i)
+			{
+				ExpressionCompileResult argumentResult = Compile(functionCallExpression.m_arguments[i]);
 				if (!argumentResult.Is<Expression>())
 				{
 					result = std::move(argumentResult);
 					return;
 				}
-				// TODO(behave) type check the argument expressions
-				compiledArguments.Add(std::move(argumentResult.Get<Expression>()));
+				
+				Expression& compiledArgument = argumentResult.Get<Expression>();
+				Dev::FatalAssert(compiledArgument.m_variant.IsAny(),
+					"No Behave AST compilation path may result in an invalid AST::Expression.");
+
+				ExpressionResultTypes argumentResultType;
+				compiledArgument.m_variant.Match(
+					[&](const bool&) { argumentResultType = ExpressionResultTypes::Boolean; },
+					[&](const double&) { argumentResultType = ExpressionResultTypes::Number; },
+					[&](const std::string&) { argumentResultType = ExpressionResultTypes::String; },
+					[&](const ECS::ComponentType&) { argumentResultType = ExpressionResultTypes::ComponentType; },
+					[&](const TreeIdentifier&) { argumentResultType = ExpressionResultTypes::TreeIdentifier; },
+					[&](const FunctionCallExpression& argumentFunctionCall)
+					{
+						argumentResultType = argumentFunctionCall.m_boundFunction.GetReturnType();
+					});
+
+				if (argumentResultType != boundArgumentTypes[i])
+				{
+					std::string message = "Argument type mismatch in call to function [";
+					message += functionCallExpression.m_functionName;
+					message += "].";
+
+					result = ExpressionCompileResult::Make<TypeCheckFailure>(std::move(message));
+					return;
+				}
+
+				compiledArguments.Add(std::move(compiledArgument));
 			}
 
 			result = ExpressionCompileResult::Make<Expression>();

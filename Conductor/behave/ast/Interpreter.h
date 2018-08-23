@@ -50,11 +50,43 @@ public:
 
 private:
 	Collection::VectorMap<Util::StringHash, BoundFunction> m_boundFunctions;
+	Collection::VectorMap<Util::StringHash, Collection::Vector<ExpressionResultTypes>> m_boundFunctionArgumentTypes;
 };
 }
 
 namespace Behave::AST
 {
+namespace Internal_Interpreter
+{
+template <typename T>
+struct ExpressionResultTypeFor;
+
+template <> struct ExpressionResultTypeFor<bool>
+{
+	static constexpr ExpressionResultTypes value = ExpressionResultTypes::Boolean;
+};
+
+template <> struct ExpressionResultTypeFor<double>
+{
+	static constexpr ExpressionResultTypes value = ExpressionResultTypes::Number;
+};
+
+template <> struct ExpressionResultTypeFor<std::string>
+{
+	static constexpr ExpressionResultTypes value = ExpressionResultTypes::String;
+};
+
+template <> struct ExpressionResultTypeFor<ECS::ComponentType>
+{
+	static constexpr ExpressionResultTypes value = ExpressionResultTypes::ComponentType;
+};
+
+template <> struct ExpressionResultTypeFor<TreeIdentifier>
+{
+	static constexpr ExpressionResultTypes value = ExpressionResultTypes::TreeIdentifier;
+};
+}
+
 template <typename ReturnType, typename... ArgumentTypes>
 inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 	ReturnType(*func)(const ECS::Entity&, ArgumentTypes...))
@@ -95,6 +127,16 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 		}
 	};
 
+	Dev::FatalAssert(m_boundFunctions.Find(functionNameHash) == m_boundFunctions.end()
+		&& m_boundFunctionArgumentTypes.Find(functionNameHash) == m_boundFunctionArgumentTypes.end(),
+		"Cannot bind a function multiple times!");
+
 	m_boundFunctions[functionNameHash] = BoundFunction(func, &BindingFunctions::Call, k_returnType);
+	auto& argumentTypes = m_boundFunctionArgumentTypes[functionNameHash];
+
+	for (const auto& t : { Internal_Interpreter::ExpressionResultTypeFor<ArgumentTypes>::value... })
+	{
+		argumentTypes.Add(t);
+	}
 }
 }
