@@ -5,18 +5,19 @@
 
 namespace Behave::AST
 {
-// TODO move this elsewhere
+// TODO(behave) move this elsewhere
 struct TreeIdentifier
 {
 	Util::StringHash m_treeNameHash;
 };
 
-using ExpressionResult = Collection::Variant<bool, double, ECS::ComponentType, TreeIdentifier>;
+using ExpressionResult = Collection::Variant<bool, double, std::string, ECS::ComponentType, TreeIdentifier>;
 
 enum class ExpressionResultTypes : uint8_t
 {
 	Boolean,
 	Number,
+	String,
 	ComponentType,
 	TreeIdentifier
 };

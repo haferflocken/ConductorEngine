@@ -61,18 +61,23 @@ Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
 
 Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Parse::Expression& expression) const
 {
-	AST::Expression compiledExpression = m_interpreter.Compile(expression);
-	if (!compiledExpression.m_variant.IsAny())
+	AST::ExpressionCompileResult compileResult = m_interpreter.Compile(expression);
+	if (!compileResult.Is<AST::Expression>())
 	{
+		const AST::TypeCheckFailure& typeCheckFailure = compileResult.Get<AST::TypeCheckFailure>();
+		Dev::LogWarning("Type Checking Failure: %s", typeCheckFailure.m_message.c_str());
 		return nullptr;
 	}
 
+	AST::Expression& compiledExpression = compileResult.Get<AST::Expression>();
+
 	bool expressionResultsInBool = false;
 	compiledExpression.m_variant.Match(
-		[&](const AST::BooleanLiteralExpression&) { expressionResultsInBool = true; },
-		[](const AST::NumericLiteralExpression&) {},
-		[](const AST::ComponentTypeLiteralExpression&) {},
-		[](const AST::TreeIdentifierExpression&) {},
+		[&](const bool&) { expressionResultsInBool = true; },
+		[](const double&) {},
+		[](const std::string&) {},
+		[](const ECS::ComponentType&) {},
+		[](const AST::TreeIdentifier&) {},
 		[&](const AST::FunctionCallExpression& functionCallExpression)
 		{
 			expressionResultsInBool =

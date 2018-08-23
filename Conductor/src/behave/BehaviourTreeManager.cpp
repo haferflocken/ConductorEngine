@@ -47,7 +47,7 @@ void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& direct
 						}
 						else
 						{
-							Dev::LogWarning("Failed to load behaviour tree \"%s\" from file \"%s\".",
+							Dev::LogWarning("Failed to load behaviour tree \"%s\" from file [%S].",
 								parsedTree.m_treeName.c_str(), file.c_str());
 						}
 					}

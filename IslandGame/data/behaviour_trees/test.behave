@@ -11,5 +11,6 @@ select
 		log("Nope, nope, nope!")
 	
 tree SecondTree
-log
-	"nothing important"
+domain
+	{ $blackboard_component GetBool "is_alive" }
+	log("it's alive!")

@@ -10,28 +10,13 @@ namespace Behave::AST
 {
 struct Expression;
 
-struct BooleanLiteralExpression
-{
-	bool m_value;
-};
-
-struct NumericLiteralExpression
-{
-	double m_value;
-};
-
-struct ComponentTypeLiteralExpression
-{
-	ECS::ComponentType m_type;
-};
-
-struct TreeIdentifierExpression
-{
-	Util::StringHash m_treeNameHash;
-};
-
 struct FunctionCallExpression
 {
+	FunctionCallExpression(const BoundFunction& boundFunction, Collection::Vector<Expression>&& arguments)
+		: m_boundFunction(boundFunction)
+		, m_arguments(std::move(arguments))
+	{}
+
 	BoundFunction m_boundFunction;
 	Collection::Vector<Expression> m_arguments;
 };
@@ -39,10 +24,11 @@ struct FunctionCallExpression
 struct Expression
 {
 	Collection::Variant<
-		BooleanLiteralExpression,
-		NumericLiteralExpression,
-		ComponentTypeLiteralExpression,
-		TreeIdentifierExpression,
+		bool,
+		double,
+		std::string,
+		ECS::ComponentType,
+		TreeIdentifier,
 		FunctionCallExpression> m_variant;
 };
 }

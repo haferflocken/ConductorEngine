@@ -13,6 +13,21 @@ namespace ECS { class Entity; }
 
 namespace Behave::AST
 {
+struct TypeCheckFailure
+{
+	explicit TypeCheckFailure(const char* message)
+		: m_message(message)
+	{}
+
+	explicit TypeCheckFailure(std::string&& message)
+		: m_message(std::move(message))
+	{}
+
+	std::string m_message;
+};
+
+using ExpressionCompileResult = Collection::Variant<Expression, TypeCheckFailure>;
+
 /**
  * An interpreter that evaluates AST expressions.
  */
@@ -20,7 +35,7 @@ class Interpreter
 {
 public:
 	// Compile a parsed expression into an executable expression.
-	Expression Compile(const Parse::Expression& parsedExpression) const;
+	ExpressionCompileResult Compile(const Parse::Expression& parsedExpression) const;
 
 	// Evaluate an AST::Expression on the given entity.
 	ExpressionResult EvaluateExpression(const Expression& expression, const ECS::Entity& entity) const;
@@ -44,6 +59,7 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 	constexpr ExpressionResultTypes k_returnType =
 		std::is_same_v<ReturnType, bool> ? ExpressionResultTypes::Boolean
 		: std::is_same_v<ReturnType, double> ? ExpressionResultTypes::Number
+		: std::is_same_v<ReturnType, std::string> ? ExpressionResultTypes::String
 		: std::is_same_v<ReturnType, ECS::ComponentType> ? ExpressionResultTypes::ComponentType
 		: ExpressionResultTypes::TreeIdentifier;
 
