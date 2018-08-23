@@ -3,11 +3,19 @@
 #include <behave/parse/BehaveParsedTree.h>
 
 #include <dev/Dev.h>
+#include <ecs/Entity.h>
 
 namespace Behave::AST
 {
 namespace Internal_Interpreter
 {
+bool Not(const ECS::Entity&, bool val) { return !val; }
+bool And(const ECS::Entity&, bool lhs, bool rhs) { return lhs && rhs; }
+bool Or(const ECS::Entity&, bool lhs, bool rhs) { return lhs || rhs; }
+bool Xor(const ECS::Entity&, bool lhs, bool rhs) { return lhs ^ rhs; }
+bool Nor(const ECS::Entity&, bool lhs, bool rhs) { return !(lhs || rhs); }
+bool XNor(const ECS::Entity&, bool lhs, bool rhs) { return lhs == rhs; }
+
 double Add(const ECS::Entity&, double lhs, double rhs) { return lhs + rhs; }
 double Subtract(const ECS::Entity&, double lhs, double rhs) { return lhs - rhs; }
 double Multiply(const ECS::Entity&, double lhs, double rhs) { return lhs * rhs; }
@@ -20,11 +28,27 @@ bool GreaterThan(const ECS::Entity&, double lhs, double rhs) { return lhs > rhs;
 bool GreaterThanOrEqualTo(const ECS::Entity&, double lhs, double rhs) { return lhs >= rhs; }
 bool EqualTo(const ECS::Entity&, double lhs, double rhs) { return lhs == rhs; }
 bool NotEqualTo(const ECS::Entity&, double lhs, double rhs) { return lhs != rhs; }
+
+double Floor(const ECS::Entity&, double val) { return floor(val); }
+double Ceil(const ECS::Entity&, double val) { return ceil(val); }
+double Round(const ECS::Entity&, double val) { return round(val); }
+
+bool HasComponent(const ECS::Entity& entity, ECS::ComponentType componentType)
+{
+	return entity.FindComponentID(componentType) != ECS::ComponentID();
+}
 }
 
 Interpreter::Interpreter()
 	: m_boundFunctions()
 {
+	BindFunction(Util::CalcHash("Not"), &Internal_Interpreter::Not);
+	BindFunction(Util::CalcHash("And"), &Internal_Interpreter::And);
+	BindFunction(Util::CalcHash("Or"), &Internal_Interpreter::Or);
+	BindFunction(Util::CalcHash("Xor"), &Internal_Interpreter::Xor);
+	BindFunction(Util::CalcHash("Nor"), &Internal_Interpreter::Nor);
+	BindFunction(Util::CalcHash("XNor"), &Internal_Interpreter::XNor);
+
 	BindFunction(Util::CalcHash("+"), &Internal_Interpreter::Add);
 	BindFunction(Util::CalcHash("-"), &Internal_Interpreter::Subtract);
 	BindFunction(Util::CalcHash("*"), &Internal_Interpreter::Multiply);
@@ -37,6 +61,12 @@ Interpreter::Interpreter()
 	BindFunction(Util::CalcHash(">="), &Internal_Interpreter::GreaterThanOrEqualTo);
 	BindFunction(Util::CalcHash("=="), &Internal_Interpreter::EqualTo);
 	BindFunction(Util::CalcHash("!="), &Internal_Interpreter::NotEqualTo);
+
+	BindFunction(Util::CalcHash("Floor"), &Internal_Interpreter::Floor);
+	BindFunction(Util::CalcHash("Ceil"), &Internal_Interpreter::Ceil);
+	BindFunction(Util::CalcHash("Round"), &Internal_Interpreter::Round);
+
+	BindFunction(Util::CalcHash("HasComponent"), &Internal_Interpreter::HasComponent);
 }
 
 Interpreter::~Interpreter()

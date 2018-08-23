@@ -12,5 +12,5 @@ select
 	
 tree SecondTree
 domain
-	{ 4 < 3 }
+	HasComponent($blackboard_component)
 	log("it's alive!")
