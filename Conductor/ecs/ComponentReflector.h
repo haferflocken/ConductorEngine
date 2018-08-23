@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ecs/ComponentType.h>
+
 #include <collection/VectorMap.h>
 #include <unit/CountUnits.h>
 #include <util/StringHash.h>
@@ -60,29 +62,29 @@ public:
 	template <typename ComponentType>
 	void RegisterMemoryImagedNetworkedComponentType();
 
-	Unit::ByteCount64 GetSizeOfComponentInBytes(const Util::StringHash componentTypeHash) const;
+	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
 
 	bool TryMakeComponent(const ComponentInfo& componentInfo, const ComponentID reservedID,
 		ComponentVector& destination) const;
 	void DestroyComponent(Component& component) const;
 	void SwapComponents(Component& a, Component& b) const;
 
-	bool IsNetworkedComponent(const Util::StringHash componentTypeHash) const;
+	bool IsNetworkedComponent(const ComponentType componentType) const;
 
-	DestructorFunction FindDestructorFunction(const Util::StringHash componentTypeHash) const;
-	const TransmissionFunctions* FindTransmissionFunctions(const Util::StringHash componentTypeHash) const;
+	DestructorFunction FindDestructorFunction(const ComponentType componentType) const;
+	const TransmissionFunctions* FindTransmissionFunctions(const ComponentType componentType) const;
 
 private:
 	void RegisterComponentType(const char* componentTypeName, const Util::StringHash componentTypeHash,
 		const Unit::ByteCount64 sizeOfComponentInBytes, FactoryFunction factoryFn, DestructorFunction destructorFn,
 		SwapFunction swapFn);
 
-	// Maps of component type hashes to functions for those component types.
-	Collection::VectorMap<Util::StringHash, Unit::ByteCount64> m_componentSizesInBytes;
-	Collection::VectorMap<Util::StringHash, FactoryFunction> m_factoryFunctions;
-	Collection::VectorMap<Util::StringHash, DestructorFunction> m_destructorFunctions;
-	Collection::VectorMap<Util::StringHash, SwapFunction> m_swapFunctions;
-	Collection::VectorMap<Util::StringHash, TransmissionFunctions> m_transmissionFunctions;
+	// Maps of component types to functions for those component types.
+	Collection::VectorMap<ComponentType, Unit::ByteCount64> m_componentSizesInBytes;
+	Collection::VectorMap<ComponentType, FactoryFunction> m_factoryFunctions;
+	Collection::VectorMap<ComponentType, DestructorFunction> m_destructorFunctions;
+	Collection::VectorMap<ComponentType, SwapFunction> m_swapFunctions;
+	Collection::VectorMap<ComponentType, TransmissionFunctions> m_transmissionFunctions;
 };
 
 template <typename ComponentType>

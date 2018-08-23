@@ -22,30 +22,32 @@ void ECS::ComponentReflector::RegisterComponentType(const char* const componentT
 	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponentInBytes,
 	FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn)
 {
+	const ComponentType componentType{ componentTypeHash };
+
 	Dev::FatalAssert(componentTypeHash == Util::CalcHash(componentTypeName),
 		"Mismatch between component type hash and component type name for component with type name \"s\".",
 		componentTypeName);
 	
-	Dev::FatalAssert(m_componentSizesInBytes.Find(componentTypeHash) == m_componentSizesInBytes.end()
-		&& m_factoryFunctions.Find(componentTypeHash) == m_factoryFunctions.end()
-		&& m_destructorFunctions.Find(componentTypeHash) == m_destructorFunctions.end()
-		&& m_swapFunctions.Find(componentTypeHash) == m_swapFunctions.end()
-		&& m_transmissionFunctions.Find(componentTypeHash) == m_transmissionFunctions.end(),
+	Dev::FatalAssert(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
+		&& m_factoryFunctions.Find(componentType) == m_factoryFunctions.end()
+		&& m_destructorFunctions.Find(componentType) == m_destructorFunctions.end()
+		&& m_swapFunctions.Find(componentType) == m_swapFunctions.end()
+		&& m_transmissionFunctions.Find(componentType) == m_transmissionFunctions.end(),
 		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
 	
-	m_componentSizesInBytes[componentTypeHash] = sizeOfComponentInBytes;
-	m_factoryFunctions[componentTypeHash] = factoryFn;
-	m_destructorFunctions[componentTypeHash] = destructorFn;
-	m_swapFunctions[componentTypeHash] = swapFn;
+	m_componentSizesInBytes[componentType] = sizeOfComponentInBytes;
+	m_factoryFunctions[componentType] = factoryFn;
+	m_destructorFunctions[componentType] = destructorFn;
+	m_swapFunctions[componentType] = swapFn;
 }
 
-Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(
-	const Util::StringHash componentTypeHash) const
+Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(const ComponentType componentType) const
 {
-	const auto sizeItr = m_componentSizesInBytes.Find(componentTypeHash);
+	const auto sizeItr = m_componentSizesInBytes.Find(componentType);
 	if (sizeItr == m_componentSizesInBytes.end())
 	{
-		Dev::LogWarning("Failed to find the size of component type \"%s\".", Util::ReverseHash(componentTypeHash));
+		Dev::LogWarning("Failed to find the size of component type \"%s\".",
+			Util::ReverseHash(componentType.GetTypeHash()));
 		return Unit::ByteCount64(0);
 	}
 
@@ -55,7 +57,7 @@ Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(
 bool ECS::ComponentReflector::TryMakeComponent(const ComponentInfo& componentInfo,
 	const ComponentID reservedID, ComponentVector& destination) const
 {
-	const auto factoryItr = m_factoryFunctions.Find(componentInfo.GetTypeHash());
+	const auto factoryItr = m_factoryFunctions.Find(ComponentType(componentInfo.GetTypeHash()));
 	if (factoryItr == m_factoryFunctions.end())
 	{
 		Dev::LogWarning("Failed to find a factory function for component type \"%s\".", componentInfo.GetTypeName());
@@ -70,7 +72,7 @@ void ECS::ComponentReflector::DestroyComponent(Component& component) const
 	const auto& destructorItr = m_destructorFunctions.Find(component.m_id.GetType());
 	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
 		"Failed to find a destructor function for component type \"%s\".",
-		Util::ReverseHash(component.m_id.GetType()));
+		Util::ReverseHash(component.m_id.GetType().GetTypeHash()));
 
 	destructorItr->second(component);
 }
@@ -80,31 +82,31 @@ void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 	const auto& swapItr = m_swapFunctions.Find(a.m_id.GetType());
 	Dev::FatalAssert(swapItr != m_swapFunctions.end() && swapItr == m_swapFunctions.Find(b.m_id.GetType()),
 		"Failed to find a swap function for component type \"%s\".",
-		Util::ReverseHash(a.m_id.GetType()));
+		Util::ReverseHash(a.m_id.GetType().GetTypeHash()));
 
 	swapItr->second(a, b);
 }
 
-bool ECS::ComponentReflector::IsNetworkedComponent(const Util::StringHash componentTypeHash) const
+bool ECS::ComponentReflector::IsNetworkedComponent(const ComponentType componentType) const
 {
-	return (m_transmissionFunctions.Find(componentTypeHash) != m_transmissionFunctions.end());
+	return (m_transmissionFunctions.Find(componentType) != m_transmissionFunctions.end());
 }
 
 ECS::ComponentReflector::DestructorFunction ECS::ComponentReflector::FindDestructorFunction(
-	const Util::StringHash componentTypeHash) const
+	const ComponentType componentType) const
 {
-	const auto& destructorItr = m_destructorFunctions.Find(componentTypeHash);
+	const auto& destructorItr = m_destructorFunctions.Find(componentType);
 	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
 		"Failed to find destructor function for component type \"%s\".",
-		Util::ReverseHash(componentTypeHash));
+		Util::ReverseHash(componentType.GetTypeHash()));
 
 	return destructorItr->second;
 }
 
 const ECS::ComponentReflector::TransmissionFunctions* ECS::ComponentReflector::FindTransmissionFunctions(
-	const Util::StringHash componentTypeHash) const
+	const ComponentType componentType) const
 {
-	const auto transmissionItr = m_transmissionFunctions.Find(componentTypeHash);
+	const auto transmissionItr = m_transmissionFunctions.Find(componentType);
 	if (transmissionItr != m_transmissionFunctions.end())
 	{
 		return &transmissionItr->second;

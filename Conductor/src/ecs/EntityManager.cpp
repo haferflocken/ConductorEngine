@@ -87,7 +87,7 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 		const auto* const matchingComponentInfo = entityInfo.m_componentInfos.Find(
 			[&](const Mem::UniquePtr<ComponentInfo>& componentInfo)
 		{
-			return componentInfo->GetTypeHash() == componentID.GetType();
+			return componentInfo->GetTypeHash() == componentID.GetType().GetTypeHash();
 		});
 
 		if (matchingComponentInfo == nullptr)
@@ -104,7 +104,7 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 	// Add any components the entity is missing.
 	for (const auto& componentInfo : entityInfo.m_componentInfos)
 	{
-		const ComponentID componentID = entity.FindComponentID(componentInfo->GetTypeHash());
+		const ComponentID componentID = entity.FindComponentID(ComponentType(componentInfo->GetTypeHash()));
 		if (componentID != ComponentID())
 		{
 			continue;
@@ -181,7 +181,7 @@ Component* EntityManager::FindComponent(const ComponentID id)
 
 const Component* EntityManager::FindComponent(const ComponentID id) const
 {
-	const Collection::Pair<const Util::StringHash, ComponentVector>* const componentsEntry =
+	const Collection::Pair<const ComponentType, ComponentVector>* const componentsEntry =
 		m_components.Find(id.GetType());
 	if (componentsEntry == nullptr)
 	{
@@ -203,7 +203,7 @@ const Component* EntityManager::FindComponent(const ComponentID id) const
 
 size_t EntityManager::FindComponentIndex(const ComponentID id) const
 {
-	const Collection::Pair<const Util::StringHash, ComponentVector>* const componentsEntry =
+	const Collection::Pair<const ComponentType, ComponentVector>* const componentsEntry =
 		m_components.Find(id.GetType());
 	if (componentsEntry == nullptr)
 	{
@@ -228,9 +228,9 @@ Entity& EntityManager::GetEntityByIndex(const size_t index)
 	return m_entities[index];
 }
 
-Component& EntityManager::GetComponentByIndex(const Util::StringHash typeHash, const size_t index)
+Component& EntityManager::GetComponentByIndex(const ComponentType componentType, const size_t index)
 {
-	return m_components.Find(typeHash)->second[index];
+	return m_components.Find(componentType)->second[index];
 }
 
 Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
@@ -254,12 +254,12 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		
 		while (iter < iterEnd)
 		{
-			const Util::StringHash typeHash = iter->GetType();
+			const ComponentType componentType = iter->GetType();
 
 			Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::ComponentsRemoved), transmissionBytes);
-			Mem::Serialize(Util::ReverseHash(typeHash), transmissionBytes);
+			Mem::Serialize(Util::ReverseHash(componentType.GetTypeHash()), transmissionBytes);
 
-			while (iter < iterEnd && iter->GetType() == typeHash)
+			while (iter < iterEnd && iter->GetType() == componentType)
 			{
 				Mem::Serialize(iter->GetUniqueID(), transmissionBytes);
 				++iter;
@@ -275,7 +275,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 	{
 		// Serialize a marker and the component type string to start the delta update for this component type.
 		Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::ComponentsDeltaUpdate), transmissionBytes);
-		Mem::Serialize(Util::ReverseHash(entry.first), transmissionBytes);
+		Mem::Serialize(Util::ReverseHash(entry.first.GetTypeHash()), transmissionBytes);
 
 		const auto& serializer = *m_componentReflector.FindTransmissionFunctions(entry.first);
 
@@ -335,13 +335,13 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 
 		while (iter < iterEnd)
 		{
-			const Util::StringHash typeHash = iter->GetType();
-			const auto* const serializer = m_componentReflector.FindTransmissionFunctions(typeHash);
+			const ComponentType componentType = iter->GetType();
+			const auto* const serializer = m_componentReflector.FindTransmissionFunctions(componentType);
 
 			Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::ComponentsAdded), transmissionBytes);
-			Mem::Serialize(Util::ReverseHash(typeHash), transmissionBytes);
+			Mem::Serialize(Util::ReverseHash(componentType.GetTypeHash()), transmissionBytes);
 
-			while (iter < iterEnd && iter->GetType() == typeHash)
+			while (iter < iterEnd && iter->GetType() == componentType)
 			{
 				// TODO(network) this could be optimized by only getting the component vector once per type
 				// and scanning the sorted components in the vector.
@@ -450,7 +450,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			}
 
 			const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeBuffer);
-			const auto componenVectorIter = m_components.Find(componentTypeHash);
+			const auto componenVectorIter = m_components.Find(ComponentType(componentTypeHash));
 			if (componenVectorIter == m_components.end())
 			{
 				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_UnrecognizedComponentType>(
@@ -459,7 +459,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			ComponentVector& components = componenVectorIter->second;
 
 			const ApplyDeltaTransmissionResult result = work(
-				m_componentReflector, componentTypeHash, components, iter, iterEnd);
+				m_componentReflector, ComponentType(componentTypeHash), components, iter, iterEnd);
 			if (result.IsAny())
 			{
 				return result;
@@ -477,7 +477,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	};
 
 	auto result = ComponentSectionHelper(TransmissionSectionType::ComponentsRemoved,
-		[](const ComponentReflector& componentReflector, const Util::StringHash componentTypeHash,
+		[](const ComponentReflector& componentReflector, const ComponentType componentType,
 			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
 		{
 			Collection::Vector<uint64_t> componentIDsToRemove;
@@ -499,14 +499,14 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	}
 
 	result = ComponentSectionHelper(TransmissionSectionType::ComponentsDeltaUpdate,
-		[](const ComponentReflector& componentReflector, const Util::StringHash componentTypeHash,
+		[](const ComponentReflector& componentReflector, const ComponentType componentType,
 			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
 		{
-			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentTypeHash);
+			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentType);
 			if (deserializer == nullptr)
 			{
 				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_UnrecognizedComponentType>(
-					Util::ReverseHash(componentTypeHash));
+					Util::ReverseHash(componentType.GetTypeHash()));
 			}
 
 			auto componentIter = components.begin();
@@ -539,10 +539,10 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	}
 
 	result = ComponentSectionHelper(TransmissionSectionType::ComponentsAdded, 
-		[](const ComponentReflector& componentReflector, const Util::StringHash componentTypeHash,
+		[](const ComponentReflector& componentReflector, const ComponentType componentType,
 			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
 		{
-			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentTypeHash);
+			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentType);
 
 			auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			while (maybeComponentID.second && maybeComponentID.first != ComponentID::sk_invalidUniqueID)
@@ -558,7 +558,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				if (deserializer != nullptr)
 				{
 					deserializer->m_tryCreateFromTransmissionFunction(iter, iterEnd,
-						ComponentID(componentTypeHash, componentID), components);
+						ComponentID(componentType, componentID), components);
 				}
 				else
 				{
@@ -741,26 +741,26 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 
 void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity)
 {
-	const Util::StringHash componentTypeHash = componentInfo.GetTypeHash();
-	const ComponentID componentID{ componentTypeHash, m_nextComponentID };
+	const ComponentType componentType{ componentInfo.GetTypeHash() };
+	const ComponentID componentID{ componentType, m_nextComponentID };
 
-	ComponentVector& componentVector = m_components[componentTypeHash];
-	if (componentVector.GetComponentType() == Util::StringHash())
+	ComponentVector& componentVector = m_components[componentType];
+	if (componentVector.GetComponentType() == ComponentType())
 	{
 		// This is a type that has not yet been encountered and therefore must be initialized.
-		const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentTypeHash);
+		const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
 
-		componentVector = ComponentVector(m_componentReflector, componentTypeHash, componentSize);
+		componentVector = ComponentVector(m_componentReflector, componentType, componentSize);
 
-		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentTypeHash))
+		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
 		{
-			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentTypeHash];
-			Dev::FatalAssert(bufferedComponentVector.GetComponentType() == Util::StringHash(),
+			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
+			Dev::FatalAssert(bufferedComponentVector.GetComponentType() == ComponentType(),
 				"A buffered component vector was created too early.");
-			bufferedComponentVector = ComponentVector(m_componentReflector, componentTypeHash, componentSize);
+			bufferedComponentVector = ComponentVector(m_componentReflector, componentType, componentSize);
 		}
 	}
-	Dev::FatalAssert(componentVector.GetComponentType() == componentTypeHash,
+	Dev::FatalAssert(componentVector.GetComponentType() == componentType,
 		"Mismatch between component vector type and the key it is stored at.");
 
 	if (!m_componentReflector.TryMakeComponent(componentInfo, componentID, componentVector))
@@ -782,7 +782,7 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 void EntityManager::RemoveComponent(const ComponentID id)
 {
 	// Delete the component.
-	Collection::Pair<const Util::StringHash, ComponentVector>* const componentsEntry =
+	Collection::Pair<const ComponentType, ComponentVector>* const componentsEntry =
 		m_components.Find(id.GetType());
 	ComponentVector& components = componentsEntry->second;
 	components.Remove(id);
@@ -839,7 +839,10 @@ void EntityManager::AddECSIndicesToSystems(const Collection::ArrayView<Entity>& 
 						}
 
 						const ComponentID* const idPtr = entity.m_components.Find(
-							[&](const ComponentID& componentID) { return componentID.GetType() == typeHash; });
+							[&](const ComponentID& componentID)
+							{
+								return componentID.GetType().GetTypeHash() == typeHash;
+							});
 						if (idPtr == nullptr)
 						{
 							foundAll = false;

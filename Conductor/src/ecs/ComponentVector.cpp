@@ -23,7 +23,7 @@ ECS::ComponentVector::~ComponentVector()
 
 ECS::ComponentVector::ComponentVector(
 	const ComponentReflector& componentReflector,
-	const Util::StringHash componentType,
+	const ComponentType componentType,
 	const Unit::ByteCount64 alignedComponentSize,
 	const uint32_t initialCapacity)
 	: m_componentReflector(&componentReflector)

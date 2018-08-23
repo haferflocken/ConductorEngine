@@ -3,6 +3,7 @@
 namespace Behave
 {
 class BehaviourTreeManager;
+namespace ConditionAST { class Interpreter; }
 
 /**
  * A BehaveContext allows behaviour trees and behaviour systems to access data outside
@@ -12,10 +13,14 @@ class BehaviourTreeManager;
 class BehaveContext
 {
 public:
-	explicit BehaveContext(const BehaviourTreeManager& behaviourTreeManager)
+	explicit BehaveContext(
+		const BehaviourTreeManager& behaviourTreeManager,
+		const ConditionAST::Interpreter& interpreter)
 		: m_behaviourTreeManager(behaviourTreeManager)
+		, m_conditionASTInterpreter(interpreter)
 	{}
 
 	const BehaviourTreeManager& m_behaviourTreeManager;
+	const ConditionAST::Interpreter& m_conditionASTInterpreter;
 };
 }

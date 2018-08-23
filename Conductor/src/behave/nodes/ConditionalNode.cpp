@@ -1,5 +1,6 @@
 #include <behave/nodes/ConditionalNode.h>
 
+#include <behave/BehaveContext.h>
 #include <behave/BehaviourCondition.h>
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourNodeState.h>
@@ -32,7 +33,7 @@ public:
 			for (size_t i = 0, iEnd = m_node->GetChildCount(); i < iEnd; ++i)
 			{
 				const BehaviourCondition* const condition = m_node->GetCondition(i);
-				if (condition->Check(entity))
+				if (condition->Check(context.m_conditionASTInterpreter, entity))
 				{
 					const BehaviourNode* const childNode = m_node->GetChild(i);
 					childNode->PushState(treeEvaluator);

@@ -1,10 +1,11 @@
 #pragma once
 
+#include <ecs/ComponentType.h>
+
 #include <collection/ArrayView.h>
 #include <collection/IndexIterator.h>
 #include <traits/IsMemCopyAFullCopy.h>
 #include <unit/CountUnits.h>
-#include <util/StringHash.h>
 
 namespace ECS
 {
@@ -26,7 +27,7 @@ public:
 	ComponentVector();
 	~ComponentVector();
 
-	ComponentVector(const ComponentReflector& componentReflector, const Util::StringHash componentType,
+	ComponentVector(const ComponentReflector& componentReflector, const ComponentType componentType,
 		const Unit::ByteCount64 alignedComponentSize, const uint32_t initialCapacity = 8);
 
 	ComponentVector(const ComponentVector&) = delete;
@@ -38,7 +39,7 @@ public:
 	// Copy is only supported on vectors of networked components.
 	void Copy(const ComponentVector& other);
 
-	Util::StringHash GetComponentType() const { return m_componentType; }
+	ComponentType GetComponentType() const { return m_componentType; }
 
 	uint32_t Size() const { return m_count; }
 	uint32_t Capacity() const { return m_capacity; }
@@ -67,7 +68,7 @@ private:
 
 	const ComponentReflector* m_componentReflector{ nullptr };
 
-	Util::StringHash m_componentType{};
+	ComponentType m_componentType{};
 	Unit::ByteCount64 m_alignedComponentSize{ 0 };
 
 	uint8_t* m_data{ nullptr };

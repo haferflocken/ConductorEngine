@@ -11,7 +11,9 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	: IClient(gameData.GetComponentReflector(), connectedHost)
 	, m_gameData(gameData)
 {
-	const Behave::BehaveContext context{ m_gameData.GetBehaviourTreeManager() };
+	const Behave::BehaveContext context{ 
+		m_gameData.GetBehaviourTreeManager(),
+		m_gameData.GetBehaveConditionASTInterpreter() };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 }
 

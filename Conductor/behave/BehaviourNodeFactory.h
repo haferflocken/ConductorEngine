@@ -1,15 +1,22 @@
 #pragma once
 
+//#include <behave/BehaviourConditionAST.h>
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
+//#include <util/VariadicUtil.h>
 
 namespace Behave
 {
 class BehaviourCondition;
 class BehaviourNode;
 class BehaviourTree;
+
+namespace ConditionAST
+{
+class Interpreter;
+}
 
 namespace Parse
 {
@@ -25,15 +32,11 @@ class BehaviourNodeFactory
 public:
 	using NodeFactoryFunction =
 		Mem::UniquePtr<BehaviourNode>(*)(const BehaviourNodeFactory&, const Parse::NodeExpression&, const BehaviourTree&);
-	using ConditionFactoryFunction =
-		Mem::UniquePtr<BehaviourCondition>(*)(const Parse::Expression&);
 
-	BehaviourNodeFactory();
+	explicit BehaviourNodeFactory(const ConditionAST::Interpreter& interpreter);
 
 	template <typename NodeType>
 	void RegisterNodeType();
-
-	void RegisterConditionFactoryFunction(const char* const conditionType, ConditionFactoryFunction fn);
 
 	Mem::UniquePtr<BehaviourNode> MakeNode(const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree) const;
 	Mem::UniquePtr<BehaviourCondition> MakeCondition(const Parse::Expression& expression) const;
@@ -44,11 +47,10 @@ public:
 private:
 	void RegisterNodeFactoryFunction(const char* const nodeType, NodeFactoryFunction fn);
 
+	const ConditionAST::Interpreter& m_interpreter;
+
 	// Maps hashes of node type names to factory functions for those node types.
 	Collection::VectorMap<Util::StringHash, NodeFactoryFunction> m_nodeFactoryFunctions;
-
-	// Maps hashes of condition type names to factory functions for those condition types.
-	Collection::VectorMap<Util::StringHash, ConditionFactoryFunction> m_conditionFactoryFunctions;
 };
 
 template <typename NodeType>

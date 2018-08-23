@@ -1,5 +1,6 @@
 #include <behave/BehaviourTreeEvaluator.h>
 
+#include <behave/BehaveContext.h>
 #include <behave/BehaviourCondition.h>
 #include <behave/BehaviourNode.h>
 #include <behave/BehaviourNodeState.h>
@@ -27,7 +28,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 		const BehaviourNodeState* const domainNodeState = domainEntry.m_state;
 		const BehaviourCondition* const domainCondition = domainEntry.m_condition;
 
-		if (!domainCondition->Check(entity))
+		if (!domainCondition->Check(context.m_conditionASTInterpreter, entity))
 		{
 			while (domainNodeState != m_callStack.Peek())
 			{

@@ -13,8 +13,6 @@
 
 #include <mem/UniquePtr.h>
 
-#include <util/StringHash.h>
-
 #include <functional>
 #include <type_traits>
 
@@ -59,7 +57,7 @@ public:
 	size_t FindComponentIndex(const ComponentID id) const;
 
 	Entity& GetEntityByIndex(const size_t index);
-	Component& GetComponentByIndex(const Util::StringHash typeHash, const size_t index);
+	Component& GetComponentByIndex(const ComponentType componentType, const size_t index);
 
 	// Register a system to run by itself. Systems run in the order they are registered.
 	template <typename SystemType>
@@ -118,14 +116,14 @@ private:
 	Collection::Vector<Entity> m_entities{};
 
 	// The components this manager owns on behalf of its entities, grouped by type.
-	Collection::VectorMap<Util::StringHash, ComponentVector> m_components{};
+	Collection::VectorMap<ComponentType, ComponentVector> m_components{};
 
 	// The buffered state this manager stores in order to calculate delta updates for transmission.
 	// m_transmissionBuffers is null for managers that do not transmit state.
 	struct TransmissionBuffers
 	{
 		// Only components that are network-enabled have a buffered copy stored.
-		Collection::VectorMap<Util::StringHash, ComponentVector> m_bufferedComponents;
+		Collection::VectorMap<ComponentType, ComponentVector> m_bufferedComponents;
 
 		Collection::Vector<EntityID> m_entitiesAddedSinceLastTransmission;
 		Collection::Vector<EntityID> m_entitiesChangedSinceLastTransmission;

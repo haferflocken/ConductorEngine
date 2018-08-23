@@ -10,6 +10,11 @@ class BehaviourNodeFactory;
 class BehaviourTreeManager;
 }
 
+namespace Behave::ConditionAST
+{
+class Interpreter;
+}
+
 namespace ECS
 {
 class ComponentInfoFactory;
@@ -28,6 +33,7 @@ public:
 	IslandGameData();
 	virtual ~IslandGameData();
 
+	const Behave::ConditionAST::Interpreter& GetBehaveConditionASTInterpreter() const { return *m_behaveConditionASTInterpreter; }
 	const Behave::BehaviourNodeFactory& GetBehaviourNodeFactory() const { return *m_behaviourNodeFactory; }
 	const Behave::BehaviourTreeManager& GetBehaviourTreeManager() const { return *m_behaviourTreeManager; }
 	
@@ -40,6 +46,7 @@ public:
 	void LoadEntityInfosInDirectory(const File::Path& directory);
 
 private:
+	Mem::UniquePtr<Behave::ConditionAST::Interpreter> m_behaveConditionASTInterpreter;
 	Mem::UniquePtr<Behave::BehaviourNodeFactory> m_behaviourNodeFactory;
 	Mem::UniquePtr<Behave::BehaviourTreeManager> m_behaviourTreeManager;
 

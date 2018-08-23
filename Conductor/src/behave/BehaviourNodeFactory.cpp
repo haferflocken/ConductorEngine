@@ -2,6 +2,7 @@
 
 #include <behave/BehaviourCondition.h>
 #include <behave/BehaviourNode.h>
+#include <behave/conditionast/Interpreter.h>
 #include <behave/parse/BehaveParsedTree.h>
 #include <behave/nodes/CallNode.h>
 #include <behave/nodes/ConditionalNode.h>
@@ -18,7 +19,9 @@
 
 namespace Behave
 {
-BehaviourNodeFactory::BehaviourNodeFactory()
+BehaviourNodeFactory::BehaviourNodeFactory(const ConditionAST::Interpreter& interpreter)
+	: m_interpreter(interpreter)
+	, m_nodeFactoryFunctions()
 {
 	RegisterNodeType<Nodes::CallNode>();
 	RegisterNodeType<Nodes::DomainNode>();
@@ -36,16 +39,6 @@ void BehaviourNodeFactory::RegisterNodeFactoryFunction(
 	Dev::FatalAssert(m_nodeFactoryFunctions.Find(nodeTypeHash) == m_nodeFactoryFunctions.end(),
 		"Attempted to register a factory function for node type \"%s\", but there already is one.");
 	m_nodeFactoryFunctions[nodeTypeHash] = std::move(fn);
-}
-
-void BehaviourNodeFactory::RegisterConditionFactoryFunction(
-	const char* const conditionType,
-	ConditionFactoryFunction fn)
-{
-	const Util::StringHash conditionTypeHash = Util::CalcHash(conditionType);
-	Dev::FatalAssert(m_conditionFactoryFunctions.Find(conditionTypeHash) == m_conditionFactoryFunctions.end(),
-		"Attempted to register a factory function for condition type \"%s\", but there already is one.");
-	m_conditionFactoryFunctions[conditionTypeHash] = std::move(fn);
 }
 
 Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
@@ -68,24 +61,31 @@ Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
 
 Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Parse::Expression& expression) const
 {
-	// TODO(behave) condition loading
-	return nullptr;
-
-	/*const JSON::JSONString* const jsonTypeName = jsonObject.FindString(k_typeKeyHash);
-	if (jsonTypeName == nullptr)
+	ConditionAST::Expression compiledExpression = m_interpreter.Compile(expression);
+	if (!compiledExpression.m_variant.IsAny())
 	{
-		Dev::LogWarning("Failed to find a condition type name.");
 		return nullptr;
 	}
 
-	const auto factoryItr = m_conditionFactoryFunctions.Find(jsonTypeName->m_hash);
-	if (factoryItr == m_conditionFactoryFunctions.end())
+	bool expressionResultsInBool = false;
+	compiledExpression.m_variant.Match(
+		[&](const ConditionAST::BooleanLiteralExpression&) { expressionResultsInBool = true; },
+		[](const ConditionAST::NumericLiteralExpression&) {},
+		[](const ConditionAST::ComponentTypeLiteralExpression&) {},
+		[](const ConditionAST::TreeIdentifierExpression&) {},
+		[&](const ConditionAST::FunctionCallExpression& functionCallExpression)
+		{
+			// TODO(behave) type check the function call!
+			expressionResultsInBool = true;
+		});
+
+	if (!expressionResultsInBool)
 	{
-		Dev::LogWarning("Failed to find a factory function for condition type \"%s\".", jsonTypeName->m_string.c_str());
+		Dev::LogWarning("Conditions may only be constructed from expressions that result in bool.");
 		return nullptr;
 	}
 
-	return factoryItr->second(jsonObject);*/
+	return Mem::MakeUnique<BehaviourCondition>(std::move(compiledExpression));
 }
 
 bool BehaviourNodeFactory::TryMakeNodesFrom(

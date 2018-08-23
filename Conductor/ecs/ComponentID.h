@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/StringHash.h>
+#include <ecs/ComponentType.h>
 
 namespace ECS
 {
@@ -19,13 +19,13 @@ public:
 
 	ComponentID(const ComponentID&) = default;
 	ComponentID& operator=(const ComponentID&) = default;
-
-	ComponentID(const Util::StringHash type, const size_t uniqueID)
+	
+	ComponentID(const ComponentType type, const size_t uniqueID)
 		: m_type(type)
 		, m_id(uniqueID)
 	{}
 
-	Util::StringHash GetType() const { return m_type; }
+	ComponentType GetType() const { return m_type; }
 	size_t GetUniqueID() const { return m_id; }
 
 	bool operator==(const ComponentID& rhs) const { return m_type == rhs.m_type && m_id == rhs.m_id; }
@@ -36,7 +36,7 @@ public:
 	}
 	
 private:
-	Util::StringHash m_type;
+	ComponentType m_type;
 	size_t m_id;
 };
 }

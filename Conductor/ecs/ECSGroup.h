@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ecs/ComponentType.h>
 #include <unit/CountUnits.h>
 
 #include <type_traits>
@@ -45,13 +46,13 @@ struct GetByIndexStruct<Entity, ECSTypes...>
 	}
 };
 
-template <typename ComponentType, typename... ECSTypes>
+template <typename TComponent, typename... ECSTypes>
 struct GetByIndexStruct
 {
-	static std::enable_if_t<std::is_convertible_v<ComponentType&, const Component&>, ComponentType>& Get(
+	static std::enable_if_t<std::is_convertible_v<TComponent&, const Component&>, TComponent>& Get(
 		EntityManager& entityManager, const size_t index)
 	{
-		return static_cast<ComponentType&>(entityManager.GetComponentByIndex(ComponentType::Info::sk_typeHash, index));
+		return static_cast<TComponent&>(entityManager.GetComponentByIndex(ComponentType(TComponent::Info::sk_typeHash), index));
 	}
 };
 }

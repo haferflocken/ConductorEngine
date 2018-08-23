@@ -40,7 +40,7 @@ public:
 	template <typename ComponentType>
 	ComponentID FindComponentID() const;
 
-	ComponentID FindComponentID(const Util::StringHash& typeHash) const;
+	ComponentID FindComponentID(const ComponentType& componentType) const;
 
 private:
 	friend class EntityManager;
@@ -59,13 +59,13 @@ inline ComponentID Entity::FindComponentID() const
 	return FindComponentID(ComponentType::Info::sk_typeHash);
 }
 
-inline ComponentID Entity::FindComponentID(const Util::StringHash& typeHash) const
+inline ComponentID Entity::FindComponentID(const ComponentType& componentType) const
 {
-	// TODO This is currently a linear search, which callers will typically follow up with a binary search
+	// TODO(ecs) This is currently a linear search, which callers will typically follow up with a binary search
 	//      to actually get the component. It's worth remembering that this may be a performance concern.
 	for (const auto& id : m_components)
 	{
-		if (id.GetType() == typeHash)
+		if (id.GetType() == componentType)
 		{
 			return id;
 		}

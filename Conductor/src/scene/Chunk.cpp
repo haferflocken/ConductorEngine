@@ -152,7 +152,7 @@ void Chunk::PutChunkEntitiesIntoPlay(
 				continue;
 			}
 
-			const ECS::ComponentID componentID = entity->FindComponentID(typeString->m_hash);
+			const ECS::ComponentID componentID = entity->FindComponentID(ECS::ComponentType(typeString->m_hash));
 			if (componentID == ECS::ComponentID())
 			{
 				Dev::LogWarning("Failed to find a component with type [%s] in entity with ID [%u].",
