@@ -1,8 +1,8 @@
-#include <behave/conditionast/Interpreter.h>
+#include <behave/ast/Interpreter.h>
 
 #include <dev/Dev.h>
 
-namespace Behave::ConditionAST
+namespace Behave::AST
 {
 Expression Interpreter::Compile(const Parse::Expression& parsedExpression) const
 {

@@ -3,7 +3,7 @@
 #include <collection/Variant.h>
 #include <ecs/ComponentType.h>
 
-namespace Behave::ConditionAST
+namespace Behave::AST
 {
 // TODO move this elsewhere
 struct TreeIdentifier

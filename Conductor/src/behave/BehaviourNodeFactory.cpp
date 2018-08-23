@@ -1,8 +1,8 @@
 #include <behave/BehaviourNodeFactory.h>
 
+#include <behave/ast/Interpreter.h>
 #include <behave/BehaviourCondition.h>
 #include <behave/BehaviourNode.h>
-#include <behave/conditionast/Interpreter.h>
 #include <behave/parse/BehaveParsedTree.h>
 #include <behave/nodes/CallNode.h>
 #include <behave/nodes/ConditionalNode.h>
@@ -19,7 +19,7 @@
 
 namespace Behave
 {
-BehaviourNodeFactory::BehaviourNodeFactory(const ConditionAST::Interpreter& interpreter)
+BehaviourNodeFactory::BehaviourNodeFactory(const AST::Interpreter& interpreter)
 	: m_interpreter(interpreter)
 	, m_nodeFactoryFunctions()
 {
@@ -61,7 +61,7 @@ Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
 
 Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Parse::Expression& expression) const
 {
-	ConditionAST::Expression compiledExpression = m_interpreter.Compile(expression);
+	AST::Expression compiledExpression = m_interpreter.Compile(expression);
 	if (!compiledExpression.m_variant.IsAny())
 	{
 		return nullptr;
@@ -69,11 +69,11 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Par
 
 	bool expressionResultsInBool = false;
 	compiledExpression.m_variant.Match(
-		[&](const ConditionAST::BooleanLiteralExpression&) { expressionResultsInBool = true; },
-		[](const ConditionAST::NumericLiteralExpression&) {},
-		[](const ConditionAST::ComponentTypeLiteralExpression&) {},
-		[](const ConditionAST::TreeIdentifierExpression&) {},
-		[&](const ConditionAST::FunctionCallExpression& functionCallExpression)
+		[&](const AST::BooleanLiteralExpression&) { expressionResultsInBool = true; },
+		[](const AST::NumericLiteralExpression&) {},
+		[](const AST::ComponentTypeLiteralExpression&) {},
+		[](const AST::TreeIdentifierExpression&) {},
+		[&](const AST::FunctionCallExpression& functionCallExpression)
 		{
 			// TODO(behave) type check the function call!
 			expressionResultsInBool = true;

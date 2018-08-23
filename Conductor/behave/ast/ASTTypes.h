@@ -1,12 +1,12 @@
 #pragma once
 
-#include <behave/conditionast/BoundFunction.h>
+#include <behave/ast/BoundFunction.h>
 
 #include <collection/Variant.h>
 #include <ecs/ComponentType.h>
 #include <util/StringHash.h>
 
-namespace Behave::ConditionAST
+namespace Behave::AST
 {
 struct Expression;
 

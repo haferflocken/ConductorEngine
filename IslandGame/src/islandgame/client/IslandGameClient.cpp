@@ -13,7 +13,7 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 {
 	const Behave::BehaveContext context{ 
 		m_gameData.GetBehaviourTreeManager(),
-		m_gameData.GetBehaveConditionASTInterpreter() };
+		m_gameData.GetBehaveASTInterpreter() };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 }
 

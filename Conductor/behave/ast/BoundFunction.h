@@ -1,16 +1,16 @@
 #pragma once
 
-#include <behave/conditionast/ExpressionResultType.h>
+#include <behave/ast/ExpressionResultType.h>
 
 namespace ECS { class Entity; }
 
-namespace Behave::ConditionAST
+namespace Behave::AST
 {
 struct Expression;
 class Interpreter;
 
 /**
- * A function binding that allows a normal C++ function to take ConditionAST::Expressions as arguments.
+ * A function binding that allows a normal C++ function to take AST::Expressions as arguments.
  */
 class BoundFunction
 {

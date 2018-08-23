@@ -1,8 +1,8 @@
 #pragma once
 
-#include <behave/conditionast/ASTTypes.h>
-#include <behave/conditionast/BoundFunction.h>
-#include <behave/conditionast/ExpressionResultType.h>
+#include <behave/ast/ASTTypes.h>
+#include <behave/ast/BoundFunction.h>
+#include <behave/ast/ExpressionResultType.h>
 
 #include <collection/Variant.h>
 #include <collection/VectorMap.h>
@@ -11,10 +11,10 @@
 namespace Behave::Parse { struct Expression; }
 namespace ECS { class Entity; }
 
-namespace Behave::ConditionAST
+namespace Behave::AST
 {
 /**
- * An interpreter that evaluates ConditionAST expressions.
+ * An interpreter that evaluates AST expressions.
  */
 class Interpreter
 {
@@ -22,10 +22,10 @@ public:
 	// Compile a parsed expression into an executable expression.
 	Expression Compile(const Parse::Expression& parsedExpression) const;
 
-	// Evaluate a ConditionAST::Expression on the given entity.
+	// Evaluate an AST::Expression on the given entity.
 	ExpressionResultType EvaluateExpression(const Expression& expression, const ECS::Entity& entity) const;
 
-	// Binds a function so that it can be called with ConditionAST::Expressions as arguments.
+	// Binds a function so that it can be called with AST::Expressions as arguments.
 	template <typename ReturnType, typename... ArgumentTypes>
 	void BindFunction(const Util::StringHash functionNameHash,
 		ReturnType(*func)(const ECS::Entity&, ArgumentTypes...));
@@ -35,7 +35,7 @@ private:
 };
 }
 
-namespace Behave::ConditionAST
+namespace Behave::AST
 {
 template <typename ReturnType, typename... ArgumentTypes>
 inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,

@@ -1,11 +1,9 @@
 #pragma once
 
-//#include <behave/BehaviourConditionAST.h>
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
-//#include <util/VariadicUtil.h>
 
 namespace Behave
 {
@@ -13,7 +11,7 @@ class BehaviourCondition;
 class BehaviourNode;
 class BehaviourTree;
 
-namespace ConditionAST
+namespace AST
 {
 class Interpreter;
 }
@@ -33,7 +31,7 @@ public:
 	using NodeFactoryFunction =
 		Mem::UniquePtr<BehaviourNode>(*)(const BehaviourNodeFactory&, const Parse::NodeExpression&, const BehaviourTree&);
 
-	explicit BehaviourNodeFactory(const ConditionAST::Interpreter& interpreter);
+	explicit BehaviourNodeFactory(const AST::Interpreter& interpreter);
 
 	template <typename NodeType>
 	void RegisterNodeType();
@@ -47,7 +45,7 @@ public:
 private:
 	void RegisterNodeFactoryFunction(const char* const nodeType, NodeFactoryFunction fn);
 
-	const ConditionAST::Interpreter& m_interpreter;
+	const AST::Interpreter& m_interpreter;
 
 	// Maps hashes of node type names to factory functions for those node types.
 	Collection::VectorMap<Util::StringHash, NodeFactoryFunction> m_nodeFactoryFunctions;
