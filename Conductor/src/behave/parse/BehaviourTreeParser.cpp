@@ -1,6 +1,7 @@
 #include <behave/parse/BehaviourTreeParser.h>
 
 #include <cctype>
+#include <charconv>
 
 namespace Behave::Parse
 {
@@ -458,10 +459,25 @@ ParseExpressionResult MakeNumericLiteralExpression(const Token& token)
 	Dev::FatalAssert(token.m_type == TokenType::Text,
 		"Only text tokens should be passed into MakeNumericLiteralExpression().");
 
-	// TODO numeric literals
+	double val;
+	std::from_chars_result fromCharsResult = std::from_chars(token.m_charsBegin, token.m_charsEnd, val);
+	if (fromCharsResult.ptr != token.m_charsEnd)
+	{
+		std::string message = "Failed to parse \"";
+		message += std::string(token.m_charsBegin, token.m_charsEnd);
+		message += "\" as a number.";
 
-	return ParseExpressionResult::Make<SyntaxError>("NUMERIC LITERALS NOT YET SUPPORTED",
-		token.m_lineNumber, token.m_characterInLine);
+		return ParseExpressionResult::Make<SyntaxError>(std::move(message),
+			token.m_lineNumber, token.m_characterInLine);
+	}
+
+	auto result = ParseExpressionResult::Make<Expression>();
+	Expression& expression = result.Get<Expression>();
+
+	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
+	expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<NumericLiteral>(val);
+
+	return result;
 }
 
 using ParseArgumentListResult = Collection::Variant<Collection::Vector<Expression>, SyntaxError>;

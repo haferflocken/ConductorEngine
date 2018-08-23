@@ -55,6 +55,10 @@ struct IdentifierExpression
 
 struct NumericLiteral
 {
+	explicit NumericLiteral(double val)
+		: m_value(val)
+	{}
+
 	double m_value;
 };
 
