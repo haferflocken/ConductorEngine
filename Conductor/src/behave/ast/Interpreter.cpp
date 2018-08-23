@@ -6,6 +6,42 @@
 
 namespace Behave::AST
 {
+namespace Internal_Interpreter
+{
+double Add(const ECS::Entity&, double lhs, double rhs) { return lhs + rhs; }
+double Subtract(const ECS::Entity&, double lhs, double rhs) { return lhs - rhs; }
+double Multiply(const ECS::Entity&, double lhs, double rhs) { return lhs * rhs; }
+double Divide(const ECS::Entity&, double lhs, double rhs) { return lhs / rhs; }
+double Power(const ECS::Entity&, double lhs, double rhs) { return pow(lhs, rhs); }
+
+bool LessThan(const ECS::Entity&, double lhs, double rhs) { return lhs < rhs; }
+bool LessThanOrEqualTo(const ECS::Entity&, double lhs, double rhs) { return lhs <= rhs; }
+bool GreaterThan(const ECS::Entity&, double lhs, double rhs) { return lhs > rhs; }
+bool GreaterThanOrEqualTo(const ECS::Entity&, double lhs, double rhs) { return lhs >= rhs; }
+bool EqualTo(const ECS::Entity&, double lhs, double rhs) { return lhs == rhs; }
+bool NotEqualTo(const ECS::Entity&, double lhs, double rhs) { return lhs != rhs; }
+}
+
+Interpreter::Interpreter()
+	: m_boundFunctions()
+{
+	BindFunction(Util::CalcHash("+"), &Internal_Interpreter::Add);
+	BindFunction(Util::CalcHash("-"), &Internal_Interpreter::Subtract);
+	BindFunction(Util::CalcHash("*"), &Internal_Interpreter::Multiply);
+	BindFunction(Util::CalcHash("/"), &Internal_Interpreter::Divide);
+	BindFunction(Util::CalcHash("^"), &Internal_Interpreter::Power);
+
+	BindFunction(Util::CalcHash("<"), &Internal_Interpreter::LessThan);
+	BindFunction(Util::CalcHash("<="), &Internal_Interpreter::LessThanOrEqualTo);
+	BindFunction(Util::CalcHash(">"), &Internal_Interpreter::GreaterThan);
+	BindFunction(Util::CalcHash(">="), &Internal_Interpreter::GreaterThanOrEqualTo);
+	BindFunction(Util::CalcHash("=="), &Internal_Interpreter::EqualTo);
+	BindFunction(Util::CalcHash("!="), &Internal_Interpreter::NotEqualTo);
+}
+
+Interpreter::~Interpreter()
+{}
+
 ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpression) const
 {
 	ExpressionCompileResult result;

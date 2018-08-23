@@ -12,5 +12,5 @@ select
 	
 tree SecondTree
 domain
-	{ $blackboard_component GetBool "is_alive" }
+	{ 4 < 3 }
 	log("it's alive!")
