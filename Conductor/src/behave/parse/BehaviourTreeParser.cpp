@@ -742,6 +742,7 @@ ParseExpressionResult ParseInfixExpression(ParsingState& state)
 		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
 			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
 	}
+	state.Increment();
 
 	const Token& functionNameToken = state.GetCurrentToken();
 
@@ -767,6 +768,20 @@ ParseExpressionResult ParseInfixExpression(ParsingState& state)
 	if (!rightExpressionResult.Is<Expression>())
 	{
 		return rightExpressionResult;
+	}
+
+	if (!state.HasMoreTokens())
+	{
+		return ParseExpressionResult::Make<SyntaxError>("Unexpected end of input encountered.",
+			state.GetCurrentToken().m_lineNumber, state.GetCurrentToken().m_characterInLine);
+	}
+	state.Increment();
+
+	const Token& closingCurlyToken = state.GetCurrentToken();
+	if (closingCurlyToken.m_type != TokenType::CloseCurly)
+	{
+		return ParseExpressionResult::Make<SyntaxError>("Unexpected non-'}' encountered.",
+			closingCurlyToken.m_lineNumber, closingCurlyToken.m_characterInLine);
 	}
 
 	Collection::Vector<Expression> arguments;
