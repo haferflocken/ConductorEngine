@@ -23,7 +23,7 @@ public:
 	Expression Compile(const Parse::Expression& parsedExpression) const;
 
 	// Evaluate an AST::Expression on the given entity.
-	ExpressionResultType EvaluateExpression(const Expression& expression, const ECS::Entity& entity) const;
+	ExpressionResult EvaluateExpression(const Expression& expression, const ECS::Entity& entity) const;
 
 	// Binds a function so that it can be called with AST::Expressions as arguments.
 	template <typename ReturnType, typename... ArgumentTypes>
@@ -41,9 +41,18 @@ template <typename ReturnType, typename... ArgumentTypes>
 inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 	ReturnType(*func)(const ECS::Entity&, ArgumentTypes...))
 {
+	constexpr ExpressionResultTypes k_returnType =
+		std::is_same_v<ReturnType, bool> ? ExpressionResultTypes::Boolean
+		: std::is_same_v<ReturnType, double> ? ExpressionResultTypes::Number
+		: std::is_same_v<ReturnType, ECS::ComponentType> ? ExpressionResultTypes::ComponentType
+		: ExpressionResultTypes::TreeIdentifier;
+
+	static_assert(k_returnType != ExpressionResultTypes::TreeIdentifier || std::is_same_v<ReturnType, TreeIdentifier>,
+		"Cannot bind a function that does not return bool, double, ECS::ComponentType, or TreeIdentifier.");
+
 	struct BindingFunctions
 	{
-		static ExpressionResultType Call(
+		static ExpressionResult Call(
 			const Interpreter& interpeter,
 			void* untypedFunc,
 			const Collection::Vector<ConditionAST::Expression>& expressions,
@@ -51,7 +60,7 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 		{
 			auto* func = static_cast<ReturnType(*)(const ECS::Entity&, ArgumentTypes...)>(untypedFunc);
 
-			ExpressionResultType evaluatedArguments[sizeof...(ArgumentTypes)]
+			ExpressionResult evaluatedArguments[sizeof...(ArgumentTypes)]
 			{
 				interpreter.EvaluateExpression(expressions, entity)...
 			};
@@ -59,10 +68,10 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 			ReturnType result = func(entity,
 				evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ArgumentTypes...>()...);
 
-			return ExpressionResultType::Make<ReturnType>(std::move(result));
+			return ExpressionResult::Make<ReturnType>(std::move(result));
 		}
 	};
 
-	m_boundFunctions[functionNameHash] = BoundFunction(func, &BindingFunctions::Call);
+	m_boundFunctions[functionNameHash] = BoundFunction(func, &BindingFunctions::Call, k_returnType);
 }
 }

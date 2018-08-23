@@ -75,8 +75,8 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Par
 		[](const AST::TreeIdentifierExpression&) {},
 		[&](const AST::FunctionCallExpression& functionCallExpression)
 		{
-			// TODO(behave) type check the function call!
-			expressionResultsInBool = true;
+			expressionResultsInBool =
+				(functionCallExpression.m_boundFunction.GetReturnType() == AST::ExpressionResultTypes::Boolean);
 		});
 
 	if (!expressionResultsInBool)

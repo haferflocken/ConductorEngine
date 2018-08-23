@@ -11,7 +11,7 @@ BehaviourCondition::BehaviourCondition(AST::Expression&& expression)
 bool BehaviourCondition::Check(const AST::Interpreter& interpreter, const ECS::Entity& entity) const
 {
 	// The expression was type checked before the condition was constructed, so it is safe to just get the bool.
-	const AST::ExpressionResultType result = interpreter.EvaluateExpression(m_expression, entity);
+	const AST::ExpressionResult result = interpreter.EvaluateExpression(m_expression, entity);
 	return result.Get<bool>();
 }
 }

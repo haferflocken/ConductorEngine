@@ -15,15 +15,16 @@ class Interpreter;
 class BoundFunction
 {
 public:
-	using BindingFunction = ExpressionResultType(*)(const Interpreter&, void*,
+	using BindingFunction = ExpressionResult(*)(const Interpreter&, void*,
 		const Collection::Vector<Expression>&, const ECS::Entity&);
 
-	BoundFunction(void* untypedFunc, BindingFunction bindingFunc)
+	BoundFunction(void* untypedFunc, BindingFunction bindingFunc, ExpressionResultTypes returnType)
 		: m_untypedFunc(untypedFunc)
 		, m_binding(bindingFunc)
+		, m_returnType(returnType)
 	{}
 
-	ExpressionResultType operator()(
+	ExpressionResult operator()(
 		const Interpreter& interpreter,
 		const Collection::Vector<Expression>& arguments,
 		const ECS::Entity& entity) const
@@ -31,8 +32,11 @@ public:
 		return m_binding(interpreter, m_untypedFunc, arguments, entity);
 	}
 
+	const ExpressionResultTypes& GetReturnType() const { return m_returnType; }
+
 private:
 	void* m_untypedFunc;
 	BindingFunction m_binding;
+	ExpressionResultTypes m_returnType;
 };
 }
