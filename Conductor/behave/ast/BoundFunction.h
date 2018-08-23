@@ -18,6 +18,11 @@ public:
 	using BindingFunction = ExpressionResult(*)(const Interpreter&, void*,
 		const Collection::Vector<Expression>&, const ECS::Entity&);
 
+	BoundFunction()
+		: m_untypedFunc(nullptr)
+		, m_binding(nullptr)
+	{}
+
 	BoundFunction(void* untypedFunc, BindingFunction bindingFunc, ExpressionResultTypes returnType)
 		: m_untypedFunc(untypedFunc)
 		, m_binding(bindingFunc)

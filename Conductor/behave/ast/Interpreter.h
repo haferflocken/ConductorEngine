@@ -34,6 +34,9 @@ using ExpressionCompileResult = Collection::Variant<Expression, TypeCheckFailure
 class Interpreter
 {
 public:
+	Interpreter();
+	~Interpreter();
+
 	// Compile a parsed expression into an executable expression.
 	ExpressionCompileResult Compile(const Parse::Expression& parsedExpression) const;
 
@@ -69,20 +72,24 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 	struct BindingFunctions
 	{
 		static ExpressionResult Call(
-			const Interpreter& interpeter,
+			const Interpreter& interpreter,
 			void* untypedFunc,
-			const Collection::Vector<ConditionAST::Expression>& expressions,
+			const Collection::Vector<AST::Expression>& expressions,
 			const ECS::Entity& entity)
 		{
+			Dev::FatalAssert(sizeof...(ArgumentTypes) == expressions.Size(), "Expected %zu arguments, but got %u.",
+				sizeof...(ArgumentTypes), expressions.Size());
+
 			auto* func = static_cast<ReturnType(*)(const ECS::Entity&, ArgumentTypes...)>(untypedFunc);
 
-			ExpressionResult evaluatedArguments[sizeof...(ArgumentTypes)]
+			ExpressionResult evaluatedArguments[sizeof...(ArgumentTypes)];
+			for (size_t i = 0; i < sizeof...(ArgumentTypes); ++i)
 			{
-				interpreter.EvaluateExpression(expressions, entity)...
-			};
+				evaluatedArguments[i] = interpreter.EvaluateExpression(expressions[i], entity);
+			}
 
 			ReturnType result = func(entity,
-				evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ArgumentTypes...>()...);
+				evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ArgumentTypes>()...);
 
 			return ExpressionResult::Make<ReturnType>(std::move(result));
 		}
