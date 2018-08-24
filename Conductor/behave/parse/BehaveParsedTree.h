@@ -103,13 +103,23 @@ struct ComponentTypeLiteral
 using LiteralExpression = Collection::Variant<
 	NumericLiteral, StringLiteral, ResultLiteral, BooleanLiteral, ComponentTypeLiteral>;
 
-struct Expression
+struct Expression final : public Collection::Variant<
+	NodeExpression,
+	FunctionCallExpression,
+	IdentifierExpression,
+	LiteralExpression>
 {
-	Collection::Variant<
-		NodeExpression,
-		FunctionCallExpression,
-		IdentifierExpression,
-		LiteralExpression> m_variant;
+	using Variant::Variant;
+
+	Expression(Variant&& v)
+		: Variant(std::move(v))
+	{}
+
+	template <typename T, typename... Args>
+	static Expression Make(Args&&... args)
+	{
+		return Expression(Variant::Make<T, Args...>(std::forward<Args>(args)...));
+	}
 };
 
 struct ParsedTree

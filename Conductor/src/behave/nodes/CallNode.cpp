@@ -69,13 +69,13 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::CallNode::CreateFromNodeExp
 	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
 	if (nodeExpression.m_arguments.Size() != 1
-		|| !nodeExpression.m_arguments.Front().m_variant.Is<Parse::IdentifierExpression>())
+		|| !nodeExpression.m_arguments.Front().Is<Parse::IdentifierExpression>())
 	{
 		Dev::LogWarning("Call nodes take only one argument: a tree identifier.");
 		return nullptr;
 	}
 
-	const auto& identifierExpression = nodeExpression.m_arguments.Front().m_variant.Get<Parse::IdentifierExpression>();
+	const auto& identifierExpression = nodeExpression.m_arguments.Front().Get<Parse::IdentifierExpression>();
 	
 	auto node = Mem::MakeUnique<CallNode>(tree);
 	node->m_treeToCall = Util::CalcHash(identifierExpression.m_treeName);

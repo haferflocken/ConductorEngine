@@ -82,14 +82,14 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::DomainNode::CreateFromNodeE
 		return nullptr;
 	}
 
-	if (!nodeExpression.m_arguments.Back().m_variant.Is<Parse::NodeExpression>())
+	if (!nodeExpression.m_arguments.Back().Is<Parse::NodeExpression>())
 	{
 		Dev::LogWarning("Domain nodes require a node expression as their second argument.");
 		return nullptr;
 	}
 
 	Mem::UniquePtr<BehaviourNode> child = nodeFactory.MakeNode(
-		nodeExpression.m_arguments.Back().m_variant.Get<Parse::NodeExpression>(), tree);
+		nodeExpression.m_arguments.Back().Get<Parse::NodeExpression>(), tree);
 	if (child == nullptr)
 	{
 		return nullptr;

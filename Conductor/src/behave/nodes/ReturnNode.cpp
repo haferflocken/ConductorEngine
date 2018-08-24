@@ -36,13 +36,13 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ReturnNode::CreateFromNodeE
 	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
 	if (nodeExpression.m_arguments.Size() != 1
-		|| !nodeExpression.m_arguments.Front().m_variant.Is<Parse::LiteralExpression>())
+		|| !nodeExpression.m_arguments.Front().Is<Parse::LiteralExpression>())
 	{
 		Dev::LogWarning("Return nodes take only one argument: a result literal.");
 		return nullptr;
 	}
 
-	const auto& literalExpression = nodeExpression.m_arguments.Front().m_variant.Get<Parse::LiteralExpression>();
+	const auto& literalExpression = nodeExpression.m_arguments.Front().Get<Parse::LiteralExpression>();
 	if (!literalExpression.Is<Parse::ResultLiteral>())
 	{
 		Dev::LogWarning("Return nodes take only one argument: a result literal.");

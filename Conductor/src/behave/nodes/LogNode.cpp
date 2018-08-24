@@ -40,13 +40,13 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::LogNode::CreateFromNodeExpr
 	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
 	if (nodeExpression.m_arguments.Size() != 1
-		|| !nodeExpression.m_arguments.Front().m_variant.Is<Parse::LiteralExpression>())
+		|| !nodeExpression.m_arguments.Front().Is<Parse::LiteralExpression>())
 	{
 		Dev::LogWarning("Log nodes take only one argument: a string literal.");
 		return nullptr;
 	}
 
-	const auto& literalExpression = nodeExpression.m_arguments.Front().m_variant.Get<Parse::LiteralExpression>();
+	const auto& literalExpression = nodeExpression.m_arguments.Front().Get<Parse::LiteralExpression>();
 	if (!literalExpression.Is<Parse::StringLiteral>())
 	{
 		Dev::LogWarning("Log nodes take only one argument: a string literal.");

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <behave/ast/BoundFunction.h>
+#include <behave/ast/ExpressionResultType.h>
 
 #include <collection/Variant.h>
 #include <ecs/ComponentType.h>
-#include <util/StringHash.h>
 
 namespace Behave::AST
 {
@@ -21,14 +21,24 @@ struct FunctionCallExpression
 	Collection::Vector<Expression> m_arguments;
 };
 
-struct Expression
+struct Expression final : public Collection::Variant<
+	bool,
+	double,
+	std::string,
+	ECS::ComponentType,
+	TreeIdentifier,
+	FunctionCallExpression>
 {
-	Collection::Variant<
-		bool,
-		double,
-		std::string,
-		ECS::ComponentType,
-		TreeIdentifier,
-		FunctionCallExpression> m_variant;
+	using Variant::Variant;
+
+	Expression(Variant&& v)
+		: Variant(std::move(v))
+	{}
+
+	template <typename T, typename... Args>
+	static Expression Make(Args&&... args)
+	{
+		return Expression(Variant::Make<T, Args...>(std::forward<Args>(args)...));
+	}
 };
 }

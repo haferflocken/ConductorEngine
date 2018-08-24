@@ -83,13 +83,13 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFrom
 		const auto& conditionExpression = nodeExpression.m_arguments[i];
 		const auto& childExpression = nodeExpression.m_arguments[i + 1];
 
-		if (!childExpression.m_variant.Is<Parse::NodeExpression>())
+		if (!childExpression.Is<Parse::NodeExpression>())
 		{
 			Dev::LogWarning("Failed to create condition node: argument %zu was not a node expression.", i + 1);
 			return nullptr;
 		}
 
-		const auto& childNodeExpression = childExpression.m_variant.Get<Parse::NodeExpression>();
+		const auto& childNodeExpression = childExpression.Get<Parse::NodeExpression>();
 
 		Mem::UniquePtr<BehaviourCondition> condition = nodeFactory.MakeCondition(conditionExpression);
 		if (condition == nullptr)

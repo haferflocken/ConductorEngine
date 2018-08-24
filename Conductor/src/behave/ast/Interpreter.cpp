@@ -79,7 +79,7 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 {
 	ExpressionCompileResult result;
 
-	parsedExpression.m_variant.Match(
+	parsedExpression.Match(
 		[&](const Parse::NodeExpression& nodeExpression)
 		{
 			result = ExpressionCompileResult::Make<TypeCheckFailure>("A node expression cannot be interpreted.");
@@ -125,11 +125,11 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 				}
 				
 				Expression& compiledArgument = argumentResult.Get<Expression>();
-				Dev::FatalAssert(compiledArgument.m_variant.IsAny(),
+				Dev::FatalAssert(compiledArgument.IsAny(),
 					"No Behave AST compilation path may result in an invalid AST::Expression.");
 
 				ExpressionResultTypes argumentResultType;
-				compiledArgument.m_variant.Match(
+				compiledArgument.Match(
 					[&](const bool&) { argumentResultType = ExpressionResultTypes::Boolean; },
 					[&](const double&) { argumentResultType = ExpressionResultTypes::Number; },
 					[&](const std::string&) { argumentResultType = ExpressionResultTypes::String; },
@@ -154,16 +154,14 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 			}
 
 			result = ExpressionCompileResult::Make<Expression>();
-			Expression& compiledFunctionCall = result.Get<Expression>();
-			compiledFunctionCall.m_variant = decltype(Expression::m_variant)::Make<FunctionCallExpression>(
+			result.Get<Expression>() = Expression::Make<FunctionCallExpression>(
 				entry->second, std::move(compiledArguments));
 		},
 		[&](const Parse::IdentifierExpression& identifierExpression)
 		{
 			// TODO(behave) Verify the tree exists.
 			result = ExpressionCompileResult::Make<Expression>();
-			Expression& compiledTreeIdentifier = result.Get<Expression>();
-			compiledTreeIdentifier.m_variant = decltype(Expression::m_variant)::Make<TreeIdentifier>(
+			result.Get<Expression>() = Expression::Make<TreeIdentifier>(
 				TreeIdentifier{ identifierExpression.m_treeNameHash });
 		},
 		[&](const Parse::LiteralExpression& literalExpression)
@@ -173,16 +171,12 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 				[&](const Parse::NumericLiteral& numericLiteral)
 				{
 					result = ExpressionCompileResult::Make<Expression>();
-					Expression& compiledExpression = result.Get<Expression>();
-					compiledExpression.m_variant = decltype(Expression::m_variant)::Make<double>(
-						numericLiteral.m_value);
+					result.Get<Expression>() = Expression::Make<double>(numericLiteral.m_value);
 				},
 				[&](const Parse::StringLiteral& stringLiteral)
 				{
 					result = ExpressionCompileResult::Make<Expression>();
-					Expression& compiledExpression = result.Get<Expression>();
-					compiledExpression.m_variant = decltype(Expression::m_variant)::Make<std::string>(
-						stringLiteral.m_value);
+					result.Get<Expression>() = Expression::Make<std::string>(stringLiteral.m_value);
 				},
 				[&](const Parse::ResultLiteral&)
 				{
@@ -192,9 +186,7 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 				[&](const Parse::BooleanLiteral& booleanLiteral)
 				{
 					result = ExpressionCompileResult::Make<Expression>();
-					Expression& compiledExpression = result.Get<Expression>();
-					compiledExpression.m_variant = decltype(Expression::m_variant)::Make<bool>(
-						booleanLiteral.m_value);
+					result.Get<Expression>() = Expression::Make<bool>(booleanLiteral.m_value);
 				},
 				[&](const Parse::ComponentTypeLiteral& componentTypeLiteral)
 				{
@@ -210,9 +202,7 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 					}
 
 					result = ExpressionCompileResult::Make<Expression>();
-					Expression& compiledExpression = result.Get<Expression>();
-					compiledExpression.m_variant = decltype(Expression::m_variant)::Make<ECS::ComponentType>(
-						componentTypeLiteral.m_typeHash);
+					result.Get<Expression>() = Expression::Make<ECS::ComponentType>(componentTypeLiteral.m_typeHash);
 				});
 		});
 
@@ -221,10 +211,10 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 
 ExpressionResult Interpreter::EvaluateExpression(const Expression& expression, const ECS::Entity& entity) const
 {
-	Dev::FatalAssert(expression.m_variant.IsAny(), "Cannot evaluate an invalid expression.");
+	Dev::FatalAssert(expression.IsAny(), "Cannot evaluate an invalid expression.");
 
 	ExpressionResult result;
-	expression.m_variant.Match(
+	expression.Match(
 		[&](const bool& boolVal)
 		{
 			result = ExpressionResult::Make<bool>(boolVal);

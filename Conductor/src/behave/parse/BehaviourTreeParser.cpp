@@ -376,40 +376,28 @@ ParseExpressionResult MakeLiteralExpressionFromKeywordType(const ParsingState& s
 	case KeywordType::Success:
 	{
 		auto result = ParseExpressionResult::Make<Expression>();
-		Expression& expression = result.Get<Expression>();
-
-		expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
-		expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<ResultLiteral>(true);
+		result.Get<Expression>() = Expression::Make<LiteralExpression>(LiteralExpression::Make<ResultLiteral>(true));
 
 		return result;
 	}
 	case KeywordType::Failure:
 	{
 		auto result = ParseExpressionResult::Make<Expression>();
-		Expression& expression = result.Get<Expression>();
-
-		expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
-		expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<ResultLiteral>(false);
+		result.Get<Expression>() = Expression::Make<LiteralExpression>(LiteralExpression::Make<ResultLiteral>(false));
 
 		return result;
 	}
 	case KeywordType::True:
 	{
 		auto result = ParseExpressionResult::Make<Expression>();
-		Expression& expression = result.Get<Expression>();
-
-		expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
-		expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<BooleanLiteral>(true);
+		result.Get<Expression>() = Expression::Make<LiteralExpression>(LiteralExpression::Make<BooleanLiteral>(true));
 
 		return result;
 	}
 	case KeywordType::False:
 	{
 		auto result = ParseExpressionResult::Make<Expression>();
-		Expression& expression = result.Get<Expression>();
-
-		expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
-		expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<BooleanLiteral>(false);
+		result.Get<Expression>() = Expression::Make<LiteralExpression>(LiteralExpression::Make<BooleanLiteral>(false));
 
 		return result;
 	}
@@ -431,9 +419,7 @@ ParseExpressionResult MakeComponentTypeLiteralExpression(const Token& token)
 	}
 
 	auto result = ParseExpressionResult::Make<Expression>();
-	Expression& expression = result.Get<Expression>();
-
-	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>(
+	result.Get<Expression>() = Expression::Make<LiteralExpression>(
 		LiteralExpression::Make<ComponentTypeLiteral>(token.m_charsBegin, token.m_charsEnd));
 
 	return result;
@@ -445,11 +431,8 @@ ParseExpressionResult MakeStringLiteralExpression(const Token& token)
 		"Only string literal tokens should be passed into MakeStringLiteralExpression().");
 
 	auto result = ParseExpressionResult::Make<Expression>();
-	Expression& expression = result.Get<Expression>();
-
-	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
-	expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<StringLiteral>(
-		token.m_charsBegin, token.m_charsEnd);
+	result.Get<Expression>() = Expression::Make<LiteralExpression>(
+		LiteralExpression::Make<StringLiteral>(token.m_charsBegin, token.m_charsEnd));
 
 	return result;
 }
@@ -472,10 +455,7 @@ ParseExpressionResult MakeNumericLiteralExpression(const Token& token)
 	}
 
 	auto result = ParseExpressionResult::Make<Expression>();
-	Expression& expression = result.Get<Expression>();
-
-	expression.m_variant = decltype(Expression::m_variant)::Make<LiteralExpression>();
-	expression.m_variant.Get<LiteralExpression>() = LiteralExpression::Make<NumericLiteral>(val);
+	result.Get<Expression>() = Expression::Make<LiteralExpression>(LiteralExpression::Make<NumericLiteral>(val));
 
 	return result;
 }
@@ -586,9 +566,7 @@ ParseExpressionResult ParseNodeExpression(const Token& nodeNameToken, ParsingSta
 	}
 
 	auto result = ParseExpressionResult::Make<Expression>();
-	Expression& expression = result.Get<Expression>();
-
-	expression.m_variant = decltype(Expression::m_variant)::Make<NodeExpression>(
+	result.Get<Expression>() = Expression::Make<NodeExpression>(
 		std::move(nodeName), std::move(argumentListResult.Get<Collection::Vector<Expression>>()));
 
 	return result;
@@ -605,9 +583,7 @@ ParseExpressionResult ParseSingleLineNodeExpression(const Token& nodeNameToken, 
 	}
 
 	auto result = ParseExpressionResult::Make<Expression>();
-	Expression& expression = result.Get<Expression>();
-
-	expression.m_variant = decltype(Expression::m_variant)::Make<NodeExpression>(
+	result.Get<Expression>() = Expression::Make<NodeExpression>(
 		std::move(nodeName), std::move(argumentListResult.Get<Collection::Vector<Expression>>()));
 
 	return result;
@@ -706,9 +682,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 				}
 
 				auto result = ParseExpressionResult::Make<Expression>();
-				Expression& expression = result.Get<Expression>();
-
-				expression.m_variant = decltype(Expression::m_variant)::Make<FunctionCallExpression>(
+				result.Get<Expression>() = Expression::Make<FunctionCallExpression>(
 					std::move(name), std::move(argumentListResult.Get<Collection::Vector<Expression>>()));
 
 				return result;
@@ -722,9 +696,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 			else
 			{
 				auto result = ParseExpressionResult::Make<Expression>();
-				Expression& expression = result.Get<Expression>();
-
-				expression.m_variant = decltype(Expression::m_variant)::Make<IdentifierExpression>(std::move(name));
+				result.Get<Expression>() = Expression::Make<IdentifierExpression>(std::move(name));
 
 				return result;
 			}
@@ -805,10 +777,7 @@ ParseExpressionResult ParseInfixExpression(ParsingState& state)
 	arguments.Add(std::move(rightExpressionResult.Get<Expression>()));
 
 	auto result = ParseExpressionResult::Make<Expression>();
-	Expression& expression = result.Get<Expression>();
-
-	expression.m_variant = decltype(Expression::m_variant)::Make<FunctionCallExpression>(
-		std::move(functionName), std::move(arguments));
+	result.Get<Expression>() = Expression::Make<FunctionCallExpression>(std::move(functionName), std::move(arguments));
 
 	return result;
 }
@@ -911,9 +880,7 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 				}
 
 				auto result = ParseExpressionResult::Make<Expression>();
-				Expression& expression = result.Get<Expression>();
-
-				expression.m_variant = decltype(Expression::m_variant)::Make<FunctionCallExpression>(
+				result.Get<Expression>() = Expression::Make<FunctionCallExpression>(
 					std::move(name), std::move(argumentListResult.Get<Collection::Vector<Expression>>()));
 
 				return result;
@@ -927,9 +894,7 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 			else
 			{
 				auto result = ParseExpressionResult::Make<Expression>();
-				Expression& expression = result.Get<Expression>();
-
-				expression.m_variant = decltype(Expression::m_variant)::Make<IdentifierExpression>(std::move(name));
+				result.Get<Expression>() = Expression::Make<IdentifierExpression>(std::move(name));
 
 				return result;
 			}
@@ -1061,9 +1026,9 @@ ParseResult Parser::ParseTrees(const char* const input)
 		rootExpressionResult.Match(
 			[&](Expression& expression)
 			{
-				if (expression.m_variant.Is<NodeExpression>())
+				if (expression.Is<NodeExpression>())
 				{
-					parsedTree.m_rootNode = std::move(expression.m_variant.Get<NodeExpression>());
+					parsedTree.m_rootNode = std::move(expression.Get<NodeExpression>());
 				}
 				else
 				{

@@ -72,7 +72,7 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Par
 	AST::Expression& compiledExpression = compileResult.Get<AST::Expression>();
 
 	bool expressionResultsInBool = false;
-	compiledExpression.m_variant.Match(
+	compiledExpression.Match(
 		[&](const bool&) { expressionResultsInBool = true; },
 		[](const double&) {},
 		[](const std::string&) {},
@@ -100,13 +100,13 @@ bool BehaviourNodeFactory::TryMakeNodesFrom(
 {
 	for (const auto& expression : expressions)
 	{
-		if (!expression.m_variant.Is<Parse::NodeExpression>())
+		if (!expression.Is<Parse::NodeExpression>())
 		{
 			Dev::LogWarning("Cannot create a node from an expression that is not a node expression.");
 			return false;
 		}
 
-		Mem::UniquePtr<BehaviourNode> node = MakeNode(expression.m_variant.Get<Parse::NodeExpression>(), tree);
+		Mem::UniquePtr<BehaviourNode> node = MakeNode(expression.Get<Parse::NodeExpression>(), tree);
 		if (node == nullptr)
 		{
 			return false;
