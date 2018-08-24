@@ -1,0 +1,30 @@
+tree IslanderFishingTree
+select
+	domain # Ensure the islander is supposed to be fishing.
+		ShouldFish()
+		select
+			domain # Fish from the water's edge.
+				{ HasItem("fishing_rod") And { HasItem("bait") And IsAtWaterEdge() }}
+				fish()
+			domain # Go to the water's edge.
+				{ HasItem("fishing_rod") And HasItem("bait") }
+				goToWaterEdge()
+			domain # If at the storage room, get a fishing rod and bait.
+				IsInStorageRoom()
+				condition
+					Not(HasItem("fishing_rod"))
+					takeItem("fishing_rod")
+					Not(HasItem("bait"))
+					takeItem("bait")
+			goToStorageRoom() # Go to the storage room to get a fishing rod and bait.
+	domain # Return the fishing rod and bait to the storage room.
+		{ IsInStorageRoom() And { HasItem("fishing_rod") Or HasItem("bait") }}
+		condition
+			HasItem("fishing_rod")
+			storeItem("fishing_rod")
+			HasItem("bait")
+			storeItem("bait")
+	domain # Go to the storage room to return the fishing rod and bait.
+		{ HasItem("fishing_rod") Or HasItem("bait") }
+		goToStorageRoom()
+	return(success)
