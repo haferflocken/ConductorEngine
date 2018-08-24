@@ -3,6 +3,7 @@
 #include <behave/parse/BehaveParsedTree.h>
 
 #include <dev/Dev.h>
+#include <ecs/ComponentReflector.h>
 #include <ecs/Entity.h>
 
 namespace Behave::AST
@@ -39,8 +40,10 @@ bool HasComponent(const ECS::Entity& entity, ECS::ComponentType componentType)
 }
 }
 
-Interpreter::Interpreter()
-	: m_boundFunctions()
+Interpreter::Interpreter(const ECS::ComponentReflector& componentReflector)
+	: m_componentReflector(componentReflector)
+	, m_boundFunctions()
+	, m_boundFunctionArgumentTypes()
 {
 	BindFunction(Util::CalcHash("Not"), &Internal_Interpreter::Not);
 	BindFunction(Util::CalcHash("And"), &Internal_Interpreter::And);
@@ -195,7 +198,17 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 				},
 				[&](const Parse::ComponentTypeLiteral& componentTypeLiteral)
 				{
-					// TODO(behave) verify the component type exists
+					// Verify the component type is registered.
+					if (!m_componentReflector.IsRegistered(ECS::ComponentType(componentTypeLiteral.m_typeHash)))
+					{
+						std::string message = "Encountered unknown component type [";
+						message += componentTypeLiteral.m_typeString;
+						message += "].";
+
+						result = ExpressionCompileResult::Make<TypeCheckFailure>(std::move(message));
+						return;
+					}
+
 					result = ExpressionCompileResult::Make<Expression>();
 					Expression& compiledExpression = result.Get<Expression>();
 					compiledExpression.m_variant = decltype(Expression::m_variant)::Make<ECS::ComponentType>(

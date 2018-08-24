@@ -41,6 +41,11 @@ void ECS::ComponentReflector::RegisterComponentType(const char* const componentT
 	m_swapFunctions[componentType] = swapFn;
 }
 
+bool ECS::ComponentReflector::IsRegistered(const ComponentType componentType) const
+{
+	return (m_componentSizesInBytes.Find(componentType) != m_componentSizesInBytes.end());
+}
+
 Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(const ComponentType componentType) const
 {
 	const auto sizeItr = m_componentSizesInBytes.Find(componentType);

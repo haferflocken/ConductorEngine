@@ -10,12 +10,12 @@
 #include <ecs/EntityInfoManager.h>
 
 IslandGame::IslandGameData::IslandGameData()
-	: m_behaveASTInterpreter(Mem::MakeUnique<Behave::AST::Interpreter>())
+	: m_componentReflector(Mem::MakeUnique<ECS::ComponentReflector>())
+	, m_behaveASTInterpreter(Mem::MakeUnique<Behave::AST::Interpreter>(*m_componentReflector))
 	, m_behaviourNodeFactory(Mem::MakeUnique<Behave::BehaviourNodeFactory>(*m_behaveASTInterpreter))
 	, m_behaviourTreeManager(Mem::MakeUnique<Behave::BehaviourTreeManager>(*m_behaviourNodeFactory))
 	, m_componentInfoFactory(Mem::MakeUnique<ECS::ComponentInfoFactory>())
 	, m_entityInfoManager(Mem::MakeUnique<ECS::EntityInfoManager>(*m_componentInfoFactory, *m_behaviourTreeManager))
-	, m_componentReflector(Mem::MakeUnique<ECS::ComponentReflector>())
 {
 	using namespace IslandGame::Components;
 

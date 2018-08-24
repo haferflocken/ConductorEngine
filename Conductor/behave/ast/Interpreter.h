@@ -9,7 +9,11 @@
 #include <util/StringHash.h>
 
 namespace Behave::Parse { struct Expression; }
-namespace ECS { class Entity; }
+namespace ECS
+{
+class ComponentReflector;
+class Entity;
+}
 
 namespace Behave::AST
 {
@@ -34,7 +38,7 @@ using ExpressionCompileResult = Collection::Variant<Expression, TypeCheckFailure
 class Interpreter
 {
 public:
-	Interpreter();
+	explicit Interpreter(const ECS::ComponentReflector& componentReflector);
 	~Interpreter();
 
 	// Compile a parsed expression into an executable expression.
@@ -49,6 +53,8 @@ public:
 		ReturnType(*func)(const ECS::Entity&, ArgumentTypes...));
 
 private:
+	const ECS::ComponentReflector& m_componentReflector;
+
 	Collection::VectorMap<Util::StringHash, BoundFunction> m_boundFunctions;
 	Collection::VectorMap<Util::StringHash, Collection::Vector<ExpressionResultTypes>> m_boundFunctionArgumentTypes;
 };

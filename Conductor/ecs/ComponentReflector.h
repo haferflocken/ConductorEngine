@@ -62,6 +62,8 @@ public:
 	template <typename ComponentType>
 	void RegisterMemoryImagedNetworkedComponentType();
 
+	bool IsRegistered(const ComponentType componentType) const;
+
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
 
 	bool TryMakeComponent(const ComponentInfo& componentInfo, const ComponentID reservedID,
