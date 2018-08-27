@@ -2,10 +2,10 @@
 
 #include <behave/BehaviourTreeComponent.h>
 #include <behave/BehaviourTreeComponentInfo.h>
+#include <behave/BlackboardComponent.h>
+#include <behave/BlackboardComponentInfo.h>
 #include <ecs/Component.h>
 #include <ecs/ComponentInfo.h>
-#include <ecs/components/BlackboardComponent.h>
-#include <ecs/components/BlackboardComponentInfo.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
@@ -14,7 +14,7 @@
 ECS::ComponentReflector::ComponentReflector()
 {
 	RegisterComponentType<Behave::BehaviourTreeComponent>();
-	RegisterComponentType<Components::BlackboardComponent>();
+	RegisterComponentType<Behave::BlackboardComponent>();
 	RegisterComponentType<Scene::SceneTransformComponent>();
 }
 

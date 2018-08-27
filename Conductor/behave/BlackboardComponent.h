@@ -6,32 +6,30 @@
 namespace ECS
 {
 class ComponentVector;
+}
 
-namespace Components
+namespace Behave
 {
 class BlackboardComponentInfo;
 
 /**
  * A BlackboardComponent contains a blackboard: a data-driven key/value store.
  */
-class BlackboardComponent final : public Component
+class BlackboardComponent final : public ECS::Component
 {
 public:
 	using Info = BlackboardComponentInfo;
 
-	static bool TryCreateFromInfo(const BlackboardComponentInfo& componentInfo, const ComponentID reservedID,
-		ComponentVector& destination);
+	static bool TryCreateFromInfo(const BlackboardComponentInfo& componentInfo, const ECS::ComponentID reservedID,
+		ECS::ComponentVector& destination);
 
-	explicit BlackboardComponent(const ComponentID id)
+	explicit BlackboardComponent(const ECS::ComponentID id)
 		: Component(id)
 		, m_blackboard()
 	{}
 
 	virtual ~BlackboardComponent() {}
 
-	Behave::Blackboard m_blackboard;
+	Blackboard m_blackboard;
 };
 }
-}
-
-

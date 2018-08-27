@@ -160,8 +160,8 @@
     <ClCompile Include="src\behave\Blackboard.cpp" />
     <ClCompile Include="src\behave\BehaviourTreeComponent.cpp" />
     <ClCompile Include="src\behave\BehaviourTreeComponentInfo.cpp" />
-    <ClCompile Include="src\ecs\components\BlackboardComponent.cpp" />
-    <ClCompile Include="src\ecs\components\BlackboardComponentInfo.cpp" />
+    <ClCompile Include="src\behave\BlackboardComponent.cpp" />
+    <ClCompile Include="src\behave\BlackboardComponentInfo.cpp" />
     <ClCompile Include="src\host\IHost.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponent.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponentInfo.cpp" />
@@ -222,8 +222,8 @@
     <ClInclude Include="behave\Blackboard.h" />
     <ClInclude Include="behave\BehaviourTreeComponent.h" />
     <ClInclude Include="behave\BehaviourTreeComponentInfo.h" />
-    <ClInclude Include="ecs\components\BlackboardComponent.h" />
-    <ClInclude Include="ecs\components\BlackboardComponentInfo.h" />
+    <ClInclude Include="behave\BlackboardComponent.h" />
+    <ClInclude Include="behave\BlackboardComponentInfo.h" />
     <ClInclude Include="scene\SceneTransformComponent.h" />
     <ClInclude Include="scene\SceneTransformComponentInfo.h" />
     <ClInclude Include="behave\nodes\CallNode.h" />
