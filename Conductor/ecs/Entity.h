@@ -37,7 +37,7 @@ public:
 	const Collection::Vector<ComponentID>& GetComponentIDs() const { return m_components; }
 	const Util::StringHash& GetInfoNameHash() const { return m_infoNameHash; }
 
-	template <typename ComponentType>
+	template <typename TComponent>
 	ComponentID FindComponentID() const;
 
 	ComponentID FindComponentID(const ComponentType& componentType) const;
@@ -53,10 +53,10 @@ private:
 	Util::StringHash m_infoNameHash;
 };
 
-template <typename ComponentType>
+template <typename TComponent>
 inline ComponentID Entity::FindComponentID() const
 {
-	return FindComponentID(ComponentType::Info::sk_typeHash);
+	return FindComponentID(ComponentType(TComponent::Info::sk_typeHash));
 }
 
 inline ComponentID Entity::FindComponentID(const ComponentType& componentType) const
