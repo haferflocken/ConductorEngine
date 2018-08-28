@@ -1,5 +1,7 @@
 #pragma once
 
+namespace ECS { class EntityManager; }
+
 namespace Behave
 {
 namespace AST { class Interpreter; }
@@ -13,14 +15,8 @@ class BehaviourTreeManager;
 class BehaveContext
 {
 public:
-	explicit BehaveContext(
-		const BehaviourTreeManager& behaviourTreeManager,
-		const AST::Interpreter& interpreter)
-		: m_behaviourTreeManager(behaviourTreeManager)
-		, m_interpreter(interpreter)
-	{}
-
 	const BehaviourTreeManager& m_behaviourTreeManager;
 	const AST::Interpreter& m_interpreter;
+	ECS::EntityManager& m_entityManager;
 };
 }

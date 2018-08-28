@@ -6,6 +6,7 @@
         "TestCall"
       ]
     },
+    { "type":  "blackboard_component" },
     { "type": "scene_transform_component" },
     { "type": "islander_component" }
   ]

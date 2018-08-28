@@ -2,7 +2,11 @@
 
 #include <behave/ast/ASTTypes.h>
 
-namespace ECS { class Entity; }
+namespace ECS
+{
+class Entity;
+class EntityManager;
+}
 
 namespace Behave
 {
@@ -13,7 +17,8 @@ class BehaviourCondition
 public:
 	BehaviourCondition(AST::Expression&& expression);
 
-	bool Check(const AST::Interpreter& interpreter, const ECS::Entity& entity) const;
+	bool Check(const AST::Interpreter& interpreter, ECS::EntityManager& entityManager,
+		const ECS::Entity& entity) const;
 
 private:
 	AST::Expression m_expression;

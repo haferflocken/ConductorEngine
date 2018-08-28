@@ -28,7 +28,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 		const BehaviourNodeState* const domainNodeState = domainEntry.m_state;
 		const BehaviourCondition* const domainCondition = domainEntry.m_condition;
 
-		if (!domainCondition->Check(context.m_interpreter, entity))
+		if (!domainCondition->Check(context.m_interpreter, context.m_entityManager, entity))
 		{
 			while (domainNodeState != m_callStack.Peek())
 			{

@@ -24,6 +24,7 @@ BehaviourNodeFactory::BehaviourNodeFactory(const AST::Interpreter& interpreter)
 	, m_nodeFactoryFunctions()
 {
 	RegisterNodeType<Nodes::CallNode>();
+	RegisterNodeType<Nodes::ConditionalNode>();
 	RegisterNodeType<Nodes::DomainNode>();
 	RegisterNodeType<Nodes::LogNode>();
 	RegisterNodeType<Nodes::ReturnNode>();

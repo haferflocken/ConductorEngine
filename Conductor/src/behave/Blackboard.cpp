@@ -1,32 +1,27 @@
 #include <behave/Blackboard.h>
 
-bool Behave::Blackboard::TryGetFloat(const Util::StringHash& key, float& out) const
+void Behave::Blackboard::GetWithDefault(
+	const Util::StringHash& key,
+	const AST::ExpressionResult& defaultValue,
+	AST::ExpressionResult& out) const
 {
 	const auto* const entry = m_map.Find(key);
-	if (entry == nullptr || entry->second.type != ValueType::Float)
+	if (entry == m_map.end())
 	{
-		return false;
+		out = defaultValue;
 	}
-
-	out = entry->second.floatValue;
-	return true;
+	else
+	{
+		out = entry->second;
+	}
 }
 
 bool Behave::Blackboard::TryRemove(const Util::StringHash& key)
 {
-	const auto* const entry = m_map.Find(key);
-	if (entry == nullptr)
-	{
-		return false;
-	}
-
-	m_map.TryRemove(key);
-	return true;
+	return m_map.TryRemove(key);
 }
 
-void Behave::Blackboard::Set(const Util::StringHash& key, float value)
+void Behave::Blackboard::Set(const Util::StringHash& key, const AST::ExpressionResult& value)
 {
-	TaggedValue& taggedValue = m_map[key];
-	taggedValue.type = ValueType::Float;
-	taggedValue.floatValue = value;
+	m_map[key] = value;
 }

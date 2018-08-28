@@ -17,7 +17,8 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 {
 	const Behave::BehaveContext context{
 		m_gameData.GetBehaviourTreeManager(),
-		m_gameData.GetBehaveASTInterpreter() };
+		m_gameData.GetBehaveASTInterpreter(),
+		m_entityManager };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::UnboundedScene>(m_gameData.GetEntityInfoManager()));
 

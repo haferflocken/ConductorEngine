@@ -1,5 +1,6 @@
 #pragma once
 
+#include <behave/ast/ExpressionResultType.h>
 #include <collection/VectorMap.h>
 #include <util/StringHash.h>
 
@@ -13,29 +14,15 @@ class Blackboard
 public:
 	Blackboard() = default;
 
-	bool TryGetFloat(const Util::StringHash& key, float& out) const;
+	void GetWithDefault(const Util::StringHash& key, const AST::ExpressionResult& defaultValue,
+		AST::ExpressionResult& out) const;
 	
 	bool TryRemove(const Util::StringHash& key);
 
-	void Set(const Util::StringHash& key, float value);
+	void Set(const Util::StringHash& key, const AST::ExpressionResult& value);
 
 private:
-	enum class ValueType : uint8_t
-	{
-		Invalid,
-		Float
-	};
-
-	struct TaggedValue
-	{
-		ValueType type;
-		union
-		{
-			float floatValue;
-		};
-	};
-
 	// A lookup of keys to values in the blackboard.
-	Collection::VectorMap<Util::StringHash, TaggedValue> m_map;
+	Collection::VectorMap<Util::StringHash, AST::ExpressionResult> m_map;
 };
 }

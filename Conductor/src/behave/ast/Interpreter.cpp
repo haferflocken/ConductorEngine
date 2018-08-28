@@ -1,5 +1,6 @@
 #include <behave/ast/Interpreter.h>
 
+#include <behave/BlackboardComponent.h>
 #include <behave/parse/BehaveParsedTree.h>
 
 #include <dev/Dev.h>
@@ -70,6 +71,8 @@ Interpreter::Interpreter(const ECS::ComponentReflector& componentReflector)
 	BindFunction(Util::CalcHash("Round"), &Internal_Interpreter::Round);
 
 	BindFunction(Util::CalcHash("HasComponent"), &Internal_Interpreter::HasComponent);
+
+	BlackboardComponent::BindFunctions(*this);
 }
 
 Interpreter::~Interpreter()
@@ -209,7 +212,8 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 	return result;
 }
 
-ExpressionResult Interpreter::EvaluateExpression(const Expression& expression, const ECS::Entity& entity) const
+ExpressionResult Interpreter::EvaluateExpression(const Expression& expression, ECS::EntityManager& entityManager,
+	const ECS::Entity& entity) const
 {
 	Dev::FatalAssert(expression.IsAny(), "Cannot evaluate an invalid expression.");
 
@@ -237,7 +241,7 @@ ExpressionResult Interpreter::EvaluateExpression(const Expression& expression, c
 		},
 		[&](const FunctionCallExpression& functionCall)
 		{
-			result = functionCall.m_boundFunction(*this, functionCall.m_arguments, entity);
+			result = functionCall.m_boundFunction(*this, functionCall.m_arguments, entityManager, entity);
 		});
 
 	return result;

@@ -11,8 +11,10 @@
 namespace Behave::Parse { struct Expression; }
 namespace ECS
 {
+class Component;
 class ComponentReflector;
 class Entity;
+class EntityManager;
 }
 
 namespace Behave::AST
@@ -45,7 +47,8 @@ public:
 	ExpressionCompileResult Compile(const Parse::Expression& parsedExpression) const;
 
 	// Evaluate an AST::Expression on the given entity.
-	ExpressionResult EvaluateExpression(const Expression& expression, const ECS::Entity& entity) const;
+	ExpressionResult EvaluateExpression(const Expression& expression, ECS::EntityManager& entityManager,
+		const ECS::Entity& entity) const;
 
 	// Binds a function so that it can be called with AST::Expressions as arguments.
 	template <typename ReturnType, typename... ArgumentTypes>
@@ -91,12 +94,72 @@ template <> struct ExpressionResultTypeFor<TreeIdentifier>
 {
 	static constexpr ExpressionResultTypes value = ExpressionResultTypes::TreeIdentifier;
 };
+
+template <typename T>
+struct ExpressionResultForArgument;
+
+template <> struct ExpressionResultForArgument<bool> { using type = bool; };
+template <> struct ExpressionResultForArgument<const bool> { using type = bool; };
+template <> struct ExpressionResultForArgument<bool&> { using type = bool; };
+template <> struct ExpressionResultForArgument<const bool&> { using type = bool; };
+template <> struct ExpressionResultForArgument<double> { using type = double; };
+template <> struct ExpressionResultForArgument<const double> { using type = double; };
+template <> struct ExpressionResultForArgument<double&> { using type = double; };
+template <> struct ExpressionResultForArgument<const double&> { using type = double; };
+template <> struct ExpressionResultForArgument<std::string> { using type = std::string; };
+template <> struct ExpressionResultForArgument<const std::string> { using type = std::string; };
+template <> struct ExpressionResultForArgument<std::string&> { using type = std::string; };
+template <> struct ExpressionResultForArgument<const std::string&> { using type = std::string; };
+template <> struct ExpressionResultForArgument<ECS::ComponentType> { using type = ECS::ComponentType; };
+template <> struct ExpressionResultForArgument<const ECS::ComponentType> { using type = ECS::ComponentType; };
+template <> struct ExpressionResultForArgument<ECS::ComponentType&> { using type = ECS::ComponentType; };
+template <> struct ExpressionResultForArgument<const ECS::ComponentType&> { using type = ECS::ComponentType; };
+template <> struct ExpressionResultForArgument<TreeIdentifier> { using type = TreeIdentifier; };
+template <> struct ExpressionResultForArgument<const TreeIdentifier> { using type = TreeIdentifier; };
+template <> struct ExpressionResultForArgument<TreeIdentifier&> { using type = TreeIdentifier; };
+template <> struct ExpressionResultForArgument<const TreeIdentifier&> { using type = TreeIdentifier; };
+
+template <typename T>
+inline constexpr bool IsComponentReference = std::is_reference_v<T> && std::is_convertible_v<T, const ECS::Component&>;
+
+template <typename T>
+struct ExpressionResultForArgument
+{
+	using type = std::enable_if_t<IsComponentReference<T>, ECS::ComponentType>;
+};
+
+template <typename ArgType, typename ExpResultType = ExpressionResultForArgument<ArgType>::type>
+struct ExpressionResultToArgument
+{
+	static ArgType Convert(ECS::EntityManager& entityManager, const ECS::Entity& entity, ExpResultType& val)
+	{
+		if constexpr(IsComponentReference<ArgType>)
+		{
+			using ComponentValueType = std::remove_reference_t<ArgType>;
+			Dev::FatalAssert(val.GetTypeHash() == ComponentValueType::Info::sk_typeHash,
+				"Mismatch between supported component type [%s] and argument [%s].",
+				ComponentValueType::Info::sk_typeName, Util::ReverseHash(val.GetTypeHash()));
+
+			ComponentValueType* const component = entityManager.FindComponent<ComponentValueType>(entity);
+			Dev::FatalAssert(component != nullptr,
+				"Could not find component [%s] when converting argument for bound function.",
+				ComponentValueType::Info::sk_typeName);
+			return static_cast<ArgType>(*component);
+		}
+		else
+		{
+			return static_cast<ArgType>(val);
+		}
+	}
+};
 }
 
 template <typename ReturnType, typename... ArgumentTypes>
 inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 	ReturnType(*func)(const ECS::Entity&, ArgumentTypes...))
 {
+	using namespace Internal_Interpreter;
+
 	constexpr ExpressionResultTypes k_returnType =
 		std::is_same_v<ReturnType, bool> ? ExpressionResultTypes::Boolean
 		: std::is_same_v<ReturnType, double> ? ExpressionResultTypes::Number
@@ -113,6 +176,7 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 			const Interpreter& interpreter,
 			void* untypedFunc,
 			const Collection::Vector<AST::Expression>& expressions,
+			ECS::EntityManager& entityManager,
 			const ECS::Entity& entity)
 		{
 			Dev::FatalAssert(sizeof...(ArgumentTypes) == expressions.Size(), "Expected %zu arguments, but got %u.",
@@ -123,11 +187,11 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 			ExpressionResult evaluatedArguments[sizeof...(ArgumentTypes)];
 			for (size_t i = 0; i < sizeof...(ArgumentTypes); ++i)
 			{
-				evaluatedArguments[i] = interpreter.EvaluateExpression(expressions[i], entity);
+				evaluatedArguments[i] = interpreter.EvaluateExpression(expressions[i], entityManager, entity);
 			}
 
-			ReturnType result = func(entity,
-				evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ArgumentTypes>()...);
+			ReturnType result = func(entity, ExpressionResultToArgument<ArgumentTypes>::Convert(entityManager, entity,
+				evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ExpressionResultForArgument<ArgumentTypes>::type>())...);
 
 			return ExpressionResult::Make<ReturnType>(std::move(result));
 		}
@@ -140,7 +204,7 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 	m_boundFunctions[functionNameHash] = BoundFunction(func, &BindingFunctions::Call, k_returnType);
 	auto& argumentTypes = m_boundFunctionArgumentTypes[functionNameHash];
 
-	for (const auto& t : { Internal_Interpreter::ExpressionResultTypeFor<ArgumentTypes>::value... })
+	for (const auto& t : { ExpressionResultTypeFor<ExpressionResultForArgument<ArgumentTypes>::type>::value... })
 	{
 		argumentTypes.Add(t);
 	}

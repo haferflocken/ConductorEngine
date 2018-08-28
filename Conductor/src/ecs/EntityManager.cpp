@@ -183,7 +183,7 @@ const Component* EntityManager::FindComponent(const ComponentID id) const
 {
 	const Collection::Pair<const ComponentType, ComponentVector>* const componentsEntry =
 		m_components.Find(id.GetType());
-	if (componentsEntry == nullptr)
+	if (componentsEntry == m_components.end())
 	{
 		return nullptr;
 	}
@@ -205,9 +205,9 @@ size_t EntityManager::FindComponentIndex(const ComponentID id) const
 {
 	const Collection::Pair<const ComponentType, ComponentVector>* const componentsEntry =
 		m_components.Find(id.GetType());
-	if (componentsEntry == nullptr)
+	if (componentsEntry == m_components.end())
 	{
-		return static_cast<size_t>(-1i64);
+		return SIZE_MAX;
 	}
 	const ComponentVector& components = componentsEntry->second;
 
@@ -218,7 +218,7 @@ size_t EntityManager::FindComponentIndex(const ComponentID id) const
 	});
 	if (itr == components.end() || itr->m_id != id)
 	{
-		return static_cast<size_t>(-1i64);
+		return SIZE_MAX;
 	}
 	return static_cast<size_t>(itr.GetIndex());
 }

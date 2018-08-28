@@ -33,7 +33,7 @@ public:
 			for (size_t i = 0, iEnd = m_node->GetChildCount(); i < iEnd; ++i)
 			{
 				const BehaviourCondition* const condition = m_node->GetCondition(i);
-				if (condition->Check(context.m_interpreter, entity))
+				if (condition->Check(context.m_interpreter, context.m_entityManager, entity))
 				{
 					const BehaviourNode* const childNode = m_node->GetChild(i);
 					childNode->PushState(treeEvaluator);

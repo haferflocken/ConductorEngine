@@ -1,12 +1,10 @@
 tree TestTree
-select
+condition
+	{ $blackboard_component GetBool "test_bool" }
 	sequence
-		select
-			select
-				select
-					log("deeep")
 		log("Hello, world!")
 		log("Sequence in action!")
+	true
 	sequence
 		log("Nope, nope, nope!")
 	

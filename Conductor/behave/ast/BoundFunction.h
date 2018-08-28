@@ -2,7 +2,11 @@
 
 #include <behave/ast/ExpressionResultType.h>
 
-namespace ECS { class Entity; }
+namespace ECS
+{
+class Entity;
+class EntityManager;
+}
 
 namespace Behave::AST
 {
@@ -16,7 +20,7 @@ class BoundFunction
 {
 public:
 	using BindingFunction = ExpressionResult(*)(const Interpreter&, void*,
-		const Collection::Vector<Expression>&, const ECS::Entity&);
+		const Collection::Vector<Expression>&, ECS::EntityManager&, const ECS::Entity&);
 
 	BoundFunction()
 		: m_untypedFunc(nullptr)
@@ -32,9 +36,10 @@ public:
 	ExpressionResult operator()(
 		const Interpreter& interpreter,
 		const Collection::Vector<Expression>& arguments,
+		ECS::EntityManager& entityManager,
 		const ECS::Entity& entity) const
 	{
-		return m_binding(interpreter, m_untypedFunc, arguments, entity);
+		return m_binding(interpreter, m_untypedFunc, arguments, entityManager, entity);
 	}
 
 	const ExpressionResultTypes& GetReturnType() const { return m_returnType; }

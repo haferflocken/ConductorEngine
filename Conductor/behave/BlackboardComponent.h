@@ -10,6 +10,7 @@ class ComponentVector;
 
 namespace Behave
 {
+namespace AST { class Interpreter; }
 class BlackboardComponentInfo;
 
 /**
@@ -22,6 +23,8 @@ public:
 
 	static bool TryCreateFromInfo(const BlackboardComponentInfo& componentInfo, const ECS::ComponentID reservedID,
 		ECS::ComponentVector& destination);
+
+	static void BindFunctions(AST::Interpreter& interpreter);
 
 	explicit BlackboardComponent(const ECS::ComponentID id)
 		: Component(id)
