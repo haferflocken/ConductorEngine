@@ -54,6 +54,11 @@ public:
 	Component* FindComponent(const ComponentID id);
 	const Component* FindComponent(const ComponentID id) const;
 
+	template <typename TComponent>
+	TComponent* FindComponent(const Entity& entity);
+	template <typename TComponent>
+	const TComponent* FindComponent(const Entity& entity) const;
+
 	size_t FindComponentIndex(const ComponentID id) const;
 
 	Entity& GetEntityByIndex(const size_t index);
@@ -146,8 +151,32 @@ private:
 	bool m_ecsGroupVectorsNeedRecalculation{ false };
 };
 
+template <typename TComponent>
+inline TComponent* EntityManager::FindComponent(const Entity& entity)
+{
+	const ComponentID componentID = entity.FindComponentID<TComponent>();
+	Component* const component = FindComponent(componentID);
+	if (component != nullptr)
+	{
+		return static_cast<TComponent*>(component);
+	}
+	return nullptr;
+}
+
+template <typename TComponent>
+inline const TComponent* EntityManager::FindComponent(const Entity& entity) const
+{
+	const ComponentID componentID = entity.FindComponentID<TComponent>();
+	const Component* const component = FindComponent(componentID);
+	if (component != nullptr)
+	{
+		return static_cast<const TComponent*>(component);
+	}
+	return nullptr;
+}
+
 template <typename SystemType>
-void EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
+inline void EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
 {
 	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
 		"EntityManager because there is not currently support for initializing the system's component groups.");
@@ -157,7 +186,7 @@ void EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
 }
 
 template <typename... SystemTypes>
-void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems)
+inline void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems)
 {
 	static_assert(SystemUtil::AreSystemsWriteCompatible<SystemTypes...>(),
 		"The given systems can't run concurrently due to write conflicts.");
@@ -170,7 +199,7 @@ void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... c
 }
 
 template <typename SystemType>
-void EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
+inline void EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
 	RegisteredConcurrentSystemGroup& outGroup)
 {
 	struct SystemTypeFunctions
