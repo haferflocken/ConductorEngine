@@ -74,6 +74,7 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Par
 
 	bool expressionResultsInBool = false;
 	compiledExpression.Match(
+		[](const AST::None&) {},
 		[&](const bool&) { expressionResultsInBool = true; },
 		[](const double&) {},
 		[](const std::string&) {},

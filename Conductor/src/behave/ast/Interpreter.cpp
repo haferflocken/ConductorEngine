@@ -133,6 +133,7 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 
 				ExpressionResultTypes argumentResultType;
 				compiledArgument.Match(
+					[&](const None&) { argumentResultType = ExpressionResultTypes::None; },
 					[&](const bool&) { argumentResultType = ExpressionResultTypes::Boolean; },
 					[&](const double&) { argumentResultType = ExpressionResultTypes::Number; },
 					[&](const std::string&) { argumentResultType = ExpressionResultTypes::String; },
@@ -219,6 +220,10 @@ ExpressionResult Interpreter::EvaluateExpression(const Expression& expression, E
 
 	ExpressionResult result;
 	expression.Match(
+		[&](const None&)
+		{
+			result = ExpressionResult::Make<None>();
+		},
 		[&](const bool& boolVal)
 		{
 			result = ExpressionResult::Make<bool>(boolVal);

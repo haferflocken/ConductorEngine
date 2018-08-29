@@ -11,10 +11,13 @@ struct TreeIdentifier
 	Util::StringHash m_treeNameHash;
 };
 
-using ExpressionResult = Collection::Variant<bool, double, std::string, ECS::ComponentType, TreeIdentifier>;
+struct None {};
+
+using ExpressionResult = Collection::Variant<None, bool, double, std::string, ECS::ComponentType, TreeIdentifier>;
 
 enum class ExpressionResultTypes : uint8_t
 {
+	None,
 	Boolean,
 	Number,
 	String,

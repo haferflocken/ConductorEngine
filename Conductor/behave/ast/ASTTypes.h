@@ -22,6 +22,7 @@ struct FunctionCallExpression
 };
 
 struct Expression final : public Collection::Variant<
+	None,
 	bool,
 	double,
 	std::string,

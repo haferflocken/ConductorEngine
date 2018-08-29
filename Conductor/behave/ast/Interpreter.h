@@ -163,7 +163,8 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 	using namespace Internal_Interpreter;
 
 	constexpr ExpressionResultTypes k_returnType =
-		std::is_same_v<ReturnType, bool> ? ExpressionResultTypes::Boolean
+		std::is_same_v<ReturnType, void> ? ExpressionResultTypes::None
+		: std::is_same_v<ReturnType, bool> ? ExpressionResultTypes::Boolean
 		: std::is_same_v<ReturnType, double> ? ExpressionResultTypes::Number
 		: std::is_same_v<ReturnType, std::string> ? ExpressionResultTypes::String
 		: std::is_same_v<ReturnType, ECS::ComponentType> ? ExpressionResultTypes::ComponentType
