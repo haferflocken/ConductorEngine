@@ -7,6 +7,7 @@
 #include <behave/nodes/CallNode.h>
 #include <behave/nodes/ConditionalNode.h>
 #include <behave/nodes/DomainNode.h>
+#include <behave/nodes/DoNode.h>
 #include <behave/nodes/LogNode.h>
 #include <behave/nodes/ReturnNode.h>
 #include <behave/nodes/SelectorNode.h>
@@ -26,6 +27,7 @@ BehaviourNodeFactory::BehaviourNodeFactory(const AST::Interpreter& interpreter)
 	RegisterNodeType<Nodes::CallNode>();
 	RegisterNodeType<Nodes::ConditionalNode>();
 	RegisterNodeType<Nodes::DomainNode>();
+	RegisterNodeType<Nodes::DoNode>();
 	RegisterNodeType<Nodes::LogNode>();
 	RegisterNodeType<Nodes::ReturnNode>();
 	RegisterNodeType<Nodes::SelectorNode>();
@@ -57,7 +59,7 @@ Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
 		return nullptr;
 	}
 
-	return factoryItr->second(*this, nodeExpression, tree);
+	return factoryItr->second(*this, m_interpreter, nodeExpression, tree);
 }
 
 Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Parse::Expression& expression) const

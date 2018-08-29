@@ -6,6 +6,8 @@ condition
 		log("Sequence in action!")
 	true
 	sequence
+		do
+			{ $blackboard_component GetBool "test_bool" }
 		log("Nope, nope, nope!")
 	
 tree SecondTree

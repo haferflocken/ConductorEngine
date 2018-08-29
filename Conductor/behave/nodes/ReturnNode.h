@@ -12,7 +12,7 @@ public:
 	static constexpr const char* k_dslName = "return";
 
 	static Mem::UniquePtr<BehaviourNode> CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
-		const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
+		const AST::Interpreter& interpreter, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
 
 	explicit ReturnNode(const BehaviourTree& tree)
 		: BehaviourNode(tree)

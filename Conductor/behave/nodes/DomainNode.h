@@ -15,7 +15,7 @@ public:
 	static constexpr const char* k_dslName = "domain";
 
 	static Mem::UniquePtr<BehaviourNode> CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
-		const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
+		const AST::Interpreter& interpreter, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
 
 	explicit DomainNode(const BehaviourTree& tree);
 	virtual ~DomainNode();

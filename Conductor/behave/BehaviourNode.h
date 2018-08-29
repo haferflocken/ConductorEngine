@@ -2,6 +2,7 @@
 
 namespace Behave
 {
+namespace AST { class Interpreter; }
 class BehaviourNodeFactory;
 class BehaviourTree;
 class BehaviourTreeEvaluator;

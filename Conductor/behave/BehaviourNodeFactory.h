@@ -28,8 +28,8 @@ struct NodeExpression;
 class BehaviourNodeFactory
 {
 public:
-	using NodeFactoryFunction =
-		Mem::UniquePtr<BehaviourNode>(*)(const BehaviourNodeFactory&, const Parse::NodeExpression&, const BehaviourTree&);
+	using NodeFactoryFunction = Mem::UniquePtr<BehaviourNode>(*)(const BehaviourNodeFactory&, const AST::Interpreter&,
+		const Parse::NodeExpression&, const BehaviourTree&);
 
 	explicit BehaviourNodeFactory(const AST::Interpreter& interpreter);
 

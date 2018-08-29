@@ -82,7 +82,10 @@ private:
 }
 
 Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::SequenceNode::CreateFromNodeExpression(
-	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
+	const BehaviourNodeFactory& nodeFactory,
+	const AST::Interpreter& interpreter,
+	const Parse::NodeExpression& nodeExpression,
+	const BehaviourTree& tree)
 {
 	auto node = Mem::MakeUnique<SequenceNode>(tree);
 	

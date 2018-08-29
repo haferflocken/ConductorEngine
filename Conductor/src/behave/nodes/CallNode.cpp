@@ -66,7 +66,10 @@ const Util::StringHash k_treeToCallHash = Util::CalcHash("tree_to_call");
 }
 
 Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::CallNode::CreateFromNodeExpression(
-	const BehaviourNodeFactory& nodeFactory, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
+	const BehaviourNodeFactory& nodeFactory,
+	const AST::Interpreter& interpreter,
+	const Parse::NodeExpression& nodeExpression,
+	const BehaviourTree& tree)
 {
 	if (nodeExpression.m_arguments.Size() != 1
 		|| !nodeExpression.m_arguments.Front().Is<Parse::IdentifierExpression>())

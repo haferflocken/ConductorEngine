@@ -48,7 +48,7 @@ public:
 		return m_childResult;
 	}
 
-	virtual void NotifyChildFinished(const BehaviourNode* child, const EvaluateResult result)
+	virtual void NotifyChildFinished(const BehaviourNode* child, const EvaluateResult result) override
 	{
 		// Capture the child's result so it can be returned at the next call to Evaluate().
 		m_childResult = result;
@@ -66,6 +66,7 @@ const Util::StringHash k_nodeHash = Util::CalcHash("node");
 
 Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFromNodeExpression(
 	const Behave::BehaviourNodeFactory& nodeFactory,
+	const AST::Interpreter& interpreter,
 	const Parse::NodeExpression& nodeExpression,
 	const BehaviourTree& tree)
 {
