@@ -50,7 +50,9 @@ public:
 	ExpressionResult EvaluateExpression(const Expression& expression, ECS::EntityManager& entityManager,
 		const ECS::Entity& entity) const;
 
-	// Binds a function so that it can be called with AST::Expressions as arguments.
+	// Binds a function so that it can be called with AST::Expressions as arguments. A bound function will always
+	// receive a const ECS::Entity& as its first argument, followed by the arguments provided in the .behave file.
+	// Because a behaviour tree may only access its entity's components, a bound function may only do the same.
 	template <typename ReturnType, typename... ArgumentTypes>
 	void BindFunction(const Util::StringHash functionNameHash,
 		ReturnType(*func)(const ECS::Entity&, ArgumentTypes...));
