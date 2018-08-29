@@ -154,6 +154,41 @@ struct ExpressionResultToArgument
 		}
 	}
 };
+
+template <typename Fn>
+struct FunctionEvaluator;
+
+template <typename ReturnType, typename... ArgumentTypes>
+struct FunctionEvaluator<ReturnType(ArgumentTypes...)>
+{
+	static ExpressionResult Call(
+		ECS::EntityManager& entityManager,
+		const ECS::Entity& entity,
+		ReturnType(*func)(const ECS::Entity&, ArgumentTypes...),
+		ExpressionResult(&evaluatedArguments)[sizeof...(ArgumentTypes)])
+	{
+		ReturnType result = func(entity, ExpressionResultToArgument<ArgumentTypes>::Convert(entityManager, entity,
+			evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ExpressionResultForArgument<ArgumentTypes>::type>())...);
+
+		return ExpressionResult::Make<ReturnType>(std::move(result));
+	}
+};
+
+template <typename... ArgumentTypes>
+struct FunctionEvaluator<void(ArgumentTypes...)>
+{
+	static ExpressionResult Call(
+		ECS::EntityManager& entityManager,
+		const ECS::Entity& entity,
+		void(*func)(const ECS::Entity&, ArgumentTypes...),
+		ExpressionResult(&evaluatedArguments)[sizeof...(ArgumentTypes)])
+	{
+		func(entity, ExpressionResultToArgument<ArgumentTypes>::Convert(entityManager, entity,
+			evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ExpressionResultForArgument<ArgumentTypes>::type>())...);
+
+		return ExpressionResult::Make<None>();
+	}
+};
 }
 
 template <typename ReturnType, typename... ArgumentTypes>
@@ -193,10 +228,7 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 				evaluatedArguments[i] = interpreter.EvaluateExpression(expressions[i], entityManager, entity);
 			}
 
-			ReturnType result = func(entity, ExpressionResultToArgument<ArgumentTypes>::Convert(entityManager, entity,
-				evaluatedArguments[Util::IndexOfType<ArgumentTypes, ArgumentTypes...>].Get<ExpressionResultForArgument<ArgumentTypes>::type>())...);
-
-			return ExpressionResult::Make<ReturnType>(std::move(result));
+			return FunctionEvaluator<ReturnType(ArgumentTypes...)>::Call(entityManager, entity, func, evaluatedArguments);
 		}
 	};
 
