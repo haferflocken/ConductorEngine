@@ -52,6 +52,34 @@ AST::TreeIdentifier GetTreeIdentifier(const ECS::Entity&,
 	blackboardComponent.m_blackboard.GetWithDefault(Util::CalcHash(key), AST::ExpressionResult(), val);
 	return val.IsAny() ? val.Get<AST::TreeIdentifier>() : AST::TreeIdentifier();
 }
+
+void SetBool(const ECS::Entity&, BlackboardComponent& blackboardComponent, const std::string& key, bool val)
+{
+	blackboardComponent.m_blackboard.Set(Util::CalcHash(key), AST::ExpressionResult::Make<bool>(val));
+}
+
+void SetNumber(const ECS::Entity&, BlackboardComponent& blackboardComponent, const std::string& key, double val)
+{
+	blackboardComponent.m_blackboard.Set(Util::CalcHash(key), AST::ExpressionResult::Make<double>(val));
+}
+
+void SetString(const ECS::Entity&, BlackboardComponent& blackboardComponent, const std::string& key,
+	const std::string& val)
+{
+	blackboardComponent.m_blackboard.Set(Util::CalcHash(key), AST::ExpressionResult::Make<std::string>(val));
+}
+
+void SetComponentType(const ECS::Entity&, BlackboardComponent& blackboardComponent, const std::string& key,
+	const ECS::ComponentType val)
+{
+	blackboardComponent.m_blackboard.Set(Util::CalcHash(key), AST::ExpressionResult::Make<ECS::ComponentType>(val));
+}
+
+void SetTreeIdentifier(const ECS::Entity&, BlackboardComponent& blackboardComponent, const std::string& key,
+	const AST::TreeIdentifier val)
+{
+	blackboardComponent.m_blackboard.Set(Util::CalcHash(key), AST::ExpressionResult::Make<AST::TreeIdentifier>(val));
+}
 }
 
 void BlackboardComponent::BindFunctions(AST::Interpreter& interpreter)
@@ -61,5 +89,11 @@ void BlackboardComponent::BindFunctions(AST::Interpreter& interpreter)
 	interpreter.BindFunction(Util::CalcHash("GetString"), &Internal_BlackboardComponent::GetString);
 	interpreter.BindFunction(Util::CalcHash("GetComponentType"), &Internal_BlackboardComponent::GetComponentType);
 	interpreter.BindFunction(Util::CalcHash("GetTreeIdentifier"), &Internal_BlackboardComponent::GetTreeIdentifier);
+
+	interpreter.BindFunction(Util::CalcHash("SetBool"), &Internal_BlackboardComponent::SetBool);
+	interpreter.BindFunction(Util::CalcHash("SetNumber"), &Internal_BlackboardComponent::SetNumber);
+	interpreter.BindFunction(Util::CalcHash("SetString"), &Internal_BlackboardComponent::SetString);
+	interpreter.BindFunction(Util::CalcHash("SetComponentType"), &Internal_BlackboardComponent::SetComponentType);
+	interpreter.BindFunction(Util::CalcHash("SetTreeIdentifier"), &Internal_BlackboardComponent::SetTreeIdentifier);
 }
 }
