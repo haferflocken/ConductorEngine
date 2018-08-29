@@ -9,6 +9,7 @@
 #include <behave/nodes/DomainNode.h>
 #include <behave/nodes/DoNode.h>
 #include <behave/nodes/LogNode.h>
+#include <behave/nodes/RepeatNode.h>
 #include <behave/nodes/ReturnNode.h>
 #include <behave/nodes/SelectorNode.h>
 #include <behave/nodes/SequenceNode.h>
@@ -29,6 +30,7 @@ BehaviourNodeFactory::BehaviourNodeFactory(const AST::Interpreter& interpreter)
 	RegisterNodeType<Nodes::DomainNode>();
 	RegisterNodeType<Nodes::DoNode>();
 	RegisterNodeType<Nodes::LogNode>();
+	RegisterNodeType<Nodes::RepeatNode>();
 	RegisterNodeType<Nodes::ReturnNode>();
 	RegisterNodeType<Nodes::SelectorNode>();
 	RegisterNodeType<Nodes::SequenceNode>();

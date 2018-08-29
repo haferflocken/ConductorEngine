@@ -1,14 +1,15 @@
 tree TestTree
-condition
-	{ $blackboard_component GetBool "test_bool" }
-	sequence
-		log("Hello, world!")
-		log("Sequence in action!")
-	true
-	sequence
-		do
-			SetBool($blackboard_component, "test_bool", true)
-		log("Nope, nope, nope!")
+repeat
+	condition
+		{ $blackboard_component GetBool "test_bool" }
+		sequence
+			log("Hello, world!")
+			log("Sequence in action!")
+		true
+		sequence
+			do
+				SetBool($blackboard_component, "test_bool", true)
+			log("Set test_bool to true.")
 	
 tree SecondTree
 domain

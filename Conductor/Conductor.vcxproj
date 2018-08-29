@@ -144,6 +144,7 @@
     <ClCompile Include="src\behave\BehaviourCondition.cpp" />
     <ClCompile Include="src\behave\ast\Interpreter.cpp" />
     <ClCompile Include="src\behave\nodes\DoNode.cpp" />
+    <ClCompile Include="src\behave\nodes\RepeatNode.cpp" />
     <ClCompile Include="src\behave\parse\BehaviourTreeParser.cpp" />
     <ClCompile Include="src\client\IClient.cpp" />
     <ClCompile Include="src\ecs\Entity.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="behave\ast\Interpreter.h" />
     <ClInclude Include="behave\ast\ASTTypes.h" />
     <ClInclude Include="behave\nodes\DoNode.h" />
+    <ClInclude Include="behave\nodes\RepeatNode.h" />
     <ClInclude Include="behave\parse\BehaveParsedTree.h" />
     <ClInclude Include="behave\parse\BehaviourTreeParser.h" />
     <ClInclude Include="ecs\ApplyDeltaTransmissionResult.h" />
