@@ -1,22 +1,12 @@
 #include <ecs/ComponentReflector.h>
 
-#include <behave/BehaviourTreeComponent.h>
-#include <behave/BehaviourTreeComponentInfo.h>
-#include <behave/BlackboardComponent.h>
-#include <behave/BlackboardComponentInfo.h>
 #include <ecs/Component.h>
 #include <ecs/ComponentInfo.h>
-#include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 #include <dev/Dev.h>
 
 ECS::ComponentReflector::ComponentReflector()
-{
-	RegisterComponentType<Behave::BehaviourTreeComponent>();
-	RegisterComponentType<Behave::BlackboardComponent>();
-	RegisterComponentType<Scene::SceneTransformComponent>();
-}
+{}
 
 void ECS::ComponentReflector::RegisterComponentType(const char* const componentTypeName,
 	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponentInBytes,

@@ -1,11 +1,8 @@
 #include <ecs/ComponentInfoFactory.h>
 
-#include <behave/BehaviourTreeComponentInfo.h>
-#include <behave/BlackboardComponentInfo.h>
 #include <dev/Dev.h>
 #include <ecs/ComponentInfo.h>
 #include <json/JSONTypes.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 namespace Internal_ComponentInfoFactory
 {
@@ -15,9 +12,6 @@ const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 ECS::ComponentInfoFactory::ComponentInfoFactory()
 	: m_factoryFunctions()
 {
-	RegisterFactoryFunction<Behave::BehaviourTreeComponentInfo>();
-	RegisterFactoryFunction<Behave::BlackboardComponentInfo>();
-	RegisterFactoryFunction<Scene::SceneTransformComponentInfo>();
 }
 
 void ECS::ComponentInfoFactory::RegisterFactoryFunction(

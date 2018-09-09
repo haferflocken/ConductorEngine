@@ -3,7 +3,6 @@
 #include <client/IRenderInstance.h>
 
 namespace Client { struct InputMessage; struct MessageToRenderInstance; }
-namespace Collection { template <typename T> class LocklessQueue; }
 
 struct SDL_Window;
 
@@ -20,6 +19,10 @@ public:
 		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
 		const char* const applicationName);
 	~RenderInstance();
+
+	virtual void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
+		ECS::ComponentInfoFactory& componentInfoFactory) override;
+	virtual void RegisterSystems(ECS::EntityManager& entityManager) override;
 
 	virtual Status GetStatus() const override;
 

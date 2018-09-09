@@ -5,6 +5,9 @@
 
 #include <collection/LocklessQueue.h>
 
+#include <ecs/ComponentReflector.h>
+#include <ecs/EntityManager.h>
+
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <SDL2/SDL.h>
@@ -68,6 +71,17 @@ RenderInstance::~RenderInstance()
 	bgfx::shutdown();
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
+}
+
+void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
+	ECS::ComponentInfoFactory& componentInfoFactory)
+{
+	// TODO(renderer)
+}
+
+void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
+{
+	// TODO(renderer)
 }
 
 RenderInstance::Status RenderInstance::GetStatus() const

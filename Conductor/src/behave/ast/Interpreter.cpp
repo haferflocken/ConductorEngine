@@ -1,6 +1,5 @@
 #include <behave/ast/Interpreter.h>
 
-#include <behave/BlackboardComponent.h>
 #include <behave/parse/BehaveParsedTree.h>
 
 #include <dev/Dev.h>
@@ -71,8 +70,6 @@ Interpreter::Interpreter(const ECS::ComponentReflector& componentReflector)
 	BindFunction(Util::CalcHash("Round"), &Internal_Interpreter::Round);
 
 	BindFunction(Util::CalcHash("HasComponent"), &Internal_Interpreter::HasComponent);
-
-	BlackboardComponent::BindFunctions(*this);
 }
 
 Interpreter::~Interpreter()

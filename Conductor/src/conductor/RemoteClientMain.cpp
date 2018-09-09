@@ -36,6 +36,9 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	// Load data files.
 	Mem::UniquePtr<IGameData> gameData = gameDataFactory(dataDirectory);
 
+	// Register the renderer's component types.
+	renderInstance->RegisterComponentTypes(gameData->GetComponentReflector(), gameData->GetComponentInfoFactory());
+
 	// Establish a connection to the networked host.
 	Client::ClientNetworkWorld clientNetworkWorld{ hostName, hostPort };
 	if (!clientNetworkWorld.IsRunning())
