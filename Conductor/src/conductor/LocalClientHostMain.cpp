@@ -39,7 +39,8 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 		Host::HostNetworkWorld::k_outboundMessageCapacityPerClient };
 
 	// Create the client and connect it to a new host.
-	Client::ClientWorld clientWorld{ *gameData, inputToClientMessages, hostToClientMessages, std::move(clientFactory) };
+	Client::ClientWorld clientWorld{ *gameData, *renderInstance, inputToClientMessages,
+		hostToClientMessages, std::move(clientFactory) };
 	Host::HostWorld hostWorld{ *gameData, clientToHostMessages, std::move(hostFactory) };
 	
 	constexpr Client::ClientID clientID = Host::HostNetworkWorld::k_localClientID;

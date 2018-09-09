@@ -48,7 +48,7 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	}
 
 	// Create a client and notify it of the connection.
-	Client::ClientWorld clientWorld{ *gameData, inputToClientMessages,
+	Client::ClientWorld clientWorld{ *gameData, *renderInstance, inputToClientMessages,
 		clientNetworkWorld.GetHostToClientMessageQueue(), std::move(clientFactory) };
 	clientWorld.NotifyOfHostConnected(Mem::MakeUnique<Client::ConnectedHost>(
 		clientNetworkWorld.GetClientID(), clientNetworkWorld.GetClientToHostMessageQueue()));

@@ -3,16 +3,19 @@
 #include <client/ConnectedHost.h>
 #include <client/IClient.h>
 #include <client/InputMessage.h>
+#include <client/IRenderInstance.h>
 
 #include <collection/LocklessQueue.h>
 #include <dev/Dev.h>
 #include <host/MessageToClient.h>
 
 Client::ClientWorld::ClientWorld(const Conductor::IGameData& gameData,
+	IRenderInstance& renderInstance,
 	Collection::LocklessQueue<Client::InputMessage>& inputMessages,
 	Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
 	ClientFactory&& clientFactory)
 	: m_gameData(gameData)
+	, m_renderInstance(renderInstance)
 	, m_inputMessages(inputMessages)
 	, m_networkInputQueue(networkInputQueue)
 	, m_clientFactory(std::move(clientFactory))
@@ -49,6 +52,8 @@ void Client::ClientWorld::ClientThreadFunction()
 {
 	m_clientThreadStatus = ClientThreadStatus::Running;
 	m_client = m_clientFactory(m_gameData, *m_connectedHost);
+
+	m_renderInstance.RegisterSystems(m_client->GetEntityManager());
 
 	while (m_clientThreadStatus == ClientThreadStatus::Running)
 	{

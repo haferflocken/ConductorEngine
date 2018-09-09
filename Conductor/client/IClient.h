@@ -21,6 +21,9 @@ public:
 		, m_entityManager(componentReflector, false)
 	{}
 
+	ECS::EntityManager& GetEntityManager() { return m_entityManager; }
+	const ECS::EntityManager& GetEntityManager() const { return m_entityManager; }
+
 	void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 
 	virtual void Update() = 0;
