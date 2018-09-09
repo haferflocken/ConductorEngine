@@ -5,8 +5,13 @@
 
 #include <collection/LocklessQueue.h>
 
+#include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityManager.h>
+
+#include <renderer/MeshComponent.h>
+#include <renderer/MeshComponentInfo.h>
+#include <renderer/MeshSystem.h>
 
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
@@ -76,12 +81,13 @@ RenderInstance::~RenderInstance()
 void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
 	ECS::ComponentInfoFactory& componentInfoFactory)
 {
-	// TODO(renderer)
+	componentReflector.RegisterComponentType<MeshComponent>();
+	componentInfoFactory.RegisterFactoryFunction<MeshComponentInfo>();
 }
 
 void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 {
-	// TODO(renderer)
+	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>());
 }
 
 RenderInstance::Status RenderInstance::GetStatus() const
