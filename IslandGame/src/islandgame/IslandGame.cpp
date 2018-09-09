@@ -25,7 +25,7 @@
 #include <host/MessageToClient.h>
 #include <network/Socket.h>
 
-#include <vulkanrenderer/VulkanInstance.h>
+#include <renderer/RenderInstance.h>
 
 #include <iostream>
 
@@ -60,11 +60,8 @@ Client::RenderInstanceFactory MakeRenderInstanceFactory()
 		Collection::LocklessQueue<Client::MessageToRenderInstance>& clientToRenderInstanceMessages,
 		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages)
 	{
-		const File::Path vertexShaderFile = dataDirectory / k_vertexShaderPath;
-		const File::Path fragmentShaderFile = dataDirectory / k_fragmentShaderPath;
-	
-		return Mem::MakeUnique<VulkanRenderer::VulkanInstance>(
-			clientToRenderInstanceMessages, inputToClientMessages, "IslandGame", vertexShaderFile, fragmentShaderFile);
+		return Mem::MakeUnique<Renderer::RenderInstance>(
+			clientToRenderInstanceMessages, inputToClientMessages, "IslandGame");
 	};
 }
 
