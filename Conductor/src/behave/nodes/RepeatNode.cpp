@@ -26,10 +26,14 @@ public:
 		switch (m_childResult)
 		{
 		case EvaluateResult::Running:
-		case EvaluateResult::Success:
 		{
 			m_node->GetChild()->PushState(treeEvaluator);
 			return EvaluateResult::PushedNode;
+		}
+		case EvaluateResult::Success:
+		{
+			m_childResult = EvaluateResult::Running;
+			return EvaluateResult::Running;
 		}
 		case EvaluateResult::Failure:
 		{
