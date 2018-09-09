@@ -37,7 +37,7 @@ public:
 	IndexIterator operator--(int) { IndexIterator temp = *this; --m_index; return temp; }
 
 	IndexIterator& operator+=(difference_type n) { m_index += n; return *this; }
-	IndexIterator& operator-=(difference_type n) { m_offset -= n; return *this; }
+	IndexIterator& operator-=(difference_type n) { m_index -= n; return *this; }
 
 	IndexIterator operator+(difference_type rhs) const { IndexIterator temp = *this; return temp += rhs; }
 	IndexIterator operator-(difference_type rhs) const { IndexIterator temp = *this; return temp -= rhs; }

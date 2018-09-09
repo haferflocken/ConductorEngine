@@ -11,7 +11,7 @@ namespace Scene
 class SceneTransformComponentInfo final : public ECS::ComponentInfo
 {
 public:
-	static constexpr char* sk_typeName = "scene_transform_component";
+	static constexpr const char* sk_typeName = "scene_transform_component";
 	static const Util::StringHash sk_typeHash;
 
 	static Mem::UniquePtr<ComponentInfo> LoadFromJSON(
