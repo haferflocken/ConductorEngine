@@ -55,7 +55,10 @@ RenderInstance::RenderInstance(
 	init.resolution.width = k_width;
 	init.resolution.height = k_height;
 	init.resolution.reset = BGFX_RESET_VSYNC;
-	bgfx::init(init);
+	if (!bgfx::init(init))
+	{
+		throw std::runtime_error("Failed to initialize BGFX.");
+	}
 
 	m_status = Status::Initialized;
 }
