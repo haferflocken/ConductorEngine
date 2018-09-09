@@ -16,8 +16,12 @@ struct AreSystemsWriteCompatibleStruct<SeenTypeList, TestType>
 template <typename SeenTypeList, typename TestType, typename... NextTypes>
 struct AreSystemsWriteCompatibleStruct<SeenTypeList, TestType, NextTypes...>
 {
-	static constexpr bool value = TestType::IsWriteCompatibleWithAll(SeenTypeList::AppendType<NextTypes...>())
-		&& AreSystemsWriteCompatibleStruct<SeenTypeList::AppendType<TestType>, NextTypes...>::value;
+	using AllOtherTypesList = typename SeenTypeList::template AppendType<NextTypes...>;
+	
+	static constexpr bool k_writeCompatible = TestType::IsWriteCompatibleWithAll(AllOtherTypesList());
+	static constexpr bool k_rest = AreSystemsWriteCompatibleStruct<typename SeenTypeList::template AppendType<TestType>, NextTypes...>::value;
+
+	static constexpr bool value = k_writeCompatible && k_rest;
 };
 
 /**

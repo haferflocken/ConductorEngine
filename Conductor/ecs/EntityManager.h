@@ -8,6 +8,7 @@
 #include <ecs/ApplyDeltaTransmissionResult.h>
 #include <ecs/ComponentID.h>
 #include <ecs/ECSGroupVector.h>
+#include <ecs/Entity.h>
 #include <ecs/EntityID.h>
 #include <ecs/SystemUtil.h>
 
@@ -29,7 +30,6 @@ class ComponentInfo;
 class ComponentReflector;
 class ComponentVector;
 class ECSGroupVector;
-class Entity;
 class EntityInfo;
 class System;
 
