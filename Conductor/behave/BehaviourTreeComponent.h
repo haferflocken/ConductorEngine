@@ -3,11 +3,6 @@
 #include <behave/BehaviourTreeEvaluator.h>
 #include <ecs/Component.h>
 
-namespace ECS
-{
-class ComponentVector;
-}
-
 namespace Behave
 {
 class BehaviourTreeComponentInfo;

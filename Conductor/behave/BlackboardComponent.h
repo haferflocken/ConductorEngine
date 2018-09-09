@@ -3,11 +3,6 @@
 #include <behave/Blackboard.h>
 #include <ecs/Component.h>
 
-namespace ECS
-{
-class ComponentVector;
-}
-
 namespace Behave
 {
 namespace AST { class Interpreter; }

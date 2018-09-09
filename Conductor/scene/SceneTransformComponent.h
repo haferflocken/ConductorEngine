@@ -3,8 +3,6 @@
 #include <ecs/Component.h>
 #include <math/Matrix4x4.h>
 
-namespace ECS { class ComponentVector; }
-
 namespace Scene
 {
 class SceneTransformComponentInfo;

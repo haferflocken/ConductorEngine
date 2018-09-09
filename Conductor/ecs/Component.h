@@ -5,6 +5,8 @@
 
 namespace ECS
 {
+class ComponentVector;
+
 /**
  * A Component holds data for an entity. A component is always instantiated using a ComponentInfo.
  * Components must define an Info type which they are instantiated from, and must define a TryCreateFromInfo
