@@ -1,12 +1,11 @@
 #pragma once
 
+#include <collection/Vector.h>
 #include <unit/CountUnits.h>
 
 #include <algorithm>
 #include <tuple>
 #include <type_traits>
-
-namespace Collection { template <typename T> class Vector; }
 
 namespace Util
 {
