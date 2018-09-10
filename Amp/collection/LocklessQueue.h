@@ -11,8 +11,7 @@ template <typename T>
 class LocklessQueue
 {
 public:
-
-	LocklessQueue(size_t capacity)
+	explicit LocklessQueue(size_t capacity)
 		: m_queue(static_cast<T*>(malloc(sizeof(T) * capacity)))
 		, m_inputIndex(0)
 		, m_outputIndex(0)
