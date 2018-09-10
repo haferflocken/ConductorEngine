@@ -70,6 +70,9 @@ Conductor::GameDataFactory MakeGameDataFactory()
 	return [](const File::Path& dataDirectory)
 	{
 		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
+		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(), 
+			gameData->GetComponentInfoFactory());
+
 		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 		gameData->LoadEntityInfosInDirectory(dataDirectory / k_entityInfosPath);
 		return gameData;

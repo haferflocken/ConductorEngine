@@ -9,8 +9,8 @@
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityManager.h>
 
-#include <renderer/MeshComponent.h>
-#include <renderer/MeshComponentInfo.h>
+#include <renderer/CameraSystem.h>
+#include <renderer/FrameSignalSystem.h>
 #include <renderer/MeshSystem.h>
 
 #include <bgfx/bgfx.h>
@@ -22,8 +22,8 @@ namespace Renderer
 {
 namespace Internal_RenderInstance
 {
-constexpr int k_width = 1280;
-constexpr int k_height = 720;
+constexpr uint16_t k_width = 1280;
+constexpr uint16_t k_height = 720;
 }
 
 RenderInstance::RenderInstance(
@@ -57,6 +57,21 @@ RenderInstance::RenderInstance(
 	platformData.nwh = sdlWindowInfo.info.win.window;
 	bgfx::setPlatformData(platformData);
 
+	bgfx::renderFrame();
+}
+
+RenderInstance::~RenderInstance()
+{
+	bgfx::shutdown();
+	SDL_DestroyWindow(m_window);
+	SDL_Quit();
+}
+
+void RenderInstance::InitOnClientThread()
+{
+	using namespace Internal_RenderInstance;
+
+	// Calling bgfx::init() here marks the client thread as the bgfx API thread.
 	bgfx::Init init;
 	init.type = bgfx::RendererType::Vulkan;
 	init.vendorId = BGFX_PCI_ID_NONE;
@@ -68,26 +83,28 @@ RenderInstance::RenderInstance(
 		throw std::runtime_error("Failed to initialize BGFX.");
 	}
 
+	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xf0f0f0ff);
+	
+	// Mark initialization as complete.
 	m_status = Status::Initialized;
-}
-
-RenderInstance::~RenderInstance()
-{
-	bgfx::shutdown();
-	SDL_DestroyWindow(m_window);
-	SDL_Quit();
 }
 
 void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
 	ECS::ComponentInfoFactory& componentInfoFactory)
 {
+	componentReflector.RegisterComponentType<CameraComponent>();
+	componentInfoFactory.RegisterFactoryFunction<CameraComponentInfo>();
+
 	componentReflector.RegisterComponentType<MeshComponent>();
 	componentInfoFactory.RegisterFactoryFunction<MeshComponentInfo>();
 }
 
 void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 {
+	using namespace Internal_RenderInstance;
+	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(k_width, k_height));
 	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>());
+	entityManager.RegisterSystem(Mem::MakeUnique<FrameSignalSystem>());
 }
 
 RenderInstance::Status RenderInstance::GetStatus() const
@@ -97,6 +114,13 @@ RenderInstance::Status RenderInstance::GetStatus() const
 
 RenderInstance::Status RenderInstance::Update()
 {
+	// Wait until initializtion is complete before running the update.
+	if (m_status == Status::Initializing)
+	{
+		bgfx::renderFrame();
+		return Status::Running;
+	}
+
 	m_status = Status::Running;
 
 	// Handle any pending SDL events.
@@ -135,14 +159,27 @@ RenderInstance::Status RenderInstance::Update()
 		}
 	}
 
+	// Handle messages from the client thread.
 	Client::MessageToRenderInstance message;
 	while (m_messagesFromClient.TryPop(message))
 	{
-		// TODO handle the messages from the client
+		/*message.Match(
+			[](Client::AdvanceFrame_MessageToRenderInstance&)
+			{
+				bgfx::renderFrame();
+				// Dummy draw call to ensure the view is cleared if no other draw calls are made.
+				bgfx::begin()->touch(0);
+				bgfx::touch(0);
+			});*/
 	}
 
-	// Advance to the next frame.
-	bgfx::frame();
+	// Render the next frame. This will block until bgfx::frame() is called on the client thread.
+	bgfx::renderFrame();
+
+	// Dummy draw call to ensure the view is cleared if no other draw calls are made.
+	bgfx::Encoder* const encoder = bgfx::begin();
+	encoder->touch(0);
+	bgfx::end(encoder);
 
 	return m_status;
 }

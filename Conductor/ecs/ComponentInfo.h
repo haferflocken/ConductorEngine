@@ -1,6 +1,10 @@
 #pragma once
 
+#include <mem/UniquePtr.h>
 #include <util/StringHash.h>
+
+namespace Behave { class BehaviourTreeManager; }
+namespace JSON { class JSONObject; }
 
 namespace ECS
 {

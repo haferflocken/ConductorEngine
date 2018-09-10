@@ -18,6 +18,7 @@ namespace Client
 /**
  * Interface for render instances to implement so that game code can be abstracted away
  * from the details of specific rendering libraries.
+ * The render instance is always instantiated from the main thread.
  *
  * A render instance is expected to render an ECS scene (entities).
  */
@@ -41,9 +42,8 @@ protected:
 public:
 	virtual ~IRenderInstance() {}
 
-	// Register any component types the renderer needs for its ECS::Systems to run.
-	virtual void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
-		ECS::ComponentInfoFactory& componentInfoFactory) = 0;
+	// Called from the client thread to allow any necessary initialization on it.
+	virtual void InitOnClientThread() = 0;
 
 	// Register any systems the renderer needs to the given entity manager.
 	// By using ECS::Systems, game code can declare that something is renderable, and the renderer handles the rest.

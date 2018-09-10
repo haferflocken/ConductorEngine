@@ -4,10 +4,10 @@
 
 namespace Renderer
 {
-class MeshComponentInfo final : public ECS::ComponentInfo
+class CameraComponentInfo final : public ECS::ComponentInfo
 {
 public:
-	static constexpr const char* sk_typeName = "mesh_component";
+	static constexpr const char* sk_typeName = "camera_component";
 	static const Util::StringHash sk_typeHash;
 
 	static Mem::UniquePtr<ECS::ComponentInfo> LoadFromJSON(

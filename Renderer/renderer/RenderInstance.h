@@ -2,8 +2,6 @@
 
 #include <client/IRenderInstance.h>
 
-namespace Client { struct InputMessage; struct MessageToRenderInstance; }
-
 struct SDL_Window;
 
 namespace Renderer
@@ -20,8 +18,12 @@ public:
 		const char* const applicationName);
 	~RenderInstance();
 
-	virtual void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
-		ECS::ComponentInfoFactory& componentInfoFactory) override;
+	// Register any component types the renderer needs for its ECS::Systems to run.
+	static void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
+		ECS::ComponentInfoFactory& componentInfoFactory);
+
+	virtual void InitOnClientThread() override;
+
 	virtual void RegisterSystems(ECS::EntityManager& entityManager) override;
 
 	virtual Status GetStatus() const override;

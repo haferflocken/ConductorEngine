@@ -29,9 +29,6 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 	// Load data files.
 	Mem::UniquePtr<IGameData> gameData = gameDataFactory(dataDirectory);
 
-	// Register the renderer's component types.
-	renderInstance->RegisterComponentTypes(gameData->GetComponentReflector(), gameData->GetComponentInfoFactory());
-
 	// Create the message queues that will allow the client and host to communicate.
 	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{
 		Host::HostNetworkWorld::k_inboundMessageCapacity };

@@ -51,8 +51,8 @@ void Client::ClientWorld::NotifyOfHostDisconnected()
 void Client::ClientWorld::ClientThreadFunction()
 {
 	m_clientThreadStatus = ClientThreadStatus::Running;
+	m_renderInstance.InitOnClientThread();
 	m_client = m_clientFactory(m_gameData, *m_connectedHost);
-
 	m_renderInstance.RegisterSystems(m_client->GetEntityManager());
 
 	while (m_clientThreadStatus == ClientThreadStatus::Running)

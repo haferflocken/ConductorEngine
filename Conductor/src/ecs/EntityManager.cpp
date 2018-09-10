@@ -903,11 +903,19 @@ void EntityManager::UpdateSystems()
 	for (auto& concurrentGroup : m_concurrentSystemGroups)
 	{
 		// The systems in each group can update in parallel.
-		std::for_each(std::execution::par, concurrentGroup.m_systems.begin(), concurrentGroup.m_systems.end(),
-			[&](RegisteredSystem& registeredSystem)
+		// If the group has only one system, run it directly on this thread.
+		if (concurrentGroup.m_systems.Size() == 1)
 		{
-			registeredSystem.m_updateFunction(*this, registeredSystem);
-		});
+			concurrentGroup.m_systems.Front().m_updateFunction(*this, concurrentGroup.m_systems.Front());
+		}
+		else
+		{
+			std::for_each(std::execution::par, concurrentGroup.m_systems.begin(), concurrentGroup.m_systems.end(),
+				[&](RegisteredSystem& registeredSystem)
+				{
+					registeredSystem.m_updateFunction(*this, registeredSystem);
+				});
+		}
 
 		// Resolve deferred functions single-threaded.
 		for (auto& registeredSystem : concurrentGroup.m_systems)

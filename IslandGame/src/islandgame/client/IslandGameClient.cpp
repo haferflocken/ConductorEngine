@@ -5,6 +5,7 @@
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <client/ConnectedHost.h>
+#include <ecs/EntityInfoManager.h>
 
 IslandGame::Client::IslandGameClient::IslandGameClient(
 	const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost)
@@ -20,5 +21,14 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 
 void IslandGame::Client::IslandGameClient::Update()
 {
+	// TODO remove this
+	static bool isCameraCreated = false;
+	if (!isCameraCreated)
+	{
+		m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("islander.json")));
+		m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("camera.json")));
+		isCameraCreated = true;
+	}
+
 	m_entityManager.Update();
 }

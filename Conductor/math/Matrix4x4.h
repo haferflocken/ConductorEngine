@@ -15,6 +15,8 @@ public:
 	Matrix4x4(const Matrix4x4&) = default;
 	Matrix4x4& operator=(const Matrix4x4&) = default;
 
+	const float* GetData() const { return m_matrix; }
+
 	const Vector3& GetTranslation() const { return reinterpret_cast<const Vector3&>(m_matrix[12]); }
 	void SetTranslation(const Vector3& v) { reinterpret_cast<Vector3&>(m_matrix[12]) = v; }
 
