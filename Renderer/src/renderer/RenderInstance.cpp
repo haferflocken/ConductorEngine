@@ -163,14 +163,6 @@ RenderInstance::Status RenderInstance::Update()
 	Client::MessageToRenderInstance message;
 	while (m_messagesFromClient.TryPop(message))
 	{
-		/*message.Match(
-			[](Client::AdvanceFrame_MessageToRenderInstance&)
-			{
-				bgfx::renderFrame();
-				// Dummy draw call to ensure the view is cleared if no other draw calls are made.
-				bgfx::begin()->touch(0);
-				bgfx::touch(0);
-			});*/
 	}
 
 	// Render the next frame. This will block until bgfx::frame() is called on the client thread.
