@@ -9,6 +9,10 @@
 
 namespace Renderer
 {
+/**
+ * Pushes CameraComponent state into bgfx. If there is more than one camera entity per bgfx view,
+ * which camera will take effect is undefined.
+ */
 class CameraSystem final : public ECS::SystemTempl<
 	Util::TypeList<Scene::SceneTransformComponent, CameraComponent>,
 	Util::TypeList<>>

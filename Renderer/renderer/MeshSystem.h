@@ -11,6 +11,9 @@
 
 namespace Renderer
 {
+/**
+ * Makes entities visible by rendering their MeshComponent.
+ */
 class MeshSystem final : public ECS::SystemTempl<
 	Util::TypeList<Scene::SceneTransformComponent, MeshComponent>,
 	Util::TypeList<>>

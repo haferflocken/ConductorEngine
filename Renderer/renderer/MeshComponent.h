@@ -6,6 +6,9 @@ namespace Renderer
 {
 class MeshComponentInfo;
 
+/**
+ * Entities with a MeshComponent have a mesh drawn at their scene transform.
+ */
 class MeshComponent final : public ECS::Component
 {
 public:

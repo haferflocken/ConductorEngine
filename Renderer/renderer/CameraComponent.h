@@ -6,6 +6,10 @@ namespace Renderer
 {
 class CameraComponentInfo;
 
+/**
+ * The renderer views the world through entities with CameraComponents.
+ * There should only be one camera per bgfx view active at any given time.
+ */
 class CameraComponent final : public ECS::Component
 {
 public:
