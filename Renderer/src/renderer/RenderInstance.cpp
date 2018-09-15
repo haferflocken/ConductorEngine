@@ -130,11 +130,61 @@ RenderInstance::Status RenderInstance::Update()
 	case Status::Initialized:
 	{
 		m_status = Status::Running;
-		break;
+		// Fall through.
 	}
 	case Status::Running:
 	{
-		break;
+		// Handle any pending SDL events.
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
+		{
+			switch (event.type)
+			{
+			case SDL_QUIT:
+			{
+				m_status = Status::Terminating;
+
+				Client::InputMessage message;
+				message.m_type = Client::InputMessageType::WindowClosed;
+
+				m_inputToClientMessages.TryPush(std::move(message));
+
+				return Status::Running;
+			}
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
+			{
+				Client::InputMessage message;
+				message.m_type = (event.type == SDL_KEYDOWN)
+					? Client::InputMessageType::KeyDown
+					: Client::InputMessageType::KeyUp;
+				message.m_key = static_cast<char>(event.key.keysym.sym);
+
+				m_inputToClientMessages.TryPush(std::move(message));
+				break;
+			}
+			default:
+			{
+				break;
+			}
+			}
+		}
+
+		// Handle messages from the client thread.
+		Client::MessageToRenderInstance message;
+		while (m_messagesFromClient.TryPop(message))
+		{
+		}
+
+		// Render the next frame. This will block until bgfx::frame() is called on the client thread.
+		bgfx::renderFrame();
+
+		// Dummy draw call to ensure the view is cleared if no other draw calls are made.
+		bgfx::Encoder* const encoder = bgfx::begin();
+		encoder->touch(0);
+		bgfx::end(encoder);
+
+		return m_status;
 	}
 	case Status::Terminating:
 	{
@@ -148,58 +198,11 @@ RenderInstance::Status RenderInstance::Update()
 	{
 		return m_status;
 	}
-	}
-
-	// Handle any pending SDL events.
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
+	default:
 	{
-		switch (event.type)
-		{
-		case SDL_QUIT:
-		{
-			m_status = Status::Terminating;
-
-			Client::InputMessage message;
-			message.m_type = Client::InputMessageType::WindowClosed;
-
-			m_inputToClientMessages.TryPush(std::move(message));
-
-			return Status::Running;
-		}
-		case SDL_KEYDOWN:
-		case SDL_KEYUP:
-		{
-			Client::InputMessage message;
-			message.m_type = (event.type == SDL_KEYDOWN)
-				? Client::InputMessageType::KeyDown
-				: Client::InputMessageType::KeyUp;
-			message.m_key = static_cast<char>(event.key.keysym.sym);
-
-			m_inputToClientMessages.TryPush(std::move(message));
-			break;
-		}
-		default:
-		{
-			break;
-		}
-		}
+		Dev::FatalError("Unknown render instance status [%d].", static_cast<int32_t>(m_status));
+		return Status::ErrorTerminated;
 	}
-
-	// Handle messages from the client thread.
-	Client::MessageToRenderInstance message;
-	while (m_messagesFromClient.TryPop(message))
-	{
 	}
-
-	// Render the next frame. This will block until bgfx::frame() is called on the client thread.
-	bgfx::renderFrame();
-
-	// Dummy draw call to ensure the view is cleared if no other draw calls are made.
-	bgfx::Encoder* const encoder = bgfx::begin();
-	encoder->touch(0);
-	bgfx::end(encoder);
-
-	return m_status;
 }
 }
