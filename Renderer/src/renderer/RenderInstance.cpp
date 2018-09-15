@@ -27,10 +27,12 @@ constexpr uint16_t k_height = 720;
 }
 
 RenderInstance::RenderInstance(
+	Asset::AssetManager& assetManager,
 	Collection::LocklessQueue<Client::MessageToRenderInstance>& messagesFromClient,
 	Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
 	const char* const applicationName)
-	: m_status(Status::Initializing)
+	: IRenderInstance(assetManager)
+	, m_status(Status::Initializing)
 	, m_messagesFromClient(messagesFromClient)
 	, m_inputToClientMessages(inputToClientMessages)
 {

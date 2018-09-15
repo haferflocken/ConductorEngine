@@ -56,11 +56,12 @@ int HostMain(const Collection::ProgramParameters& params, const File::Path& data
 // Define the factory functions that abstract game code away from engine code.
 Client::RenderInstanceFactory MakeRenderInstanceFactory()
 {
-	return [](const File::Path& dataDirectory,
+	return [](Asset::AssetManager& assetManager,
+		const File::Path& dataDirectory,
 		Collection::LocklessQueue<Client::MessageToRenderInstance>& clientToRenderInstanceMessages,
 		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages)
 	{
-		return Mem::MakeUnique<Renderer::RenderInstance>(
+		return Mem::MakeUnique<Renderer::RenderInstance>(assetManager,
 			clientToRenderInstanceMessages, inputToClientMessages, "IslandGame");
 	};
 }

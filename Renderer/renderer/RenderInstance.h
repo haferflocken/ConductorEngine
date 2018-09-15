@@ -13,6 +13,7 @@ class RenderInstance final : public Client::IRenderInstance
 {
 public:
 	explicit RenderInstance(
+		Asset::AssetManager& assetManager,
 		Collection::LocklessQueue<Client::MessageToRenderInstance>& messagesFromClient,
 		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
 		const char* const applicationName);

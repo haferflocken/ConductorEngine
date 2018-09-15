@@ -1,5 +1,6 @@
 #include <conductor/LocalClientHostMain.h>
 
+#include <asset/AssetManager.h>
 #include <client/ConnectedHost.h>
 #include <client/InputMessage.h>
 #include <client/MessageToRenderInstance.h>
@@ -16,6 +17,9 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 	Client::ClientWorld::ClientFactory&& clientFactory,
 	Host::HostWorld::HostFactory&& hostFactory)
 {
+	// Create an asset manager.
+	Asset::AssetManager assetManager;
+
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.
 	constexpr size_t k_clientRenderMessageCapacity = 256;
@@ -24,7 +28,7 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 		k_clientRenderMessageCapacity };
 	
 	Mem::UniquePtr<Client::IRenderInstance> renderInstance =
-		renderInstanceFactory(dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
+		renderInstanceFactory(assetManager, dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
 
 	// Load data files.
 	Mem::UniquePtr<IGameData> gameData = gameDataFactory(dataDirectory);
