@@ -141,6 +141,7 @@
     <ClInclude Include="collection\PolyBuffer.h" />
     <ClInclude Include="collection\PolyStack.h" />
     <ClInclude Include="collection\ProgramParameters.h" />
+    <ClInclude Include="collection\LinearBlockAllocator.h" />
     <ClInclude Include="collection\Variant.h" />
     <ClInclude Include="collection\Vector.h" />
     <ClInclude Include="collection\VectorMap.h" />
@@ -168,6 +169,7 @@
     <ClCompile Include="src\file\JSONReader.cpp" />
     <ClCompile Include="src\json\JSONPrintVisitor.cpp" />
     <ClCompile Include="src\json\JSONTypes.cpp" />
+    <ClCompile Include="src\collection\LinearBlockAllocator.cpp" />
     <ClCompile Include="src\util\StringHash.cpp" />
   </ItemGroup>
   <ItemGroup>
