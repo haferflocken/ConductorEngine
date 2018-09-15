@@ -9,6 +9,7 @@
 
 #include <future>
 #include <mutex>
+#include <shared_mutex>
 
 namespace Asset
 {
@@ -27,7 +28,8 @@ public:
 	template <typename TAsset>
 	using AssetLoadingFunction = bool(*)(const File::Path&, TAsset*);
 
-	// Register an asset type. All asset types must be registered before any assets of any type are requested.
+	// Register an asset type. TAsset must define static constexpr const char* k_fileType that holds the file type
+	// the asset will be associated with. Only one asset type may correspond to each file type.
 	template <typename TAsset>
 	void RegisterAssetType(AssetLoadingFunction<TAsset> loadFn);
 
@@ -52,8 +54,10 @@ private:
 		Collection::VectorMap<File::Path, void*> m_managedAssets;
 		Collection::Vector<std::future<void>> m_loadingFutures;
 	};
+	// Shared mutex used to prevent asset type registration during RequestAsset() or Update().
+	std::shared_mutex m_sharedMutex;
+	// The assets and assosciated data, keyed by file type.
 	Collection::VectorMap<const char*, AssetContainer> m_assetsByFileType;
-
 };
 }
 
@@ -64,6 +68,7 @@ template <typename TAsset>
 inline void AssetManager::RegisterAssetType(AssetLoadingFunction<TAsset> loadFn)
 {
 	constexpr const char* const k_fileType = TAsset::k_fileType;
+	std::unique_lock<std::shared_mutex> writeLock{ m_sharedMutex };
 
 	Dev::FatalAssert(m_assetsByFileType.Find(k_fileType) == m_assetsByFileType.end(),
 		"An asset type may not be registered multiple times.");
@@ -81,6 +86,7 @@ template <typename TAsset>
 inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath)
 {
 	constexpr const char* const k_fileType = TAsset::k_fileType;
+	std::shared_lock<std::shared_mutex> readLock{ m_sharedMutex };
 
 	Dev::FatalAssert(m_assetsByFileType.Find(k_fileType) != m_assetsByFileType.end(),
 		"Cannot load an asset of an unregistered type.");

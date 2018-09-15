@@ -4,6 +4,8 @@ namespace Asset
 {
 void AssetManager::Update()
 {
+	std::shared_lock<std::shared_mutex> readLock{ m_sharedMutex };
+
 	for (auto& entry : m_assetsByFileType)
 	{
 		AssetContainer& assetContainer = entry.second;
