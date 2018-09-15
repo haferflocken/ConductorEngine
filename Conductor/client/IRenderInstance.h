@@ -31,6 +31,7 @@ public:
 		FailedToInitialize,
 		Initialized,
 		Running,
+		Terminating,
 		SafeTerminated,
 		ErrorTerminated,
 	};
@@ -44,6 +45,9 @@ public:
 
 	// Called from the client thread to allow any necessary initialization on it.
 	virtual void InitOnClientThread() = 0;
+
+	// Called from the client thread to allow any necessary cleanup on it.
+	virtual void ShutdownOnClientThread() = 0;
 
 	// Register any systems the renderer needs to the given entity manager.
 	// By using ECS::Systems, game code can declare that something is renderable, and the renderer handles the rest.

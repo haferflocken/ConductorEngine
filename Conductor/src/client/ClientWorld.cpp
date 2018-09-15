@@ -26,8 +26,8 @@ Client::ClientWorld::~ClientWorld()
 	if (m_clientThreadStatus == ClientThreadStatus::Running)
 	{
 		RequestShutdown();
-		m_clientThread.join();
 	}
+	m_clientThread.join();
 }
 
 void Client::ClientWorld::RequestShutdown()
@@ -84,6 +84,7 @@ void Client::ClientWorld::ClientThreadFunction()
 	}
 
 	m_client.Reset();
+	m_renderInstance.ShutdownOnClientThread();
 	m_connectedHost.Reset();
 	m_clientThreadStatus = ClientThreadStatus::Stopped;
 }

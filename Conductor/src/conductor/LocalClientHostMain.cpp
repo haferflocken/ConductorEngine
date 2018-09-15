@@ -46,7 +46,7 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 
 	// Run the window while the client and host run in other threads. Stop when the host stops.
 	while (renderInstance->Update() == Client::IRenderInstance::Status::Running
-		&& hostWorld.GetNumConnectedClients() > 0)
+		|| hostWorld.GetNumConnectedClients() > 0)
 	{
 		std::this_thread::yield();
 	}

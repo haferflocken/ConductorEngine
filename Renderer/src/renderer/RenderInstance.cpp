@@ -62,7 +62,6 @@ RenderInstance::RenderInstance(
 
 RenderInstance::~RenderInstance()
 {
-	bgfx::shutdown();
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
 }
@@ -87,6 +86,12 @@ void RenderInstance::InitOnClientThread()
 	
 	// Mark initialization as complete.
 	m_status = Status::Initialized;
+}
+
+void RenderInstance::ShutdownOnClientThread()
+{
+	bgfx::shutdown();
+	m_status = Status::SafeTerminated;
 }
 
 void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
@@ -114,14 +119,36 @@ RenderInstance::Status RenderInstance::GetStatus() const
 
 RenderInstance::Status RenderInstance::Update()
 {
-	// Wait until initializtion is complete before running the update.
-	if (m_status == Status::Initializing)
+	switch (m_status)
 	{
+	case Status::Initializing:
+	{
+		// Wait until initializtion is complete before running the update.
 		bgfx::renderFrame();
 		return Status::Running;
 	}
-
-	m_status = Status::Running;
+	case Status::Initialized:
+	{
+		m_status = Status::Running;
+		break;
+	}
+	case Status::Running:
+	{
+		break;
+	}
+	case Status::Terminating:
+	{
+		// When terminating, wait for the client to call ShutdownOnClientThread().
+		bgfx::renderFrame();
+		return Status::Running;
+	}
+	case Status::FailedToInitialize:
+	case Status::SafeTerminated:
+	case Status::ErrorTerminated:
+	{
+		return m_status;
+	}
+	}
 
 	// Handle any pending SDL events.
 	SDL_Event event;
@@ -131,14 +158,14 @@ RenderInstance::Status RenderInstance::Update()
 		{
 		case SDL_QUIT:
 		{
-			m_status = Status::SafeTerminated;
+			m_status = Status::Terminating;
 
 			Client::InputMessage message;
 			message.m_type = Client::InputMessageType::WindowClosed;
 
 			m_inputToClientMessages.TryPush(std::move(message));
 
-			return Status::SafeTerminated;
+			return Status::Running;
 		}
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:

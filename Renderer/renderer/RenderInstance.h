@@ -23,6 +23,7 @@ public:
 		ECS::ComponentInfoFactory& componentInfoFactory);
 
 	virtual void InitOnClientThread() override;
+	virtual void ShutdownOnClientThread() override;
 
 	virtual void RegisterSystems(ECS::EntityManager& entityManager) override;
 
