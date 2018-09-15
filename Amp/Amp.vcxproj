@@ -126,6 +126,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="asset\AssetHandle.h" />
+    <ClInclude Include="asset\AssetManager.h" />
+    <ClInclude Include="asset\ManagedAsset.h" />
     <ClInclude Include="asset\RecordSchema.h" />
     <ClInclude Include="asset\RecordSchemaField.h" />
     <ClInclude Include="asset\RecordSchemaVisitor.h" />
@@ -162,6 +165,7 @@
     <ClInclude Include="util\VariadicUtil.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\assets\AssetManager.cpp" />
     <ClCompile Include="src\assets\RecordSchema.cpp" />
     <ClCompile Include="src\assets\RecordSchemaField.cpp" />
     <ClCompile Include="src\dev\Dev.cpp" />
