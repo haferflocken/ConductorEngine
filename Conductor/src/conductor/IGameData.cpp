@@ -15,8 +15,9 @@
 
 namespace Conductor
 {
-IGameData::IGameData()
-	: m_componentReflector(Mem::MakeUnique<ECS::ComponentReflector>())
+IGameData::IGameData(Asset::AssetManager& assetManager)
+	: m_assetManager(assetManager)
+	, m_componentReflector(Mem::MakeUnique<ECS::ComponentReflector>())
 	, m_behaveASTInterpreter(Mem::MakeUnique<Behave::AST::Interpreter>(*m_componentReflector))
 	, m_behaviourNodeFactory(Mem::MakeUnique<Behave::BehaviourNodeFactory>(*m_behaveASTInterpreter))
 	, m_behaviourTreeManager(Mem::MakeUnique<Behave::BehaviourTreeManager>(*m_behaviourNodeFactory))

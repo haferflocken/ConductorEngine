@@ -17,11 +17,7 @@
 #include <functional>
 #include <type_traits>
 
-namespace Collection
-{
-template <typename T>
-class ArrayView;
-}
+namespace Asset { class AssetManager; }
 
 namespace ECS
 {
@@ -40,8 +36,7 @@ class System;
 class EntityManager final
 {
 public:
-
-	explicit EntityManager(const ComponentReflector& componentReflector, bool transmitsState);
+	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector, bool transmitsState);
 	~EntityManager();
 
 	Entity& CreateEntity(const EntityInfo& entityInfo);
@@ -114,6 +109,9 @@ private:
 
 	void UpdateSystems();
 	
+	// Components that load resources from disk use the AssetManager to do so efficiently.
+	Asset::AssetManager& m_assetManager;
+
 	// A reflected database of functions for manipulating components.
 	const ComponentReflector& m_componentReflector;
 

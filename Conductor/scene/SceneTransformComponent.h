@@ -15,8 +15,8 @@ class SceneTransformComponent final : public ECS::Component
 public:
 	using Info = SceneTransformComponentInfo;
 
-	static bool TryCreateFromInfo(const SceneTransformComponentInfo& componentInfo, const ECS::ComponentID reservedID,
-		ECS::ComponentVector& destination);
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const SceneTransformComponentInfo& componentInfo,
+		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit SceneTransformComponent(const ECS::ComponentID id)
 		: ECS::Component(id)

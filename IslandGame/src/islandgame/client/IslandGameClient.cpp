@@ -9,7 +9,7 @@
 
 IslandGame::Client::IslandGameClient::IslandGameClient(
 	const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost)
-	: IClient(gameData.GetComponentReflector(), connectedHost)
+	: IClient(gameData.GetAssetManager(), gameData.GetComponentReflector(), connectedHost)
 	, m_gameData(gameData)
 {
 	const Behave::BehaveContext context{ 

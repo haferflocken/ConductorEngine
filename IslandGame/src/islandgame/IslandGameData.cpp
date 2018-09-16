@@ -7,8 +7,8 @@
 #include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 
-IslandGame::IslandGameData::IslandGameData()
-	: IGameData()
+IslandGame::IslandGameData::IslandGameData(Asset::AssetManager& assetManager)
+	: IGameData(assetManager)
 {
 	using namespace IslandGame::Components;
 

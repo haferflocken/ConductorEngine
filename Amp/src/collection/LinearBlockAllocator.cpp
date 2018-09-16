@@ -4,6 +4,28 @@
 
 namespace Collection
 {
+LinearBlockAllocator::LinearBlockAllocator(LinearBlockAllocator&& other)
+{
+	std::unique_lock lock{ other.m_mutex };
+
+	m_blocks = std::move(other.m_blocks);
+	m_elementAlignmentInBytes = other.m_elementAlignmentInBytes;
+	m_elementSizeInBytes = other.m_elementSizeInBytes;
+}
+
+LinearBlockAllocator& LinearBlockAllocator::operator=(LinearBlockAllocator&& rhs)
+{
+	std::unique_lock lhsLock{ m_mutex, std::defer_lock };
+	std::unique_lock rhsLock{ rhs.m_mutex, std::defer_lock };
+	std::lock(lhsLock, rhsLock);
+
+	m_blocks = std::move(rhs.m_blocks);
+	m_elementAlignmentInBytes = rhs.m_elementAlignmentInBytes;
+	m_elementSizeInBytes = rhs.m_elementSizeInBytes;
+
+	return *this;
+}
+
 LinearBlockAllocator::~LinearBlockAllocator()
 {
 	Dev::Assert(m_blocks.IsEmpty(),

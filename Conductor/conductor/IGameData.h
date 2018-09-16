@@ -5,6 +5,8 @@
 
 #include <functional>
 
+namespace Asset { class AssetManager; }
+
 namespace Behave
 {
 class BehaviourNodeFactory;
@@ -33,10 +35,13 @@ class IGameData
 {
 protected:
 	// Protected constructor so that games must extend this with their own type.
-	IGameData();
+	explicit IGameData(Asset::AssetManager& assetManager);
 
 public:
 	virtual ~IGameData();
+
+	// Requesting assets modifies the AssetManager, so it cannot be const.
+	Asset::AssetManager& GetAssetManager() const { return m_assetManager; }
 
 	ECS::ComponentReflector& GetComponentReflector() { return *m_componentReflector; }
 	const ECS::ComponentReflector& GetComponentReflector() const { return *m_componentReflector; }
@@ -55,6 +60,8 @@ public:
 	void LoadEntityInfosInDirectory(const File::Path& directory);
 
 protected:
+	Asset::AssetManager& m_assetManager;
+
 	Mem::UniquePtr<ECS::ComponentReflector> m_componentReflector;
 
 	Mem::UniquePtr<Behave::AST::Interpreter> m_behaveASTInterpreter;
@@ -65,5 +72,5 @@ protected:
 	Mem::UniquePtr<ECS::EntityInfoManager> m_entityInfoManager;
 };
 
-using GameDataFactory = std::function<Mem::UniquePtr<IGameData>(const File::Path&)>;
+using GameDataFactory = std::function<Mem::UniquePtr<IGameData>(Asset::AssetManager&, const File::Path&)>;
 }

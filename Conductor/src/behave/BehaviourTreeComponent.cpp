@@ -5,8 +5,11 @@
 #include <behave/BehaviourTree.h>
 #include <ecs/ComponentVector.h>
 
-bool Behave::BehaviourTreeComponent::TryCreateFromInfo(const BehaviourTreeComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID, ECS::ComponentVector& destination)
+bool Behave::BehaviourTreeComponent::TryCreateFromInfo(
+	Asset::AssetManager& assetManager,
+	const BehaviourTreeComponentInfo& componentInfo,
+	const ECS::ComponentID reservedID,
+	ECS::ComponentVector& destination)
 {
 	BehaviourTreeComponent& component = destination.Emplace<BehaviourTreeComponent>(reservedID);
 

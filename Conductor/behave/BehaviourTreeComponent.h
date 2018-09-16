@@ -15,8 +15,8 @@ class BehaviourTreeComponent final : public ECS::Component
 public:
 	using Info = BehaviourTreeComponentInfo;
 
-	static bool TryCreateFromInfo(const BehaviourTreeComponentInfo& componentInfo, const ECS::ComponentID reservedID,
-		ECS::ComponentVector& destination);
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const BehaviourTreeComponentInfo& componentInfo,
+		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit BehaviourTreeComponent(const ECS::ComponentID id)
 		: Component(id)

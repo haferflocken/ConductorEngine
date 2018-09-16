@@ -16,9 +16,10 @@ protected:
 	ECS::EntityManager m_entityManager;
 
 public:
-	IClient(const ECS::ComponentReflector& componentReflector, ConnectedHost& connectedHost)
+	IClient(Asset::AssetManager& assetManager, const ECS::ComponentReflector& componentReflector,
+		ConnectedHost& connectedHost)
 		: m_connectedHost(connectedHost)
-		, m_entityManager(componentReflector, false)
+		, m_entityManager(assetManager, componentReflector, false)
 	{}
 
 	ECS::EntityManager& GetEntityManager() { return m_entityManager; }

@@ -28,7 +28,7 @@ class IslanderComponent final : public ECS::Component
 public:
 	using Info = IslanderComponentInfo;
 
-	static bool TryCreateFromInfo(const IslanderComponentInfo& componentInfo,
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const IslanderComponentInfo& componentInfo,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 	
 	explicit IslanderComponent(const ECS::ComponentID id)

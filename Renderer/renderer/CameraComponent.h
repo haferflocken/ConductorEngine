@@ -15,8 +15,8 @@ class CameraComponent final : public ECS::Component
 public:
 	using Info = CameraComponentInfo;
 
-	static bool TryCreateFromInfo(const CameraComponentInfo& componentInfo, const ECS::ComponentID reservedID,
-		ECS::ComponentVector& destination);
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const CameraComponentInfo& componentInfo,
+		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit CameraComponent(const ECS::ComponentID id)
 		: Component(id)

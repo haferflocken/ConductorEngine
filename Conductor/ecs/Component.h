@@ -3,6 +3,8 @@
 #include <ecs/ComponentID.h>
 #include <json/JSONTypes.h>
 
+namespace Asset { class AssetManager; }
+
 namespace ECS
 {
 class ComponentVector;

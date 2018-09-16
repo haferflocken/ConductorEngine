@@ -28,6 +28,9 @@ public:
 		, m_elementSizeInBytes(static_cast<uint32_t>(sizeInBytes))
 	{}
 
+	LinearBlockAllocator(LinearBlockAllocator&&);
+	LinearBlockAllocator& operator=(LinearBlockAllocator&&);
+
 	~LinearBlockAllocator();
 
 	void* Alloc();

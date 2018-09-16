@@ -31,7 +31,7 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 		renderInstanceFactory(assetManager, dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
 
 	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(dataDirectory);
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory);
 
 	// Create the message queues that will allow the client and host to communicate.
 	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{

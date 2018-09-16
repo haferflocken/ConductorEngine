@@ -49,7 +49,7 @@ Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(const Compo
 	return sizeItr->second;
 }
 
-bool ECS::ComponentReflector::TryMakeComponent(const ComponentInfo& componentInfo,
+bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager, const ComponentInfo& componentInfo,
 	const ComponentID reservedID, ComponentVector& destination) const
 {
 	const auto factoryItr = m_factoryFunctions.Find(ComponentType(componentInfo.GetTypeHash()));
@@ -59,7 +59,7 @@ bool ECS::ComponentReflector::TryMakeComponent(const ComponentInfo& componentInf
 		return false;
 	}
 
-	return factoryItr->second(componentInfo, reservedID, destination);
+	return factoryItr->second(assetManager, componentInfo, reservedID, destination);
 }
 
 void ECS::ComponentReflector::DestroyComponent(Component& component) const

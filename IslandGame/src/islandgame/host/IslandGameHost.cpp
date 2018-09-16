@@ -12,7 +12,7 @@ namespace Internal_IslandGameHost
 }
 
 IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
-	: IHost(gameData.GetComponentReflector())
+	: IHost(gameData.GetAssetManager(), gameData.GetComponentReflector())
 	, m_gameData(gameData)
 {
 	const Behave::BehaveContext context{

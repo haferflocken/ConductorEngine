@@ -1,5 +1,6 @@
 #include <conductor/HostMain.h>
 
+#include <asset/AssetManager.h>
 #include <host/HostNetworkWorld.h>
 #include <network/Socket.h>
 
@@ -26,8 +27,11 @@ Conductor::ApplicationErrorCode Conductor::HostMain(
 		return ApplicationErrorCode::FailedToInitializeNetworkThread;
 	}
 
+	// Create an asset manager.
+	Asset::AssetManager assetManager;
+
 	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(dataDirectory);
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory);
 
 	// Create and run a host.
 	Host::HostWorld hostWorld{ *gameData, hostNetworkWorld.GetClientToHostMessageQueue(), std::move(hostFactory) };

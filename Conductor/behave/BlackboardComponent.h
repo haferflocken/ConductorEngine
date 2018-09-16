@@ -16,8 +16,8 @@ class BlackboardComponent final : public ECS::Component
 public:
 	using Info = BlackboardComponentInfo;
 
-	static bool TryCreateFromInfo(const BlackboardComponentInfo& componentInfo, const ECS::ComponentID reservedID,
-		ECS::ComponentVector& destination);
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const BlackboardComponentInfo& componentInfo,
+		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	static void BindFunctions(AST::Interpreter& interpreter);
 

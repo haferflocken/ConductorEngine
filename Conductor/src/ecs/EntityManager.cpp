@@ -30,8 +30,10 @@ enum class TransmissionSectionType : uint8_t
 };
 }
 
-EntityManager::EntityManager(const ComponentReflector& componentReflector, bool transmitsState)
-	: m_componentReflector(componentReflector)
+EntityManager::EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector,
+	bool transmitsState)
+	: m_assetManager(assetManager)
+	, m_componentReflector(componentReflector)
 {
 	if (transmitsState)
 	{
@@ -763,7 +765,7 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 	Dev::FatalAssert(componentVector.GetComponentType() == componentType,
 		"Mismatch between component vector type and the key it is stored at.");
 
-	if (!m_componentReflector.TryMakeComponent(componentInfo, componentID, componentVector))
+	if (!m_componentReflector.TryMakeComponent(m_assetManager, componentInfo, componentID, componentVector))
 	{
 		Dev::LogWarning("Failed to create component of type [%s].", componentInfo.GetTypeName());
 		return;

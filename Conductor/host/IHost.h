@@ -11,8 +11,8 @@ protected:
 	ECS::EntityManager m_entityManager;
 
 public:
-	explicit IHost(const ECS::ComponentReflector& componentReflector)
-		: m_entityManager(componentReflector, true)
+	IHost(Asset::AssetManager& assetManager, const ECS::ComponentReflector& componentReflector)
+		: m_entityManager(assetManager, componentReflector, true)
 	{}
 
 	Collection::Vector<uint8_t> SerializeECSUpdateTransmission();

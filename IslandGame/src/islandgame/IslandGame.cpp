@@ -68,9 +68,9 @@ Client::RenderInstanceFactory MakeRenderInstanceFactory()
 
 Conductor::GameDataFactory MakeGameDataFactory()
 {
-	return [](const File::Path& dataDirectory)
+	return [](Asset::AssetManager& assetManager, const File::Path& dataDirectory)
 	{
-		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>();
+		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>(assetManager);
 		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(), 
 			gameData->GetComponentInfoFactory());
 

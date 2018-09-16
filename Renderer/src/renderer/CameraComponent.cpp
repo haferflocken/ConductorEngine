@@ -4,7 +4,10 @@
 
 namespace Renderer
 {
-bool CameraComponent::TryCreateFromInfo(const CameraComponentInfo& componentInfo, const ECS::ComponentID reservedID,
+bool CameraComponent::TryCreateFromInfo(
+	Asset::AssetManager& assetManager,
+	const CameraComponentInfo& componentInfo,
+	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {
 	destination.Emplace<CameraComponent>(reservedID);

@@ -6,6 +6,8 @@
 #include <unit/CountUnits.h>
 #include <util/StringHash.h>
 
+namespace Asset { class AssetManager; }
+
 namespace ECS
 {
 class Component;
@@ -22,7 +24,7 @@ class ComponentVector;
 class ComponentReflector final
 {
 public:
-	using FactoryFunction = bool(*)(const ComponentInfo&, const ComponentID, ComponentVector&);
+	using FactoryFunction = bool(*)(Asset::AssetManager&, const ComponentInfo&, const ComponentID, ComponentVector&);
 	using DestructorFunction = void(*)(Component&);
 	using SwapFunction = void(*)(Component&, Component&);
 
@@ -66,8 +68,8 @@ public:
 
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
 
-	bool TryMakeComponent(const ComponentInfo& componentInfo, const ComponentID reservedID,
-		ComponentVector& destination) const;
+	bool TryMakeComponent(Asset::AssetManager& assetManager, const ComponentInfo& componentInfo,
+		const ComponentID reservedID, ComponentVector& destination) const;
 	void DestroyComponent(Component& component) const;
 	void SwapComponents(Component& a, Component& b) const;
 
@@ -95,10 +97,10 @@ inline void ComponentReflector::RegisterComponentType()
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
 	{
-		static bool TryCreateFromInfo(const ComponentInfo& componentInfo, const ComponentID reservedID,
-			ComponentVector& destination)
+		static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
+			const ComponentInfo& componentInfo, const ComponentID reservedID, ComponentVector& destination)
 		{
-			return ComponentType::TryCreateFromInfo(
+			return ComponentType::TryCreateFromInfo(assetManager,
 				static_cast<const ComponentType::Info&>(componentInfo), reservedID, destination);
 		}
 

@@ -38,7 +38,7 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 		renderInstanceFactory(assetManager, dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
 
 	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(dataDirectory);
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory);
 
 	// Establish a connection to the networked host.
 	Client::ClientNetworkWorld clientNetworkWorld{ hostName, hostPort };

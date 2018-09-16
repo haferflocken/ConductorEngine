@@ -14,8 +14,8 @@ class MeshComponent final : public ECS::Component
 public:
 	using Info = MeshComponentInfo;
 
-	static bool TryCreateFromInfo(const MeshComponentInfo& componentInfo, const ECS::ComponentID reservedID,
-		ECS::ComponentVector& destination);
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const MeshComponentInfo& componentInfo,
+		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit MeshComponent(const ECS::ComponentID id)
 		: Component(id)
