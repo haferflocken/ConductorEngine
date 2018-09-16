@@ -57,7 +57,7 @@ inline TAsset* AssetHandle<TAsset>::TryGetAsset()
 template <typename TAsset>
 inline const TAsset* AssetHandle<TAsset>::TryGetAsset() const
 {
-	if (m_managedAsset->m_status == AssetStatus::Loaded)
+	if (m_managedAsset != nullptr && m_managedAsset->m_header.m_status == AssetStatus::Loaded)
 	{
 		return &m_managedAsset->m_asset;
 	}

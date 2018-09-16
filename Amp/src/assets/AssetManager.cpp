@@ -33,6 +33,17 @@ void AssetManager::Update()
 	}
 }
 
+AssetManager::AssetContainer::AssetContainer(AssetContainer&& other)
+{
+	std::unique_lock lock{ other.m_assetTypeMutex };
+
+	m_loadingFunction = std::move(other.m_loadingFunction);
+	m_destructorFunction = std::move(other.m_destructorFunction);
+	m_allocator = std::move(other.m_allocator);
+	m_managedAssets = std::move(other.m_managedAssets);
+	m_loadingFutures = std::move(other.m_loadingFutures);
+}
+
 AssetManager::AssetContainer& AssetManager::AssetContainer::operator=(AssetContainer&& rhs)
 {
 	std::unique_lock lhsLock{ m_assetTypeMutex, std::defer_lock };

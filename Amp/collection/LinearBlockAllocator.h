@@ -21,6 +21,8 @@ public:
 		return LinearBlockAllocator(alignof(T), sizeof(T));
 	}
 
+	LinearBlockAllocator() = default;
+
 	LinearBlockAllocator(size_t alignmentInBytes, size_t sizeInBytes)
 		: m_blocks()
 		, m_mutex()

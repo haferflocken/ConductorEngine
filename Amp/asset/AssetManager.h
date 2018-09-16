@@ -51,6 +51,9 @@ private:
 
 	struct AssetContainer
 	{
+		AssetContainer() = default;
+
+		AssetContainer(AssetContainer&&);
 		AssetContainer& operator=(AssetContainer&& rhs);
 
 		std::mutex m_assetTypeMutex;
@@ -92,7 +95,7 @@ inline void AssetManager::RegisterAssetType(AssetLoadingFunction<TAsset>&& loadF
 	};
 	assetContainer.m_destructorFunction = [](void* managedAsset)
 	{
-		reinterpret_cast<ManagedAsset<TAsset>*>(managedAsset)->m_asset.TAsset();
+		reinterpret_cast<ManagedAsset<TAsset>*>(managedAsset)->m_asset.~TAsset();
 	};
 	assetContainer.m_allocator = Collection::LinearBlockAllocator::MakeFor<ManagedAsset<TAsset>>();
 }
