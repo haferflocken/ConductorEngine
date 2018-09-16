@@ -50,7 +50,7 @@ void* LinearBlockAllocator::Alloc()
 
 	Block& block = m_blocks.Emplace();
 	block.m_vacancyMap ^= 1;
-	block.m_memory = _aligned_malloc(m_elementAlignmentInBytes, m_elementSizeInBytes * k_numElementsPerBlock);
+	block.m_memory = _aligned_malloc(m_elementSizeInBytes * k_numElementsPerBlock, m_elementAlignmentInBytes);
 
 	return block.m_memory;
 }
