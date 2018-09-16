@@ -15,8 +15,8 @@ namespace Renderer
  * Makes entities visible by rendering their MeshComponent.
  */
 class MeshSystem final : public ECS::SystemTempl<
-	Util::TypeList<Scene::SceneTransformComponent, MeshComponent>,
-	Util::TypeList<>>
+	Util::TypeList<Scene::SceneTransformComponent>,
+	Util::TypeList<MeshComponent>>
 {
 public:
 	MeshSystem();
@@ -27,8 +27,6 @@ public:
 		Collection::Vector<std::function<void()>>& deferredFunctions) const;
 
 private:
-	bgfx::VertexBufferHandle m_vertexBuffer;
-	bgfx::IndexBufferHandle m_indexBuffer;
 	bgfx::ProgramHandle m_program;
 };
 }

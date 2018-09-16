@@ -3,6 +3,8 @@
 #include <islandgame/client/IslandGameClient.h>
 #include <islandgame/host/IslandGameHost.h>
 
+#include <asset/AssetManager.h>
+
 #include <collection/LocklessQueue.h>
 #include <collection/ProgramParameters.h>
 
@@ -25,6 +27,7 @@
 #include <host/MessageToClient.h>
 #include <network/Socket.h>
 
+#include <renderer/AssetTypes.h>
 #include <renderer/RenderInstance.h>
 
 #include <iostream>
@@ -49,9 +52,10 @@ enum class ApplicationMode
 	Host,
 };
 
-int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory, std::string& hostParam);
+int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
+	Asset::AssetManager& assetManager, std::string& hostParam);
 int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
-	const std::string& port);
+	Asset::AssetManager& assetManager, const std::string& port);
 
 // Define the factory functions that abstract game code away from engine code.
 Client::RenderInstanceFactory MakeRenderInstanceFactory()
@@ -131,17 +135,25 @@ int main(const int argc, const char* argv[])
 		return static_cast<int>(Conductor::ApplicationErrorCode::MissingApplicationMode);
 	}
 
+	// Create an asset manager and register the asset types it needs.
+	Asset::AssetManager assetManager;
+	Renderer::RegisterAssetTypes(assetManager);
+
 	// Run the application in the specified mode.
-	if (applicationMode == ApplicationMode::Client)
-	{
-		return ClientMain(params, dataDirectory, applicationModeParamater);
-	}
-	return HostMain(params, dataDirectory, applicationModeParamater);
+	const int result = (applicationMode == ApplicationMode::Client)
+		? ClientMain(params, dataDirectory,assetManager, applicationModeParamater)
+		: HostMain(params, dataDirectory, assetManager, applicationModeParamater);
+
+	// Unregister the asset types from the asset manager in the opposite order they were registered.
+	Renderer::UnregisterAssetTypes(assetManager);
+
+	return result;
 }
 
 int Internal_IslandGame::ClientMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	Asset::AssetManager& assetManager,
 	std::string& hostParam)
 {
 	// Ensure a host parameter was specified.
@@ -155,7 +167,7 @@ int Internal_IslandGame::ClientMain(
 	if (strcmp(hostParam.c_str(), "newhost") == 0)
 	{
 		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(params, dataDirectory,
-			MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory(), MakeHostFactory());
+			assetManager, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory(), MakeHostFactory());
 		return static_cast<int>(errorCode);
 	}
 	else
@@ -171,14 +183,17 @@ int Internal_IslandGame::ClientMain(
 		const char* const hostPort = hostName + portStartIndex + 1;
 
 		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(params, dataDirectory,
-			hostName, hostPort, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory());
+			assetManager, hostName, hostPort, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory());
 		return static_cast<int>(errorCode);
 	}
 
 	return static_cast<int>(Conductor::ApplicationErrorCode::NoError);
 }
 
-int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
+int Internal_IslandGame::HostMain(
+	const Collection::ProgramParameters& params,
+	const File::Path& dataDirectory,
+	Asset::AssetManager& assetManager,
 	const std::string& port)
 {
 	// Ensure a port was specified.
@@ -188,7 +203,7 @@ int Internal_IslandGame::HostMain(const Collection::ProgramParameters& params, c
 	}
 	
 	// Run the host.
-	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, port.c_str(),
-		MakeGameDataFactory(), MakeHostFactory());
+	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, assetManager,
+		port.c_str(), MakeGameDataFactory(), MakeHostFactory());
 	return static_cast<int>(errorCode);
 }

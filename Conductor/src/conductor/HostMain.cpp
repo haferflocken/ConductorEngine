@@ -9,6 +9,7 @@
 Conductor::ApplicationErrorCode Conductor::HostMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	Asset::AssetManager& assetManager,
 	const char* const port,
 	GameDataFactory&& gameDataFactory,
 	Host::HostWorld::HostFactory&& hostFactory)
@@ -26,9 +27,6 @@ Conductor::ApplicationErrorCode Conductor::HostMain(
 		Network::ShutdownSocketAPI();
 		return ApplicationErrorCode::FailedToInitializeNetworkThread;
 	}
-
-	// Create an asset manager.
-	Asset::AssetManager assetManager;
 
 	// Load data files.
 	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory);

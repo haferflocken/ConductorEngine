@@ -1,5 +1,7 @@
 #include <renderer/RenderInstance.h>
 
+#include <asset/AssetManager.h>
+
 #include <client/InputMessage.h>
 #include <client/MessageToRenderInstance.h>
 
@@ -64,6 +66,7 @@ RenderInstance::RenderInstance(
 
 RenderInstance::~RenderInstance()
 {
+	// Close the window.
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
 }
@@ -92,7 +95,10 @@ void RenderInstance::InitOnClientThread()
 
 void RenderInstance::ShutdownOnClientThread()
 {
+	// Shutdown bgfx.
 	bgfx::shutdown();
+
+	// Mark termination as finished.
 	m_status = Status::SafeTerminated;
 }
 

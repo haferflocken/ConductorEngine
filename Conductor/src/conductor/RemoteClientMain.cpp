@@ -12,6 +12,7 @@
 Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	Asset::AssetManager& assetManager,
 	const char* const hostName,
 	const char* const hostPort,
 	Client::RenderInstanceFactory&& renderInstanceFactory,
@@ -23,9 +24,6 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	{
 		return ApplicationErrorCode::FailedToInitializeSocketAPI;
 	}
-
-	// Create an asset manager.
-	Asset::AssetManager assetManager;
 
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.

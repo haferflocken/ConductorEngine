@@ -1,6 +1,11 @@
 #pragma once
 
+#include <renderer/mesh/StaticMesh.h>
+
+#include <asset/AssetHandle.h>
 #include <ecs/Component.h>
+
+#include <bgfx/bgfx.h>
 
 namespace Renderer
 {
@@ -19,6 +24,9 @@ public:
 
 	explicit MeshComponent(const ECS::ComponentID id)
 		: Component(id)
+		, m_meshHandle()
+		, m_vertexBuffer(BGFX_INVALID_HANDLE)
+		, m_indexBuffer(BGFX_INVALID_HANDLE)
 	{}
 
 	MeshComponent(const MeshComponent&) = delete;
@@ -28,5 +36,9 @@ public:
 	MeshComponent& operator=(MeshComponent&&) = default;
 
 	virtual ~MeshComponent() {}
+
+	Asset::AssetHandle<Mesh::StaticMesh> m_meshHandle;
+	bgfx::VertexBufferHandle m_vertexBuffer;
+	bgfx::IndexBufferHandle m_indexBuffer;
 };
 }
