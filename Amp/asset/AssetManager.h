@@ -122,7 +122,7 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 
 	// If the asset has already been requested, just return it.
 	auto managedAssetIter = assetContainer.m_managedAssets.Find(filePath);
-	if (managedAssetIter != assetContainer.m_loadedAssets.end())
+	if (managedAssetIter != assetContainer.m_managedAssets.end())
 	{
 		auto* const managedAsset = reinterpret_cast<ManagedAsset<TAsset>*>(managedAssetIter->second);
 		++managedAsset->m_header.m_refCount;
