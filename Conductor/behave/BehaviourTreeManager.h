@@ -1,6 +1,6 @@
 #pragma once
 
-#include <collection/VectorMAp.h>
+#include <collection/VectorMap.h>
 #include <file/Path.h>
 #include <util/StringHash.h>
 

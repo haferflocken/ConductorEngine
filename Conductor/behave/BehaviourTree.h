@@ -2,11 +2,6 @@
 
 #include <mem/UniquePtr.h>
 
-namespace JSON
-{
-class JSONObject;
-}
-
 namespace Behave
 {
 class BehaviourNode;
