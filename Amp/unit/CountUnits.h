@@ -57,10 +57,15 @@ inline constexpr WordCount32 WordSizeOf()
 template <typename T>
 inline constexpr Unit::ByteCount64 WordSizeOfInBytes() { return ByteCount64(WordSizeOf<T>()); }
 
+inline constexpr size_t AlignedSizeOf(size_t sizeInBytes, size_t alignInBytes)
+{
+	const size_t numAligned = (2 * sizeInBytes - 1) / alignInBytes;
+	return numAligned * alignInBytes;
+}
+
 template <typename T>
 inline constexpr size_t AlignedSizeOf()
 {
-	const size_t numAligned = (2 * sizeof(T) - 1) / alignof(T);
-	return numAligned * alignof(T);
+	return AlignedSizeOf(sizeof(T), alignof(T));
 }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <collection/Vector.h>
+#include <unit/CountUnits.h>
 
 #include <cstdint>
 #include <mutex>
@@ -27,7 +28,7 @@ public:
 		: m_blocks()
 		, m_mutex()
 		, m_elementAlignmentInBytes(static_cast<uint32_t>(alignmentInBytes))
-		, m_elementSizeInBytes(static_cast<uint32_t>(sizeInBytes))
+		, m_elementSizeInBytes(static_cast<uint32_t>(Unit::AlignedSizeOf(sizeInBytes, alignmentInBytes)))
 	{}
 
 	LinearBlockAllocator(LinearBlockAllocator&&);
