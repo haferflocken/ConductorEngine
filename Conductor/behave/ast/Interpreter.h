@@ -44,7 +44,8 @@ public:
 	~Interpreter();
 
 	// Compile a parsed expression into an executable expression.
-	ExpressionCompileResult Compile(const Parse::Expression& parsedExpression) const;
+	// This may move data from parsedExpression into the return value.
+	ExpressionCompileResult Compile(Parse::Expression& parsedExpression) const;
 
 	// Evaluate an AST::Expression on the given entity.
 	ExpressionResult EvaluateExpression(const Expression& expression, ECS::EntityManager& entityManager,
@@ -54,14 +55,20 @@ public:
 	// receive a const ECS::Entity& as its first argument, followed by the arguments provided in the .behave file.
 	// Because a behaviour tree may only access its entity's components, a bound function may only do the same.
 	template <typename ReturnType, typename... ArgumentTypes>
-	void BindFunction(const Util::StringHash functionNameHash,
+	void BindFunction(const char* const functionName,
 		ReturnType(*func)(const ECS::Entity&, ArgumentTypes...));
 
 private:
 	const ECS::ComponentReflector& m_componentReflector;
 
-	Collection::VectorMap<Util::StringHash, BoundFunction> m_boundFunctions;
-	Collection::VectorMap<Util::StringHash, Collection::Vector<ExpressionResultTypes>> m_boundFunctionArgumentTypes;
+	struct OverloadInfo
+	{
+		BoundFunction m_boundFunction;
+		const ExpressionResultTypeString* m_argumentTypeStrings;
+		size_t m_numArguments;
+	};
+	// A map of function name hashes to possible overloads.
+	Collection::VectorMap<Util::StringHash, Collection::Vector<OverloadInfo>> m_boundFunctionOverloads;
 };
 }
 
@@ -69,34 +76,6 @@ namespace Behave::AST
 {
 namespace Internal_Interpreter
 {
-template <typename T>
-struct ExpressionResultTypeFor;
-
-template <> struct ExpressionResultTypeFor<bool>
-{
-	static constexpr ExpressionResultTypes value = ExpressionResultTypes::Boolean;
-};
-
-template <> struct ExpressionResultTypeFor<double>
-{
-	static constexpr ExpressionResultTypes value = ExpressionResultTypes::Number;
-};
-
-template <> struct ExpressionResultTypeFor<std::string>
-{
-	static constexpr ExpressionResultTypes value = ExpressionResultTypes::String;
-};
-
-template <> struct ExpressionResultTypeFor<ECS::ComponentType>
-{
-	static constexpr ExpressionResultTypes value = ExpressionResultTypes::ComponentType;
-};
-
-template <> struct ExpressionResultTypeFor<TreeIdentifier>
-{
-	static constexpr ExpressionResultTypes value = ExpressionResultTypes::TreeIdentifier;
-};
-
 template <typename T>
 struct ExpressionResultForArgument;
 
@@ -189,24 +168,16 @@ struct FunctionEvaluator<void(ArgumentTypes...)>
 		return ExpressionResult::Make<None>();
 	}
 };
+
 }
 
 template <typename ReturnType, typename... ArgumentTypes>
-inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
+inline void Interpreter::BindFunction(const char* const functionName,
 	ReturnType(*func)(const ECS::Entity&, ArgumentTypes...))
 {
 	using namespace Internal_Interpreter;
 
-	constexpr ExpressionResultTypes k_returnType =
-		std::is_same_v<ReturnType, void> ? ExpressionResultTypes::None
-		: std::is_same_v<ReturnType, bool> ? ExpressionResultTypes::Boolean
-		: std::is_same_v<ReturnType, double> ? ExpressionResultTypes::Number
-		: std::is_same_v<ReturnType, std::string> ? ExpressionResultTypes::String
-		: std::is_same_v<ReturnType, ECS::ComponentType> ? ExpressionResultTypes::ComponentType
-		: ExpressionResultTypes::TreeIdentifier;
-
-	static_assert(k_returnType != ExpressionResultTypes::TreeIdentifier || std::is_same_v<ReturnType, TreeIdentifier>,
-		"Cannot bind a function that does not return bool, double, ECS::ComponentType, or TreeIdentifier.");
+	constexpr ExpressionResultTypeString k_returnType = ExpressionResultTypeString::Make<ReturnType>();
 
 	struct BindingFunctions
 	{
@@ -232,16 +203,23 @@ inline void Interpreter::BindFunction(const Util::StringHash functionNameHash,
 		}
 	};
 
-	Dev::FatalAssert(m_boundFunctions.Find(functionNameHash) == m_boundFunctions.end()
-		&& m_boundFunctionArgumentTypes.Find(functionNameHash) == m_boundFunctionArgumentTypes.end(),
-		"Cannot bind a function multiple times!");
+	// Get the overloads for this function name.
+	const Util::StringHash functionNameHash = Util::CalcHash(functionName);
+	Collection::Vector<OverloadInfo>& overloads = m_boundFunctionOverloads[functionNameHash];
 
-	m_boundFunctions[functionNameHash] = BoundFunction(func, &BindingFunctions::Call, k_returnType);
-	auto& argumentTypes = m_boundFunctionArgumentTypes[functionNameHash];
+	// Because this function is templated on the argument types, a function-static array of argument type strings
+	// can be made and then compared to using its pointer value.
+	static const ExpressionResultTypeString k_argumentTypeStrings[]{ ExpressionResultTypeString::Make<ArgumentTypes>()... };
+	
+	Dev::FatalAssert(overloads.Find([](const OverloadInfo& overloadInfo)
+		{
+			return overloadInfo.m_argumentTypeStrings == k_argumentTypeStrings;
+		}) == nullptr, "Cannot bind a function multiple times!");
 
-	for (const auto& t : { ExpressionResultTypeFor<ExpressionResultForArgument<ArgumentTypes>::type>::value... })
-	{
-		argumentTypes.Add(t);
-	}
+	// Store the bound function.
+	OverloadInfo& overload = overloads.Emplace();
+	overload.m_boundFunction = BoundFunction(func, &BindingFunctions::Call, k_returnType);
+	overload.m_argumentTypeStrings = k_argumentTypeStrings;
+	overload.m_numArguments = sizeof...(ArgumentTypes);
 }
 }

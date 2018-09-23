@@ -10,6 +10,17 @@ namespace Behave::AST
 {
 struct Expression;
 
+struct ComponentTypeLiteralExpression
+{
+	ComponentTypeLiteralExpression(ECS::ComponentType componentType, std::string&& componentTypeString)
+		: m_componentType(componentType)
+		, m_componentTypeString(std::move(componentTypeString))
+	{}
+
+	ECS::ComponentType m_componentType;
+	std::string m_componentTypeString;
+};
+
 struct FunctionCallExpression
 {
 	FunctionCallExpression(const BoundFunction& boundFunction, Collection::Vector<Expression>&& arguments)
@@ -26,7 +37,7 @@ struct Expression final : public Collection::Variant<
 	bool,
 	double,
 	std::string,
-	ECS::ComponentType,
+	ComponentTypeLiteralExpression,
 	TreeIdentifier,
 	FunctionCallExpression>
 {
@@ -40,6 +51,26 @@ struct Expression final : public Collection::Variant<
 	static Expression Make(Args&&... args)
 	{
 		return Expression(Variant::Make<T, Args...>(std::forward<Args>(args)...));
+	}
+
+	ExpressionResultTypeString GetResultType() const
+	{
+		ExpressionResultTypeString result;
+		Match(
+			[&](const None&) { result = ExpressionResultTypeString::Make<void>(); },
+			[&](const bool&) { result = ExpressionResultTypeString::Make<bool>(); },
+			[&](const double&) { result = ExpressionResultTypeString::Make<double>(); },
+			[&](const std::string&) { result = ExpressionResultTypeString::Make<std::string>(); },
+			[&](const ComponentTypeLiteralExpression& componentType)
+			{
+				result = ExpressionResultTypeString(componentType.m_componentTypeString.c_str());
+			},
+			[&](const TreeIdentifier&) { result = ExpressionResultTypeString::Make<TreeIdentifier>(); },
+			[&](const FunctionCallExpression& argumentFunctionCall)
+			{
+				result = argumentFunctionCall.m_boundFunction.GetReturnType();
+			});
+		return result;
 	}
 };
 }

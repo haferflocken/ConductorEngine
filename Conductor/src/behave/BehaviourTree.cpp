@@ -21,7 +21,7 @@ Behave::BehaviourTree::~BehaviourTree()
 
 bool Behave::BehaviourTree::LoadFromParsedTree(
 	const BehaviourNodeFactory& nodeFactory,
-	const Parse::ParsedTree& parsedTree)
+	Parse::ParsedTree& parsedTree)
 {
 	m_root = nodeFactory.MakeNode(parsedTree.m_rootNode, *this);
 	return (m_root != nullptr);

@@ -65,7 +65,7 @@ private:
 }
 
 Mem::UniquePtr<BehaviourNode> Nodes::RepeatNode::CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
-	const AST::Interpreter& interpreter, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
+	const AST::Interpreter& interpreter, Parse::NodeExpression& nodeExpression, const BehaviourTree& tree)
 {
 	if (nodeExpression.m_arguments.Size() != 1 || !nodeExpression.m_arguments.Front().Is<Parse::NodeExpression>())
 	{

@@ -84,7 +84,7 @@ private:
 Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::SelectorNode::CreateFromNodeExpression(
 	const BehaviourNodeFactory& nodeFactory,
 	const AST::Interpreter& interpreter,
-	const Parse::NodeExpression& nodeExpression,
+	Parse::NodeExpression& nodeExpression,
 	const BehaviourTree& tree)
 {
 	auto node = Mem::MakeUnique<SelectorNode>(tree);

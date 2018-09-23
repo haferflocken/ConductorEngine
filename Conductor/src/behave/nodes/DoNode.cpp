@@ -39,12 +39,12 @@ private:
 Mem::UniquePtr<BehaviourNode> Nodes::DoNode::CreateFromNodeExpression(
 	const BehaviourNodeFactory& nodeFactory,
 	const AST::Interpreter& interpreter,
-	const Parse::NodeExpression& nodeExpression,
+	Parse::NodeExpression& nodeExpression,
 	const BehaviourTree& tree)
 {
 	Collection::Vector<AST::Expression> expressions;
 
-	for (const auto& expression : nodeExpression.m_arguments)
+	for (auto& expression : nodeExpression.m_arguments)
 	{
 		AST::ExpressionCompileResult compileResult = interpreter.Compile(expression);
 		if (!compileResult.Is<AST::Expression>())

@@ -67,7 +67,7 @@ const Util::StringHash k_nodeHash = Util::CalcHash("node");
 Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFromNodeExpression(
 	const Behave::BehaviourNodeFactory& nodeFactory,
 	const AST::Interpreter& interpreter,
-	const Parse::NodeExpression& nodeExpression,
+	Parse::NodeExpression& nodeExpression,
 	const BehaviourTree& tree)
 {
 	if (nodeExpression.m_arguments.IsEmpty() || (nodeExpression.m_arguments.Size() & 1) == 1)
@@ -81,8 +81,8 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFrom
 
 	for (size_t i = 0, iEnd = nodeExpression.m_arguments.Size(); i < iEnd; i += 2)
 	{
-		const auto& conditionExpression = nodeExpression.m_arguments[i];
-		const auto& childExpression = nodeExpression.m_arguments[i + 1];
+		auto& conditionExpression = nodeExpression.m_arguments[i];
+		auto& childExpression = nodeExpression.m_arguments[i + 1];
 
 		if (!childExpression.Is<Parse::NodeExpression>())
 		{
@@ -90,7 +90,7 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFrom
 			return nullptr;
 		}
 
-		const auto& childNodeExpression = childExpression.Get<Parse::NodeExpression>();
+		auto& childNodeExpression = childExpression.Get<Parse::NodeExpression>();
 
 		Mem::UniquePtr<BehaviourCondition> condition = nodeFactory.MakeCondition(conditionExpression);
 		if (condition == nullptr)

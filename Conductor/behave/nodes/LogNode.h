@@ -14,7 +14,7 @@ public:
 	static constexpr const char* k_dslName = "log";
 
 	static Mem::UniquePtr<BehaviourNode> CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
-		const AST::Interpreter& interpreter, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
+		const AST::Interpreter& interpreter, Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
 
 	explicit LogNode(const BehaviourTree& tree)
 		: BehaviourNode(tree)

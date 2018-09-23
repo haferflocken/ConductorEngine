@@ -47,16 +47,12 @@ void BehaviourNodeFactory::RegisterNodeFactoryFunction(
 }
 
 Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
-	const Parse::NodeExpression& nodeExpression,
+	Parse::NodeExpression& nodeExpression,
 	const BehaviourTree& tree) const
 {
 	const auto factoryItr = m_nodeFactoryFunctions.Find(Util::CalcHash(nodeExpression.m_nodeName));
 	if (factoryItr == m_nodeFactoryFunctions.end())
 	{
-		for (const auto& entry : m_nodeFactoryFunctions)
-		{
-			Dev::Log("%s", Util::ReverseHash(entry.first));
-		}
 		Dev::LogWarning("Failed to find a factory function for node type \"%s\".", nodeExpression.m_nodeName.c_str());
 		return nullptr;
 	}
@@ -64,7 +60,7 @@ Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
 	return factoryItr->second(*this, m_interpreter, nodeExpression, tree);
 }
 
-Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Parse::Expression& expression) const
+Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(Parse::Expression& expression) const
 {
 	AST::ExpressionCompileResult compileResult = m_interpreter.Compile(expression);
 	if (!compileResult.Is<AST::Expression>())
@@ -82,12 +78,12 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Par
 		[&](const bool&) { expressionResultsInBool = true; },
 		[](const double&) {},
 		[](const std::string&) {},
-		[](const ECS::ComponentType&) {},
+		[](const AST::ComponentTypeLiteralExpression&) {},
 		[](const AST::TreeIdentifier&) {},
 		[&](const AST::FunctionCallExpression& functionCallExpression)
 		{
 			expressionResultsInBool =
-				(functionCallExpression.m_boundFunction.GetReturnType() == AST::ExpressionResultTypes::Boolean);
+				(functionCallExpression.m_boundFunction.GetReturnType() == AST::ExpressionResultTypeString::Make<bool>());
 		});
 
 	if (!expressionResultsInBool)
@@ -100,11 +96,11 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(const Par
 }
 
 bool BehaviourNodeFactory::TryMakeNodesFrom(
-	const Collection::Vector<Parse::Expression>& expressions,
+	Collection::Vector<Parse::Expression>& expressions,
 	const BehaviourTree& tree,
 	Collection::Vector<Mem::UniquePtr<BehaviourNode>>& outNodes) const
 {
-	for (const auto& expression : expressions)
+	for (auto& expression : expressions)
 	{
 		if (!expression.Is<Parse::NodeExpression>())
 		{

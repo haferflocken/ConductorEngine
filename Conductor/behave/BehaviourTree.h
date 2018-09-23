@@ -22,7 +22,7 @@ public:
 
 	~BehaviourTree();
 
-	bool LoadFromParsedTree(const BehaviourNodeFactory& nodeFactory, const Parse::ParsedTree& parsedTree);
+	bool LoadFromParsedTree(const BehaviourNodeFactory& nodeFactory, Parse::ParsedTree& parsedTree);
 
 	const BehaviourNode* GetRoot() const { return m_root.Get(); }
 

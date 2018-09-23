@@ -33,12 +33,12 @@ void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& direct
 			}
 
 			const std::string fileContents = File::ReadFullTextFile(file);
-			const Parse::ParseResult parseResult = Parse::Parser::ParseTrees(fileContents.c_str());
+			Parse::ParseResult parseResult = Parse::Parser::ParseTrees(fileContents.c_str());
 
 			parseResult.Match(
-				[&](const Collection::Vector<Parse::ParsedTree>& parsedTrees)
+				[&](Collection::Vector<Parse::ParsedTree>& parsedTrees)
 				{
-					for (const auto& parsedTree : parsedTrees)
+					for (auto& parsedTree : parsedTrees)
 					{
 						BehaviourTree tree;
 						if (tree.LoadFromParsedTree(m_nodeFactory, parsedTree))

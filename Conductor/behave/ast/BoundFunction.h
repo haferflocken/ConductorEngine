@@ -27,7 +27,7 @@ public:
 		, m_binding(nullptr)
 	{}
 
-	BoundFunction(void* untypedFunc, BindingFunction bindingFunc, ExpressionResultTypes returnType)
+	BoundFunction(void* untypedFunc, BindingFunction bindingFunc, ExpressionResultTypeString returnType)
 		: m_untypedFunc(untypedFunc)
 		, m_binding(bindingFunc)
 		, m_returnType(returnType)
@@ -42,11 +42,11 @@ public:
 		return m_binding(interpreter, m_untypedFunc, arguments, entityManager, entity);
 	}
 
-	const ExpressionResultTypes& GetReturnType() const { return m_returnType; }
+	const ExpressionResultTypeString& GetReturnType() const { return m_returnType; }
 
 private:
 	void* m_untypedFunc;
 	BindingFunction m_binding;
-	ExpressionResultTypes m_returnType;
+	ExpressionResultTypeString m_returnType;
 };
 }

@@ -20,7 +20,7 @@ public:
 	static constexpr const char* k_dslName = "do";
 
 	static Mem::UniquePtr<BehaviourNode> CreateFromNodeExpression(const BehaviourNodeFactory& nodeFactory,
-		const AST::Interpreter& interpreter, const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
+		const AST::Interpreter& interpreter, Parse::NodeExpression& nodeExpression, const BehaviourTree& tree);
 
 	DoNode(const BehaviourTree& tree, Collection::Vector<AST::Expression>&& expressions);
 	virtual ~DoNode();

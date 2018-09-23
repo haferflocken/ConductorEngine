@@ -42,40 +42,39 @@ bool HasComponent(const ECS::Entity& entity, ECS::ComponentType componentType)
 
 Interpreter::Interpreter(const ECS::ComponentReflector& componentReflector)
 	: m_componentReflector(componentReflector)
-	, m_boundFunctions()
-	, m_boundFunctionArgumentTypes()
+	, m_boundFunctionOverloads()
 {
-	BindFunction(Util::CalcHash("Not"), &Internal_Interpreter::Not);
-	BindFunction(Util::CalcHash("And"), &Internal_Interpreter::And);
-	BindFunction(Util::CalcHash("Or"), &Internal_Interpreter::Or);
-	BindFunction(Util::CalcHash("Xor"), &Internal_Interpreter::Xor);
-	BindFunction(Util::CalcHash("Nor"), &Internal_Interpreter::Nor);
-	BindFunction(Util::CalcHash("XNor"), &Internal_Interpreter::XNor);
+	BindFunction("Not", &Internal_Interpreter::Not);
+	BindFunction("And", &Internal_Interpreter::And);
+	BindFunction("Or", &Internal_Interpreter::Or);
+	BindFunction("Xor", &Internal_Interpreter::Xor);
+	BindFunction("Nor", &Internal_Interpreter::Nor);
+	BindFunction("XNor", &Internal_Interpreter::XNor);
 
-	BindFunction(Util::CalcHash("+"), &Internal_Interpreter::Add);
-	BindFunction(Util::CalcHash("-"), &Internal_Interpreter::Subtract);
-	BindFunction(Util::CalcHash("*"), &Internal_Interpreter::Multiply);
-	BindFunction(Util::CalcHash("/"), &Internal_Interpreter::Divide);
-	BindFunction(Util::CalcHash("^"), &Internal_Interpreter::Power);
+	BindFunction("+", &Internal_Interpreter::Add);
+	BindFunction("-", &Internal_Interpreter::Subtract);
+	BindFunction("*", &Internal_Interpreter::Multiply);
+	BindFunction("/", &Internal_Interpreter::Divide);
+	BindFunction("^", &Internal_Interpreter::Power);
 
-	BindFunction(Util::CalcHash("<"), &Internal_Interpreter::LessThan);
-	BindFunction(Util::CalcHash("<="), &Internal_Interpreter::LessThanOrEqualTo);
-	BindFunction(Util::CalcHash(">"), &Internal_Interpreter::GreaterThan);
-	BindFunction(Util::CalcHash(">="), &Internal_Interpreter::GreaterThanOrEqualTo);
-	BindFunction(Util::CalcHash("=="), &Internal_Interpreter::EqualTo);
-	BindFunction(Util::CalcHash("!="), &Internal_Interpreter::NotEqualTo);
+	BindFunction("<", &Internal_Interpreter::LessThan);
+	BindFunction("<=", &Internal_Interpreter::LessThanOrEqualTo);
+	BindFunction(">", &Internal_Interpreter::GreaterThan);
+	BindFunction(">=", &Internal_Interpreter::GreaterThanOrEqualTo);
+	BindFunction("==", &Internal_Interpreter::EqualTo);
+	BindFunction("!=", &Internal_Interpreter::NotEqualTo);
 
-	BindFunction(Util::CalcHash("Floor"), &Internal_Interpreter::Floor);
-	BindFunction(Util::CalcHash("Ceil"), &Internal_Interpreter::Ceil);
-	BindFunction(Util::CalcHash("Round"), &Internal_Interpreter::Round);
+	BindFunction("Floor", &Internal_Interpreter::Floor);
+	BindFunction("Ceil", &Internal_Interpreter::Ceil);
+	BindFunction("Round", &Internal_Interpreter::Round);
 
-	BindFunction(Util::CalcHash("HasComponent"), &Internal_Interpreter::HasComponent);
+	BindFunction("HasComponent", &Internal_Interpreter::HasComponent);
 }
 
 Interpreter::~Interpreter()
 {}
 
-ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpression) const
+ExpressionCompileResult Interpreter::Compile(Parse::Expression& parsedExpression) const
 {
 	ExpressionCompileResult result;
 
@@ -84,11 +83,33 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 		{
 			result = ExpressionCompileResult::Make<TypeCheckFailure>("A node expression cannot be interpreted.");
 		},
-		[&](const Parse::FunctionCallExpression& functionCallExpression)
+		[&](Parse::FunctionCallExpression& functionCallExpression)
 		{
-			// Validate that the function is bound.
-			const auto* const entry = m_boundFunctions.Find(functionCallExpression.m_functionNameHash);
-			if (entry == m_boundFunctions.end())
+			// Compile the function's argument expressions to get their types.
+			// This is necessary so that the function name can be mangled for overload resolution.
+			Collection::Vector<Expression> compiledArguments;
+			Collection::Vector<ExpressionResultTypeString> compiledArgumentResultTypes;
+			for (size_t i = 0, iEnd = functionCallExpression.m_arguments.Size(); i < iEnd; ++i)
+			{
+				ExpressionCompileResult argumentResult = Compile(functionCallExpression.m_arguments[i]);
+				if (!argumentResult.Is<Expression>())
+				{
+					result = std::move(argumentResult);
+					return;
+				}
+
+				Expression& compiledArgument = argumentResult.Get<Expression>();
+				Dev::FatalAssert(compiledArgument.IsAny(),
+					"No Behave AST compilation path may result in an invalid AST::Expression.");
+
+				compiledArgumentResultTypes.Add(compiledArgument.GetResultType());
+				compiledArguments.Add(std::move(compiledArgument));
+			}
+
+			// Validate that a function with the correct name has been bound.
+			const auto* const overloadsEntry =
+				m_boundFunctionOverloads.Find(functionCallExpression.m_functionNameHash);
+			if (overloadsEntry == m_boundFunctionOverloads.end())
 			{
 				std::string message = "Encountered unknown function [";
 				message += functionCallExpression.m_functionName;
@@ -98,65 +119,85 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 				return;
 			}
 
-			// Validate that the function takes the correct number of arguments.
-			const auto& boundArgumentTypes = m_boundFunctionArgumentTypes.Find(
-				functionCallExpression.m_functionNameHash)->second;
-			if (functionCallExpression.m_arguments.Size() != boundArgumentTypes.Size())
+			// Try to find a perfect-match overload.
+			const OverloadInfo* matchingOverload = nullptr;
+			for (const auto& overloadInfo : overloadsEntry->second)
 			{
-				std::string message = "Expected ";
-				message += boundArgumentTypes.Size();
-				message += " arguments, but encountered ";
-				message += functionCallExpression.m_arguments.Size();
-				message += ".";
+				const ExpressionResultTypeString* const overloadArgumentTypes = overloadInfo.m_argumentTypeStrings;
+				if (overloadInfo.m_numArguments != compiledArgumentResultTypes.Size())
+				{
+					continue;
+				}
+				bool isMatch = true;
+				for (size_t i = 0, iEnd = overloadInfo.m_numArguments; i < iEnd; ++i)
+				{
+					if (overloadArgumentTypes[i] != compiledArgumentResultTypes[i])
+					{
+						isMatch = false;
+						break;
+					}
+				}
+				if (isMatch)
+				{
+					matchingOverload = &overloadInfo;
+					break;
+				}
+			}
 
+			// If there is not a perfect-match overload, try to find a compatible overload.
+			// The only casting that can happen is from a specific component type to ECS::ComponentType.
+			if (matchingOverload == nullptr)
+			{
+				for (const auto& overloadInfo : overloadsEntry->second)
+				{
+					const ExpressionResultTypeString* const overloadArgumentTypes = overloadInfo.m_argumentTypeStrings;
+					if (overloadInfo.m_numArguments != compiledArgumentResultTypes.Size())
+					{
+						continue;
+					}
+					bool isMatch = true;
+					for (size_t i = 0, iEnd = overloadInfo.m_numArguments; i < iEnd; ++i)
+					{
+						if (overloadArgumentTypes[i] != compiledArgumentResultTypes[i]
+							&& overloadArgumentTypes[i] != ExpressionResultTypeString::Make<ECS::ComponentType>()
+							&& !compiledArguments[i].Is<ComponentTypeLiteralExpression>())
+						{
+							isMatch = false;
+							break;
+						}
+					}
+					if (isMatch)
+					{
+						matchingOverload = &overloadInfo;
+						break;
+					}
+				}
+			}
+
+			// Validate that an overload was found.
+			if (matchingOverload == nullptr)
+			{
+				std::string message = "Function [";
+				message += functionCallExpression.m_functionName;
+				message += "] has no overload for types [";
+				if (!compiledArgumentResultTypes.IsEmpty())
+				{
+					message += compiledArgumentResultTypes.Front().m_typeString;
+					for (size_t i = 1, iEnd = compiledArgumentResultTypes.Size(); i < iEnd; ++i)
+					{
+						message += ", ";
+						message += compiledArgumentResultTypes[i].m_typeString;
+					}
+				}
+				message += "].";
+				
 				result = ExpressionCompileResult::Make<TypeCheckFailure>(std::move(message));
 				return;
 			}
 
-			// Compile the function's argument expressions and ensure they have the right types.
-			Collection::Vector<Expression> compiledArguments;
-			for (size_t i = 0, iEnd = functionCallExpression.m_arguments.Size(); i < iEnd; ++i)
-			{
-				ExpressionCompileResult argumentResult = Compile(functionCallExpression.m_arguments[i]);
-				if (!argumentResult.Is<Expression>())
-				{
-					result = std::move(argumentResult);
-					return;
-				}
-				
-				Expression& compiledArgument = argumentResult.Get<Expression>();
-				Dev::FatalAssert(compiledArgument.IsAny(),
-					"No Behave AST compilation path may result in an invalid AST::Expression.");
-
-				ExpressionResultTypes argumentResultType;
-				compiledArgument.Match(
-					[&](const None&) { argumentResultType = ExpressionResultTypes::None; },
-					[&](const bool&) { argumentResultType = ExpressionResultTypes::Boolean; },
-					[&](const double&) { argumentResultType = ExpressionResultTypes::Number; },
-					[&](const std::string&) { argumentResultType = ExpressionResultTypes::String; },
-					[&](const ECS::ComponentType&) { argumentResultType = ExpressionResultTypes::ComponentType; },
-					[&](const TreeIdentifier&) { argumentResultType = ExpressionResultTypes::TreeIdentifier; },
-					[&](const FunctionCallExpression& argumentFunctionCall)
-					{
-						argumentResultType = argumentFunctionCall.m_boundFunction.GetReturnType();
-					});
-
-				if (argumentResultType != boundArgumentTypes[i])
-				{
-					std::string message = "Argument type mismatch in call to function [";
-					message += functionCallExpression.m_functionName;
-					message += "].";
-
-					result = ExpressionCompileResult::Make<TypeCheckFailure>(std::move(message));
-					return;
-				}
-
-				compiledArguments.Add(std::move(compiledArgument));
-			}
-
 			result = ExpressionCompileResult::Make<Expression>();
 			result.Get<Expression>() = Expression::Make<FunctionCallExpression>(
-				entry->second, std::move(compiledArguments));
+				matchingOverload->m_boundFunction, std::move(compiledArguments));
 		},
 		[&](const Parse::IdentifierExpression& identifierExpression)
 		{
@@ -165,7 +206,7 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 			result.Get<Expression>() = Expression::Make<TreeIdentifier>(
 				TreeIdentifier{ identifierExpression.m_treeNameHash });
 		},
-		[&](const Parse::LiteralExpression& literalExpression)
+		[&](Parse::LiteralExpression& literalExpression)
 		{
 			Dev::FatalAssert(literalExpression.IsAny(), "Cannot compile an invalid Parse::Expression.");
 			literalExpression.Match(
@@ -189,7 +230,7 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 					result = ExpressionCompileResult::Make<Expression>();
 					result.Get<Expression>() = Expression::Make<bool>(booleanLiteral.m_value);
 				},
-				[&](const Parse::ComponentTypeLiteral& componentTypeLiteral)
+				[&](Parse::ComponentTypeLiteral& componentTypeLiteral)
 				{
 					// Verify the component type is registered.
 					if (!m_componentReflector.IsRegistered(ECS::ComponentType(componentTypeLiteral.m_typeHash)))
@@ -203,7 +244,9 @@ ExpressionCompileResult Interpreter::Compile(const Parse::Expression& parsedExpr
 					}
 
 					result = ExpressionCompileResult::Make<Expression>();
-					result.Get<Expression>() = Expression::Make<ECS::ComponentType>(componentTypeLiteral.m_typeHash);
+					result.Get<Expression>() = Expression::Make<ComponentTypeLiteralExpression>(
+						ECS::ComponentType(componentTypeLiteral.m_typeHash),
+						std::move(componentTypeLiteral.m_typeString));
 				});
 		});
 
@@ -233,9 +276,9 @@ ExpressionResult Interpreter::EvaluateExpression(const Expression& expression, E
 		{
 			result = ExpressionResult::Make<std::string>(strVal);
 		},
-		[&](const ECS::ComponentType& componentType)
+		[&](const ComponentTypeLiteralExpression& componentTypeLiteral)
 		{
-			result = ExpressionResult::Make<ECS::ComponentType>(componentType);
+			result = ExpressionResult::Make<ECS::ComponentType>(componentTypeLiteral.m_componentType);
 		},
 		[&](const TreeIdentifier& treeIdentifier)
 		{

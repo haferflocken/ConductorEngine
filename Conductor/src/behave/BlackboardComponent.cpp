@@ -87,16 +87,16 @@ void SetTreeIdentifier(const ECS::Entity&, BlackboardComponent& blackboardCompon
 
 void BlackboardComponent::BindFunctions(AST::Interpreter& interpreter)
 {
-	interpreter.BindFunction(Util::CalcHash("GetBool"), &Internal_BlackboardComponent::GetBool);
-	interpreter.BindFunction(Util::CalcHash("GetNumber"), &Internal_BlackboardComponent::GetNumber);
-	interpreter.BindFunction(Util::CalcHash("GetString"), &Internal_BlackboardComponent::GetString);
-	interpreter.BindFunction(Util::CalcHash("GetComponentType"), &Internal_BlackboardComponent::GetComponentType);
-	interpreter.BindFunction(Util::CalcHash("GetTreeIdentifier"), &Internal_BlackboardComponent::GetTreeIdentifier);
+	interpreter.BindFunction("GetBool", &Internal_BlackboardComponent::GetBool);
+	interpreter.BindFunction("GetNumber", &Internal_BlackboardComponent::GetNumber);
+	interpreter.BindFunction("GetString", &Internal_BlackboardComponent::GetString);
+	interpreter.BindFunction("GetComponentType", &Internal_BlackboardComponent::GetComponentType);
+	interpreter.BindFunction("GetTreeIdentifier", &Internal_BlackboardComponent::GetTreeIdentifier);
 
-	interpreter.BindFunction(Util::CalcHash("SetBool"), &Internal_BlackboardComponent::SetBool);
-	interpreter.BindFunction(Util::CalcHash("SetNumber"), &Internal_BlackboardComponent::SetNumber);
-	interpreter.BindFunction(Util::CalcHash("SetString"), &Internal_BlackboardComponent::SetString);
-	interpreter.BindFunction(Util::CalcHash("SetComponentType"), &Internal_BlackboardComponent::SetComponentType);
-	interpreter.BindFunction(Util::CalcHash("SetTreeIdentifier"), &Internal_BlackboardComponent::SetTreeIdentifier);
+	interpreter.BindFunction("SetBool", &Internal_BlackboardComponent::SetBool);
+	interpreter.BindFunction("SetNumber", &Internal_BlackboardComponent::SetNumber);
+	interpreter.BindFunction("SetString", &Internal_BlackboardComponent::SetString);
+	interpreter.BindFunction("SetComponentType", &Internal_BlackboardComponent::SetComponentType);
+	interpreter.BindFunction("SetTreeIdentifier", &Internal_BlackboardComponent::SetTreeIdentifier);
 }
 }

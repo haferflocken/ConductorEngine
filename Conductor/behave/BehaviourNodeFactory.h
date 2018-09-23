@@ -29,17 +29,20 @@ class BehaviourNodeFactory
 {
 public:
 	using NodeFactoryFunction = Mem::UniquePtr<BehaviourNode>(*)(const BehaviourNodeFactory&, const AST::Interpreter&,
-		const Parse::NodeExpression&, const BehaviourTree&);
+		Parse::NodeExpression&, const BehaviourTree&);
 
 	explicit BehaviourNodeFactory(const AST::Interpreter& interpreter);
 
 	template <typename NodeType>
 	void RegisterNodeType();
 
-	Mem::UniquePtr<BehaviourNode> MakeNode(const Parse::NodeExpression& nodeExpression, const BehaviourTree& tree) const;
-	Mem::UniquePtr<BehaviourCondition> MakeCondition(const Parse::Expression& expression) const;
+	// Make a node by consuming a nodeExpression.
+	Mem::UniquePtr<BehaviourNode> MakeNode(Parse::NodeExpression& nodeExpression, const BehaviourTree& tree) const;
+	// Make a condition by consuming an expression.
+	Mem::UniquePtr<BehaviourCondition> MakeCondition(Parse::Expression& expression) const;
 
-	bool TryMakeNodesFrom(const Collection::Vector<Parse::Expression>& expressions, const BehaviourTree& tree,
+	// Attempt to make a list of nodes by consuming a list of expressions.
+	bool TryMakeNodesFrom(Collection::Vector<Parse::Expression>& expressions, const BehaviourTree& tree,
 		Collection::Vector<Mem::UniquePtr<BehaviourNode>>& outNodes) const;
 
 private:
