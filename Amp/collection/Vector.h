@@ -88,6 +88,11 @@ public:
 private:
 	void EnsureCapacity(const uint32_t desiredCapacity);
 
+	static T* Allocate(uint32_t numElements)
+	{
+		return static_cast<T*>(_aligned_malloc(numElements * Unit::AlignedSizeOf<T>(), alignof(T)));
+	}
+
 	T* m_data{ nullptr };
 	uint32_t m_capacity{ 0 };
 	uint32_t m_count{ 0 };
@@ -95,14 +100,14 @@ private:
 
 template <typename T>
 inline Vector<T>::Vector(const uint32_t initialCapacity)
-	: m_data(static_cast<T*>(malloc(std::max<uint32_t>(initialCapacity, 1) * Unit::AlignedSizeOf<T>())))
+	: m_data(Allocate(std::max<uint32_t>(initialCapacity, 1)))
 	, m_capacity(std::max<uint32_t>(initialCapacity, 1))
 	, m_count(0)
 {}
 
 template <typename T>
 inline Vector<T>::Vector(std::initializer_list<T> initialElements)
-	: m_data(static_cast<T*>(malloc(std::max<size_t>(initialElements.size(), 1) * Unit::AlignedSizeOf<T>())))
+	: m_data(Allocate(std::max<uint32_t>(static_cast<uint32_t>(initialElements.size()), 1)))
 	, m_capacity(static_cast<uint32_t>(std::max<size_t>(initialElements.size(), 1)))
 	, m_count(0)
 {
@@ -114,7 +119,7 @@ inline Vector<T>::Vector(std::initializer_list<T> initialElements)
 
 template <typename T>
 inline Vector<T>::Vector(const ArrayView<const T>& initialElements)
-	: m_data(static_cast<T*>(malloc(std::max<uint32_t>(initialElements.Size(), 1) * Unit::AlignedSizeOf<T>())))
+	: m_data(Allocate(std::max<uint32_t>(initialElements.Size(), 1)))
 	, m_capacity(std::max<uint32_t>(initialElements.Size(), 1))
 	, m_count(0)
 {
@@ -135,10 +140,10 @@ inline void Vector<T>::operator=(const Vector<T>& rhs)
 {
 	if (m_data != nullptr)
 	{
-		free(m_data);
+		_aligned_free(m_data);
 	}
 
-	m_data = static_cast<T*>(malloc(rhs.m_capacity * Unit::AlignedSizeOf<T>()));
+	m_data = Allocate(rhs.m_capacity);
 	m_capacity = rhs.m_capacity;
 	m_count = rhs.m_count;
 
@@ -185,7 +190,7 @@ inline Vector<T>::~Vector()
 	{
 		(&element)->~T();
 	}
-	free(m_data);
+	_aligned_free(m_data);
 	m_data = nullptr;
 }
 
@@ -363,7 +368,7 @@ inline void Vector<T>::EnsureCapacity(const uint32_t desiredCapacity)
 		{
 			newCapacity *= 2;
 		}
-		T* const newData = static_cast<T*>(malloc(newCapacity * Unit::AlignedSizeOf<T>()));
+		T* const newData = Allocate(newCapacity);
 
 		// Move the contents of the old buffer into the new one.
 		if (Traits::IsMemCopyAFullCopy<T>::value)
@@ -381,7 +386,7 @@ inline void Vector<T>::EnsureCapacity(const uint32_t desiredCapacity)
 		// Move the new buffer into m_data and free the old buffer.
 		if (m_data != nullptr)
 		{
-			free(m_data);
+			_aligned_free(m_data);
 		}
 		m_data = newData;
 		m_capacity = newCapacity;
