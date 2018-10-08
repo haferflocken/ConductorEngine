@@ -66,4 +66,13 @@ void MeshSystem::Update(ECS::EntityManager& entityManager,
 
 	bgfx::end(encoder);
 }
+
+void MeshSystem::NotifyOfEntityAdded(const ECSGroupType& group)
+{
+	// TODO(renderer) Track bgfx data in the system so MeshComponent can be moved to Conductor
+}
+
+void MeshSystem::NotifyOfEntityRemoved(const ECSGroupType& group)
+{
+}
 }

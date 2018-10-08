@@ -16,7 +16,8 @@ namespace Renderer
  */
 class MeshSystem final : public ECS::SystemTempl<
 	Util::TypeList<Scene::SceneTransformComponent>,
-	Util::TypeList<MeshComponent>>
+	Util::TypeList<MeshComponent>,
+	ECS::SystemBindingType::Extended>
 {
 public:
 	MeshSystem();
@@ -25,6 +26,9 @@ public:
 	void Update(ECS::EntityManager& entityManager,
 		const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		Collection::Vector<std::function<void()>>& deferredFunctions) const;
+
+	void NotifyOfEntityAdded(const ECSGroupType& group);
+	void NotifyOfEntityRemoved(const ECSGroupType& group);
 
 private:
 	bgfx::ProgramHandle m_program;

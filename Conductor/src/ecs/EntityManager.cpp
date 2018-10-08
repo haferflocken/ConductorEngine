@@ -728,15 +728,21 @@ void EntityManager::RemoveComponent(const ComponentID id)
 EntityManager::RegisteredSystem::RegisteredSystem()
 	: m_system()
 	, m_updateFunction(nullptr)
+	, m_notifyEntityAddedFunction(nullptr)
+	, m_notifyEntityRemovedFunction(nullptr)
 	, m_ecsGroups()
 	, m_deferredFunctions()
 {}
 
 EntityManager::RegisteredSystem::RegisteredSystem(
 	Mem::UniquePtr<System>&& system,
-	SystemUpdateFn updateFunction)
+	SystemUpdateFn updateFunction,
+	NotifyOfEntityFn notifyEntityAddedFunction,
+	NotifyOfEntityFn notifyEntityRemovedFunction)
 	: m_system(std::move(system))
 	, m_updateFunction(updateFunction)
+	, m_notifyEntityAddedFunction(notifyEntityAddedFunction)
+	, m_notifyEntityRemovedFunction(notifyEntityRemovedFunction)
 	, m_ecsGroups(m_system->GetImmutableTypes().Size() + m_system->GetMutableTypes().Size())
 {}
 
@@ -793,6 +799,7 @@ void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity>& entit
 				}
 
 				registeredSystem.m_ecsGroups.Add(pointers);
+				registeredSystem.m_notifyEntityAddedFunction(registeredSystem, pointers);
 			}
 
 			// Sort the group vector in order to make the memory accesses as fast as possible.
@@ -825,6 +832,7 @@ void EntityManager::RemoveECSPointersFromSystems(Entity& entity)
 			}
 
 			registeredSystem.m_ecsGroups.Remove(pointers);
+			registeredSystem.m_notifyEntityRemovedFunction(registeredSystem, pointers);
 		}
 	}
 }

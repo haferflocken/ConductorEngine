@@ -76,14 +76,18 @@ public:
 private:
 	struct RegisteredSystem;
 	using SystemUpdateFn = void(*)(EntityManager&, RegisteredSystem&);
+	using NotifyOfEntityFn = void(*)(RegisteredSystem&, const Collection::Vector<void*>&);
 
 	struct RegisteredSystem
 	{
 		RegisteredSystem();
-		RegisteredSystem(Mem::UniquePtr<System>&& system, SystemUpdateFn updateFunction);
+		RegisteredSystem(Mem::UniquePtr<System>&& system, SystemUpdateFn updateFunction,
+			NotifyOfEntityFn notifyEntityAddedFunction, NotifyOfEntityFn notifyEntityRemovedFunction);
 
 		Mem::UniquePtr<System> m_system;
 		SystemUpdateFn m_updateFunction;
+		NotifyOfEntityFn m_notifyEntityAddedFunction;
+		NotifyOfEntityFn m_notifyEntityRemovedFunction;
 		ECSGroupVector m_ecsGroups;
 		Collection::Vector<std::function<void()>> m_deferredFunctions;
 	};
@@ -93,6 +97,8 @@ private:
 		Collection::Vector<RegisteredSystem> m_systems;
 	};
 
+	template <typename SystemType> struct SystemTypeFunctions;
+	
 	// Add a component to an entity.
 	void AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity);
 	// Remove a component from this EntityManager. Does not remove it from the entity referencing it.
@@ -196,20 +202,47 @@ inline void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>
 }
 
 template <typename SystemType>
+struct EntityManager::SystemTypeFunctions
+{
+	static void Update(EntityManager& entityManager, EntityManager::RegisteredSystem& registeredSystem)
+	{
+		SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
+		const auto ecsGroupsView =
+			registeredSystem.m_ecsGroups.GetView<SystemType::ECSGroupType>();
+
+		system.Update(entityManager, ecsGroupsView, registeredSystem.m_deferredFunctions);
+	}
+
+	static void NotifyEntityAdded(EntityManager::RegisteredSystem& registeredSystem,
+		const Collection::Vector<void*>& rawGroup)
+	{
+		if constexpr (SystemType::k_bindingType == SystemBindingType::Extended)
+		{
+			SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
+			const SystemType::ECSGroupType& group = *reinterpret_cast<const SystemType::ECSGroupType*>(&rawGroup[0]);
+			system.NotifyOfEntityAdded(group);
+		}
+	}
+
+	static void NotifyEntityRemoved(EntityManager::RegisteredSystem& registeredSystem,
+		const Collection::Vector<void*>& rawGroup)
+	{
+		if constexpr (SystemType::k_bindingType == SystemBindingType::Extended)
+		{
+			SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
+			const SystemType::ECSGroupType& group = *reinterpret_cast<const SystemType::ECSGroupType*>(&rawGroup[0]);
+			system.NotifyOfEntityRemoved(group);
+		}
+	}
+};
+
+template <typename SystemType>
 inline void EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
 	RegisteredConcurrentSystemGroup& outGroup)
 {
-	struct SystemTypeFunctions
-	{
-		static void Update(EntityManager& entityManager, RegisteredSystem& registeredSystem)
-		{
-			SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
-			const auto ecsGroupsView =
-				registeredSystem.m_ecsGroups.GetView<SystemType::ECSGroupType>();
-
-			system.Update(entityManager, ecsGroupsView, registeredSystem.m_deferredFunctions);
-		}
-	};
-	outGroup.m_systems.Emplace(std::move(system), &SystemTypeFunctions::Update);
+	outGroup.m_systems.Emplace(std::move(system),
+		&SystemTypeFunctions<SystemType>::Update,
+		&SystemTypeFunctions<SystemType>::NotifyEntityAdded,
+		&SystemTypeFunctions<SystemType>::NotifyEntityRemoved);
 }
 }

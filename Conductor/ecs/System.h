@@ -11,11 +11,15 @@ namespace ECS
 {
 /**
  * A System updates entities which have a set of components which match the system's input components.
- * Behaviour systems should be defined by extending SystemTempl.
+ * Systems should be defined by extending SystemTempl.
  * All systems must define an update function which encapsulates their logic with this signature:
  *   void Update(EntityManager& entityManager,
  *      const Collection::ArrayView<ECSGroupType>& ecsGroups,
  *      Collection::Vector<std::function<void()>>& deferredFunctions);
+ * 
+ * Systems that have SystemBindingType::Extended must define all of the following:
+ *   void NotifyOfEntityAdded(const ECSGroupType& group);
+ *   void NotifyOfEntityRemoved(const ECSGroupType& group);
  */
 class System
 {
@@ -34,6 +38,15 @@ public:
 private:
 	Collection::Vector<Util::StringHash> m_immutableTypes;
 	Collection::Vector<Util::StringHash> m_mutableTypes;
+};
+
+/**
+ * All systems define a binding type to indicate what functions they need bound.
+ */
+enum class SystemBindingType
+{
+	Standard,
+	Extended
 };
 
 namespace SystemDetail
@@ -60,7 +73,7 @@ template <typename ECSTypeList>
 using ECSGroupForTypeList = decltype(ECSGroupForTypeListFn(ECSTypeList()));
 }
 
-template <typename ImmutableTL, typename MutableTL>
+template <typename ImmutableTL, typename MutableTL, SystemBindingType BindingType = SystemBindingType::Standard>
 class SystemTempl : public System
 {
 	using ThisType = SystemTempl<ImmutableTL, MutableTL>;
@@ -68,6 +81,7 @@ class SystemTempl : public System
 public:
 	using ImmutableTypesList = typename ImmutableTL::ConstList;
 	using MutableTypesList = MutableTL;
+	static constexpr SystemBindingType k_bindingType = BindingType;
 
 	using ECSTypeList = typename ImmutableTypesList::template ConcatType<MutableTypesList>;
 	using ECSGroupType = SystemDetail::ECSGroupForTypeList<ECSTypeList>;
