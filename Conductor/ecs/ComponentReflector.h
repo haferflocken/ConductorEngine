@@ -67,6 +67,7 @@ public:
 	bool IsRegistered(const ComponentType componentType) const;
 
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
+	Unit::ByteCount64 GetAlignOfComponentInBytes(const ComponentType componentType) const;
 
 	bool TryMakeComponent(Asset::AssetManager& assetManager, const ComponentInfo& componentInfo,
 		const ComponentID reservedID, ComponentVector& destination) const;
@@ -80,11 +81,12 @@ public:
 
 private:
 	void RegisterComponentType(const char* componentTypeName, const Util::StringHash componentTypeHash,
-		const Unit::ByteCount64 sizeOfComponentInBytes, FactoryFunction factoryFn, DestructorFunction destructorFn,
-		SwapFunction swapFn);
+		const Unit::ByteCount64 sizeOfComponent, const Unit::ByteCount64 alignOfComponent,
+		FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn);
 
 	// Maps of component types to functions for those component types.
 	Collection::VectorMap<ComponentType, Unit::ByteCount64> m_componentSizesInBytes;
+	Collection::VectorMap<ComponentType, Unit::ByteCount64> m_componentAlignmentsInBytes;
 	Collection::VectorMap<ComponentType, FactoryFunction> m_factoryFunctions;
 	Collection::VectorMap<ComponentType, DestructorFunction> m_destructorFunctions;
 	Collection::VectorMap<ComponentType, SwapFunction> m_swapFunctions;
@@ -122,8 +124,8 @@ inline void ComponentReflector::RegisterComponentType()
 	};
 
 	RegisterComponentType(ComponentType::Info::sk_typeName, ComponentType::Info::sk_typeHash,
-		Unit::ByteCount64(sizeof(ComponentType)), &ComponentTypeFunctions::TryCreateFromInfo,
-		&ComponentTypeFunctions::Destroy, &ComponentTypeFunctions::Swap);
+		Unit::ByteCount64(sizeof(ComponentType)), Unit::ByteCount64(alignof(ComponentType)),
+		&ComponentTypeFunctions::TryCreateFromInfo, &ComponentTypeFunctions::Destroy, &ComponentTypeFunctions::Swap);
 }
 
 template <typename ComponentType>

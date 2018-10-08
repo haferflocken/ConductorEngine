@@ -19,6 +19,8 @@ class Entity final
 public:
 	using Info = EntityInfo;
 
+	Entity() = default;
+
 	explicit Entity(const EntityID& id, const Util::StringHash infoNameHash)
 		: m_id(id)
 		, m_components()

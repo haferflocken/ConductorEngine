@@ -8,7 +8,7 @@
 namespace ECS
 {
 /**
- * Holds groups of entity indices and component indices in contiguous storage.
+ * Holds groups of entity pointers and component pointers in contiguous storage.
  */
 class ECSGroupVector
 {
@@ -22,13 +22,15 @@ public:
 
 	uint32_t Size() const { return m_data.Size() / m_groupSize; }
 	uint32_t Capacity() const { return m_data.Capacity() / m_groupSize; }
-	uint32_t NumComponentsInGroup() const { return m_groupSize; }
 	bool IsEmpty() const { return m_data.IsEmpty(); }
 
-	// Add an ECS group to this component group vector.
-	void Add(const Collection::Vector<size_t>& indices); 
+	// Add an ECS group to this ECS vector.
+	void Add(const Collection::Vector<void*>& pointers);
 	
-	// Sort the component groups of this vector by the first index in each component group.
+	// Remove an ECS group from this ECS vector.
+	void Remove(const Collection::Vector<void*>& pointers);
+
+	// Sort the ECS groups of this vector by the first index in each ECS group.
 	void Sort();
 
 	void Clear() { m_data.Clear(); }
@@ -48,6 +50,6 @@ public:
 
 private:
 	uint32_t m_groupSize{ 0 };
-	Collection::Vector<size_t> m_data;
+	Collection::Vector<void*> m_data;
 };
 }

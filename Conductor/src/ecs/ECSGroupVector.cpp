@@ -4,21 +4,49 @@
 
 #include <array>
 
-void ECS::ECSGroupVector::Add(const Collection::Vector<size_t>& indices)
+void ECS::ECSGroupVector::Add(const Collection::Vector<void*>& pointers)
 {
-	Dev::FatalAssert(indices.Size() == m_groupSize,
+	Dev::FatalAssert(pointers.Size() == m_groupSize,
 		"Can only add ECS groups with the correct group size.");
 	
-	for (const auto& index : indices)
+	for (const auto& ptr : pointers)
 	{
-		m_data.Add(index);
+		m_data.Add(ptr);
 	}
+}
+
+void ECS::ECSGroupVector::Remove(const Collection::Vector<void*>& pointers)
+{
+	Dev::FatalAssert(pointers.Size() == m_groupSize,
+		"Can only remove ECS groups with the correct group size.");
+
+	for (auto iter = m_data.begin(), iterEnd = m_data.end(); iter < iterEnd; iter += m_groupSize)
+	{
+		bool isMatch = true;
+		for (size_t i = 0, iEnd = m_groupSize; i < iEnd; ++i)
+		{
+			if (iter[i] != pointers[i])
+			{
+				isMatch = false;
+				break;
+			}
+		}
+
+		if (isMatch)
+		{
+			const std::ptrdiff_t groupIndex = std::distance(m_data.begin(), iter);
+			m_data.Remove(groupIndex, groupIndex + m_groupSize);
+			return;
+		}
+	}
+
+	Dev::FatalError("Failed to remove the given group.");
 }
 
 namespace Internal_ECSGroupVector
 {
 template <uint32_t GroupSize>
-void SortGroups(Collection::Vector<size_t>& data, const uint32_t numGroups)
+void SortGroups(Collection::Vector<void*>& data, const uint32_t numGroups)
 {
 	using ArrayType = std::array<size_t, GroupSize>;
 
@@ -48,6 +76,6 @@ void ECS::ECSGroupVector::Sort()
 	case 3: SortGroups<3>(m_data, Size()); break;
 	case 4: SortGroups<4>(m_data, Size()); break;
 	case 5: SortGroups<5>(m_data, Size()); break;
-	default: Dev::FatalError("Encountered a component group with more elements than expected."); break;
+	default: Dev::FatalError("Encountered an ECS group with more elements than expected."); break;
 	}
 }

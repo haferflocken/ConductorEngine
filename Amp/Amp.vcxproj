@@ -139,6 +139,7 @@
     <ClInclude Include="collection\Heap.h" />
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\IntegralRange.h" />
+    <ClInclude Include="collection\LinearBlockHashMap.h" />
     <ClInclude Include="collection\LocklessQueue.h" />
     <ClInclude Include="collection\Pair.h" />
     <ClInclude Include="collection\PolyBuffer.h" />
@@ -168,6 +169,7 @@
     <ClCompile Include="src\assets\AssetManager.cpp" />
     <ClCompile Include="src\assets\RecordSchema.cpp" />
     <ClCompile Include="src\assets\RecordSchemaField.cpp" />
+    <ClCompile Include="src\collection\HashMap.cpp" />
     <ClCompile Include="src\dev\Dev.cpp" />
     <ClCompile Include="src\file\FullFileReader.cpp" />
     <ClCompile Include="src\file\JSONReader.cpp" />

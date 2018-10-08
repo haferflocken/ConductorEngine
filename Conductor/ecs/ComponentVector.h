@@ -3,7 +3,8 @@
 #include <ecs/ComponentType.h>
 
 #include <collection/ArrayView.h>
-#include <collection/IndexIterator.h>
+#include <collection/HashMap.h>
+#include <collection/LinearBlockAllocator.h>
 #include <traits/IsMemCopyAFullCopy.h>
 #include <unit/CountUnits.h>
 
@@ -15,20 +16,20 @@ class ComponentReflector;
 class EntityManager;
 
 /**
- * A vector of components of a certain type stored in contiguous memory.
+ * A collection of components of a certain type stored in mostly contiguous memory.
  */
 class ComponentVector
 {
 public:
 	using value_type = Component;
-	using const_iterator = Collection::IndexIterator<const ComponentVector, const Component>;
-	using iterator = Collection::IndexIterator<ComponentVector, Component>;
+	using iterator = Collection::LinearBlockAllocator::iterator;
+	using const_iterator = Collection::LinearBlockAllocator::const_iterator;
 
 	ComponentVector();
 	~ComponentVector();
 
 	ComponentVector(const ComponentReflector& componentReflector, const ComponentType componentType,
-		const Unit::ByteCount64 alignedComponentSize, const uint32_t initialCapacity = 8);
+		const Unit::ByteCount64 componentSize, const Unit::ByteCount64 componentAlignment);
 
 	ComponentVector(const ComponentVector&) = delete;
 	ComponentVector& operator=(const ComponentVector&) = delete;
@@ -36,25 +37,15 @@ public:
 	ComponentVector(ComponentVector&& other);
 	ComponentVector& operator=(ComponentVector&& rhs);
 
+	void Clear();
+
 	// Copy is only supported on vectors of networked components.
 	void Copy(const ComponentVector& other);
 
 	ComponentType GetComponentType() const { return m_componentType; }
 
-	uint32_t Size() const { return m_count; }
-	uint32_t Capacity() const { return m_capacity; }
-	bool IsEmpty() const { return m_count == 0; }
-
-	Component& operator[](const size_t i) { return reinterpret_cast<Component&>(m_data[i * m_alignedComponentSize.GetN()]); }
-	const Component& operator[](const size_t i) const { return reinterpret_cast<const Component&>(m_data[i * m_alignedComponentSize.GetN()]); }
-
-	iterator begin() { return iterator(*this, 0); }
-	const_iterator begin() const { return const_iterator(*this, 0); }
-	const_iterator cbegin() const { return begin(); }
-
-	iterator end() { return iterator(*this, m_count); }
-	const_iterator end() const { return const_iterator(*this, m_count); }
-	const_iterator cend() const { return end(); }
+	Component* Find(const ComponentID& key);
+	const Component* Find(const ComponentID& key) const;
 
 	template <typename T, typename... Args>
 	T& Emplace(Args&&... args);
@@ -62,65 +53,36 @@ public:
 	void Remove(const ComponentID id);
 	void RemoveSorted(const Collection::ArrayView<const uint64_t> ids);
 
+	// These allocate over the internal allocator and as such the values iterated over
+	// must be reinterpret_cast to Component&.
+	iterator begin() { return m_allocator.begin(); }
+	const_iterator begin() const { return m_allocator.begin(); }
+	const_iterator cbegin() const { return m_allocator.cbegin(); }
+
+	iterator end() { return m_allocator.end(); }
+	const_iterator end() const { return m_allocator.end(); }
+	const_iterator cend() const { return m_allocator.cend(); }
+
 private:
-	template <typename T>
-	void EnsureCapacity(const size_t desiredCapacity);
+	class ComponentIDHashFunctor final : public Collection::I64HashFunctor
+	{
+	public:
+		uint64_t Hash(const ComponentID& key) const { return I64HashFunctor::Hash(key.GetUniqueID()); }
+	};
 
 	const ComponentReflector* m_componentReflector{ nullptr };
 
 	ComponentType m_componentType{};
-	Unit::ByteCount64 m_alignedComponentSize{ 0 };
-
-	uint8_t* m_data{ nullptr };
-	uint32_t m_capacity{ 0 };
-	uint32_t m_count{ 0 };
+	Collection::LinearBlockAllocator m_allocator{};
+	Collection::HashMap<ComponentID, Component*, ComponentIDHashFunctor> m_keyLookup;
 };
 
 template <typename T, typename... Args>
 inline T& ComponentVector::Emplace(Args&&... args)
 {
-	const size_t i = m_count;
-	EnsureCapacity<T>(i + 1);
-
-	T* const destination = static_cast<T*>(&((*this)[i]));
+	T* const destination = reinterpret_cast<T*>(m_allocator.Alloc());
 	new (destination) T(std::forward<Args>(args)...);
-	m_count += 1;
+	m_keyLookup[destination->m_id] = destination;
 	return *destination;
-}
-
-template <typename T>
-inline void ComponentVector::EnsureCapacity(const size_t desiredCapacity)
-{
-	if (desiredCapacity > Capacity())
-	{
-		// If we need more room, double our capacity as many times as we need to.
-		uint32_t newCapacity = Capacity() * 2;
-		while (newCapacity < desiredCapacity)
-		{
-			newCapacity *= 2;
-		}
-		T* const newData = static_cast<T*>(malloc(newCapacity * m_alignedComponentSize.GetN()));
-
-		// Move the contents of the old buffer into the new one.
-		if (Traits::IsMemCopyAFullCopy<T>::value)
-		{
-			memcpy(newData, m_data, m_count * m_alignedComponentSize.GetN());
-		}
-		else
-		{
-			T* const oldData = reinterpret_cast<T*>(m_data);
-			for (size_t i = 0, iEnd = m_count; i < iEnd; ++i)
-			{
-				new (&newData[i]) T(std::move(oldData[i]));
-			}
-		}
-
-		// Move the new buffer into m_data and delete the old buffer.
-		if (m_data != nullptr)
-		{
-			free(m_data);
-		}
-		m_data = reinterpret_cast<uint8_t*>(newData);
-	}
 }
 }

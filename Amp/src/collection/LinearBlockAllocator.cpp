@@ -28,7 +28,7 @@ LinearBlockAllocator& LinearBlockAllocator::operator=(LinearBlockAllocator&& rhs
 
 LinearBlockAllocator::~LinearBlockAllocator()
 {
-	Dev::Assert(m_blocks.IsEmpty(),
+	Dev::Assert(IsEmpty(),
 		"LinearAllocators should not be destroyed until everything allocated from them is freed.");
 }
 
@@ -84,5 +84,10 @@ void LinearBlockAllocator::Free(void* ptr)
 		}
 	}
 	Dev::FatalError("LinearAllocator failed to free pointer %p.", ptr);
+}
+
+bool LinearBlockAllocator::IsEmpty() const
+{
+	return m_blocks.IsEmpty();
 }
 }

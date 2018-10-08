@@ -1,152 +1,130 @@
+#include <ecs/ComponentVector.h>
+
 #include <ecs/Component.h>
 #include <ecs/ComponentID.h>
 #include <ecs/ComponentReflector.h>
-#include <ecs/ComponentVector.h>
 
-#include <algorithm>
+#include <random>
 
-ECS::ComponentVector::ComponentVector() = default;
+ECS::ComponentVector::ComponentVector()
+	: m_keyLookup(ComponentIDHashFunctor(), 6)
+{}
 
 ECS::ComponentVector::~ComponentVector()
 {
-	if (m_data != nullptr)
-	{
-		const auto destructorFn = m_componentReflector->FindDestructorFunction(m_componentType);
-		for (auto& component : *this)
-		{
-			destructorFn(component);
-		}
-		free(m_data);
-		m_data = nullptr;
-	}
+	Clear();
 }
 
 ECS::ComponentVector::ComponentVector(
 	const ComponentReflector& componentReflector,
 	const ComponentType componentType,
-	const Unit::ByteCount64 alignedComponentSize,
-	const uint32_t initialCapacity)
+	const Unit::ByteCount64 componentSize,
+	const Unit::ByteCount64 componentAlignment)
 	: m_componentReflector(&componentReflector)
 	, m_componentType(componentType)
-	, m_alignedComponentSize(alignedComponentSize)
-	, m_data(static_cast<uint8_t*>(malloc(initialCapacity * alignedComponentSize.GetN())))
-	, m_capacity(initialCapacity)
-{}
+	, m_allocator(componentAlignment.GetN(), componentSize.GetN())
+	, m_keyLookup(ComponentIDHashFunctor(), 6)
+{
+}
 
 ECS::ComponentVector::ComponentVector(ComponentVector&& other)
 	: m_componentReflector(other.m_componentReflector)
 	, m_componentType(other.m_componentType)
-	, m_alignedComponentSize(other.m_alignedComponentSize)
-	, m_data(other.m_data)
-	, m_capacity(other.m_capacity)
-	, m_count(other.m_count)
+	, m_allocator(std::move(other.m_allocator))
+	, m_keyLookup(std::move(other.m_keyLookup))
 {
-	other.m_data = nullptr;
-	other.m_capacity = 0;
-	other.m_count = 0;
 }
 
 ECS::ComponentVector& ECS::ComponentVector::operator=(ComponentVector&& rhs)
 {
-	if (m_data != nullptr)
-	{
-		const auto destructorFn = m_componentReflector->FindDestructorFunction(m_componentType);
-		for (auto& component : *this)
-		{
-			destructorFn(component);
-		}
-		free(m_data);
-	}
+	Clear();
 
 	m_componentReflector = rhs.m_componentReflector;
 	m_componentType = rhs.m_componentType;
-	m_alignedComponentSize = rhs.m_alignedComponentSize;
-	m_data = rhs.m_data;
-	m_capacity = rhs.m_capacity;
-	m_count = rhs.m_count;
-
-	rhs.m_data = nullptr;
-	rhs.m_capacity = 0;
-	rhs.m_count = 0;
-
+	m_allocator = std::move(rhs.m_allocator);
+	m_keyLookup = std::move(rhs.m_keyLookup);
+	
 	return *this;
+}
+
+void ECS::ComponentVector::Clear()
+{
+	if (m_componentReflector != nullptr)
+	{
+		const auto destructorFn = m_componentReflector->FindDestructorFunction(m_componentType);
+		for (size_t i = 0, n = m_keyLookup.GetNumBuckets(); i < n; ++i)
+		{
+			for (auto&& componentPtr : m_keyLookup.GetBucketViewAt(i).m_values)
+			{
+				destructorFn(*componentPtr);
+				m_allocator.Free(componentPtr);
+			}
+		}
+	}
 }
 
 void ECS::ComponentVector::Copy(const ComponentVector& other)
 {
-	Dev::FatalAssert(m_componentType == other.m_componentType
-		&& m_alignedComponentSize == other.m_alignedComponentSize,
+	Dev::FatalAssert(m_componentType == other.m_componentType,
 		"ComponentVector::Copy() does not support changing component types.");
 	
-	const auto destructorFn = m_componentReflector->FindDestructorFunction(m_componentType);
-	for (auto& component : *this)
-	{
-		destructorFn(component);
-	}
-	m_count = 0;
-
-	if (m_capacity < other.m_capacity)
-	{
-		free(m_data);
-		m_data = static_cast<uint8_t*>(malloc(other.m_capacity * m_alignedComponentSize.GetN()));
-		m_capacity = other.m_capacity;
-	}
+	Clear();
 
 	const auto* const transmissionFns = m_componentReflector->FindTransmissionFunctions(m_componentType);
 	Dev::FatalAssert(transmissionFns != nullptr, "ComponentVector::Copy() only supports networked component types.");
-	for (const auto& component : other)
+	for (size_t i = 0, iEnd = other.m_keyLookup.GetNumBuckets(); i < iEnd; ++i)
 	{
-		void* place = &(*this)[m_count];
-		transmissionFns->m_copyConstructFunction(place, component);
-		++m_count;
+		const auto& bucketView = other.m_keyLookup.GetBucketViewAt(i);
+		for (size_t j = 0, jEnd = bucketView.m_keys.Size(); j < jEnd; ++j)
+		{
+			const ComponentID componentID = bucketView.m_keys[j];
+			const Component& component = *bucketView.m_values[j];
+			Component* const destination = reinterpret_cast<Component*>(m_allocator.Alloc());
+			transmissionFns->m_copyConstructFunction(destination, component);
+			m_keyLookup[destination->m_id] = destination;
+		}
 	}
+}
+
+ECS::Component* ECS::ComponentVector::Find(const ComponentID& key)
+{
+	const auto iter = m_keyLookup.Find(key);
+	return (iter != nullptr) ? *iter : nullptr;
+}
+
+const ECS::Component* ECS::ComponentVector::Find(const ComponentID& key) const
+{
+	const auto iter = m_keyLookup.Find(key);
+	return (iter != nullptr) ? *iter : nullptr;
 }
 
 void ECS::ComponentVector::Remove(const ComponentID id)
 {
-	const auto itr = std::lower_bound(begin(), end(), id,
-		[](const Component& component, const ComponentID& id)
-	{
-		return component.m_id < id;
-	});
-	if (itr == end() || itr->m_id != id)
+	Component* component = nullptr;
+	if (!m_keyLookup.TryRemove(id, &component))
 	{
 		return;
 	}
 
-	Component& last = (*this)[m_count - 1];
-	m_componentReflector->SwapComponents(*itr, last);
-
-	m_componentReflector->DestroyComponent(last);
-	m_count -= 1;
+	m_componentReflector->DestroyComponent(*component);
+	m_allocator.Free(component);
 }
 
 void ECS::ComponentVector::RemoveSorted(const Collection::ArrayView<const uint64_t> ids)
 {
-	auto idIter = ids.begin();
-	const auto idsEnd = ids.end();
+	const auto destructorFn = m_componentReflector->FindDestructorFunction(m_componentType);
 
-	for (size_t i = 0; i < m_count && idIter != idsEnd;)
+	Component* component = nullptr;
+	for (auto&& componentIDValue : ids)
 	{
-		Component& current = (*this)[i];
-
-		while (*idIter < (*this)[i].m_id.GetUniqueID() && idIter != idsEnd)
+		const ComponentID componentID{ m_componentType, componentIDValue };
+		Component* component = nullptr;
+		if (!m_keyLookup.TryRemove(componentID, &component))
 		{
-			++idIter;
+			return;
 		}
-		if (*idIter == (*this)[i].m_id.GetUniqueID())
-		{
-			Component& last = (*this)[m_count - 1];
-			m_componentReflector->SwapComponents(current, last);
 
-			m_componentReflector->DestroyComponent(last);
-			m_count -= 1;
-
-			++idIter;
-		}
-		else
-		{
-			++i;
-		}
+		destructorFn(*component);
+		m_allocator.Free(component);
 	}
 }

@@ -34,6 +34,7 @@ EntityManager::EntityManager(Asset::AssetManager& assetManager, const ComponentR
 	bool transmitsState)
 	: m_assetManager(assetManager)
 	, m_componentReflector(componentReflector)
+	, m_entities(EntityIDHashFunctor(), 7)
 {
 	if (transmitsState)
 	{
@@ -49,7 +50,8 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 {
 	// Create the entity.
 	const EntityID entityID = m_nextEntityID;
-	Entity& entity = m_entities.Emplace(entityID, entityInfo.m_nameHash);
+	
+	Entity& entity = m_entities.Emplace(entityID, entityID, entityInfo.m_nameHash);
 
 	// Create the entity's components using our component reflector.
 	for (const auto& componentInfo : entityInfo.m_componentInfos)
@@ -60,8 +62,8 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 	// Update the next unique ID.
 	m_nextEntityID = EntityID(entityID.GetUniqueID() + 1);
 
-	// Add the entity's components to the system execution groups.
-	AddECSIndicesToSystems(Collection::ArrayView<Entity>(&entity, 1));
+	// Add the entity to the system execution groups.
+	AddECSPointersToSystems(Collection::ArrayView<Entity>(&entity, 1));
 
 	// If we can transmit state, track the newly added entity.
 	if (m_transmissionBuffers != nullptr)
@@ -80,6 +82,9 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 	{
 		return;
 	}
+
+	// Remove the entity from all ECS groups.
+	RemoveECSPointersFromSystems(entity);
 
 	// Remove any components the entity no longer needs.
 	for (size_t i = 0; i < entity.m_components.Size();)
@@ -114,6 +119,9 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 		AddComponentToEntity(*componentInfo, entity);
 	}
 
+	// Add the entity to the ECS group vectors.
+	AddECSPointersToSystems(Collection::ArrayView<Entity>(&entity, 1));
+
 	// If we can transmit state, track the changed entity.
 	if (m_transmissionBuffers != nullptr)
 	{
@@ -133,46 +141,32 @@ void EntityManager::DeleteEntities(const Collection::ArrayView<const EntityID>& 
 	}
 
 	// Delete the entities.
-	const size_t removeIndex = m_entities.Partition([&](const Entity& entity)
+	for (const auto& entityID : entitiesToDelete)
 	{
-		for (const auto& entityID : entitiesToDelete)
+		Entity* const entity = m_entities.Find(entityID);
+		if (entity == nullptr)
 		{
-			if (entityID == entity.GetID())
-			{
-				return false;
-			}
+			continue;
 		}
-		return true;
-	});
-	for (size_t i = removeIndex, iEnd = m_entities.Size(); i < iEnd; ++i)
-	{
-		const Entity& entity = m_entities[i];
-		for (const auto& componentID : entity.GetComponentIDs())
+
+		RemoveECSPointersFromSystems(*entity);
+
+		for (const auto& componentID : entity->GetComponentIDs())
 		{
 			RemoveComponent(componentID);
 		}
+		m_entities.TryRemove(entityID);
 	}
-	m_entities.Remove(removeIndex, m_entities.Size());
 }
 
 Entity* EntityManager::FindEntity(const EntityID id)
 {
-	// Implemented using the const variant.
-	return const_cast<Entity*>(static_cast<const EntityManager*>(this)->FindEntity(id));
+	return m_entities.Find(id);
 }
 
 const Entity* EntityManager::FindEntity(const EntityID id) const
 {
-	const auto itr = std::lower_bound(m_entities.begin(), m_entities.end(), id,
-		[](const Entity& entity, const EntityID& id)
-	{
-		return entity.m_id < id;
-	});
-	if (itr == m_entities.end() || itr->m_id != id)
-	{
-		return nullptr;
-	}
-	return &*itr;
+	return m_entities.Find(id);
 }
 
 Component* EntityManager::FindComponent(const ComponentID id)
@@ -190,49 +184,7 @@ const Component* EntityManager::FindComponent(const ComponentID id) const
 		return nullptr;
 	}
 	const ComponentVector& components = componentsEntry->second;
-
-	const auto itr = std::lower_bound(components.begin(), components.end(), id,
-		[](const Component& component, const ComponentID& id)
-	{
-		return component.m_id < id;
-	});
-	if (itr == components.end() || itr->m_id != id)
-	{
-		return nullptr;
-	}
-	return &*itr;
-}
-
-size_t EntityManager::FindComponentIndex(const ComponentID id) const
-{
-	const Collection::Pair<const ComponentType, ComponentVector>* const componentsEntry =
-		m_components.Find(id.GetType());
-	if (componentsEntry == m_components.end())
-	{
-		return SIZE_MAX;
-	}
-	const ComponentVector& components = componentsEntry->second;
-
-	const auto itr = std::lower_bound(components.begin(), components.end(), id,
-		[](const Component& component, const ComponentID& id)
-	{
-		return component.m_id < id;
-	});
-	if (itr == components.end() || itr->m_id != id)
-	{
-		return SIZE_MAX;
-	}
-	return static_cast<size_t>(itr.GetIndex());
-}
-
-Entity& EntityManager::GetEntityByIndex(const size_t index)
-{
-	return m_entities[index];
-}
-
-Component& EntityManager::GetComponentByIndex(const ComponentType componentType, const size_t index)
-{
-	return m_components.Find(componentType)->second[index];
+	return components.Find(id);
 }
 
 Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
@@ -289,32 +241,16 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		const auto bufferedEnd = bufferedComponents.end();
 		const auto currentEnd = currentComponents.end();
 
-		// Each vector of components is sorted by ID. Because of this, they can be iterated over at the same time.
-		// Components are each serialized first with their ID and then with a ComponentTransmissionType.
-		while (bufferedIter < bufferedEnd && currentIter < currentEnd)
+		for (const auto& rawComponent : currentComponents)
 		{
-			while (bufferedIter->m_id < currentIter->m_id && (bufferedIter + 1) < bufferedEnd)
+			const Component& component = reinterpret_cast<const Component&>(rawComponent);
+			const Component* const bufferedComponent = bufferedComponents.Find(component.m_id);
+			if (bufferedComponent == nullptr)
 			{
-				// If the buffered component ID is less than the current component ID,
-				// the buffered component was deleted.
-				++bufferedIter;
+				continue;
 			}
-
-			if (bufferedIter->m_id == currentIter->m_id)
-			{
-				// If the IDs are equal, a delta update can be made.
-				Mem::Serialize(bufferedIter->m_id.GetUniqueID(), transmissionBytes);
-				serializer.m_serializeDeltaTransmissionFunction(*bufferedIter, *currentIter, transmissionBytes);
-
-				++bufferedIter;
-				++currentIter;
-			}
-			else
-			{
-				// If the buffered component ID is greater than the current component ID,
-				// the current component was created.
-				++currentIter;
-			}
+			Mem::Serialize(bufferedComponent->m_id.GetUniqueID(), transmissionBytes);
+			serializer.m_serializeDeltaTransmissionFunction(*bufferedComponent, component, transmissionBytes);
 		}
 		
 		// Serialize the invalid component ID to indicate the end of the component type.
@@ -511,25 +447,15 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 					Util::ReverseHash(componentType.GetTypeHash()));
 			}
 
-			auto componentIter = components.begin();
-			const auto componentsEnd = components.end();
-
 			auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			while (maybeComponentID.second && maybeComponentID.first != ComponentID::sk_invalidUniqueID)
 			{
 				const uint64_t componentID = maybeComponentID.first;
-
-				while (componentIter->m_id.GetUniqueID() < componentID && (componentIter + 1) < componentsEnd)
+				Component* const component = components.Find(ComponentID(componentType, componentID));
+				if (component != nullptr)
 				{
-					++componentIter;
+					deserializer->m_applyDeltaTransmissionFunction(*component, iter, iterEnd);
 				}
-				if (componentIter->m_id.GetUniqueID() != componentID)
-				{
-					continue;
-				}
-
-				deserializer->m_applyDeltaTransmissionFunction(*componentIter, iter, iterEnd);
-
 				maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			}
 
@@ -550,11 +476,10 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			while (maybeComponentID.second && maybeComponentID.first != ComponentID::sk_invalidUniqueID)
 			{
 				const uint64_t componentID = maybeComponentID.first;
-				
-				if ((!components.IsEmpty()) && components[components.Size() - 1].m_id.GetUniqueID() >= componentID)
-				{
-					return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_ComponentAddedOutOfOrder>();
-				}
+				//if ((!components.IsEmpty()) && components[components.Size() - 1].m_id.GetUniqueID() >= componentID)
+				//{
+				//	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_ComponentAddedOutOfOrder>();
+				//}
 
 				// TODO(network) what should be done if a component fails to be created?
 				if (deserializer != nullptr)
@@ -647,8 +572,9 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				for (const auto& entry : m_components)
 				{
 					bool found = false;
-					for (const auto& component : entry.second)
+					for (const auto& rawComponent : entry.second)
 					{
+						const Component& component = reinterpret_cast<const Component&>(rawComponent);
 						if (component.m_id.GetUniqueID() == maybeComponentID.first)
 						{
 							found = true;
@@ -683,10 +609,10 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		{
 			const EntityID entityID{ maybeEntityID.first };
 
-			if ((!m_entities.IsEmpty()) && m_entities.Back().GetID() >= entityID)
-			{
-				return ApplyDeltaTransmissionResult::Make< ApplyDeltaTransmission_EntityAddedOutOfOrder>();
-			}
+			//if ((!m_entities.IsEmpty()) && m_entities.Back().GetID() >= entityID)
+			//{
+			//	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_EntityAddedOutOfOrder>();
+			//}
 
 			char infoNameBuffer[64];
 			if (!Mem::DeserializeString(iter, iterEnd, infoNameBuffer))
@@ -702,7 +628,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			}
 			const uint32_t numComponents = maybeNumComponents.first;
 
-			Entity& entity = m_entities.Emplace(entityID, infoNameHash);
+			Entity& entity = m_entities.Emplace(entityID, entityID, infoNameHash);
 
 			for (size_t i = 0; i < numComponents; ++i)
 			{
@@ -716,8 +642,9 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				for (const auto& entry : m_components)
 				{
 					bool found = false;
-					for (const auto& component : entry.second)
+					for (const auto& rawComponent : entry.second)
 					{
+						const Component& component = reinterpret_cast<const Component&>(rawComponent);
 						if (component.m_id.GetUniqueID() == maybeComponentID.first)
 						{
 							found = true;
@@ -751,15 +678,17 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 	{
 		// This is a type that has not yet been encountered and therefore must be initialized.
 		const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
+		const Unit::ByteCount64 componentAlignment = m_componentReflector.GetAlignOfComponentInBytes(componentType);
 
-		componentVector = ComponentVector(m_componentReflector, componentType, componentSize);
+		componentVector = ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
 
 		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
 		{
 			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
 			Dev::FatalAssert(bufferedComponentVector.GetComponentType() == ComponentType(),
 				"A buffered component vector was created too early.");
-			bufferedComponentVector = ComponentVector(m_componentReflector, componentType, componentSize);
+			bufferedComponentVector =
+				ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
 		}
 	}
 	Dev::FatalAssert(componentVector.GetComponentType() == componentType,
@@ -789,9 +718,6 @@ void EntityManager::RemoveComponent(const ComponentID id)
 	ComponentVector& components = componentsEntry->second;
 	components.Remove(id);
 
-	// Flag the ECS group vectors for recalculation.
-	m_ecsGroupVectorsNeedRecalculation = true;
-
 	// If we can transmit state, track the removed component.
 	if (m_transmissionBuffers != nullptr)
 	{
@@ -814,11 +740,39 @@ EntityManager::RegisteredSystem::RegisteredSystem(
 	, m_ecsGroups(m_system->GetImmutableTypes().Size() + m_system->GetMutableTypes().Size())
 {}
 
-void EntityManager::AddECSIndicesToSystems(const Collection::ArrayView<Entity>& entitiesToAdd)
+namespace Internal_EntityManager
 {
+bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<Util::StringHash>& componentTypes,
+	Entity& entity, Collection::Vector<void*>& pointers)
+{
+	bool foundAll = true;
+	for (const auto& typeHash : componentTypes)
+	{
+		if (typeHash == EntityInfo::sk_typeHash)
+		{
+			pointers.Add(&entity);
+			continue;
+		}
+
+		const ComponentID id = entity.FindComponentID(ComponentType(typeHash));
+		if (id == ComponentID())
+		{
+			foundAll = false;
+			break;
+		}
+		pointers.Add(entityManager.FindComponent(id));
+	}
+	return foundAll;
+};
+}
+
+void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd)
+{
+	using namespace Internal_EntityManager;
+
 	for (auto& executionGroup : m_concurrentSystemGroups)
 	{
-		// Gather the entity indices and component indices each member of the execution group needs.
+		// Gather the entity pointers and component pointers each member of the execution group needs.
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
 			const Collection::Vector<Util::StringHash>& immutableTypes =
@@ -826,50 +780,51 @@ void EntityManager::AddECSIndicesToSystems(const Collection::ArrayView<Entity>& 
 			const Collection::Vector<Util::StringHash>& mutableTypes =
 				registeredSystem.m_system->GetMutableTypes();
 
-			for (const auto& entity : entitiesToAdd)
+			for (auto& entity : entitiesToAdd)
 			{
-				const auto TryGatherIndices = [this](const Collection::Vector<Util::StringHash>& componentTypes,
-					const Entity& entity, Collection::Vector<size_t>& indices)
-				{
-					bool foundAll = true;
-					for (const auto& typeHash : componentTypes)
-					{
-						if (typeHash == EntityInfo::sk_typeHash)
-						{
-							indices.Add((&entity) - m_entities.begin());
-							continue;
-						}
-
-						const ComponentID* const idPtr = entity.m_components.Find(
-							[&](const ComponentID& componentID)
-							{
-								return componentID.GetType().GetTypeHash() == typeHash;
-							});
-						if (idPtr == nullptr)
-						{
-							foundAll = false;
-							break;
-						}
-						indices.Add(FindComponentIndex(*idPtr));
-					}
-					return foundAll;
-				};
-
-				Collection::Vector<size_t> indices;
-				if (!TryGatherIndices(immutableTypes, entity, indices))
+				Collection::Vector<void*> pointers;
+				if (!TryGatherPointers(*this, immutableTypes, entity, pointers))
 				{
 					continue;
 				}
-				if (!TryGatherIndices(mutableTypes, entity, indices))
+				if (!TryGatherPointers(*this, mutableTypes, entity, pointers))
 				{
 					continue;
 				}
 
-				registeredSystem.m_ecsGroups.Add(indices);
+				registeredSystem.m_ecsGroups.Add(pointers);
 			}
 
 			// Sort the group vector in order to make the memory accesses as fast as possible.
 			registeredSystem.m_ecsGroups.Sort();
+		}
+	}
+}
+
+void EntityManager::RemoveECSPointersFromSystems(Entity& entity)
+{
+	using namespace Internal_EntityManager;
+
+	for (auto& executionGroup : m_concurrentSystemGroups)
+	{
+		for (auto& registeredSystem : executionGroup.m_systems)
+		{
+			const Collection::Vector<Util::StringHash>& immutableTypes =
+				registeredSystem.m_system->GetImmutableTypes();
+			const Collection::Vector<Util::StringHash>& mutableTypes =
+				registeredSystem.m_system->GetMutableTypes();
+
+			Collection::Vector<void*> pointers;
+			if (!TryGatherPointers(*this, immutableTypes, entity, pointers))
+			{
+				continue;
+			}
+			if (!TryGatherPointers(*this, mutableTypes, entity, pointers))
+			{
+				continue;
+			}
+
+			registeredSystem.m_ecsGroups.Remove(pointers);
 		}
 	}
 }
@@ -881,26 +836,6 @@ void EntityManager::Update()
 
 void EntityManager::UpdateSystems()
 {
-	const auto RecalculateECSGroupVectors = [this]()
-	{
-		if (m_ecsGroupVectorsNeedRecalculation)
-		{
-			for (auto& concurrentGroup : m_concurrentSystemGroups)
-			{
-				for (auto& registeredSystem : concurrentGroup.m_systems)
-				{
-					registeredSystem.m_ecsGroups.Clear();
-				}
-			}
-			AddECSIndicesToSystems({ &m_entities[0], m_entities.Size() });
-			
-			m_ecsGroupVectorsNeedRecalculation = false;
-		}
-	};
-
-	// Recalculate ECS group vectors before updating the systems to ensure they have the latest data.
-	RecalculateECSGroupVectors();
-
 	// Update the concurrent system groups.
 	for (auto& concurrentGroup : m_concurrentSystemGroups)
 	{
@@ -928,9 +863,6 @@ void EntityManager::UpdateSystems()
 			}
 			registeredSystem.m_deferredFunctions.Clear();
 		}
-
-		// Recalculate all ECS groups after the deferred functions evaluate.
-		RecalculateECSGroupVectors();
 	}
 }
 }

@@ -45,6 +45,11 @@ public:
 	BucketView GetBucketView(const KeyType& key);
 	ConstBucketView GetBucketView(const KeyType& key) const;
 
+	BucketView GetBucketViewAt(size_t index);
+	ConstBucketView GetBucketViewAt(size_t index) const;
+
+	size_t GetNumBuckets() const;
+
 	void Clear();
 	
 	bool TryRemove(const KeyType& key, ValueType* outRemovedValue = nullptr);
@@ -59,6 +64,22 @@ private:
 		Collection::Vector<ValueType> m_values;
 	};
 	Collection::Vector<Bucket> m_buckets;
+};
+
+/**
+ * A hash functor implementation for 64 bit integers.
+ */
+class I64HashFunctor
+{
+	int64_t m_a;
+	int64_t m_b;
+
+public:
+	I64HashFunctor();
+
+	uint64_t Hash(uint64_t key) const { return m_a * key + m_b; }
+	uint64_t Hash(int64_t key) const { return m_a * key + m_b; }
+	void Rehash();
 };
 }
 
@@ -104,7 +125,7 @@ inline ValueType& HashMap<KeyType, ValueType, HashFn>::operator[](KeyType&& key)
 template <typename KeyType, typename ValueType, typename HashFn>
 inline ValueType* HashMap<KeyType, ValueType, HashFn>::Find(const KeyType& key)
 {
-	return const_cast<ValueType*>(static_cast<const HashMap<KeyType, ValueType>*>(this)->Find(key));
+	return const_cast<ValueType*>(static_cast<const HashMap<KeyType, ValueType, HashFn>*>(this)->Find(key));
 }
 
 template <typename KeyType, typename ValueType, typename HashFn>
@@ -139,8 +160,30 @@ inline typename HashMap<KeyType, ValueType, HashFn>::ConstBucketView HashMap<Key
 {
 	const uint64_t hash = m_hashFunction.Hash(key);
 	const uint64_t bucketIndex = hash >> m_shift;
-	const Bucket& bucket = m_buckets[bucketIndex].m_values.GetView();
+	const Bucket& bucket = m_buckets[bucketIndex];
 	return ConstBucketView{ bucket.m_keys.GetConstView(), bucket.m_values.GetView() };
+}
+
+template <typename KeyType, typename ValueType, typename HashFn>
+inline typename HashMap<KeyType, ValueType, HashFn>::BucketView HashMap<KeyType, ValueType, HashFn>::GetBucketViewAt(
+	size_t index)
+{
+	Bucket& bucket = m_buckets[index];
+	return BucketView{ bucket.m_keys.GetConstView(), bucket.m_values.GetView() };
+}
+
+template <typename KeyType, typename ValueType, typename HashFn>
+inline typename HashMap<KeyType, ValueType, HashFn>::ConstBucketView HashMap<KeyType, ValueType, HashFn>::GetBucketViewAt(
+	size_t index) const
+{
+	const Bucket& bucket = m_buckets[index];
+	return ConstBucketView{ bucket.m_keys.GetConstView(), bucket.m_values.GetView() };
+}
+
+template <typename KeyType, typename ValueType, typename HashFn>
+inline size_t HashMap<KeyType, ValueType, HashFn>::GetNumBuckets() const
+{
+	return m_buckets.Size();
 }
 
 template <typename KeyType, typename ValueType, typename HashFn>
@@ -159,7 +202,7 @@ inline bool HashMap<KeyType, ValueType, HashFn>::TryRemove(const KeyType& key, V
 	const uint64_t hash = m_hashFunction.Hash(key);
 	const uint64_t bucketIndex = hash >> m_shift;
 	Bucket& bucket = m_buckets[bucketIndex];
-	for (size_t i = 0, iEnd = bucket.m_keys.size(); i < iEnd; ++i)
+	for (size_t i = 0, iEnd = bucket.m_keys.Size(); i < iEnd; ++i)
 	{
 		if (bucket.m_keys[i] == key)
 		{

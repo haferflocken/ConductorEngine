@@ -1,6 +1,7 @@
 #pragma once
 
 #include <collection/ArrayView.h>
+#include <collection/LinearBlockHashMap.h>
 #include <collection/Variant.h>
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
@@ -54,11 +55,6 @@ public:
 	template <typename TComponent>
 	const TComponent* FindComponent(const Entity& entity) const;
 
-	size_t FindComponentIndex(const ComponentID id) const;
-
-	Entity& GetEntityByIndex(const size_t index);
-	Component& GetComponentByIndex(const ComponentType componentType, const size_t index);
-
 	// Register a system to run by itself. Systems run in the order they are registered.
 	template <typename SystemType>
 	void RegisterSystem(Mem::UniquePtr<SystemType>&& system);
@@ -105,8 +101,9 @@ private:
 	template <typename SystemType>
 	void RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system, RegisteredConcurrentSystemGroup& outGroup);
 
-	void AddECSIndicesToSystems(const Collection::ArrayView<Entity>& entitiesToAdd);
-
+	void AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd);
+	void RemoveECSPointersFromSystems(Entity& entity);
+	
 	void UpdateSystems();
 	
 	// Components that load resources from disk use the AssetManager to do so efficiently.
@@ -115,8 +112,13 @@ private:
 	// A reflected database of functions for manipulating components.
 	const ComponentReflector& m_componentReflector;
 
-	// The entities this manager is in charge of updating, sorted by ID.
-	Collection::Vector<Entity> m_entities{};
+	// The entities this manager is in charge of updating.
+	class EntityIDHashFunctor final : Collection::I64HashFunctor
+	{
+	public:
+		uint64_t Hash(const EntityID& key) const { return I64HashFunctor::Hash(static_cast<int64_t>(key.GetUniqueID())); }
+	};
+	Collection::LinearBlockHashMap<EntityID, Entity, EntityIDHashFunctor> m_entities;
 
 	// The components this manager owns on behalf of its entities, grouped by type.
 	Collection::VectorMap<ComponentType, ComponentVector> m_components{};
@@ -144,9 +146,6 @@ private:
 
 	// The systems that this entity manager is running, sorted into groups which can run concurrently.
 	Collection::Vector<RegisteredConcurrentSystemGroup> m_concurrentSystemGroups{};
-
-	// Whether or not the ECS group vectors need to be recalculated.
-	bool m_ecsGroupVectorsNeedRecalculation{ false };
 };
 
 template <typename TComponent>

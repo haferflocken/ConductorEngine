@@ -9,7 +9,8 @@ ECS::ComponentReflector::ComponentReflector()
 {}
 
 void ECS::ComponentReflector::RegisterComponentType(const char* const componentTypeName,
-	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponentInBytes,
+	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponent,
+	const Unit::ByteCount64 alignOfComponent,
 	FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn)
 {
 	const ComponentType componentType{ componentTypeHash };
@@ -19,13 +20,15 @@ void ECS::ComponentReflector::RegisterComponentType(const char* const componentT
 		componentTypeName);
 	
 	Dev::FatalAssert(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
+		&& m_componentAlignmentsInBytes.Find(componentType) == m_componentAlignmentsInBytes.end()
 		&& m_factoryFunctions.Find(componentType) == m_factoryFunctions.end()
 		&& m_destructorFunctions.Find(componentType) == m_destructorFunctions.end()
 		&& m_swapFunctions.Find(componentType) == m_swapFunctions.end()
 		&& m_transmissionFunctions.Find(componentType) == m_transmissionFunctions.end(),
 		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
 	
-	m_componentSizesInBytes[componentType] = sizeOfComponentInBytes;
+	m_componentSizesInBytes[componentType] = sizeOfComponent;
+	m_componentAlignmentsInBytes[componentType] = alignOfComponent;
 	m_factoryFunctions[componentType] = factoryFn;
 	m_destructorFunctions[componentType] = destructorFn;
 	m_swapFunctions[componentType] = swapFn;
@@ -47,6 +50,19 @@ Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(const Compo
 	}
 
 	return sizeItr->second;
+}
+
+Unit::ByteCount64 ECS::ComponentReflector::GetAlignOfComponentInBytes(const ComponentType componentType) const
+{
+	const auto alignItr = m_componentAlignmentsInBytes.Find(componentType);
+	if (alignItr == m_componentAlignmentsInBytes.end())
+	{
+		Dev::LogWarning("Failed to find the align of component type \"%s\".",
+			Util::ReverseHash(componentType.GetTypeHash()));
+		return Unit::ByteCount64(0);
+	}
+
+	return alignItr->second;
 }
 
 bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager, const ComponentInfo& componentInfo,
