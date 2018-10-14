@@ -1,6 +1,6 @@
-#include <renderer/MeshComponentInfo.h>
+#include <mesh/MeshComponentInfo.h>
 
-namespace Renderer
+namespace Mesh
 {
 const Util::StringHash MeshComponentInfo::sk_typeHash = Util::CalcHash(MeshComponentInfo::sk_typeName);
 

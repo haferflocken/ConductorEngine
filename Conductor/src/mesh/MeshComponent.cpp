@@ -1,9 +1,9 @@
-#include <renderer/MeshComponent.h>
+#include <mesh/MeshComponent.h>
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>
 
-namespace Renderer
+namespace Mesh
 {
 bool MeshComponent::TryCreateFromInfo(
 	Asset::AssetManager& assetManager,
@@ -12,7 +12,7 @@ bool MeshComponent::TryCreateFromInfo(
 	ECS::ComponentVector& destination)
 {
 	MeshComponent& meshComponent = destination.Emplace<MeshComponent>(reservedID);
-	meshComponent.m_meshHandle = assetManager.RequestAsset<Mesh::StaticMesh>("TODO(renderer)");
+	meshComponent.m_meshHandle = assetManager.RequestAsset<StaticMesh>("TODO(renderer)");
 	return true;
 }
 }

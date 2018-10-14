@@ -5,9 +5,15 @@ namespace Renderer
 MeshSystem::MeshSystem()
 	: SystemTempl()
 	, m_program()
+	, m_vertexDecl()
 	, m_staticMeshData()
 {
 	//m_program = bgfx::createProgram(vertexShader, fragmentShader, true);
+
+	m_vertexDecl.begin()
+		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Color0, 3, bgfx::AttribType::Uint8)
+		.end();
 }
 
 MeshSystem::~MeshSystem()
@@ -49,7 +55,7 @@ void MeshSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		{
 			datum.m_vertexBuffer = bgfx::createVertexBuffer(
 				bgfx::makeRef(&mesh->GetVertices().Front(), mesh->GetVertices().Size() * sizeof(Mesh::Vertex)),
-				Mesh::Vertex::GetVertexDecl());
+				m_vertexDecl);
 		}
 
 		if (!bgfx::isValid(datum.m_indexBuffer))
@@ -63,7 +69,7 @@ void MeshSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	for (const auto& ecsGroup : ecsGroups)
 	{
 		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
-		auto& meshComponent = ecsGroup.Get<MeshComponent>();
+		auto& meshComponent = ecsGroup.Get<Mesh::MeshComponent>();
 
 		const auto datumIter = m_staticMeshData.Find(meshComponent.m_meshHandle);
 		if (datumIter == m_staticMeshData.end())
@@ -84,7 +90,7 @@ void MeshSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
 void MeshSystem::NotifyOfEntityAdded(const ECS::EntityID id, const ECSGroupType& group)
 {
 	// Create an entry in the mesh data for the entity's mesh handle.
-	auto& meshComponent = group.Get<MeshComponent>();
+	auto& meshComponent = group.Get<Mesh::MeshComponent>();
 	m_staticMeshData[meshComponent.m_meshHandle];
 }
 

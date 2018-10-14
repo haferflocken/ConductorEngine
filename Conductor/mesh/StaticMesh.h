@@ -1,11 +1,11 @@
 #pragma once
 
-#include <renderer/mesh/Vertex.h>
+#include <mesh/Vertex.h>
 
 #include <collection/Vector.h>
 #include <file/Path.h>
 
-namespace Renderer::Mesh
+namespace Mesh
 {
 class StaticMesh
 {

@@ -2,7 +2,7 @@
 
 #include <ecs/ComponentInfo.h>
 
-namespace Renderer
+namespace Mesh
 {
 class MeshComponentInfo final : public ECS::ComponentInfo
 {

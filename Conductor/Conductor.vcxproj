@@ -172,6 +172,9 @@
     <ClCompile Include="src\behave\BlackboardComponent.cpp" />
     <ClCompile Include="src\behave\BlackboardComponentInfo.cpp" />
     <ClCompile Include="src\host\IHost.cpp" />
+    <ClCompile Include="src\mesh\MeshComponent.cpp" />
+    <ClCompile Include="src\mesh\MeshComponentInfo.cpp" />
+    <ClCompile Include="src\mesh\StaticMesh.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponent.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponentInfo.cpp" />
     <ClCompile Include="src\behave\nodes\CallNode.cpp" />
@@ -235,6 +238,10 @@
     <ClInclude Include="behave\BehaviourTreeComponentInfo.h" />
     <ClInclude Include="behave\BlackboardComponent.h" />
     <ClInclude Include="behave\BlackboardComponentInfo.h" />
+    <ClInclude Include="mesh\MeshComponent.h" />
+    <ClInclude Include="mesh\MeshComponentInfo.h" />
+    <ClInclude Include="mesh\StaticMesh.h" />
+    <ClInclude Include="mesh\Vertex.h" />
     <ClInclude Include="scene\SceneTransformComponent.h" />
     <ClInclude Include="scene\SceneTransformComponentInfo.h" />
     <ClInclude Include="behave\nodes\CallNode.h" />

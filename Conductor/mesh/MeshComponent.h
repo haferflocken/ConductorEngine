@@ -1,11 +1,11 @@
 #pragma once
 
-#include <renderer/mesh/StaticMesh.h>
+#include <mesh/StaticMesh.h>
 
 #include <asset/AssetHandle.h>
 #include <ecs/Component.h>
 
-namespace Renderer
+namespace Mesh
 {
 class MeshComponentInfo;
 

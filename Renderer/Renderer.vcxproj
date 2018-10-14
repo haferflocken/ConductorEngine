@@ -137,24 +137,16 @@
     <ClInclude Include="renderer\CameraComponentInfo.h" />
     <ClInclude Include="renderer\CameraSystem.h" />
     <ClInclude Include="renderer\FrameSignalSystem.h" />
-    <ClInclude Include="renderer\MeshComponent.h" />
-    <ClInclude Include="renderer\MeshComponentInfo.h" />
     <ClInclude Include="renderer\MeshSystem.h" />
-    <ClInclude Include="renderer\mesh\Vertex.h" />
     <ClInclude Include="renderer\RenderInstance.h" />
-    <ClInclude Include="renderer\mesh\StaticMesh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\renderer\CameraComponent.cpp" />
     <ClCompile Include="src\renderer\CameraComponentInfo.cpp" />
     <ClCompile Include="src\renderer\CameraSystem.cpp" />
     <ClCompile Include="src\renderer\FrameSignalSystem.cpp" />
-    <ClCompile Include="src\renderer\MeshComponent.cpp" />
-    <ClCompile Include="src\renderer\MeshComponentInfo.cpp" />
     <ClCompile Include="src\renderer\MeshSystem.cpp" />
-    <ClCompile Include="src\renderer\mesh\Vertex.cpp" />
     <ClCompile Include="src\renderer\RenderInstance.cpp" />
-    <ClCompile Include="src\renderer\mesh\StaticMesh.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

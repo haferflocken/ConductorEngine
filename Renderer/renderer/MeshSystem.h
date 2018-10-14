@@ -1,17 +1,14 @@
 #pragma once
 
-#include <renderer/MeshComponent.h>
-#include <renderer/MeshComponentInfo.h>
-
 #include <collection/VectorMap.h>
 #include <ecs/EntityID.h>
 #include <ecs/System.h>
+#include <mesh/MeshComponent.h>
+#include <mesh/MeshComponentInfo.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
 #include <bgfx/bgfx.h>
-
-namespace Renderer::Mesh { class StaticMesh; }
 
 namespace Renderer
 {
@@ -20,7 +17,7 @@ namespace Renderer
  */
 class MeshSystem final : public ECS::SystemTempl<
 	Util::TypeList<Scene::SceneTransformComponent>,
-	Util::TypeList<MeshComponent>,
+	Util::TypeList<Mesh::MeshComponent>,
 	ECS::SystemBindingType::Extended>
 {
 public:
@@ -48,6 +45,7 @@ private:
 	};
 
 	bgfx::ProgramHandle m_program;
+	bgfx::VertexDecl m_vertexDecl;
 	Collection::VectorMap<Asset::AssetHandle<Mesh::StaticMesh>, MeshDatum> m_staticMeshData;
 };
 }

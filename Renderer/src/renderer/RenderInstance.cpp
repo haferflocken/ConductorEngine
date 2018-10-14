@@ -107,9 +107,6 @@ void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentRe
 {
 	componentReflector.RegisterComponentType<CameraComponent>();
 	componentInfoFactory.RegisterFactoryFunction<CameraComponentInfo>();
-
-	componentReflector.RegisterComponentType<MeshComponent>();
-	componentInfoFactory.RegisterFactoryFunction<MeshComponentInfo>();
 }
 
 void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)

@@ -1,5 +1,6 @@
 #include <conductor/IGameData.h>
 
+#include <asset/AssetManager.h>
 #include <behave/ast/Interpreter.h>
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourTreeComponent.h>
@@ -10,6 +11,8 @@
 #include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityInfoManager.h>
+#include <mesh/MeshComponent.h>
+#include <mesh/MeshComponentInfo.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
@@ -24,9 +27,13 @@ IGameData::IGameData(Asset::AssetManager& assetManager)
 	, m_componentInfoFactory(Mem::MakeUnique<ECS::ComponentInfoFactory>())
 	, m_entityInfoManager(Mem::MakeUnique<ECS::EntityInfoManager>(*m_componentInfoFactory, *m_behaviourTreeManager))
 {
+	// Register asset types.
+	m_assetManager.RegisterAssetType<Mesh::StaticMesh>(&Mesh::StaticMesh::TryLoad);
+
 	// Register ECS component types.
 	m_componentReflector->RegisterComponentType<Behave::BehaviourTreeComponent>();
 	m_componentReflector->RegisterComponentType<Behave::BlackboardComponent>();
+	m_componentReflector->RegisterComponentType<Mesh::MeshComponent>();
 	m_componentReflector->RegisterComponentType<Scene::SceneTransformComponent>();
 
 	// Bind functions to the Behave interpreter.
@@ -34,12 +41,16 @@ IGameData::IGameData(Asset::AssetManager& assetManager)
 
 	// Register ECS component info types.
 	m_componentInfoFactory->RegisterFactoryFunction<Behave::BehaviourTreeComponentInfo>();
+	m_componentInfoFactory->RegisterFactoryFunction<Mesh::MeshComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Behave::BlackboardComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Scene::SceneTransformComponentInfo>();
 }
 
 IGameData::~IGameData()
-{}
+{
+	// Unregister asset types in the opposite order in which they where registered.
+	m_assetManager.UnregisterAssetType<Mesh::StaticMesh>();
+}
 
 void IGameData::LoadBehaviourTreesInDirectory(const File::Path& directory)
 {

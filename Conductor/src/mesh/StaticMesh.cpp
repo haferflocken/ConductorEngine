@@ -1,6 +1,6 @@
-#include <renderer/mesh/StaticMesh.h>
+#include <mesh/StaticMesh.h>
 
-namespace Renderer::Mesh
+namespace Mesh
 {
 bool StaticMesh::TryLoad(const File::Path& filePath, StaticMesh* destination)
 {
