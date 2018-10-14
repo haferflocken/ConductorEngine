@@ -4,6 +4,8 @@ namespace Renderer
 {
 MeshSystem::MeshSystem()
 	: SystemTempl()
+	, m_program()
+	, m_staticMeshData()
 {
 	//m_program = bgfx::createProgram(vertexShader, fragmentShader, true);
 }
@@ -13,9 +15,8 @@ MeshSystem::~MeshSystem()
 	//bgfx::destroy(m_program);
 }
 
-void MeshSystem::Update(ECS::EntityManager& entityManager,
-	const Collection::ArrayView<ECSGroupType>& ecsGroups,
-	Collection::Vector<std::function<void()>>& deferredFunctions) const
+void MeshSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
 	bgfx::Encoder* const encoder = bgfx::begin();
 	if (encoder == nullptr)
@@ -23,43 +24,56 @@ void MeshSystem::Update(ECS::EntityManager& entityManager,
 		return;
 	}
 
-	for (const auto& ecsGroup : ecsGroups)
-	{
-		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>(entityManager);
-		auto& meshComponent = ecsGroup.Get<MeshComponent>(entityManager);
+	// Discard any data for meshes that haven't been accessed recently.
+	static constexpr float k_discardAfterSeconds = 120.0f;
 
-		const Mesh::StaticMesh* const mesh = meshComponent.m_meshHandle.TryGetAsset();
+	m_staticMeshData.RemoveAllMatching([](const auto& entry)
+		{
+			const MeshDatum& datum = entry.second;
+			return (datum.m_secondsSinceAccess > k_discardAfterSeconds);
+		});
+
+	// Create vertex buffers and index buffers for any meshes that finished loading.
+	for (auto& entry : m_staticMeshData)
+	{
+		const Asset::AssetHandle<Mesh::StaticMesh>& handle = entry.first;
+		MeshDatum& datum = entry.second;
+
+		const Mesh::StaticMesh* const mesh = handle.TryGetAsset();
 		if (mesh == nullptr)
 		{
-			if (bgfx::isValid(meshComponent.m_vertexBuffer))
-			{
-				bgfx::destroy(meshComponent.m_vertexBuffer);
-				meshComponent.m_vertexBuffer = BGFX_INVALID_HANDLE;
-			}
-			if (bgfx::isValid(meshComponent.m_indexBuffer))
-			{
-				bgfx::destroy(meshComponent.m_indexBuffer);
-				meshComponent.m_indexBuffer = BGFX_INVALID_HANDLE;
-			}
 			continue;
 		}
 
-		if (!bgfx::isValid(meshComponent.m_vertexBuffer))
+		if (!bgfx::isValid(datum.m_vertexBuffer))
 		{
-			meshComponent.m_vertexBuffer = bgfx::createVertexBuffer(
+			datum.m_vertexBuffer = bgfx::createVertexBuffer(
 				bgfx::makeRef(&mesh->GetVertices().Front(), mesh->GetVertices().Size() * sizeof(Mesh::Vertex)),
 				Mesh::Vertex::GetVertexDecl());
 		}
 
-		if (!bgfx::isValid(meshComponent.m_indexBuffer))
+		if (!bgfx::isValid(datum.m_indexBuffer))
 		{
-			meshComponent.m_indexBuffer = bgfx::createIndexBuffer(
+			datum.m_indexBuffer = bgfx::createIndexBuffer(
 				bgfx::makeRef(&mesh->GetTriangleIndices().Front(), mesh->GetTriangleIndices().Size() * sizeof(uint16_t)));
+		}
+	}
+
+	// Render all the meshes.
+	for (const auto& ecsGroup : ecsGroups)
+	{
+		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
+		auto& meshComponent = ecsGroup.Get<MeshComponent>();
+
+		const auto datumIter = m_staticMeshData.Find(meshComponent.m_meshHandle);
+		if (datumIter == m_staticMeshData.end())
+		{
+			continue;
 		}
 		
 		encoder->setTransform(transformComponent.m_matrix.GetData());
-		encoder->setVertexBuffer(0, meshComponent.m_vertexBuffer);
-		encoder->setIndexBuffer(meshComponent.m_indexBuffer);
+		encoder->setVertexBuffer(0, datumIter->second.m_vertexBuffer);
+		encoder->setIndexBuffer(datumIter->second.m_indexBuffer);
 		encoder->setState(BGFX_STATE_DEFAULT);
 		encoder->submit(0, m_program);
 	}
@@ -67,12 +81,30 @@ void MeshSystem::Update(ECS::EntityManager& entityManager,
 	bgfx::end(encoder);
 }
 
-void MeshSystem::NotifyOfEntityAdded(const ECSGroupType& group)
+void MeshSystem::NotifyOfEntityAdded(const ECS::EntityID id, const ECSGroupType& group)
 {
-	// TODO(renderer) Track bgfx data in the system so MeshComponent can be moved to Conductor
+	// Create an entry in the mesh data for the entity's mesh handle.
+	auto& meshComponent = group.Get<MeshComponent>();
+	m_staticMeshData[meshComponent.m_meshHandle];
 }
 
-void MeshSystem::NotifyOfEntityRemoved(const ECSGroupType& group)
+void MeshSystem::NotifyOfEntityRemoved(const ECS::EntityID id, const ECSGroupType& group)
 {
+}
+
+MeshSystem::MeshDatum::MeshDatum()
+{
+}
+
+MeshSystem::MeshDatum::~MeshDatum()
+{
+	if (bgfx::isValid(m_vertexBuffer))
+	{
+		bgfx::destroy(m_vertexBuffer);
+	}
+	if (bgfx::isValid(m_indexBuffer))
+	{
+		bgfx::destroy(m_indexBuffer);
+	}
 }
 }

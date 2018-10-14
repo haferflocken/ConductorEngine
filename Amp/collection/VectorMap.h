@@ -39,6 +39,7 @@ public:
 	const_iterator Find(const KeyType& key) const;
 
 	bool TryRemove(const KeyType& key);
+	bool TryRemove(const KeyType& key, ValueType& outRemovedValue);
 
 	template <typename Predicate>
 	void RemoveAllMatching(Predicate&& pred);
@@ -128,6 +129,22 @@ inline bool VectorMap<KeyType, ValueType, ComparisonType>::TryRemove(const KeyTy
 	{
 		return false;
 	}
+	const size_t i = std::distance(begin(), itr);
+	m_vector.Remove(i, i + 1);
+	return true;
+}
+
+template <typename KeyType, typename ValueType, typename ComparisonType>
+inline bool VectorMap<KeyType, ValueType, ComparisonType>::TryRemove(const KeyType& key, ValueType& outRemovedValue)
+{
+	const iterator itr = Find(key);
+	if (itr == end())
+	{
+		return false;
+	}
+
+	outRemovedValue = std::move(itr->second);
+
 	const size_t i = std::distance(begin(), itr);
 	m_vector.Remove(i, i + 1);
 	return true;

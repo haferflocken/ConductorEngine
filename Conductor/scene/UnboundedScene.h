@@ -49,9 +49,8 @@ public:
 	void BringChunkIntoPlay(const ChunkID chunkID);
 	void RemoveChunkFromPlay(const ChunkID chunkID);
 
-	void Update(ECS::EntityManager& entityManager,
-		const Collection::ArrayView<ECSGroupType>& ecsGroups,
-		Collection::Vector<std::function<void()>>& deferredFunctions);
+	void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions);
 
 private:
 	void FlushPendingChunks(ECS::EntityManager& entityManager);

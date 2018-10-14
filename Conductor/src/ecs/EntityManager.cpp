@@ -799,7 +799,7 @@ void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity>& entit
 				}
 
 				registeredSystem.m_ecsGroups.Add(pointers);
-				registeredSystem.m_notifyEntityAddedFunction(registeredSystem, pointers);
+				registeredSystem.m_notifyEntityAddedFunction(registeredSystem, entity.GetID(), pointers);
 			}
 
 			// Sort the group vector in order to make the memory accesses as fast as possible.
@@ -832,7 +832,7 @@ void EntityManager::RemoveECSPointersFromSystems(Entity& entity)
 			}
 
 			registeredSystem.m_ecsGroups.Remove(pointers);
-			registeredSystem.m_notifyEntityRemovedFunction(registeredSystem, pointers);
+			registeredSystem.m_notifyEntityRemovedFunction(registeredSystem, entity.GetID(), pointers);
 		}
 	}
 }
@@ -851,14 +851,14 @@ void EntityManager::UpdateSystems()
 		// If the group has only one system, run it directly on this thread.
 		if (concurrentGroup.m_systems.Size() == 1)
 		{
-			concurrentGroup.m_systems.Front().m_updateFunction(*this, concurrentGroup.m_systems.Front());
+			concurrentGroup.m_systems.Front().m_updateFunction(concurrentGroup.m_systems.Front());
 		}
 		else
 		{
 			std::for_each(std::execution::par, concurrentGroup.m_systems.begin(), concurrentGroup.m_systems.end(),
 				[&](RegisteredSystem& registeredSystem)
 				{
-					registeredSystem.m_updateFunction(*this, registeredSystem);
+					registeredSystem.m_updateFunction(registeredSystem);
 				});
 		}
 
@@ -867,7 +867,7 @@ void EntityManager::UpdateSystems()
 		{
 			for (auto& deferredFunction : registeredSystem.m_deferredFunctions)
 			{
-				deferredFunction();
+				deferredFunction(*this);
 			}
 			registeredSystem.m_deferredFunctions.Clear();
 		}

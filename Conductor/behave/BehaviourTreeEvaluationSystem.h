@@ -17,7 +17,6 @@ template <typename T> class Vector;
 namespace ECS
 {
 class Entity;
-class EntityManager;
 }
 
 namespace Behave
@@ -34,9 +33,8 @@ public:
 		: m_context(context)
 	{}
 
-	void Update(ECS::EntityManager& entityManager,
-		const Collection::ArrayView<ECSGroupType>& ecsGroups,
-		Collection::Vector<std::function<void()>>& deferredFunctions) const;
+	void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const;
 
 private:
 	Behave::BehaveContext m_context;

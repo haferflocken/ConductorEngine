@@ -14,7 +14,7 @@ const Behave::BehaviourTree* Behave::BehaviourTreeEvaluator::GetCurrentTree() co
 
 void Behave::BehaviourTreeEvaluator::Update(
 	ECS::Entity& entity,
-	Collection::Vector<std::function<void()>>& deferredFunctions,
+	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
 	const BehaveContext& context)
 {
 	Dev::FatalAssert(!m_callStack.IsEmpty(), "Cannot update without a call stack.");

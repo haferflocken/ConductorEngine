@@ -85,23 +85,21 @@ void UnboundedScene::RemoveChunkFromPlay(const ChunkID chunkID)
 	}
 }
 
-void UnboundedScene::Update(ECS::EntityManager& entityManager,
-	const Collection::ArrayView<ECSGroupType>& ecsGroups,
-	Collection::Vector<std::function<void()>>& deferredFunctions)
+void UnboundedScene::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
 	// Update the hash map with the location of all entities.
 	m_spatialHashMap.Clear();
 	for (const auto& ecsGroup : ecsGroups)
 	{
-		const ECS::Entity& entity = ecsGroup.Get<ECS::Entity>(entityManager);
-		const auto& sceneTransformComponent = ecsGroup.Get<const SceneTransformComponent>(entityManager);
+		const ECS::Entity& entity = ecsGroup.Get<ECS::Entity>();
+		const auto& sceneTransformComponent = ecsGroup.Get<const SceneTransformComponent>();
 		const Math::Vector3& position = sceneTransformComponent.m_matrix.GetTranslation();
 		m_spatialHashMap[position] = &entity;
 	}
 
 	// Apply all pending chunk changes.
-	// This invalidates ecsGroups by adding and removing entities as well as changing the components on them.
-	FlushPendingChunks(entityManager);
+	deferredFunctions.Add([this](ECS::EntityManager& entityManager) { FlushPendingChunks(entityManager); });
 }
 
 void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)

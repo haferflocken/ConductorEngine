@@ -4,9 +4,8 @@
 
 namespace Renderer
 {
-void FrameSignalSystem::Update(ECS::EntityManager& entityManager,
-	const Collection::ArrayView<ECSGroupType>& ecsGroups,
-	Collection::Vector<std::function<void()>>& deferredFunctions) const
+void FrameSignalSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const
 {
 	bgfx::frame();
 }

@@ -2,12 +2,10 @@
 
 #include <behave/BehaviourTreeEvaluator.h>
 #include <ecs/ECSGroup.h>
-#include <ecs/EntityManager.h>
 
 void Behave::BehaviourTreeEvaluationSystem::Update(
-	ECS::EntityManager& entityManager,
 	const Collection::ArrayView<ECSGroupType>& ecsGroups,
-	Collection::Vector<std::function<void()>>& deferredFunctions) const
+	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const
 {
 	// Update the entities in parallel, as their trees can't access other entities.
 	// TODO make this parallel with a vector of deferred functions for each parallel list.
@@ -15,8 +13,8 @@ void Behave::BehaviourTreeEvaluationSystem::Update(
 		[&](const ECSGroupType& ecsGroup)
 	{
 		// Update this entity's tree evaluators.
-		auto& entity = ecsGroup.Get<ECS::Entity>(entityManager);
-		auto& behaviourTreeComponent = ecsGroup.Get<Behave::BehaviourTreeComponent>(entityManager);
+		auto& entity = ecsGroup.Get<ECS::Entity>();
+		auto& behaviourTreeComponent = ecsGroup.Get<Behave::BehaviourTreeComponent>();
 		for (auto& evaluator : behaviourTreeComponent.m_treeEvaluators)
 		{
 			evaluator.Update(entity, deferredFunctions, m_context);

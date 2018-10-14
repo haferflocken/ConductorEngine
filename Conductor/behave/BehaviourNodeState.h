@@ -3,7 +3,12 @@
 #include <functional>
 
 namespace Collection { template <typename T> class Vector; }
-namespace ECS { class Entity; }
+
+namespace ECS
+{
+class Entity;
+class EntityManager;
+}
 
 namespace Behave
 {
@@ -26,7 +31,7 @@ public:
 	virtual const BehaviourNode* GetNode() const = 0;
 	
 	virtual EvaluateResult Evaluate(ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
-		Collection::Vector<std::function<void()>>& deferredFunctions,
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
 		const BehaveContext& context) = 0;
 
 	virtual void NotifyChildFinished(const BehaviourNode* child, const EvaluateResult result) {}

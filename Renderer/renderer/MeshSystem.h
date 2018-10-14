@@ -3,11 +3,15 @@
 #include <renderer/MeshComponent.h>
 #include <renderer/MeshComponentInfo.h>
 
+#include <collection/VectorMap.h>
+#include <ecs/EntityID.h>
 #include <ecs/System.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
 #include <bgfx/bgfx.h>
+
+namespace Renderer::Mesh { class StaticMesh; }
 
 namespace Renderer
 {
@@ -23,14 +27,27 @@ public:
 	MeshSystem();
 	~MeshSystem();
 
-	void Update(ECS::EntityManager& entityManager,
-		const Collection::ArrayView<ECSGroupType>& ecsGroups,
-		Collection::Vector<std::function<void()>>& deferredFunctions) const;
+	void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions);
 
-	void NotifyOfEntityAdded(const ECSGroupType& group);
-	void NotifyOfEntityRemoved(const ECSGroupType& group);
+	void NotifyOfEntityAdded(const ECS::EntityID id, const ECSGroupType& group);
+	void NotifyOfEntityRemoved(const ECS::EntityID id, const ECSGroupType& group);
 
 private:
+	struct MeshDatum
+	{
+		MeshDatum();
+		~MeshDatum();
+
+		// Vertex and index buffer handles for use with bgfx.
+		bgfx::VertexBufferHandle m_vertexBuffer{ BGFX_INVALID_HANDLE };
+		bgfx::IndexBufferHandle m_indexBuffer{ BGFX_INVALID_HANDLE };
+		// The number of seconds since this mesh was last accessed.
+		// Data for meshes that have not been accessed in a while is discarded.
+		float m_secondsSinceAccess{ 0 };
+	};
+
 	bgfx::ProgramHandle m_program;
+	Collection::VectorMap<Asset::AssetHandle<Mesh::StaticMesh>, MeshDatum> m_staticMeshData;
 };
 }

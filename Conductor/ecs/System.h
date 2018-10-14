@@ -9,17 +9,18 @@
 
 namespace ECS
 {
+class EntityManager;
+
 /**
  * A System updates entities which have a set of components which match the system's input components.
  * Systems should be defined by extending SystemTempl.
  * All systems must define an update function which encapsulates their logic with this signature:
- *   void Update(EntityManager& entityManager,
- *      const Collection::ArrayView<ECSGroupType>& ecsGroups,
- *      Collection::Vector<std::function<void()>>& deferredFunctions);
+ *   void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+ *      Collection::Vector<std::function<void(EntityManager&)>>& deferredFunctions);
  * 
  * Systems that have SystemBindingType::Extended must define all of the following:
- *   void NotifyOfEntityAdded(const ECSGroupType& group);
- *   void NotifyOfEntityRemoved(const ECSGroupType& group);
+ *   void NotifyOfEntityAdded(const EntityID id, const ECSGroupType& group);
+ *   void NotifyOfEntityRemoved(const EntityID id, const ECSGroupType& group);
  */
 class System
 {

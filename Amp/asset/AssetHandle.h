@@ -25,6 +25,10 @@ public:
 	TAsset* TryGetAsset();
 	const TAsset* TryGetAsset() const;
 
+	bool operator<(const AssetHandle& rhs) const;
+	bool operator==(const AssetHandle& rhs) const;
+	bool operator!=(const AssetHandle& rhs) const;
+
 private:
 	ManagedAsset<TAsset>* m_managedAsset{ nullptr };
 };
@@ -65,14 +69,14 @@ inline const TAsset* AssetHandle<TAsset>::TryGetAsset() const
 }
 
 template <typename TAsset>
-AssetHandle<TAsset>::AssetHandle(const AssetHandle& other)
+inline AssetHandle<TAsset>::AssetHandle(const AssetHandle& other)
 	: m_managedAsset(other.m_managedAsset)
 {
 	++m_managedAsset->m_header.m_refCount;
 }
 
 template <typename TAsset>
-AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(const AssetHandle& rhs)
+inline AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(const AssetHandle& rhs)
 {
 	if (m_managedAsset != nullptr)
 	{
@@ -85,14 +89,14 @@ AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(const AssetHandle& rhs)
 }
 
 template <typename TAsset>
-AssetHandle<TAsset>::AssetHandle(AssetHandle&& other)
+inline AssetHandle<TAsset>::AssetHandle(AssetHandle&& other)
 	: m_managedAsset(other.m_managedAsset)
 {
 	other.m_managedAsset = nullptr;
 }
 
 template <typename TAsset>
-AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(AssetHandle&& rhs)
+inline AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(AssetHandle&& rhs)
 {
 	if (m_managedAsset != nullptr)
 	{
@@ -102,5 +106,23 @@ AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(AssetHandle&& rhs)
 	rhs.m_managedAsset = nullptr;
 
 	return *this;
+}
+
+template <typename TAsset>
+inline bool AssetHandle<TAsset>::operator<(const AssetHandle& rhs) const
+{
+	return m_managedAsset < rhs.m_managedAsset;
+}
+
+template <typename TAsset>
+inline bool AssetHandle<TAsset>::operator==(const AssetHandle& rhs) const
+{
+	return m_managedAsset == rhs.m_managedAsset;
+}
+
+template <typename TAsset>
+inline bool AssetHandle<TAsset>::operator!=(const AssetHandle& rhs) const
+{
+	return m_managedAsset != rhs.m_managedAsset;
 }
 }

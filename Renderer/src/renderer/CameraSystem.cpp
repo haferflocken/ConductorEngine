@@ -5,14 +5,13 @@
 
 namespace Renderer
 {
-void CameraSystem::Update(ECS::EntityManager& entityManager,
-	const Collection::ArrayView<ECSGroupType>& ecsGroups,
-	Collection::Vector<std::function<void()>>& deferredFunctions) const
+void CameraSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const
 {
 	for (const auto& ecsGroup : ecsGroups)
 	{
-		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>(entityManager);
-		const auto& cameraComponent = ecsGroup.Get<const CameraComponent>(entityManager);
+		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
+		const auto& cameraComponent = ecsGroup.Get<const CameraComponent>();
 
 		float viewMatrix[16];
 		bx::mtxInverse(viewMatrix, transformComponent.m_matrix.GetData());

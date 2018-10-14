@@ -9,7 +9,6 @@ namespace ECS
 {
 class Component;
 class Entity;
-class EntityManager;
 
 /**
  * A group of strongly-typed ECS pointers: these can be Entity pointers or Component pointers.
@@ -22,7 +21,7 @@ public:
 	static constexpr size_t k_size{ sizeof...(ECSTypes) };
 
 	template <typename DesiredType>
-	DesiredType& Get(EntityManager& entityManager) const
+	DesiredType& Get() const
 	{
 		constexpr size_t Index = Util::IndexOfType<DesiredType, ECSTypes...>;
 		return *reinterpret_cast<DesiredType*>(m_array[Index]);

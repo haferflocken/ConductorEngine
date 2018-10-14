@@ -50,7 +50,7 @@ public:
 	Collection::PolyStack<BehaviourNodeState>& GetCallStack() { return m_callStack; }
 	Collection::Vector<DomainEntry>& GetDomainStack() { return m_domainStack; }
 	
-	void Update(ECS::Entity& entity, Collection::Vector<std::function<void()>>& deferredFunctions,
+	void Update(ECS::Entity& entity, Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
 		const BehaveContext& context);
 
 private:

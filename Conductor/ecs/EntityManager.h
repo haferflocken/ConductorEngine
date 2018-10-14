@@ -75,8 +75,8 @@ public:
 
 private:
 	struct RegisteredSystem;
-	using SystemUpdateFn = void(*)(EntityManager&, RegisteredSystem&);
-	using NotifyOfEntityFn = void(*)(RegisteredSystem&, const Collection::Vector<void*>&);
+	using SystemUpdateFn = void(*)(RegisteredSystem&);
+	using NotifyOfEntityFn = void(*)(RegisteredSystem&, const EntityID&, const Collection::Vector<void*>&);
 
 	struct RegisteredSystem
 	{
@@ -89,7 +89,7 @@ private:
 		NotifyOfEntityFn m_notifyEntityAddedFunction;
 		NotifyOfEntityFn m_notifyEntityRemovedFunction;
 		ECSGroupVector m_ecsGroups;
-		Collection::Vector<std::function<void()>> m_deferredFunctions;
+		Collection::Vector<std::function<void(EntityManager&)>> m_deferredFunctions;
 	};
 
 	struct RegisteredConcurrentSystemGroup
@@ -204,34 +204,34 @@ inline void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>
 template <typename SystemType>
 struct EntityManager::SystemTypeFunctions
 {
-	static void Update(EntityManager& entityManager, EntityManager::RegisteredSystem& registeredSystem)
+	static void Update(EntityManager::RegisteredSystem& registeredSystem)
 	{
 		SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
 		const auto ecsGroupsView =
 			registeredSystem.m_ecsGroups.GetView<SystemType::ECSGroupType>();
 
-		system.Update(entityManager, ecsGroupsView, registeredSystem.m_deferredFunctions);
+		system.Update(ecsGroupsView, registeredSystem.m_deferredFunctions);
 	}
 
 	static void NotifyEntityAdded(EntityManager::RegisteredSystem& registeredSystem,
-		const Collection::Vector<void*>& rawGroup)
+		const EntityID& id, const Collection::Vector<void*>& rawGroup)
 	{
 		if constexpr (SystemType::k_bindingType == SystemBindingType::Extended)
 		{
 			SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
 			const SystemType::ECSGroupType& group = *reinterpret_cast<const SystemType::ECSGroupType*>(&rawGroup[0]);
-			system.NotifyOfEntityAdded(group);
+			system.NotifyOfEntityAdded(id, group);
 		}
 	}
 
 	static void NotifyEntityRemoved(EntityManager::RegisteredSystem& registeredSystem,
-		const Collection::Vector<void*>& rawGroup)
+		const EntityID& id, const Collection::Vector<void*>& rawGroup)
 	{
 		if constexpr (SystemType::k_bindingType == SystemBindingType::Extended)
 		{
 			SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
 			const SystemType::ECSGroupType& group = *reinterpret_cast<const SystemType::ECSGroupType*>(&rawGroup[0]);
-			system.NotifyOfEntityRemoved(group);
+			system.NotifyOfEntityRemoved(id, group);
 		}
 	}
 };
