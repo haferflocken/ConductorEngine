@@ -6,6 +6,8 @@
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <client/ConnectedHost.h>
 #include <ecs/EntityInfoManager.h>
+#include <scene/SceneTransformComponent.h>
+#include <scene/SceneTransformComponentInfo.h>
 
 IslandGame::Client::IslandGameClient::IslandGameClient(
 	const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost)
@@ -25,8 +27,14 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 	static bool isCameraCreated = false;
 	if (!isCameraCreated)
 	{
-		m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("islander.json")));
-		m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("camera.json")));
+		m_entityManager.CreateEntity(
+			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("islander.json")));
+		ECS::Entity& cameraEntity = m_entityManager.CreateEntity(
+			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("camera.json")));
+
+		auto& sceneTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
+		sceneTransformComponent.m_matrix.SetTranslation(Math::Vector3(0.0f, 0.0f, -5.0f));
+
 		isCameraCreated = true;
 	}
 
