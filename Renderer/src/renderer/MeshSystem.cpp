@@ -74,6 +74,11 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 		MeshDatum& datum = datumIter->second;
 		datum.m_timeSinceLastAccess = Unit::Time::Millisecond(0);
 
+		if ((!bgfx::isValid(datum.m_vertexBuffer)) || (!bgfx::isValid(datum.m_indexBuffer)))
+		{
+			continue;
+		}
+
 		encoder->setTransform(transformComponent.m_matrix.GetData());
 		encoder->setVertexBuffer(0, datum.m_vertexBuffer);
 		encoder->setIndexBuffer(datum.m_indexBuffer);
