@@ -19,7 +19,7 @@ Amp/Conductor TODO:
 
 [ ] Meshes
 	[ ] Decide on a mesh format. Needs to support triangles, UVs, rigs, vertex weights
-	[ ] Load static meshes
+	[x] Load static meshes
 	[ ] Rigged meshes
 		[ ] Load meshes with rigging
 		[ ] Animate meshes with rigging

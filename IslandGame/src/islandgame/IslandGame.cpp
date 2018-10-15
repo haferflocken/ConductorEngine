@@ -136,7 +136,7 @@ int main(const int argc, const char* argv[])
 	}
 
 	// Create an asset manager and register the asset types it needs.
-	Asset::AssetManager assetManager;
+	Asset::AssetManager assetManager{ dataDirectory };
 	Renderer::RegisterAssetTypes(assetManager);
 
 	// Run the application in the specified mode.

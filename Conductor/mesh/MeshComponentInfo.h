@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ecs/ComponentInfo.h>
+#include <file/Path.h>
 
 namespace Mesh
 {
@@ -15,5 +16,7 @@ public:
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
 	virtual Util::StringHash GetTypeHash() const { return sk_typeHash; }
+
+	File::Path m_meshFilePath;
 };
 }

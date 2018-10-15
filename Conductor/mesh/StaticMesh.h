@@ -10,9 +10,12 @@ namespace Mesh
 class StaticMesh
 {
 public:
-	static constexpr const char* k_fileType = ".cmsh";
+	static constexpr const char* k_fileType = ".cms";
+
+	static const StaticMesh k_simpleQuad;
 
 	static bool TryLoad(const File::Path& filePath, StaticMesh* destination);
+	static void SaveToFile(const File::Path& filePath, const StaticMesh& mesh);
 
 	StaticMesh(Collection::Vector<Vertex>&& vertices, Collection::Vector<uint16_t>&& triangleIndices);
 

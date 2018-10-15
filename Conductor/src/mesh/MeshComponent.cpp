@@ -2,6 +2,7 @@
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>
+#include <mesh/MeshComponentInfo.h>
 
 namespace Mesh
 {
@@ -12,7 +13,7 @@ bool MeshComponent::TryCreateFromInfo(
 	ECS::ComponentVector& destination)
 {
 	MeshComponent& meshComponent = destination.Emplace<MeshComponent>(reservedID);
-	meshComponent.m_meshHandle = assetManager.RequestAsset<StaticMesh>("TODO(renderer)");
+	meshComponent.m_meshHandle = assetManager.RequestAsset<StaticMesh>(componentInfo.m_meshFilePath);
 	return true;
 }
 }

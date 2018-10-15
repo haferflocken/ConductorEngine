@@ -21,7 +21,12 @@ namespace Asset
 class AssetManager final
 {
 public:
-	AssetManager() = default;
+	explicit AssetManager(const File::Path& assetDirectory)
+		: m_assetDirectory(assetDirectory)
+		, m_sharedMutex()
+		, m_assetsByFileType()
+	{}
+
 	~AssetManager() = default;
 
 	// An asset loading function either constructs in-place an asset loaded from the given file path and returns true,
@@ -67,6 +72,9 @@ private:
 
 	void UnregisterAssetTypeInternal(const char* const fileType);
 	void DestroyUnreferencedAssets(AssetContainer& assetContainer);
+
+	// The directory within which assets are assumed to be located.
+	File::Path m_assetDirectory;
 
 	// Shared mutex used to prevent asset type registration during RequestAsset() or Update().
 	std::shared_mutex m_sharedMutex;
@@ -137,11 +145,11 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 
 	assetContainer.m_managedAssets[filePath] = managedAsset;
 	assetContainer.m_loadingFutures.Add(std::async(std::launch::async,
-		[filePath, loadFn = assetContainer.m_loadingFunction, managedAsset]()
+		[fullPath = m_assetDirectory / filePath, loadFn = assetContainer.m_loadingFunction, managedAsset]()
 		{
 			// loadFn is a copy of the asset container's loading function so that a read-lock
 			// doesn't have to be maintained on m_sharedMutex while the asset loads.
-			if (loadFn(filePath, &managedAsset->m_asset))
+			if (loadFn(fullPath, &managedAsset->m_asset))
 			{
 				managedAsset->m_header.m_status = AssetStatus::Loaded;
 			}
