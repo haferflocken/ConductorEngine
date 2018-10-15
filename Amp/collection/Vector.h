@@ -119,8 +119,8 @@ inline Vector<T>::Vector(std::initializer_list<T> initialElements)
 
 template <typename T>
 inline Vector<T>::Vector(const ArrayView<const T>& initialElements)
-	: m_data(Allocate(std::max<uint32_t>(initialElements.Size(), 1)))
-	, m_capacity(std::max<uint32_t>(initialElements.Size(), 1))
+	: m_data(Allocate(static_cast<uint32_t>(std::max<size_t>(initialElements.Size(), 1))))
+	, m_capacity(static_cast<uint32_t>(std::max<size_t>(initialElements.Size(), 1)))
 	, m_count(0)
 {
 	for (const auto& element : initialElements)
