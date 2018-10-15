@@ -13,6 +13,6 @@ class IslandGameClient : public ::Client::IClient
 public:
 	IslandGameClient(const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost);
 
-	void Update() override;
+	void Update(const Unit::Time::Millisecond delta) override;
 };
 }

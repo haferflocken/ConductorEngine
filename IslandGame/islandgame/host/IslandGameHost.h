@@ -14,6 +14,6 @@ public:
 	IslandGameHost(const IslandGameData& gameData);
 	~IslandGameHost();
 
-	void Update() override;
+	void Update(const Unit::Time::Millisecond delta) override;
 };
 }

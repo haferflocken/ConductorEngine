@@ -12,7 +12,8 @@ namespace Renderer
 class FrameSignalSystem final : public ECS::SystemTempl<Util::TypeList<Scene::SceneTransformComponent>, Util::TypeList<>>
 {
 public:
-	void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+	void Update(const Unit::Time::Millisecond delta,
+		const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const;
 };
 }

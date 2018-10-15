@@ -3,6 +3,7 @@
 #include <host/MessageToClient.h>
 #include <mem/UniquePtr.h>
 
+#include <chrono>
 #include <functional>
 #include <thread>
 
@@ -61,6 +62,8 @@ private:
 
 	Mem::UniquePtr<ConnectedHost> m_connectedHost{};
 	Mem::UniquePtr<IClient> m_client{};
+
+	std::chrono::steady_clock::time_point m_lastUpdatePoint;
 
 	std::thread m_clientThread{};
 	ClientThreadStatus m_clientThreadStatus{ ClientThreadStatus::Stopped };

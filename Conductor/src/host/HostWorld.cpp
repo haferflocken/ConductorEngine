@@ -13,6 +13,7 @@ Host::HostWorld::HostWorld(const Conductor::IGameData& gameData,
 	: m_gameData(gameData)
 	, m_networkInputQueue(networkInputQueue)
 	, m_hostFactory(std::move(hostFactory))
+	, m_lastUpdatePoint()
 {
 	m_hostThread = std::thread(&HostWorld::HostThreadFunction, this);
 }
@@ -53,6 +54,7 @@ void Host::HostWorld::HostThreadFunction()
 {
 	m_hostThreadStatus = HostThreadStatus::Running;
 	m_host = m_hostFactory(m_gameData);
+	m_lastUpdatePoint = std::chrono::steady_clock::now();
 
 	while (m_hostThreadStatus == HostThreadStatus::Running)
 	{
@@ -64,7 +66,10 @@ void Host::HostWorld::HostThreadFunction()
 		}
 
 		// Update the game simulation.
-		m_host->Update();
+		const auto nowPoint = std::chrono::steady_clock::now();
+		const auto deltaMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowPoint - m_lastUpdatePoint);
+		m_host->Update(Unit::Time::Millisecond(deltaMs.count()));
+		m_lastUpdatePoint = nowPoint;
 
 		// Transmit ECS state to clients. So long as the host implements the networked part of their game simulation
 		// using entities and components, this is all that needs to be sent.

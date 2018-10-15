@@ -49,7 +49,8 @@ public:
 	void BringChunkIntoPlay(const ChunkID chunkID);
 	void RemoveChunkFromPlay(const ChunkID chunkID);
 
-	void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+	void Update(const Unit::Time::Millisecond delta,
+		const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions);
 
 private:

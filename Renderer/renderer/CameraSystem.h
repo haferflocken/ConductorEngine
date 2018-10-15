@@ -25,7 +25,8 @@ public:
 		, m_aspectRatio(static_cast<float>(widthPixels) / static_cast<float>(heightPixels))
 	{}
 
-	void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+	void Update(const Unit::Time::Millisecond delta,
+		const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const;
 
 private:

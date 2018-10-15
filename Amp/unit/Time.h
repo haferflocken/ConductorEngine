@@ -12,7 +12,7 @@ struct Second;
 
 struct Millisecond : public UnitTempl<Millisecond, uint64_t>
 {
-	explicit Millisecond(BackingType n)
+	explicit constexpr Millisecond(BackingType n)
 		: BaseType(n)
 	{}
 
@@ -21,7 +21,7 @@ struct Millisecond : public UnitTempl<Millisecond, uint64_t>
 
 struct Second : public UnitTempl<Second, uint64_t>
 {
-	explicit Second(BackingType n)
+	explicit constexpr Second(BackingType n)
 		: BaseType(n)
 	{}
 

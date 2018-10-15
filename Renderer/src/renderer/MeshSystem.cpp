@@ -21,7 +21,8 @@ MeshSystem::~MeshSystem()
 	//bgfx::destroy(m_program);
 }
 
-void MeshSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+void MeshSystem::Update(const Unit::Time::Millisecond delta,
+	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
 	bgfx::Encoder* const encoder = bgfx::begin();
@@ -30,20 +31,13 @@ void MeshSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		return;
 	}
 
-	// Discard any data for meshes that haven't been accessed recently.
-	static constexpr float k_discardAfterSeconds = 120.0f;
-
-	m_staticMeshData.RemoveAllMatching([](const auto& entry)
-		{
-			const MeshDatum& datum = entry.second;
-			return (datum.m_secondsSinceAccess > k_discardAfterSeconds);
-		});
-
 	// Create vertex buffers and index buffers for any meshes that finished loading.
 	for (auto& entry : m_staticMeshData)
 	{
 		const Asset::AssetHandle<Mesh::StaticMesh>& handle = entry.first;
 		MeshDatum& datum = entry.second;
+
+		datum.m_timeSinceLastAccess += delta;
 
 		const Mesh::StaticMesh* const mesh = handle.TryGetAsset();
 		if (mesh == nullptr)
@@ -77,12 +71,24 @@ void MeshSystem::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
 			continue;
 		}
 		
+		MeshDatum& datum = datumIter->second;
+		datum.m_timeSinceLastAccess = Unit::Time::Millisecond(0);
+
 		encoder->setTransform(transformComponent.m_matrix.GetData());
-		encoder->setVertexBuffer(0, datumIter->second.m_vertexBuffer);
-		encoder->setIndexBuffer(datumIter->second.m_indexBuffer);
+		encoder->setVertexBuffer(0, datum.m_vertexBuffer);
+		encoder->setIndexBuffer(datum.m_indexBuffer);
 		encoder->setState(BGFX_STATE_DEFAULT);
 		encoder->submit(0, m_program);
 	}
+
+	// Discard any data for meshes that haven't been accessed recently.
+	static constexpr Unit::Time::Millisecond k_discardAfterDuration{ 120000 };
+
+	m_staticMeshData.RemoveAllMatching([](const auto& entry)
+		{
+			const MeshDatum& datum = entry.second;
+			return (datum.m_timeSinceLastAccess > k_discardAfterDuration);
+		});
 
 	bgfx::end(encoder);
 }

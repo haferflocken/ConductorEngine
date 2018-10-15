@@ -15,6 +15,8 @@
 
 #include <mem/UniquePtr.h>
 
+#include <unit/Time.h>
+
 #include <functional>
 #include <type_traits>
 
@@ -64,7 +66,7 @@ public:
 	void RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>&&... concurrentSystems);
 
 	// Run the EntityManager one step.
-	void Update();
+	void Update(const Unit::Time::Millisecond delta);
 
 	// Calculate a delta update transmission for the entitites in the manager.
 	// This is a delta since the last delta package was requested.
@@ -75,8 +77,8 @@ public:
 
 private:
 	struct RegisteredSystem;
-	using SystemUpdateFn = void(*)(RegisteredSystem&);
-	using NotifyOfEntityFn = void(*)(RegisteredSystem&, const EntityID&, const Collection::Vector<void*>&);
+	using SystemUpdateFn = void(*)(RegisteredSystem&, Unit::Time::Millisecond);
+	using NotifyOfEntityFn = void(*)(RegisteredSystem&, EntityID, const Collection::Vector<void*>&);
 
 	struct RegisteredSystem
 	{
@@ -109,8 +111,6 @@ private:
 
 	void AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd);
 	void RemoveECSPointersFromSystems(Entity& entity);
-	
-	void UpdateSystems();
 	
 	// Components that load resources from disk use the AssetManager to do so efficiently.
 	Asset::AssetManager& m_assetManager;
@@ -204,17 +204,17 @@ inline void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>
 template <typename SystemType>
 struct EntityManager::SystemTypeFunctions
 {
-	static void Update(EntityManager::RegisteredSystem& registeredSystem)
+	static void Update(EntityManager::RegisteredSystem& registeredSystem, const Unit::Time::Millisecond delta)
 	{
 		SystemType& system = static_cast<SystemType&>(*registeredSystem.m_system);
 		const auto ecsGroupsView =
 			registeredSystem.m_ecsGroups.GetView<SystemType::ECSGroupType>();
 
-		system.Update(ecsGroupsView, registeredSystem.m_deferredFunctions);
+		system.Update(delta, ecsGroupsView, registeredSystem.m_deferredFunctions);
 	}
 
 	static void NotifyEntityAdded(EntityManager::RegisteredSystem& registeredSystem,
-		const EntityID& id, const Collection::Vector<void*>& rawGroup)
+		const EntityID id, const Collection::Vector<void*>& rawGroup)
 	{
 		if constexpr (SystemType::k_bindingType == SystemBindingType::Extended)
 		{
@@ -225,7 +225,7 @@ struct EntityManager::SystemTypeFunctions
 	}
 
 	static void NotifyEntityRemoved(EntityManager::RegisteredSystem& registeredSystem,
-		const EntityID& id, const Collection::Vector<void*>& rawGroup)
+		const EntityID id, const Collection::Vector<void*>& rawGroup)
 	{
 		if constexpr (SystemType::k_bindingType == SystemBindingType::Extended)
 		{

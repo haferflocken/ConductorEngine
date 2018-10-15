@@ -85,7 +85,8 @@ void UnboundedScene::RemoveChunkFromPlay(const ChunkID chunkID)
 	}
 }
 
-void UnboundedScene::Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+void UnboundedScene::Update(const Unit::Time::Millisecond delta,
+	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
 	// Update the hash map with the location of all entities.

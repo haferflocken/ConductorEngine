@@ -19,7 +19,7 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 }
 
-void IslandGame::Client::IslandGameClient::Update()
+void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond delta)
 {
 	// TODO remove this
 	static bool isCameraCreated = false;
@@ -30,5 +30,5 @@ void IslandGame::Client::IslandGameClient::Update()
 		isCameraCreated = true;
 	}
 
-	m_entityManager.Update();
+	m_entityManager.Update(delta);
 }

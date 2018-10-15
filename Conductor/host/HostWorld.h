@@ -5,6 +5,7 @@
 #include <host/MessageToClient.h>
 #include <mem/UniquePtr.h>
 
+#include <chrono>
 #include <thread>
 
 namespace Client { struct MessageToHost; }
@@ -58,6 +59,8 @@ private:
 	Collection::LocklessQueue<Client::MessageToHost>& m_networkInputQueue;
 	HostFactory m_hostFactory;
 	Mem::UniquePtr<IHost> m_host{};
+
+	std::chrono::steady_clock::time_point m_lastUpdatePoint;
 
 	std::thread m_hostThread{};
 	HostThreadStatus m_hostThreadStatus{ HostThreadStatus::Stopped };

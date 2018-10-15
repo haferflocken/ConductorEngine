@@ -27,7 +27,7 @@ public:
 
 	void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 
-	virtual void Update() = 0;
+	virtual void Update(const Unit::Time::Millisecond delta) = 0;
 
 	virtual void NotifyOfWindowClosed() {};
 	virtual void NotifyOfKeyUp(const char key) {};

@@ -17,6 +17,6 @@ public:
 
 	Collection::Vector<uint8_t> SerializeECSUpdateTransmission();
 
-	virtual void Update() = 0;
+	virtual void Update(const Unit::Time::Millisecond delta) = 0;
 };
 }

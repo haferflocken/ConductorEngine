@@ -4,6 +4,7 @@
 #include <ecs/ECSGroupVector.h>
 
 #include <collection/Vector.h>
+#include <unit/Time.h>
 #include <util/StringHash.h>
 #include <util/VariadicUtil.h>
 
@@ -15,7 +16,8 @@ class EntityManager;
  * A System updates entities which have a set of components which match the system's input components.
  * Systems should be defined by extending SystemTempl.
  * All systems must define an update function which encapsulates their logic with this signature:
- *   void Update(const Collection::ArrayView<ECSGroupType>& ecsGroups,
+ *   void Update(const const Unit::Time::Millisecond delta,
+ *      const Collection::ArrayView<ECSGroupType>& ecsGroups,
  *      Collection::Vector<std::function<void(EntityManager&)>>& deferredFunctions);
  * 
  * Systems that have SystemBindingType::Extended must define all of the following:

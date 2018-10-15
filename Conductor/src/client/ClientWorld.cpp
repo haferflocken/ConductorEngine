@@ -19,6 +19,7 @@ Client::ClientWorld::ClientWorld(const Conductor::IGameData& gameData,
 	, m_inputMessages(inputMessages)
 	, m_networkInputQueue(networkInputQueue)
 	, m_clientFactory(std::move(clientFactory))
+	, m_lastUpdatePoint()
 {}
 
 Client::ClientWorld::~ClientWorld()
@@ -54,6 +55,7 @@ void Client::ClientWorld::ClientThreadFunction()
 	m_renderInstance.InitOnClientThread();
 	m_client = m_clientFactory(m_gameData, *m_connectedHost);
 	m_renderInstance.RegisterSystems(m_client->GetEntityManager());
+	m_lastUpdatePoint = std::chrono::steady_clock::now();
 
 	while (m_clientThreadStatus == ClientThreadStatus::Running)
 	{
@@ -79,7 +81,11 @@ void Client::ClientWorld::ClientThreadFunction()
 		// TODO predict simulation state based on player input
 		// TODO interpolate between the last received server state and the predicted simulation state
 
-		m_client->Update();
+		const auto nowPoint = std::chrono::steady_clock::now();
+		const auto deltaMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowPoint - m_lastUpdatePoint);
+		m_client->Update(Unit::Time::Millisecond(deltaMs.count()));
+		m_lastUpdatePoint = nowPoint;
+
 		std::this_thread::yield();
 	}
 

@@ -837,12 +837,7 @@ void EntityManager::RemoveECSPointersFromSystems(Entity& entity)
 	}
 }
 
-void EntityManager::Update()
-{
-	UpdateSystems();
-}
-
-void EntityManager::UpdateSystems()
+void EntityManager::Update(const Unit::Time::Millisecond delta)
 {
 	// Update the concurrent system groups.
 	for (auto& concurrentGroup : m_concurrentSystemGroups)
@@ -851,14 +846,14 @@ void EntityManager::UpdateSystems()
 		// If the group has only one system, run it directly on this thread.
 		if (concurrentGroup.m_systems.Size() == 1)
 		{
-			concurrentGroup.m_systems.Front().m_updateFunction(concurrentGroup.m_systems.Front());
+			concurrentGroup.m_systems.Front().m_updateFunction(concurrentGroup.m_systems.Front(), delta);
 		}
 		else
 		{
 			std::for_each(std::execution::par, concurrentGroup.m_systems.begin(), concurrentGroup.m_systems.end(),
 				[&](RegisteredSystem& registeredSystem)
 				{
-					registeredSystem.m_updateFunction(registeredSystem);
+					registeredSystem.m_updateFunction(registeredSystem, delta);
 				});
 		}
 

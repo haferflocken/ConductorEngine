@@ -29,7 +29,7 @@ IslandGame::Host::IslandGameHost::~IslandGameHost()
 {
 }
 
-void IslandGame::Host::IslandGameHost::Update()
+void IslandGame::Host::IslandGameHost::Update(const Unit::Time::Millisecond delta)
 {
-	m_entityManager.Update();
+	m_entityManager.Update(delta);
 }
