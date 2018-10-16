@@ -45,6 +45,7 @@ class UnboundedScene final : public ECS::SystemTempl<
 {
 public:
 	explicit UnboundedScene(const ECS::EntityInfoManager& entityInfoManager);
+	virtual ~UnboundedScene() {}
 
 	void BringChunkIntoPlay(const ChunkID chunkID);
 	void RemoveChunkFromPlay(const ChunkID chunkID);
