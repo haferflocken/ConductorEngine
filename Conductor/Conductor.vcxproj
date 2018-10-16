@@ -175,6 +175,9 @@
     <ClCompile Include="src\mesh\MeshComponent.cpp" />
     <ClCompile Include="src\mesh\MeshComponentInfo.cpp" />
     <ClCompile Include="src\mesh\StaticMesh.cpp" />
+    <ClCompile Include="src\scene\AnchorComponent.cpp" />
+    <ClCompile Include="src\scene\AnchorComponentInfo.cpp" />
+    <ClCompile Include="src\scene\SceneAnchorSystem.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponent.cpp" />
     <ClCompile Include="src\scene\SceneTransformComponentInfo.cpp" />
     <ClCompile Include="src\behave\nodes\CallNode.cpp" />
@@ -242,6 +245,9 @@
     <ClInclude Include="mesh\MeshComponentInfo.h" />
     <ClInclude Include="mesh\StaticMesh.h" />
     <ClInclude Include="mesh\Vertex.h" />
+    <ClInclude Include="scene\AnchorComponent.h" />
+    <ClInclude Include="scene\AnchorComponentInfo.h" />
+    <ClInclude Include="scene\SceneAnchorSystem.h" />
     <ClInclude Include="scene\SceneTransformComponent.h" />
     <ClInclude Include="scene\SceneTransformComponentInfo.h" />
     <ClInclude Include="behave\nodes\CallNode.h" />
