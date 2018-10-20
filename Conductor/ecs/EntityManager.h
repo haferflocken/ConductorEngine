@@ -59,7 +59,7 @@ public:
 
 	// Register a system to run by itself. Systems run in the order they are registered.
 	template <typename SystemType>
-	void RegisterSystem(Mem::UniquePtr<SystemType>&& system);
+	SystemType& RegisterSystem(Mem::UniquePtr<SystemType>&& system);
 
 	// Register multiple systems to run concurrently.
 	template <typename... SystemTypes>
@@ -107,7 +107,7 @@ private:
 	void RemoveComponent(const ComponentID id);
 
 	template <typename SystemType>
-	void RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system, RegisteredConcurrentSystemGroup& outGroup);
+	SystemType& RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system, RegisteredConcurrentSystemGroup& outGroup);
 
 	void AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd);
 	void RemoveECSPointersFromSystems(Entity& entity);
@@ -179,13 +179,13 @@ inline const TComponent* EntityManager::FindComponent(const Entity& entity) cons
 }
 
 template <typename SystemType>
-inline void EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
+inline SystemType& EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
 {
 	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
 		"EntityManager because there is not currently support for initializing the system's component groups.");
 
 	RegisteredConcurrentSystemGroup& newGroup = m_concurrentSystemGroups.Emplace();
-	RegisterSystemInGroup<SystemType>(std::move(system), newGroup);
+	return RegisterSystemInGroup<SystemType>(std::move(system), newGroup);
 }
 
 template <typename... SystemTypes>
@@ -237,12 +237,13 @@ struct EntityManager::SystemTypeFunctions
 };
 
 template <typename SystemType>
-inline void EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
+inline SystemType& EntityManager::RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system,
 	RegisteredConcurrentSystemGroup& outGroup)
 {
-	outGroup.m_systems.Emplace(std::move(system),
+	RegisteredSystem& registeredSystem = outGroup.m_systems.Emplace(std::move(system),
 		&SystemTypeFunctions<SystemType>::Update,
 		&SystemTypeFunctions<SystemType>::NotifyEntityAdded,
 		&SystemTypeFunctions<SystemType>::NotifyEntityRemoved);
+	return *static_cast<SystemType*>(registeredSystem.m_system.Get());
 }
 }
