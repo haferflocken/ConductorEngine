@@ -48,6 +48,8 @@ public:
 		const File::Path& sourcePath, const File::Path& userPath);
 	virtual ~UnboundedScene() {}
 
+	virtual void NotifyOfShutdown(ECS::EntityManager& entityManager) override;
+
 	void BringChunkIntoPlay(const ChunkID chunkID);
 	void RemoveChunkFromPlay(const ChunkID chunkID);
 

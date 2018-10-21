@@ -1,6 +1,5 @@
 #pragma once
 
-#include <collection/Pair.h>
 #include <ecs/EntityID.h>
 #include <file/Path.h>
 #include <json/JSONTypes.h>
@@ -30,8 +29,7 @@ public:
 	static constexpr float k_sideLengthMeters = 64.0f;
 	static constexpr uint32_t k_lgSideLength = 6;
 
-	// TODO Long term, I don't think text serialization will be fast enough for chunk save & load.
-	static JSON::JSONObject SaveInPlayChunk(const ChunkID chunkID, const ECS::EntityManager& entityManager,
+	static Collection::Vector<uint8_t> SaveInPlayChunk(const ChunkID chunkID, const ECS::EntityManager& entityManager,
 		const Collection::Vector<const ECS::Entity*>& entitiesInChunk);
 	static Chunk LoadChunkForPlay(const File::Path& sourcePath, const File::Path& userPath,
 		const std::string& chunkFileName);
@@ -49,6 +47,12 @@ public:
 	void PutChunkEntitiesIntoPlay(const ECS::EntityInfoManager& entityInfoManager, ECS::EntityManager& entityManager);
 
 private:
+	struct SerializedComponent final
+	{
+		ECS::ComponentType m_componentType;
+		Collection::Vector<uint8_t> m_componentBytes;
+	};
+
 	struct SerializedEntity final
 	{
 		SerializedEntity() = default;
@@ -61,7 +65,7 @@ private:
 
 		ECS::EntityID m_entityID{};
 		Util::StringHash m_entityInfoNameHash{};
-		Collection::Vector<Collection::Pair<Util::StringHash, JSON::JSONObject>> m_serializedComponents{};
+		Collection::Vector<SerializedComponent> m_serializedComponents{};
 	};
 	Collection::Vector<SerializedEntity> m_entityData{};
 };

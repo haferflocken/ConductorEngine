@@ -44,6 +44,15 @@ EntityManager::EntityManager(Asset::AssetManager& assetManager, const ComponentR
 
 EntityManager::~EntityManager()
 {
+	// Allow this EntityManager's systems to clean up using it.
+	for (auto& group : m_concurrentSystemGroups)
+	{
+		for (auto& registeredSystem : group.m_systems)
+		{
+			registeredSystem.m_system->NotifyOfShutdown(*this);
+		}
+	}
+	m_concurrentSystemGroups.Clear();
 }
 
 Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)

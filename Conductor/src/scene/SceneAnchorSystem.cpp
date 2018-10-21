@@ -25,9 +25,9 @@ void SceneAnchorSystem::Update(const Unit::Time::Millisecond delta,
 		const SceneTransformComponent& transformComponent = ecsGroup.Get<const SceneTransformComponent>();
 		const Math::Vector3& position = transformComponent.m_matrix.GetTranslation();
 
-		const uint32_t chunkX = static_cast<uint32_t>(position.x) >> Chunk::k_lgSideLength;
-		const uint32_t chunkY = static_cast<uint32_t>(position.y) >> Chunk::k_lgSideLength;
-		const uint32_t chunkZ = static_cast<uint32_t>(position.z) >> Chunk::k_lgSideLength;
+		const int32_t chunkX = static_cast<int32_t>(position.x) >> Chunk::k_lgSideLength;
+		const int32_t chunkY = static_cast<int32_t>(position.y) >> Chunk::k_lgSideLength;
+		const int32_t chunkZ = static_cast<int32_t>(position.z) >> Chunk::k_lgSideLength;
 
 		bool found = false;
 		for (auto& anchorChunkID : m_anchorChunkIDs)

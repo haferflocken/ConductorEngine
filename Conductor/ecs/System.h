@@ -23,6 +23,8 @@ class EntityManager;
  * Systems that have SystemBindingType::Extended must define all of the following:
  *   void NotifyOfEntityAdded(const EntityID id, const ECSGroupType& group);
  *   void NotifyOfEntityRemoved(const EntityID id, const ECSGroupType& group);
+ *
+ * Systems may, but are not required to, override the virtual functions of ECS::System.
  */
 class System
 {
@@ -34,6 +36,8 @@ public:
 	{}
 
 	virtual ~System() {}
+
+	virtual void NotifyOfShutdown(ECS::EntityManager&) {}
 
 	const Collection::Vector<Util::StringHash>& GetImmutableTypes() const { return m_immutableTypes; }
 	const Collection::Vector<Util::StringHash>& GetMutableTypes() const { return m_mutableTypes; }

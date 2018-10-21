@@ -1,7 +1,6 @@
 #include <scene/UnboundedScene.h>
 
 #include <ecs/EntityManager.h>
-#include <json/JSONPrintVisitor.h>
 
 #include <fstream>
 #include <random>
@@ -26,6 +25,41 @@ UnboundedScene::UnboundedScene(const ECS::EntityInfoManager& entityInfoManager,
 	, m_chunksInPlay()
 	, m_transitionChunksToRefCounts()
 {}
+
+void UnboundedScene::NotifyOfShutdown(ECS::EntityManager& entityManager)
+{
+	// Synchronize any chunks that are loading, but don't add them to the EntityManager.
+	for (auto& future : m_chunkLoadingFutures)
+	{
+		future.wait();
+	}
+	m_chunkLoadingFutures.Clear();
+
+	// Save and unload all transition chunks.
+	for (const auto& entry : m_transitionChunksToRefCounts)
+	{
+		SaveChunkAndQueueEntitiesForUnload(entityManager, entry.first);
+	}
+	m_transitionChunksToRefCounts.Clear();
+
+	// Save and unload all chunks pending removal.
+	for (const auto& chunkID : m_chunksPendingRemoval)
+	{
+		SaveChunkAndQueueEntitiesForUnload(entityManager, chunkID);
+	}
+	m_chunksPendingRemoval.Clear();
+
+	// Save and unload all chunks in play.
+	for (const auto& chunkID : m_chunksInPlay)
+	{
+		SaveChunkAndQueueEntitiesForUnload(entityManager, chunkID);
+	}
+	m_chunksInPlay.Clear();
+
+	// Unload all entities from chunks that were unloaded.
+	entityManager.DeleteEntities(m_entitiesPendingUnload.GetConstView());
+	m_entitiesPendingUnload.Clear();
+}
 
 void UnboundedScene::BringChunkIntoPlay(const ChunkID chunkID)
 {
@@ -191,13 +225,15 @@ void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& enti
 	}
 
 	// Save the chunk to its file.
-	const JSON::JSONObject serializedChunk = Chunk::SaveInPlayChunk(chunkID, entityManager, entitiesInChunk);
+	const Collection::Vector<uint8_t> serializedChunk = Chunk::SaveInPlayChunk(chunkID, entityManager, entitiesInChunk);
 
 	std::ofstream fileOutput;
-	fileOutput.open(m_userPath / Internal_UnboundedScene::MakeChunkFileName(chunkID));
+	fileOutput.open(m_userPath / Internal_UnboundedScene::MakeChunkFileName(chunkID),
+		std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
 
-	JSON::PrintVisitor printVisitor{ fileOutput };
-	serializedChunk.Accept(&printVisitor);
+	Dev::Assert(fileOutput.good(), "Failed to open a chunk file for writing!");
+
+	fileOutput.write(reinterpret_cast<const char*>(&serializedChunk.Front()), serializedChunk.Size());
 
 	fileOutput.flush();
 	fileOutput.close();

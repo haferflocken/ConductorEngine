@@ -1,7 +1,7 @@
 #pragma once
 
+#include <collection/Vector.h>
 #include <ecs/ComponentID.h>
-#include <json/JSONTypes.h>
 
 namespace Asset { class AssetManager; }
 
@@ -23,10 +23,10 @@ public:
 
 	virtual ~Component() {}
 
-	// Save() must generate a JSONObject which can be used to restore the state of the component using Load(...).
-	// The JSONObject returned by Save() must have a "type" string field.
-	virtual JSON::JSONObject Save() const { return JSON::JSONObject(); }
-	virtual void Load(const JSON::JSONObject& jsonData) {}
+	// Save() must generate a list of bytes which can be used to restore the state of the component using Load(...).
+	// Save() and Load(...) don't need to serialize the type of the component.
+	virtual void Save(Collection::Vector<uint8_t>& outBytes) const {}
+	virtual void Load(const Collection::Vector<uint8_t>& bytes) {}
 
 	ComponentID m_id;
 };
