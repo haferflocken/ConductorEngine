@@ -63,6 +63,8 @@ public:
 	void Add(const T& e);
 	void Add(T&& e);
 
+	void AddAll(const Collection::ArrayView<const T>& elements);
+
 	template <typename... Args>
 	T& Emplace(Args&&... args);
 
@@ -221,6 +223,20 @@ inline void Vector<T>::Add(T&& e)
 	EnsureCapacity(i + 1);
 	new (&m_data[i]) T(std::forward<T>(e));
 	m_count += 1;
+}
+
+template <typename T>
+void Vector<T>::AddAll(const Collection::ArrayView<const T>& elements)
+{
+	uint32_t i = m_count;
+	const uint32_t newCount = i + static_cast<uint32_t>(elements.Size());
+	EnsureCapacity(newCount);
+	for (const auto& e : elements)
+	{
+		new (&m_data[i]) T(e);
+		++i;
+	}
+	m_count = newCount;
 }
 
 template <typename T>

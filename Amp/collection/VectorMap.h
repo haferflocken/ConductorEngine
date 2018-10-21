@@ -44,6 +44,8 @@ public:
 	template <typename Predicate>
 	void RemoveAllMatching(Predicate&& pred);
 
+	void Clear() { m_vector.Clear(); }
+
 	iterator begin() { return reinterpret_cast<value_type*>(m_vector.begin()); }
 	const_iterator begin() const { return reinterpret_cast<const value_type*>(m_vector.begin()); }
 	const_iterator cbegin() const { return begin(); }
