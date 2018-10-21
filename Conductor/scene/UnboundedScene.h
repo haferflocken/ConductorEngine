@@ -44,7 +44,8 @@ class UnboundedScene final : public ECS::SystemTempl<
 	Util::TypeList<ECS::Entity>>
 {
 public:
-	explicit UnboundedScene(const ECS::EntityInfoManager& entityInfoManager);
+	UnboundedScene(const ECS::EntityInfoManager& entityInfoManager,
+		const File::Path& sourcePath, const File::Path& userPath);
 	virtual ~UnboundedScene() {}
 
 	void BringChunkIntoPlay(const ChunkID chunkID);
@@ -60,8 +61,10 @@ private:
 
 	// The EntityInfoManager is needed for chunk loading.
 	const ECS::EntityInfoManager& m_entityInfoManager;
+	// The directory the scene's chunks will be loaded from the first time they are loaded.
+	File::Path m_sourcePath;
 	// The directory the scene's chunks will be stored in.
-	File::Path m_filePath;
+	File::Path m_userPath;
 
 	// A spatial hash that buckets entities by the chunk they are in.
 	class ChunkHashFunctor

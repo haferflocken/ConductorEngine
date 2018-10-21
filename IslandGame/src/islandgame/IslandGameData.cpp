@@ -7,8 +7,9 @@
 #include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 
-IslandGame::IslandGameData::IslandGameData(Asset::AssetManager& assetManager)
-	: IGameData(assetManager)
+IslandGame::IslandGameData::IslandGameData(const File::Path& dataDirectory, const File::Path& userDirectory,
+	Asset::AssetManager& assetManager)
+	: IGameData(dataDirectory, userDirectory, assetManager)
 {
 	using namespace IslandGame::Components;
 

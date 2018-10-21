@@ -10,7 +10,8 @@ namespace IslandGame
 class IslandGameData final : public Conductor::IGameData
 {
 public:
-	explicit IslandGameData(Asset::AssetManager& assetManager);
+	IslandGameData(const File::Path& dataDirectory, const File::Path& userDirectory,
+		Asset::AssetManager& assetManager);
 	virtual ~IslandGameData();
 };
 }

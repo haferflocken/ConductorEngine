@@ -32,7 +32,8 @@ public:
 	// TODO Long term, I don't think text serialization will be fast enough for chunk save & load.
 	static JSON::JSONObject SaveInPlayChunk(const ChunkID chunkID, const ECS::EntityManager& entityManager,
 		const Collection::Vector<const ECS::Entity*>& entitiesInChunk);
-	static Chunk LoadChunkForPlay(const File::Path& chunkFilePath);
+	static Chunk LoadChunkForPlay(const File::Path& sourcePath, const File::Path& userPath,
+		const std::string& chunkFileName);
 
 	Chunk();
 

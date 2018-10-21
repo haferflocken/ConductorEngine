@@ -391,3 +391,9 @@ Mem::UniquePtr<JSON::JSONValue> File::ReadJSONFile(const File::Path& path)
 	const char* input = fullText.data();
 	return Internal_JSONReader::ReadJSONValue(input);
 }
+
+Mem::UniquePtr<JSON::JSONValue> File::ReadJSONFile(const char* const data)
+{
+	const char* input = data;
+	return Internal_JSONReader::ReadJSONValue(input);
+}

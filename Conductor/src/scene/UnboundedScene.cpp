@@ -8,17 +8,20 @@
 
 namespace Internal_UnboundedScene
 {
-std::string MakeChunkIDString(const Scene::ChunkID& chunkID)
+std::string MakeChunkFileName(const Scene::ChunkID& chunkID)
 {
 	return '(' + std::to_string(chunkID.GetX()) + ")(" + std::to_string(chunkID.GetY())
-		+ ")(" + std::to_string(chunkID.GetZ()) + ')';
+		+ ")(" + std::to_string(chunkID.GetZ()) + ").chunk";
 }
 }
 
 namespace Scene
 {
-UnboundedScene::UnboundedScene(const ECS::EntityInfoManager& entityInfoManager)
+UnboundedScene::UnboundedScene(const ECS::EntityInfoManager& entityInfoManager,
+	const File::Path& sourcePath, const File::Path& userPath)
 	: m_entityInfoManager(entityInfoManager)
+	, m_sourcePath(sourcePath)
+	, m_userPath(userPath)
 	, m_spatialHashMap(ChunkHashFunctor(), 12)
 	, m_chunksInPlay()
 	, m_transitionChunksToRefCounts()
@@ -34,7 +37,7 @@ void UnboundedScene::BringChunkIntoPlay(const ChunkID chunkID)
 
 	// Begin asynchronously loading the chunk.
 	m_chunkLoadingFutures.Add(std::async(std::launch::async, Chunk::LoadChunkForPlay,
-		m_filePath / Internal_UnboundedScene::MakeChunkIDString(chunkID)));
+		m_sourcePath, m_userPath, Internal_UnboundedScene::MakeChunkFileName(chunkID)));
 
 	// If the chunk is in the transition zone, remove it.
 	m_transitionChunksToRefCounts.TryRemove(chunkID);
@@ -191,7 +194,7 @@ void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& enti
 	const JSON::JSONObject serializedChunk = Chunk::SaveInPlayChunk(chunkID, entityManager, entitiesInChunk);
 
 	std::ofstream fileOutput;
-	fileOutput.open(m_filePath / Internal_UnboundedScene::MakeChunkIDString(chunkID));
+	fileOutput.open(m_userPath / Internal_UnboundedScene::MakeChunkFileName(chunkID));
 
 	JSON::PrintVisitor printVisitor{ fileOutput };
 	serializedChunk.Accept(&printVisitor);

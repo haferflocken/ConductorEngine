@@ -9,6 +9,7 @@
 Conductor::ApplicationErrorCode Conductor::HostMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	const char* const port,
 	GameDataFactory&& gameDataFactory,
@@ -29,7 +30,7 @@ Conductor::ApplicationErrorCode Conductor::HostMain(
 	}
 
 	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory);
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
 
 	// Create and run a host.
 	Host::HostWorld hostWorld{ *gameData, hostNetworkWorld.GetClientToHostMessageQueue(), std::move(hostFactory) };

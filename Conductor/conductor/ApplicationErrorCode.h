@@ -5,7 +5,8 @@ namespace Conductor
 enum class ApplicationErrorCode : int
 {
 	NoError = 0,
-	MissingDatapath,
+	MissingDataPath,
+	FailedToGetUserPath,
 	MissingApplicationMode,
 	MissingClientHostName,
 	MissingClientHostPort,

@@ -35,10 +35,14 @@ class IGameData
 {
 protected:
 	// Protected constructor so that games must extend this with their own type.
-	explicit IGameData(Asset::AssetManager& assetManager);
+	explicit IGameData(const File::Path& dataDirectory, const File::Path& userDirectory,
+		Asset::AssetManager& assetManager);
 
 public:
 	virtual ~IGameData();
+
+	const File::Path& GetDataDirectory() const { return m_dataDirectory; }
+	const File::Path& GetUserDirectory() const { return m_userDirectory; }
 
 	// Requesting assets modifies the AssetManager, so it cannot be const.
 	Asset::AssetManager& GetAssetManager() const { return m_assetManager; }
@@ -60,6 +64,9 @@ public:
 	void LoadEntityInfosInDirectory(const File::Path& directory);
 
 protected:
+	File::Path m_dataDirectory;
+	File::Path m_userDirectory;
+
 	Asset::AssetManager& m_assetManager;
 
 	Mem::UniquePtr<ECS::ComponentReflector> m_componentReflector;
@@ -72,5 +79,5 @@ protected:
 	Mem::UniquePtr<ECS::EntityInfoManager> m_entityInfoManager;
 };
 
-using GameDataFactory = std::function<Mem::UniquePtr<IGameData>(Asset::AssetManager&, const File::Path&)>;
+using GameDataFactory = std::function<Mem::UniquePtr<IGameData>(Asset::AssetManager&, const File::Path&, const File::Path&)>;
 }

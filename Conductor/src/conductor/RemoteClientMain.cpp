@@ -12,6 +12,7 @@
 Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	const char* const hostName,
 	const char* const hostPort,
@@ -36,7 +37,7 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 		renderInstanceFactory(assetManager, dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
 
 	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory);
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
 
 	// Establish a connection to the networked host.
 	Client::ClientNetworkWorld clientNetworkWorld{ hostName, hostPort };

@@ -35,6 +35,7 @@
 namespace Internal_IslandGame
 {
 constexpr char* k_dataDirectoryParameter = "-datapath";
+constexpr char* k_userGamePath = "Documents/My Games/IslandGame/";
 
 constexpr char* k_vertexShaderPath = "shaders/vertex_shader.glsl";
 constexpr char* k_fragmentShaderPath = "shaders/fragment_shader.glsl";
@@ -53,9 +54,9 @@ enum class ApplicationMode
 };
 
 int ClientMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
-	Asset::AssetManager& assetManager, std::string& hostParam);
+	const File::Path& userDirectory, Asset::AssetManager& assetManager, std::string& hostParam);
 int HostMain(const Collection::ProgramParameters& params, const File::Path& dataDirectory,
-	Asset::AssetManager& assetManager, const std::string& port);
+	const File::Path& userDirectory, Asset::AssetManager& assetManager, const std::string& port);
 
 // Define the factory functions that abstract game code away from engine code.
 Client::RenderInstanceFactory MakeRenderInstanceFactory()
@@ -72,9 +73,9 @@ Client::RenderInstanceFactory MakeRenderInstanceFactory()
 
 Conductor::GameDataFactory MakeGameDataFactory()
 {
-	return [](Asset::AssetManager& assetManager, const File::Path& dataDirectory)
+	return [](Asset::AssetManager& assetManager, const File::Path& dataDirectory, const File::Path& userDirectory)
 	{
-		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>(assetManager);
+		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>(dataDirectory, userDirectory, assetManager);
 		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(), 
 			gameData->GetComponentInfoFactory());
 
@@ -113,10 +114,23 @@ int main(const int argc, const char* argv[])
 	if (!params.TryGet(k_dataDirectoryParameter, dataDirectoryStr))
 	{
 		std::cerr << "Missing required parameter: -datapath <dir>" << std::endl;
-		return static_cast<int>(Conductor::ApplicationErrorCode::MissingDatapath);
+		return static_cast<int>(Conductor::ApplicationErrorCode::MissingDataPath);
 	}
 
 	const File::Path dataDirectory = File::MakePath(dataDirectoryStr.c_str());
+
+	// Get the user directory.
+	char userDirBuffer[128];
+	size_t userDirLength;
+	const errno_t userDirErrorCode = getenv_s(&userDirLength, userDirBuffer, "USERPROFILE");
+
+	if (userDirErrorCode != 0 || userDirLength == 0)
+	{
+		std::cerr << "Failed to get the user path from the system." << std::endl;
+		return static_cast<int>(Conductor::ApplicationErrorCode::FailedToGetUserPath);
+	}
+
+	const File::Path userDirectory = File::MakePath(userDirBuffer) / k_userGamePath;
 
 	// Determine the application mode from the command line parameters.
 	ApplicationMode applicationMode = ApplicationMode::Invalid;
@@ -141,8 +155,8 @@ int main(const int argc, const char* argv[])
 
 	// Run the application in the specified mode.
 	const int result = (applicationMode == ApplicationMode::Client)
-		? ClientMain(params, dataDirectory,assetManager, applicationModeParamater)
-		: HostMain(params, dataDirectory, assetManager, applicationModeParamater);
+		? ClientMain(params, dataDirectory, userDirectory, assetManager, applicationModeParamater)
+		: HostMain(params, dataDirectory, userDirectory, assetManager, applicationModeParamater);
 
 	// Unregister the asset types from the asset manager in the opposite order they were registered.
 	Renderer::UnregisterAssetTypes(assetManager);
@@ -153,6 +167,7 @@ int main(const int argc, const char* argv[])
 int Internal_IslandGame::ClientMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	std::string& hostParam)
 {
@@ -166,7 +181,7 @@ int Internal_IslandGame::ClientMain(
 	// Otherwise, connect to a remote host.
 	if (strcmp(hostParam.c_str(), "newhost") == 0)
 	{
-		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(params, dataDirectory,
+		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(params, dataDirectory, userDirectory,
 			assetManager, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory(), MakeHostFactory());
 		return static_cast<int>(errorCode);
 	}
@@ -182,7 +197,7 @@ int Internal_IslandGame::ClientMain(
 		const char* const hostName = hostParam.c_str();
 		const char* const hostPort = hostName + portStartIndex + 1;
 
-		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(params, dataDirectory,
+		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(params, dataDirectory, userDirectory,
 			assetManager, hostName, hostPort, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory());
 		return static_cast<int>(errorCode);
 	}
@@ -193,6 +208,7 @@ int Internal_IslandGame::ClientMain(
 int Internal_IslandGame::HostMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	const std::string& port)
 {
@@ -203,7 +219,7 @@ int Internal_IslandGame::HostMain(
 	}
 	
 	// Run the host.
-	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, assetManager,
-		port.c_str(), MakeGameDataFactory(), MakeHostFactory());
+	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, userDirectory,
+		assetManager, port.c_str(), MakeGameDataFactory(), MakeHostFactory());
 	return static_cast<int>(errorCode);
 }

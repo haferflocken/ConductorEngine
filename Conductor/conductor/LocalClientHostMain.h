@@ -14,6 +14,7 @@ namespace Conductor
 ApplicationErrorCode LocalClientHostMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	Client::RenderInstanceFactory&& renderInstanceFactory,
 	GameDataFactory&& gameDataFactory,

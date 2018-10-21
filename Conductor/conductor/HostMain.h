@@ -12,6 +12,7 @@ namespace Conductor
 ApplicationErrorCode HostMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	const char* const port,
 	GameDataFactory&& gameDataFactory,

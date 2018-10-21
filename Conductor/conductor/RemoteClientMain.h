@@ -13,6 +13,7 @@ namespace Conductor
 ApplicationErrorCode RemoteClientMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	const char* const hostName,
 	const char* const hostPort,

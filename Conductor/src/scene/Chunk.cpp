@@ -4,6 +4,7 @@
 #include <ecs/Entity.h>
 #include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
+#include <file/FullFileReader.h>
 #include <file/JSONReader.h>
 
 namespace Internal_Chunk
@@ -59,12 +60,20 @@ JSON::JSONObject Chunk::SaveInPlayChunk(const ChunkID chunkID, const ECS::Entity
 	return serializedChunk;
 }
 
-Chunk Chunk::LoadChunkForPlay(const File::Path& chunkFilePath)
+Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& userPath,
+	const std::string& chunkFileName)
 {
 	using namespace Internal_Chunk;
 	Chunk outChunk;
 
-	Mem::UniquePtr<JSON::JSONObject> serializedChunk = File::ReadJSONFile(chunkFilePath);
+	// If the chunk exists at the user path, load it. Otherwise load it from the source path.
+	std::string rawChunk = File::ReadFullTextFile(userPath / chunkFileName);
+	if (rawChunk.empty())
+	{
+		rawChunk = File::ReadFullTextFile(sourcePath / chunkFileName);
+	}
+
+	Mem::UniquePtr<JSON::JSONObject> serializedChunk = File::ReadJSONFile(rawChunk.c_str());
 
 	// Load the entities in the chunk.
 	JSON::JSONArray* const serializedEntities = serializedChunk->FindArray(k_entitiesHash);

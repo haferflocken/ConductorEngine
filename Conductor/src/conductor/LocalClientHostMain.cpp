@@ -12,6 +12,7 @@
 Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
+	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,
 	Client::RenderInstanceFactory&& renderInstanceFactory,
 	GameDataFactory&& gameDataFactory,
@@ -29,7 +30,7 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 		renderInstanceFactory(assetManager, dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
 
 	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory);
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
 
 	// Create the message queues that will allow the client and host to communicate.
 	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{

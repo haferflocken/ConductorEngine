@@ -8,4 +8,5 @@ namespace Mem { template <typename T> class UniquePtr; }
 namespace File
 {
 Mem::UniquePtr<JSON::JSONValue> ReadJSONFile(const Path& path);
+Mem::UniquePtr<JSON::JSONValue> ReadJSONFile(const char* const data);
 }
