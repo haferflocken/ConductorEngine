@@ -1,16 +1,6 @@
 Amp/Conductor TODO:
-[x] Move meshes from Renderer to Conductor
-	Meshes have rigs & collision geo that cannot be isolated into the renderer.
-	Components must be moved; systems that render remain in the renderer.
-	[x] Decouple bgfx data from mesh component so Conductor doesn't depend on it
-		[x] EntityManager must track components added and removed per frame
-			Can track either by component type or entity ID. Systems should only be informed of components
-			added and removed on entities that they match.
-			This will make it easier for systems to store data about their components outside of their components.
-		[x] Store bgfx data in Renderer::MeshSystem rather than in MeshComponent
-
 [ ] Use UnboundedScene as a level format.
-	[ ] New component & system that loads chunks around it: Scene::AnchorComponent
+	[x] New component & system that loads chunks around it: Scene::AnchorComponent
 	[ ] Test scene of a camera and a mesh
 	[ ] Binary chunk format
 
@@ -36,3 +26,13 @@ IslandGame TODO:
 
 DONE:
 [x] LinearBlockAllocator must respect alignment of each element in a block
+
+[x] Move meshes from Renderer to Conductor
+	Meshes have rigs & collision geo that cannot be isolated into the renderer.
+	Components must be moved; systems that render remain in the renderer.
+	[x] Decouple bgfx data from mesh component so Conductor doesn't depend on it
+		[x] EntityManager must track components added and removed per frame
+			Can track either by component type or entity ID. Systems should only be informed of components
+			added and removed on entities that they match.
+			This will make it easier for systems to store data about their components outside of their components.
+		[x] Store bgfx data in Renderer::MeshSystem rather than in MeshComponent
