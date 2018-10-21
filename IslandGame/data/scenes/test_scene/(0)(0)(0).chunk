@@ -1,0 +1,16 @@
+{
+	"entities": [
+		{
+			"id": 21,
+			"info": "islander.json",
+			"components": {
+				"behaviour_tree_component": {},
+				"blackboard_component": {},
+				"scene_transform_component": {},
+				"anchor_component": {},
+				"islander_component": {},
+				"mesh_component": {}
+			}
+		}
+	]
+}

@@ -6,12 +6,13 @@
         "TestCall"
       ]
     },
-    { "type":  "blackboard_component" },
+    { "type": "blackboard_component" },
     { "type": "scene_transform_component" },
+    { "type": "anchor_component" },
     { "type": "islander_component" },
     {
       "type": "mesh_component",
-      "mesh_file_path":  "meshes/simple_quad.cms"
+      "mesh_file_path": "meshes/simple_quad.cms"
     }
   ]
 }
