@@ -1,5 +1,6 @@
 #pragma once
 
+#include <collection/Pair.h>
 #include <ecs/EntityID.h>
 #include <file/Path.h>
 #include <json/JSONTypes.h>
@@ -60,7 +61,7 @@ private:
 
 		ECS::EntityID m_entityID{};
 		Util::StringHash m_entityInfoNameHash{};
-		Collection::Vector<JSON::JSONObject> m_serializedComponents{};
+		Collection::Vector<Collection::Pair<Util::StringHash, JSON::JSONObject>> m_serializedComponents{};
 	};
 	Collection::Vector<SerializedEntity> m_entityData{};
 };

@@ -13,8 +13,6 @@ const Util::StringHash k_entitiesHash = Util::CalcHash("entities");
 const Util::StringHash k_idHash = Util::CalcHash("id");
 const Util::StringHash k_infoHash = Util::CalcHash("info");
 const Util::StringHash k_componentsHash = Util::CalcHash("components");
-
-const Util::StringHash k_typeKeyHash = Util::CalcHash("type");
 }
 
 namespace Scene
@@ -40,13 +38,15 @@ JSON::JSONObject Chunk::SaveInPlayChunk(const ChunkID chunkID, const ECS::Entity
 			serializedEntity->Emplace("info", std::move(serializedInfoName));
 		}
 		{
-			auto serializedComponents = Mem::MakeUnique<JSON::JSONArray>();
+			auto serializedComponents = Mem::MakeUnique<JSON::JSONObject>();
 
 			for (const auto& componentID : entity->GetComponentIDs())
 			{
 				const ECS::Component& component = *entityManager.FindComponent(componentID);
 				JSON::JSONObject serializedComponent = component.Save();
-				serializedComponents->Add(Mem::MakeUnique<JSON::JSONObject>(std::move(serializedComponent)));
+				const std::string componentTypeName = Util::ReverseHash(component.m_id.GetType().GetTypeHash());
+				serializedComponents->Emplace(componentTypeName,
+					Mem::MakeUnique<JSON::JSONObject>(std::move(serializedComponent)));
 			}
 
 			serializedEntity->Emplace("components", std::move(serializedComponents));
@@ -74,6 +74,10 @@ Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& us
 	}
 
 	Mem::UniquePtr<JSON::JSONObject> serializedChunk = File::ReadJSONFile(rawChunk.c_str());
+	if (serializedChunk == nullptr)
+	{
+		return outChunk;
+	}
 
 	// Load the entities in the chunk.
 	JSON::JSONArray* const serializedEntities = serializedChunk->FindArray(k_entitiesHash);
@@ -92,7 +96,7 @@ Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& us
 
 		const auto serializedID = serializedEntity.FindNumber(k_idHash);
 		const auto serializedInfoName = serializedEntity.FindString(k_infoHash);
-		auto serializedComponents = serializedEntity.FindArray(k_componentsHash);
+		auto serializedComponents = serializedEntity.FindObject(k_componentsHash);
 		if (serializedID == nullptr || serializedInfoName == nullptr || serializedComponents == nullptr)
 		{
 			continue;
@@ -102,14 +106,18 @@ Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& us
 		entityDatum.m_entityID = ECS::EntityID(static_cast<uint32_t>(serializedID->m_number));
 		entityDatum.m_entityInfoNameHash = serializedInfoName->m_hash;
 
-		for (auto& rawSerializedComponent : *serializedComponents)
+		for (auto& entry : *serializedComponents)
 		{
+			const std::string& componentTypeName = entry.first;
+			Mem::UniquePtr<JSON::JSONValue>& rawSerializedComponent = entry.second;
+
 			if (rawSerializedComponent->GetType() != JSON::ValueType::Object)
 			{
 				continue;
 			}
 			JSON::JSONObject& serializedComponent = *static_cast<JSON::JSONObject*>(rawSerializedComponent.Get());
-			entityDatum.m_serializedComponents.Add(std::move(serializedComponent));
+			// TODO don't recalculate the hash
+			entityDatum.m_serializedComponents.Emplace(Util::CalcHash(componentTypeName), std::move(serializedComponent));
 		}
 	}
 
@@ -151,26 +159,19 @@ void Chunk::PutChunkEntitiesIntoPlay(
 		}
 		
 		// Apply the serialized component data to the entity.
-		for (const auto& serializedComponent : entityDatum.m_serializedComponents)
+		for (const auto& serializedComponentEntry : entityDatum.m_serializedComponents)
 		{
-			const JSON::JSONString* const typeString = serializedComponent.FindString(Internal_Chunk::k_typeKeyHash);
-			if (typeString == nullptr)
-			{
-				Dev::LogWarning("Failed to find a component type string for entity with ID [%u].",
-					entityDatum.m_entityID.GetUniqueID());
-				continue;
-			}
-
-			const ECS::ComponentID componentID = entity->FindComponentID(ECS::ComponentType(typeString->m_hash));
+			const Util::StringHash typeHash = serializedComponentEntry.first;
+			const ECS::ComponentID componentID = entity->FindComponentID(ECS::ComponentType(typeHash));
 			if (componentID == ECS::ComponentID())
 			{
 				Dev::LogWarning("Failed to find a component with type [%s] in entity with ID [%u].",
-					typeString->m_string.c_str(), entityDatum.m_entityID.GetUniqueID());
+					Util::ReverseHash(typeHash), entityDatum.m_entityID.GetUniqueID());
 				continue;
 			}
 
 			ECS::Component& component = *entityManager.FindComponent(componentID);
-			component.Load(serializedComponent);
+			component.Load(serializedComponentEntry.second);
 		}
 	}
 }

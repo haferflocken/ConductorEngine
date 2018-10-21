@@ -13,6 +13,8 @@
 #include <ecs/EntityInfoManager.h>
 #include <mesh/MeshComponent.h>
 #include <mesh/MeshComponentInfo.h>
+#include <scene/AnchorComponent.h>
+#include <scene/AnchorComponentInfo.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
@@ -38,15 +40,17 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	m_componentReflector->RegisterComponentType<Behave::BlackboardComponent>();
 	m_componentReflector->RegisterComponentType<Mesh::MeshComponent>();
 	m_componentReflector->RegisterComponentType<Scene::SceneTransformComponent>();
+	m_componentReflector->RegisterComponentType<Scene::AnchorComponent>();
 
 	// Bind functions to the Behave interpreter.
 	Behave::BlackboardComponent::BindFunctions(*m_behaveASTInterpreter);
 
 	// Register ECS component info types.
 	m_componentInfoFactory->RegisterFactoryFunction<Behave::BehaviourTreeComponentInfo>();
-	m_componentInfoFactory->RegisterFactoryFunction<Mesh::MeshComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Behave::BlackboardComponentInfo>();
+	m_componentInfoFactory->RegisterFactoryFunction<Mesh::MeshComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Scene::SceneTransformComponentInfo>();
+	m_componentInfoFactory->RegisterFactoryFunction<Scene::AnchorComponentInfo>();
 }
 
 IGameData::~IGameData()
