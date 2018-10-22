@@ -71,10 +71,12 @@ Collection::Vector<uint8_t> Chunk::SaveInPlayChunk(const ChunkID chunkID, const 
 			Mem::Serialize(uint16_t(0), chunkBytes);
 
 			// Serialize the component to bytes and store its length before it.
+			const uint32_t componentBytesIndex = chunkBytes.Size();
+
 			const ECS::Component& component = *entityManager.FindComponent(componentID);
 			component.Save(chunkBytes);
 
-			const uint32_t numComponentBytes = chunkBytes.Size() - numComponentBytesIndex;
+			const uint32_t numComponentBytes = chunkBytes.Size() - componentBytesIndex;
 
 			chunkBytes[numComponentBytesIndex] = static_cast<uint8_t>(numComponentBytes >> 8);
 			chunkBytes[numComponentBytesIndex + 1] = static_cast<uint8_t>(numComponentBytes);

@@ -152,34 +152,39 @@ inline Collection::Pair<int64_t, bool> DeserializeI64(const uint8_t*& bytes, con
 
 inline void Serialize(const char* str, Collection::Vector<uint8_t>& out)
 {
-	while (*str != '\0')
+	uint16_t length = 0;
+	while (str[length] != '\0')
 	{
-		out.Add(*str);
-		++str;
+		++length;
 	}
-	out.Add('\0');
+
+	Serialize(length, out);
+	out.AddAll({ reinterpret_cast<const uint8_t*>(str), length });
 }
 
 template <size_t Capacity>
 inline bool DeserializeString(const uint8_t*& bytes, const uint8_t* bytesEnd, char (&outStr)[Capacity])
 {
-	if (bytes + Capacity - 1 >= bytesEnd)
+	if (bytes + 2 >= bytesEnd)
 	{
 		return false;
 	}
 
-	size_t i = 0;
-	while (*bytes != '\0' && i < Capacity - 1)
-	{
-		outStr[i++] = *(bytes++);
-	}
+	size_t length = *(bytes++);
+	length <<= 8;
+	length |= *(bytes++);
 
-	if (i == (Capacity - 1) && *bytes != '\0')
+	if (bytes + length >= bytesEnd || length > Capacity)
 	{
 		return false;
 	}
 
-	outStr[i] = '\0';
+	for (size_t i = 0; i < length; ++i)
+	{
+		outStr[i] = *(bytes++);
+	}
+	outStr[length] = '\0';
+
 	return true;
 }
 }
