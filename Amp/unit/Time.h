@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace Unit { namespace Time {
-
+namespace Unit::Time
+{
 struct Millisecond;
 struct Second;
 
@@ -30,8 +30,7 @@ struct Second : public UnitTempl<Second, uint64_t>
 
 inline Millisecond::operator Second() const { return Second(m_n / 1000); }
 inline Second::operator Millisecond() const { return Millisecond(m_n * 1000); }
-
-}}
+}
 
 namespace Traits
 {

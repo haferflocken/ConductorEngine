@@ -159,6 +159,7 @@
     <ClInclude Include="mem\UniquePtr.h" />
     <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
     <ClInclude Include="unit\CountUnits.h" />
+    <ClInclude Include="unit\DistanceUnits.h" />
     <ClInclude Include="unit\Time.h" />
     <ClInclude Include="unit\UnitTempl.h" />
     <ClInclude Include="util\StringHash.h" />
