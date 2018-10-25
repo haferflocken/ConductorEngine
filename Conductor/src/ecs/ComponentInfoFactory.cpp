@@ -19,7 +19,8 @@ void ECS::ComponentInfoFactory::RegisterFactoryFunction(
 {
 	const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeName);
 	AMP_FATAL_ASSERT(m_factoryFunctions.Find(componentTypeHash) == m_factoryFunctions.end(),
-		"Attempted to register a factory function for component type \"%s\", but there already is one.");
+		"Attempted to register a factory function for component type \"%s\", but there already is one.",
+		componentTypeName);
 	m_factoryFunctions[componentTypeHash] = std::move(fn);
 }
 
@@ -30,14 +31,14 @@ Mem::UniquePtr<ECS::ComponentInfo> ECS::ComponentInfoFactory::MakeComponentInfo(
 		jsonObject.FindString(Internal_ComponentInfoFactory::k_typeKeyHash);
 	if (jsonTypeName == nullptr)
 	{
-		Dev::LogWarning("Failed to find a type name.");
+		AMP_LOG_WARNING("Failed to find a type name.");
 		return nullptr;
 	}
 
 	const auto factoryItr = m_factoryFunctions.Find(jsonTypeName->m_hash);
 	if (factoryItr == m_factoryFunctions.end())
 	{
-		Dev::LogWarning("Failed to find a factory function for component type \"%s\".",
+		AMP_LOG_WARNING("Failed to find a factory function for component type \"%s\".",
 			jsonTypeName->m_string.c_str());
 		return nullptr;
 	}

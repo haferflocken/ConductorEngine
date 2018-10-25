@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-void Dev::PrintMessage(const char* const message)
+void Dev::PrintMessage(const MessageType messageType, const char* const message)
 {
 	std::cout << message << std::endl;
 }

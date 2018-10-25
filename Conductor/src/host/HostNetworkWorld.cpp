@@ -77,7 +77,7 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 			const Client::ClientID clientID{
 				static_cast<uint16_t>(k_localClientID.GetN() + m_networkConnectedClients.Size() + 1) };
 
-			Dev::Log("New client connection accepted. ID: %u", clientID.GetN());
+			AMP_LOG("New client connection accepted. ID: %u", clientID.GetN());
 
 			Mem::UniquePtr<NetworkConnectedClient>& networkConnectedClient = m_networkConnectedClients[clientID];
 			networkConnectedClient = Mem::MakeUnique<NetworkConnectedClient>();

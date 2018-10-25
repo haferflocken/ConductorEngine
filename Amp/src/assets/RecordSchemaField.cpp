@@ -51,7 +51,7 @@ void ConstructData(RecordSchemaField& destination, RecordSchemaField&& source)
 	}
 	default:
 	{
-		Dev::FatalError("Unknown field type [%d]", static_cast<int32_t>(destination.m_type));
+		AMP_FATAL_ERROR("Unknown field type [%d]", static_cast<int32_t>(destination.m_type));
 		break;
 	}
 	}
@@ -102,7 +102,7 @@ void MoveData(RecordSchemaField& destination, RecordSchemaField&& source)
 	}
 	default:
 	{
-		Dev::FatalError("Unknown field type [%d]", static_cast<int32_t>(destination.m_type));
+		AMP_FATAL_ERROR("Unknown field type [%d]", static_cast<int32_t>(destination.m_type));
 		break;
 	}
 	}
@@ -159,7 +159,7 @@ void DestroyInfoSchemaField(RecordSchemaField& field)
 	}
 	default:
 	{
-		Dev::FatalError("Unknown field type [%d]", static_cast<int32_t>(field.m_type));
+		AMP_FATAL_ERROR("Unknown field type [%d]", static_cast<int32_t>(field.m_type));
 		break;
 	}
 	}

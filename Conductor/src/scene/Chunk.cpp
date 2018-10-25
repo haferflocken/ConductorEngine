@@ -212,7 +212,7 @@ void Chunk::PutChunkEntitiesIntoPlay(
 		const ECS::EntityInfo* const info = entityInfoManager.FindEntityInfo(entityDatum.m_entityInfoNameHash);
 		if (info == nullptr)
 		{
-			Dev::LogWarning("Failed to find entity info for serialized entity with ID [%u].",
+			AMP_LOG_WARNING("Failed to find entity info for serialized entity with ID [%u].",
 				entityDatum.m_entityID.GetUniqueID());
 			continue;
 		}
@@ -236,7 +236,7 @@ void Chunk::PutChunkEntitiesIntoPlay(
 			const ECS::ComponentID componentID = entity->FindComponentID(serializedComponent.m_componentType);
 			if (componentID == ECS::ComponentID())
 			{
-				Dev::LogWarning("Failed to find a component with type [%s] in entity with ID [%u].",
+				AMP_LOG_WARNING("Failed to find a component with type [%s] in entity with ID [%u].",
 					Util::ReverseHash(serializedComponent.m_componentType.GetTypeHash()),
 					entityDatum.m_entityID.GetUniqueID());
 				continue;

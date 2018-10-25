@@ -83,7 +83,7 @@ void LinearBlockAllocator::Free(void* ptr)
 			return;
 		}
 	}
-	Dev::FatalError("LinearAllocator failed to free pointer %p.", ptr);
+	AMP_FATAL_ERROR("LinearAllocator failed to free pointer %p.", ptr);
 }
 
 bool LinearBlockAllocator::IsEmpty() const

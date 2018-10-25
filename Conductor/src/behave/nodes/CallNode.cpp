@@ -40,7 +40,7 @@ public:
 				context.m_behaviourTreeManager.FindTree(m_node->GetTreeToCall());
 			if (treeToCall == nullptr)
 			{
-				Dev::LogWarning("Failed to resolve \"%s\" into a tree to call.",
+				AMP_LOG_WARNING("Failed to resolve \"%s\" into a tree to call.",
 					Util::ReverseHash(m_node->GetTreeToCall()));
 				return EvaluateResult::Failure;
 			}
@@ -74,7 +74,7 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::CallNode::CreateFromNodeExp
 	if (nodeExpression.m_arguments.Size() != 1
 		|| !nodeExpression.m_arguments.Front().Is<Parse::IdentifierExpression>())
 	{
-		Dev::LogWarning("Call nodes take only one argument: a tree identifier.");
+		AMP_LOG_WARNING("Call nodes take only one argument: a tree identifier.");
 		return nullptr;
 	}
 

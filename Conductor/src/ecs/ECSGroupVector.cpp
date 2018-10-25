@@ -40,7 +40,7 @@ void ECS::ECSGroupVector::Remove(const Collection::Vector<void*>& pointers)
 		}
 	}
 
-	Dev::FatalError("Failed to remove the given group.");
+	AMP_FATAL_ERROR("Failed to remove the given group.");
 }
 
 namespace Internal_ECSGroupVector
@@ -76,6 +76,6 @@ void ECS::ECSGroupVector::Sort()
 	case 3: SortGroups<3>(m_data, Size()); break;
 	case 4: SortGroups<4>(m_data, Size()); break;
 	case 5: SortGroups<5>(m_data, Size()); break;
-	default: Dev::FatalError("Encountered an ECS group with more elements than expected."); break;
+	default: AMP_FATAL_ERROR("Encountered an ECS group with more elements than expected."); break;
 	}
 }

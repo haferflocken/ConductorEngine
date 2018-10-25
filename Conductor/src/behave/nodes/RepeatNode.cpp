@@ -42,12 +42,12 @@ public:
 		case EvaluateResult::PushedNode:
 		case EvaluateResult::Return:
 		{
-			Dev::FatalError("Invalid code path encountered: child result should never be PushedNode or Return.");
+			AMP_FATAL_ERROR("Invalid code path encountered: child result should never be PushedNode or Return.");
 			return EvaluateResult::Failure;
 		}
 		default:
 		{
-			Dev::FatalError("Unknown result type [%d].", static_cast<int32_t>(m_childResult));
+			AMP_FATAL_ERROR("Unknown result type [%d].", static_cast<int32_t>(m_childResult));
 			return EvaluateResult::Failure;
 		}
 		}
@@ -69,7 +69,7 @@ Mem::UniquePtr<BehaviourNode> Nodes::RepeatNode::CreateFromNodeExpression(const 
 {
 	if (nodeExpression.m_arguments.Size() != 1 || !nodeExpression.m_arguments.Front().Is<Parse::NodeExpression>())
 	{
-		Dev::LogWarning("Repeat nodes take only one argument: a node expression.");
+		AMP_LOG_WARNING("Repeat nodes take only one argument: a node expression.");
 		return nullptr;
 	}
 

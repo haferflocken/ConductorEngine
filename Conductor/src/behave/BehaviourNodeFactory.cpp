@@ -42,7 +42,8 @@ void BehaviourNodeFactory::RegisterNodeFactoryFunction(
 {
 	const Util::StringHash nodeTypeHash = Util::CalcHash(nodeType);
 	AMP_FATAL_ASSERT(m_nodeFactoryFunctions.Find(nodeTypeHash) == m_nodeFactoryFunctions.end(),
-		"Attempted to register a factory function for node type \"%s\", but there already is one.");
+		"Attempted to register a factory function for node type \"%s\", but there already is one.",
+		nodeType);
 	m_nodeFactoryFunctions[nodeTypeHash] = std::move(fn);
 }
 
@@ -53,7 +54,7 @@ Mem::UniquePtr<BehaviourNode> BehaviourNodeFactory::MakeNode(
 	const auto factoryItr = m_nodeFactoryFunctions.Find(Util::CalcHash(nodeExpression.m_nodeName));
 	if (factoryItr == m_nodeFactoryFunctions.end())
 	{
-		Dev::LogWarning("Failed to find a factory function for node type \"%s\".", nodeExpression.m_nodeName.c_str());
+		AMP_LOG_WARNING("Failed to find a factory function for node type \"%s\".", nodeExpression.m_nodeName.c_str());
 		return nullptr;
 	}
 
@@ -66,7 +67,7 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(Parse::Ex
 	if (!compileResult.Is<AST::Expression>())
 	{
 		const AST::TypeCheckFailure& typeCheckFailure = compileResult.Get<AST::TypeCheckFailure>();
-		Dev::LogWarning("Type Checking Failure: %s", typeCheckFailure.m_message.c_str());
+		AMP_LOG_WARNING("Type Checking Failure: %s", typeCheckFailure.m_message.c_str());
 		return nullptr;
 	}
 
@@ -88,7 +89,7 @@ Mem::UniquePtr<BehaviourCondition> BehaviourNodeFactory::MakeCondition(Parse::Ex
 
 	if (!expressionResultsInBool)
 	{
-		Dev::LogWarning("Conditions may only be constructed from expressions that result in bool.");
+		AMP_LOG_WARNING("Conditions may only be constructed from expressions that result in bool.");
 		return nullptr;
 	}
 
@@ -104,7 +105,7 @@ bool BehaviourNodeFactory::TryMakeNodesFrom(
 	{
 		if (!expression.Is<Parse::NodeExpression>())
 		{
-			Dev::LogWarning("Cannot create a node from an expression that is not a node expression.");
+			AMP_LOG_WARNING("Cannot create a node from an expression that is not a node expression.");
 			return false;
 		}
 

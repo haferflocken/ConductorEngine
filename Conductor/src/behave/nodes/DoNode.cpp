@@ -50,7 +50,7 @@ Mem::UniquePtr<BehaviourNode> Nodes::DoNode::CreateFromNodeExpression(
 		if (!compileResult.Is<AST::Expression>())
 		{
 			const AST::TypeCheckFailure& typeCheckFailure = compileResult.Get<AST::TypeCheckFailure>();
-			Dev::LogWarning("Type Checking Failure: %s", typeCheckFailure.m_message.c_str());
+			AMP_LOG_WARNING("Type Checking Failure: %s", typeCheckFailure.m_message.c_str());
 			return nullptr;
 		}
 		expressions.Add(std::move(compileResult.Get<AST::Expression>()));

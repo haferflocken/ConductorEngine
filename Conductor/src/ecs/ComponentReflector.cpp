@@ -16,7 +16,7 @@ void ECS::ComponentReflector::RegisterComponentType(const char* const componentT
 	const ComponentType componentType{ componentTypeHash };
 
 	AMP_FATAL_ASSERT(componentTypeHash == Util::CalcHash(componentTypeName),
-		"Mismatch between component type hash and component type name for component with type name \"s\".",
+		"Mismatch between component type hash and component type name for component with type name \"%s\".",
 		componentTypeName);
 	
 	AMP_FATAL_ASSERT(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
@@ -44,7 +44,7 @@ Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(const Compo
 	const auto sizeItr = m_componentSizesInBytes.Find(componentType);
 	if (sizeItr == m_componentSizesInBytes.end())
 	{
-		Dev::LogWarning("Failed to find the size of component type \"%s\".",
+		AMP_LOG_WARNING("Failed to find the size of component type \"%s\".",
 			Util::ReverseHash(componentType.GetTypeHash()));
 		return Unit::ByteCount64(0);
 	}
@@ -57,7 +57,7 @@ Unit::ByteCount64 ECS::ComponentReflector::GetAlignOfComponentInBytes(const Comp
 	const auto alignItr = m_componentAlignmentsInBytes.Find(componentType);
 	if (alignItr == m_componentAlignmentsInBytes.end())
 	{
-		Dev::LogWarning("Failed to find the align of component type \"%s\".",
+		AMP_LOG_WARNING("Failed to find the align of component type \"%s\".",
 			Util::ReverseHash(componentType.GetTypeHash()));
 		return Unit::ByteCount64(0);
 	}
@@ -71,7 +71,7 @@ bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager
 	const auto factoryItr = m_factoryFunctions.Find(ComponentType(componentInfo.GetTypeHash()));
 	if (factoryItr == m_factoryFunctions.end())
 	{
-		Dev::LogWarning("Failed to find a factory function for component type \"%s\".", componentInfo.GetTypeName());
+		AMP_LOG_WARNING("Failed to find a factory function for component type \"%s\".", componentInfo.GetTypeName());
 		return false;
 	}
 

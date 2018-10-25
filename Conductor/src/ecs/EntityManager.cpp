@@ -705,7 +705,7 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 
 	if (!m_componentReflector.TryMakeComponent(m_assetManager, componentInfo, componentID, componentVector))
 	{
-		Dev::LogWarning("Failed to create component of type [%s].", componentInfo.GetTypeName());
+		AMP_LOG_WARNING("Failed to create component of type [%s].", componentInfo.GetTypeName());
 		return;
 	}
 

@@ -205,7 +205,7 @@ RenderInstance::Status RenderInstance::Update()
 	}
 	default:
 	{
-		Dev::FatalError("Unknown render instance status [%d].", static_cast<int32_t>(m_status));
+		AMP_FATAL_ERROR("Unknown render instance status [%d].", static_cast<int32_t>(m_status));
 		return Status::ErrorTerminated;
 	}
 	}

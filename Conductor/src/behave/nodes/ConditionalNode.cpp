@@ -72,7 +72,7 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFrom
 {
 	if (nodeExpression.m_arguments.IsEmpty() || (nodeExpression.m_arguments.Size() & 1) == 1)
 	{
-		Dev::LogWarning("Condition nodes require a positive, even number of arguments. "
+		AMP_LOG_WARNING("Condition nodes require a positive, even number of arguments. "
 			"Its arguments should be a alternating series of conditions and nodes.");
 		return nullptr;
 	}
@@ -86,7 +86,7 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::ConditionalNode::CreateFrom
 
 		if (!childExpression.Is<Parse::NodeExpression>())
 		{
-			Dev::LogWarning("Failed to create condition node: argument %zu was not a node expression.", i + 1);
+			AMP_LOG_WARNING("Failed to create condition node: argument %zu was not a node expression.", i + 1);
 			return nullptr;
 		}
 

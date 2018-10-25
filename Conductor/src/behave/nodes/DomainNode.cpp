@@ -75,7 +75,7 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::DomainNode::CreateFromNodeE
 {
 	if (nodeExpression.m_arguments.Size() != 2)
 	{
-		Dev::LogWarning("Domain nodes take exactly two arguments: a condition and node expression.");
+		AMP_LOG_WARNING("Domain nodes take exactly two arguments: a condition and node expression.");
 		return nullptr;
 	}
 
@@ -87,7 +87,7 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::DomainNode::CreateFromNodeE
 
 	if (!nodeExpression.m_arguments.Back().Is<Parse::NodeExpression>())
 	{
-		Dev::LogWarning("Domain nodes require a node expression as their second argument.");
+		AMP_LOG_WARNING("Domain nodes require a node expression as their second argument.");
 		return nullptr;
 	}
 

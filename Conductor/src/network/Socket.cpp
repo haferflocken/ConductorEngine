@@ -13,10 +13,10 @@ bool Network::TryInitializeSocketAPI()
 	int errorCode = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (errorCode != 0)
 	{
-		Dev::LogError("WSAStartup() failed with error code [%d].", errorCode);
+		AMP_LOG_ERROR("WSAStartup() failed with error code [%d].", errorCode);
 		return false;
 	}
-	Dev::Log("%s", wsaData.szDescription);
+	AMP_LOG("%s", wsaData.szDescription);
 	return true;
 }
 
@@ -66,7 +66,7 @@ bool Network::Socket::TryListen()
 {
 	if (listen(m_impl->m_platformSocket, SOMAXCONN) == SOCKET_ERROR)
 	{
-		Dev::LogError("listen() failed with error code [%d].", WSAGetLastError());
+		AMP_LOG_ERROR("listen() failed with error code [%d].", WSAGetLastError());
 		closesocket(m_impl->m_platformSocket);
 		m_impl->m_platformSocket = INVALID_SOCKET; 
 		return false;
@@ -79,7 +79,7 @@ Network::Socket Network::Socket::Accept()
 	SOCKET clientSocket = accept(m_impl->m_platformSocket, nullptr, nullptr);
 	if (clientSocket == INVALID_SOCKET)
 	{
-		Dev::LogError("accept() failed with error code [%d].", WSAGetLastError());
+		AMP_LOG_ERROR("accept() failed with error code [%d].", WSAGetLastError());
 		closesocket(clientSocket);
 		return Socket();
 	}
@@ -106,7 +106,7 @@ size_t Network::Socket::AcceptPendingConnections(Socket* outSockets, const size_
 		const int result = select(0, &readSockets, nullptr, nullptr, &timeout);
 		if (result == SOCKET_ERROR)
 		{
-			Dev::LogError("select() failed with error code [%d].", WSAGetLastError());
+			AMP_LOG_ERROR("select() failed with error code [%d].", WSAGetLastError());
 			return i;
 		}
 		if (result == 0)
@@ -139,7 +139,7 @@ Network::Socket Network::CreateAndBindListenerSocket(const char* port)
 	const int errorCode = getaddrinfo(NULL, port, &hints, &result);
 	if (errorCode != 0)
 	{
-		Dev::LogError("getaddrinfo() failed with error code [%d].", errorCode);
+		AMP_LOG_ERROR("getaddrinfo() failed with error code [%d].", errorCode);
 		return Socket();
 	}
 
@@ -147,7 +147,7 @@ Network::Socket Network::CreateAndBindListenerSocket(const char* port)
 	SOCKET listenerSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 	if (listenerSocket == INVALID_SOCKET)
 	{
-		Dev::LogError("socket() failed with error code [%d].", WSAGetLastError());
+		AMP_LOG_ERROR("socket() failed with error code [%d].", WSAGetLastError());
 		freeaddrinfo(result);
 		return Socket();
 	}
@@ -155,7 +155,7 @@ Network::Socket Network::CreateAndBindListenerSocket(const char* port)
 	// Bind the socket.
 	if (bind(listenerSocket, result->ai_addr, static_cast<int>(result->ai_addrlen)) == SOCKET_ERROR)
 	{
-		Dev::LogError("bind() failed with error code [%d].", WSAGetLastError());
+		AMP_LOG_ERROR("bind() failed with error code [%d].", WSAGetLastError());
 		freeaddrinfo(result);
 		closesocket(listenerSocket);
 		return Socket();
@@ -183,7 +183,7 @@ Network::Socket Network::CreateConnectedSocket(const char* hostName, const char*
 	const int errorCode = getaddrinfo(hostName, port, &hints, &result);
 	if (errorCode != 0)
 	{
-		Dev::LogError("getaddrinfo() failed with error code [%d].", errorCode);
+		AMP_LOG_ERROR("getaddrinfo() failed with error code [%d].", errorCode);
 		return Socket();
 	}
 
@@ -192,7 +192,7 @@ Network::Socket Network::CreateConnectedSocket(const char* hostName, const char*
 	SOCKET connectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 	if (connectSocket == INVALID_SOCKET)
 	{
-		Dev::LogError("socket() failed with error code [%d].", WSAGetLastError());
+		AMP_LOG_ERROR("socket() failed with error code [%d].", WSAGetLastError());
 		freeaddrinfo(result);
 		return Socket();
 	}
@@ -200,7 +200,7 @@ Network::Socket Network::CreateConnectedSocket(const char* hostName, const char*
 	// Connect the socket to the host.
 	if (connect(connectSocket, ptr->ai_addr, static_cast<int>(ptr->ai_addrlen)) == SOCKET_ERROR)
 	{
-		Dev::LogError("connect() failed with error code [%d].", WSAGetLastError());
+		AMP_LOG_ERROR("connect() failed with error code [%d].", WSAGetLastError());
 		freeaddrinfo(result);
 		closesocket(connectSocket);
 		return Socket();

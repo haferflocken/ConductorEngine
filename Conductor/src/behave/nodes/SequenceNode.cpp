@@ -64,12 +64,12 @@ public:
 		case EvaluateResult::PushedNode:
 		case EvaluateResult::Return:
 		{
-			Dev::FatalError("Invalid result type [%d] for sequence.", static_cast<int32_t>(result));
+			AMP_FATAL_ERROR("Invalid result type [%d] for sequence.", static_cast<int32_t>(result));
 			break;
 		}
 		default:
 		{
-			Dev::FatalError("Unknown result type [%d].", static_cast<int32_t>(result));
+			AMP_FATAL_ERROR("Unknown result type [%d].", static_cast<int32_t>(result));
 			break;
 		}
 		}

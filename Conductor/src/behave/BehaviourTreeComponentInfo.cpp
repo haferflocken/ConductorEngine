@@ -22,7 +22,7 @@ Mem::UniquePtr<ECS::ComponentInfo> Behave::BehaviourTreeComponentInfo::LoadFromJ
 		jsonObject.FindArray(Internal_BehaviourTreeComponentInfo::k_behaviourTreesArray);
 	if (behaviourTreesArray == nullptr)
 	{
-		Dev::LogWarning("Failed to find behaviour tree array for behaviour_tree_component.");
+		AMP_LOG_WARNING("Failed to find behaviour tree array for behaviour_tree_component.");
 		return nullptr;
 	}
 
@@ -30,14 +30,14 @@ Mem::UniquePtr<ECS::ComponentInfo> Behave::BehaviourTreeComponentInfo::LoadFromJ
 	{
 		if (value->GetType() != JSON::ValueType::String)
 		{
-			Dev::LogWarning("Encountered a non-string element in an entity info behaviour tree array.");
+			AMP_LOG_WARNING("Encountered a non-string element in an entity info behaviour tree array.");
 			continue;
 		}
 		const JSON::JSONString& valueString = static_cast<const JSON::JSONString&>(*value);
 		const Behave::BehaviourTree* const behaviourTree = behaviourTreeManager.FindTree(valueString.m_hash);
 		if (behaviourTree == nullptr)
 		{
-			Dev::LogWarning("Failed to find behaviour tree \"%s\".", valueString.m_string.c_str());
+			AMP_LOG_WARNING("Failed to find behaviour tree \"%s\".", valueString.m_string.c_str());
 			continue;
 		}
 		componentInfo->m_behaviourTrees.Add(behaviourTree);

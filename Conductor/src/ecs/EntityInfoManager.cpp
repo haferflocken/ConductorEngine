@@ -21,7 +21,7 @@ Mem::UniquePtr<EntityInfo> MakeEntityInfo(const ComponentInfoFactory& componentI
 	const JSON::JSONArray* const componentsArray = jsonObject.FindArray(k_componentsHash);
 	if (componentsArray == nullptr)
 	{
-		Dev::LogWarning("Failed to find component info array for entity info.");
+		AMP_LOG_WARNING("Failed to find component info array for entity info.");
 		return nullptr;
 	}
 
@@ -32,7 +32,7 @@ Mem::UniquePtr<EntityInfo> MakeEntityInfo(const ComponentInfoFactory& componentI
 	{
 		if (value->GetType() != JSON::ValueType::Object)
 		{
-			Dev::LogWarning("Encountered a non-object element in an component info array.");
+			AMP_LOG_WARNING("Encountered a non-object element in an component info array.");
 			continue;
 		}
 		const JSON::JSONObject& valueObject = static_cast<const JSON::JSONObject&>(*value);
@@ -40,7 +40,7 @@ Mem::UniquePtr<EntityInfo> MakeEntityInfo(const ComponentInfoFactory& componentI
 			componentInfoFactory.MakeComponentInfo(behaviourTreeManager, valueObject);
 		if (componentInfo == nullptr)
 		{
-			Dev::LogWarning("Failed to make an component info.");
+			AMP_LOG_WARNING("Failed to make an component info.");
 			continue;
 		}
 		entityInfo->m_componentInfos.Add(std::move(componentInfo));
@@ -54,7 +54,8 @@ void ECS::EntityInfoManager::LoadEntityInfosInDirectory(const File::Path& direct
 {
 	if (!File::IsDirectory(directory))
 	{
-		Dev::LogWarning("Cannot load entity infos in \"%s\" because it is not a directory.", directory.c_str());
+		AMP_LOG_WARNING("Cannot load entity infos in \"%s\" because it is not a directory.",
+			directory.u8string().c_str());
 		return;
 	}
 
@@ -79,13 +80,13 @@ void ECS::EntityInfoManager::LoadEntityInfosInDirectory(const File::Path& direct
 			}
 			else
 			{
-				Dev::LogWarning("Failed to load entity info from \"%s\".", file.c_str());
+				AMP_LOG_WARNING("Failed to load entity info from \"%s\".", file.u8string().c_str());
 			}
 			break;
 		}
 		default:
 		{
-			Dev::LogWarning("Failed to find a JSON object at the root of \"%s\".", file.c_str());
+			AMP_LOG_WARNING("Failed to find a JSON object at the root of \"%s\".", file.u8string().c_str());
 			break;
 		}
 		}

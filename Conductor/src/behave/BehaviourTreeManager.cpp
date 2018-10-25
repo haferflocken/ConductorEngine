@@ -19,7 +19,8 @@ void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& direct
 {
 	if (!File::IsDirectory(directory))
 	{
-		Dev::LogWarning("Cannot load behaviour trees in \"%s\" because it is not a directory.", directory.c_str());
+		AMP_LOG_WARNING("Cannot load behaviour trees in \"%s\" because it is not a directory.",
+			directory.u8string().c_str());
 		return;
 	}
 
@@ -47,14 +48,14 @@ void Behave::BehaviourTreeManager::LoadTreesInDirectory(const File::Path& direct
 						}
 						else
 						{
-							Dev::LogWarning("Failed to load behaviour tree \"%s\" from file [%S].",
+							AMP_LOG_WARNING("Failed to load behaviour tree \"%s\" from file [%S].",
 								parsedTree.m_treeName.c_str(), file.c_str());
 						}
 					}
 				},
 				[&](const Parse::SyntaxError& syntaxError)
 				{
-					Dev::LogWarning("%s Ln %d Ch %d: %s", file.string().c_str(), syntaxError.m_lineNumber,
+					AMP_LOG_WARNING("%s Ln %d Ch %d: %s", file.string().c_str(), syntaxError.m_lineNumber,
 						syntaxError.m_characterInLine, syntaxError.m_message.c_str());
 				});
 

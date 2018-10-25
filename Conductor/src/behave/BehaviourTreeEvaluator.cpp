@@ -95,7 +95,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 		}
 		default:
 		{
-			Dev::FatalError("Unknown evaluate result [%d].", static_cast<int32_t>(result));
+			AMP_FATAL_ERROR("Unknown evaluate result [%d].", static_cast<int32_t>(result));
 			return;
 		}
 		}

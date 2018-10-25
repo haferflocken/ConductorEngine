@@ -71,19 +71,19 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 	const JSON::JSONNumber* const version = jsonObject.FindNumber(k_versionHash);
 	if (version == nullptr)
 	{
-		Dev::LogWarning("Failed to find a version number in the schema.");
+		AMP_LOG_WARNING("Failed to find a version number in the schema.");
 		return outSchema;
 	}
 	const JSON::JSONString* const name = jsonObject.FindString(k_nameHash);
 	if (name == nullptr || name->m_string.empty())
 	{
-		Dev::LogWarning("Failed to find a name in the schema.");
+		AMP_LOG_WARNING("Failed to find a name in the schema.");
 		return outSchema;
 	}
 	const JSON::JSONObject* const fieldMap = jsonObject.FindObject(k_fieldsHash);
 	if (fieldMap == nullptr)
 	{
-		Dev::LogWarning("Failed to find fields in the schema.");
+		AMP_LOG_WARNING("Failed to find fields in the schema.");
 		return outSchema;
 	}
 
@@ -114,7 +114,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 
 		if (candidate.GetType() != JSON::ValueType::Object)
 		{
-			Dev::LogWarning("Skipped a JSON value with type [%d] in the field array.",
+			AMP_LOG_WARNING("Skipped a JSON value with type [%d] in the field array.",
 				static_cast<int32_t>(candidate.GetType()));
 			continue;
 		}
@@ -125,7 +125,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		const JSON::JSONString* const candidateName = field.FindString(k_fieldNameHash);
 		if (candidateName == nullptr || candidateName->m_string.empty())
 		{
-			Dev::LogWarning("Skipped field [%u] with a missing name.", fieldID);
+			AMP_LOG_WARNING("Skipped field [%u] with a missing name.", fieldID);
 			continue;
 		}
 		const char* const fieldName = candidateName->m_string.c_str();
@@ -133,14 +133,14 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		const JSON::JSONString* const candidateType = field.FindString(k_fieldTypeHash);
 		if (candidateType == nullptr)
 		{
-			Dev::LogWarning("Skipped field [%u] with a missing type.", fieldID);
+			AMP_LOG_WARNING("Skipped field [%u] with a missing type.", fieldID);
 			continue;
 		}
 
 		const RecordSchemaFieldType fieldType = ParseType(candidateType->m_string.c_str());
 		if (fieldType == RecordSchemaFieldType::Invalid)
 		{
-			Dev::LogWarning("Skipped field [%u] with unknown type [%s].", fieldID, candidateType->m_string.c_str());
+			AMP_LOG_WARNING("Skipped field [%u] with unknown type [%s].", fieldID, candidateType->m_string.c_str());
 			continue;
 		}
 
@@ -222,7 +222,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 				{
 					if (candidateAcceptedType->GetType() != JSON::ValueType::String)
 					{
-						Dev::LogWarning("Skipped non-string accepted type in field [%u].", fieldID);
+						AMP_LOG_WARNING("Skipped non-string accepted type in field [%u].", fieldID);
 						continue;
 					}
 					const JSON::JSONString& acceptedType =
@@ -242,14 +242,14 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 			const JSON::JSONString* const candidateImportedType = field.FindString(k_fieldImportedTypeHash);
 			if (candidateImportedType == nullptr)
 			{
-				Dev::LogWarning("Skipped non-string imported type in field [%u].", fieldID);
+				AMP_LOG_WARNING("Skipped non-string imported type in field [%u].", fieldID);
 				continue;
 			}
 
 			const auto* const importEntry = outSchema.m_importedTypes.Find(candidateImportedType->m_string);
 			if (importEntry == nullptr)
 			{
-				Dev::LogWarning("Skipped imported type in field [%u] because it was not declared in the schema's"
+				AMP_LOG_WARNING("Skipped imported type in field [%u] because it was not declared in the schema's"
 					" imported types.", fieldID);
 				continue;
 			}
@@ -270,7 +270,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 				{
 					if (candidateMemberFieldID->GetType() != JSON::ValueType::Number)
 					{
-						Dev::LogWarning("Skipped non-number member field ID in field [%u].", fieldID);
+						AMP_LOG_WARNING("Skipped non-number member field ID in field [%u].", fieldID);
 						continue;
 					}
 					const JSON::JSONNumber& memberFieldID =
@@ -297,7 +297,7 @@ RecordSchema RecordSchema::MakeFromJSON(const JSON::JSONObject& jsonObject)
 		}
 		default:
 		{
-			Dev::FatalError("Encountered unhandled field type [%d].", static_cast<int32_t>(fieldType));
+			AMP_FATAL_ERROR("Encountered unhandled field type [%d].", static_cast<int32_t>(fieldType));
 			break;
 		}
 		}
@@ -417,7 +417,7 @@ bool RecordSchema::Accept(RecordSchemaVisitor& visitor, uint16_t fieldID) const
 	}
 	default:
 	{
-		Dev::FatalError("Unknown field type [%d]", static_cast<int32_t>(field->m_type));
+		AMP_FATAL_ERROR("Unknown field type [%d]", static_cast<int32_t>(field->m_type));
 		return false;
 	}
 	}
@@ -496,7 +496,7 @@ bool RecordSchema::CheckIsErrorFree() const
 	const char* const schemaName = m_name.c_str();
 	if (schemaName == nullptr || schemaName[0] == '\0')
 	{
-		Dev::LogWarning("!> Schema is missing a name.");
+		AMP_LOG_WARNING("!> Schema is missing a name.");
 		return false;
 	}
 
@@ -504,7 +504,7 @@ bool RecordSchema::CheckIsErrorFree() const
 	const RecordSchemaField* const rootGroup = FindField(0);
 	if (rootGroup == nullptr || rootGroup->m_type != RecordSchemaFieldType::Group)
 	{
-		Dev::LogWarning("!> Schema is missing a root group.");
+		AMP_LOG_WARNING("!> Schema is missing a root group.");
 		return false;
 	}
 
@@ -516,7 +516,7 @@ bool RecordSchema::CheckIsErrorFree() const
 		{
 			if (fieldID == j->m_fieldID)
 			{
-				Dev::LogWarning("!> Schema has multiple fields with ID [%u].", fieldID);
+				AMP_LOG_WARNING("!> Schema has multiple fields with ID [%u].", fieldID);
 				return false;
 			}
 		}
@@ -539,7 +539,7 @@ bool RecordSchema::CheckIsErrorFree() const
 		}
 		default:
 		{
-			Dev::LogWarning("!> Field [%u] has invalid type [%d].", field.m_fieldID,
+			AMP_LOG_WARNING("!> Field [%u] has invalid type [%d].", field.m_fieldID,
 				static_cast<int32_t>(field.m_type));
 			return false;
 		}
@@ -558,7 +558,7 @@ bool RecordSchema::CheckIsErrorFree() const
 		const char* const groupName = field.m_fieldName.c_str();
 		if (groupName == nullptr || groupName[0] == '\0')
 		{
-			Dev::LogWarning("!> Group field [%u] is missing a name.", field.m_fieldID);
+			AMP_LOG_WARNING("!> Group field [%u] is missing a name.", field.m_fieldID);
 			return false;
 		}
 
@@ -568,7 +568,7 @@ bool RecordSchema::CheckIsErrorFree() const
 			ChildReferenceValidationVisitor visitor{ field.m_fieldID, memberFieldID };
 			if (!Accept(visitor, 0))
 			{
-				Dev::LogWarning("!> Group member field [%u] in group field [%u] is referenced elsewhere.",
+				AMP_LOG_WARNING("!> Group member field [%u] in group field [%u] is referenced elsewhere.",
 					memberFieldID, field.m_fieldID);
 				return false;
 			}
@@ -586,7 +586,7 @@ bool RecordSchema::CheckIsErrorFree() const
 		ChildReferenceValidationVisitor visitor{ field.m_fieldID, field.m_listData.m_elementFieldID };
 		if (!Accept(visitor, 0))
 		{
-			Dev::LogWarning("!> List element field [%u] in list field [%u] is referenced elsewhere.",
+			AMP_LOG_WARNING("!> List element field [%u] in list field [%u] is referenced elsewhere.",
 				field.m_listData.m_elementFieldID, field.m_fieldID);
 			return false;
 		}

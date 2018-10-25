@@ -27,7 +27,7 @@ public:
 		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
 		const BehaveContext& context) override
 	{
-		Dev::Log("%s", m_node->GetMessage());
+		AMP_LOG("%s", m_node->GetMessage());
 		return EvaluateResult::Success;
 	}
 
@@ -45,14 +45,14 @@ Mem::UniquePtr<Behave::BehaviourNode> Behave::Nodes::LogNode::CreateFromNodeExpr
 	if (nodeExpression.m_arguments.Size() != 1
 		|| !nodeExpression.m_arguments.Front().Is<Parse::LiteralExpression>())
 	{
-		Dev::LogWarning("Log nodes take only one argument: a string literal.");
+		AMP_LOG_WARNING("Log nodes take only one argument: a string literal.");
 		return nullptr;
 	}
 
 	const auto& literalExpression = nodeExpression.m_arguments.Front().Get<Parse::LiteralExpression>();
 	if (!literalExpression.Is<Parse::StringLiteral>())
 	{
-		Dev::LogWarning("Log nodes take only one argument: a string literal.");
+		AMP_LOG_WARNING("Log nodes take only one argument: a string literal.");
 		return nullptr;
 	}
 

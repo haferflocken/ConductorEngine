@@ -403,7 +403,7 @@ ParseExpressionResult MakeLiteralExpressionFromKeywordType(const ParsingState& s
 	}
 	default:
 	{
-		Dev::FatalError("Unrecognized keyword type [%d].", static_cast<int32_t>(keywordType));
+		AMP_FATAL_ERROR("Unrecognized keyword type [%d].", static_cast<int32_t>(keywordType));
 		return ParseExpressionResult();
 	}
 	}
@@ -709,7 +709,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 	}
 	default:
 	{
-		Dev::FatalError("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(token.m_type));
+		AMP_FATAL_ERROR("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(token.m_type));
 		return ParseExpressionResult();
 	}
 	}
@@ -907,7 +907,7 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 	}
 	default:
 	{
-		Dev::FatalError("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(token.m_type));
+		AMP_FATAL_ERROR("Behave DSL parser error: unknown token type [%d].", static_cast<int32_t>(token.m_type));
 		return ParseExpressionResult();
 	}
 	}

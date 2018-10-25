@@ -104,7 +104,7 @@ public:
 		std::string typeStringSuffix = ">";
 		if (!TryCalcListElementTypeAndWriteDependentTypes(fieldData.m_elementFieldID, typeString, typeStringSuffix))
 		{
-			Dev::LogWarning("!> Unable to generate list field [%u].", field.m_fieldID);
+			AMP_LOG_WARNING("!> Unable to generate list field [%u].", field.m_fieldID);
 			return Flow::Skip;
 		}
 		typeString += typeStringSuffix;
@@ -167,7 +167,7 @@ private:
 		const Asset::RecordSchemaField* const elementField = m_schema.FindField(elementFieldID);
 		if (elementField == nullptr)
 		{
-			Dev::LogWarning("!> Cannot generate a variable for a list with no element field.");
+			AMP_LOG_WARNING("!> Cannot generate a variable for a list with no element field.");
 			return false;
 		}
 
@@ -230,7 +230,7 @@ private:
 		}
 		default:
 		{
-			Dev::FatalError("Field [%u] has unknown type [%d]", elementFieldID,
+			AMP_FATAL_ERROR("Field [%u] has unknown type [%d]", elementFieldID,
 				static_cast<int32_t>(elementField->m_type));
 			return false;
 		}
