@@ -180,6 +180,22 @@ Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& us
 	return outChunk;
 }
 
+Math::Vector3 Chunk::CalcChunkOrigin(const ChunkID chunkID)
+{
+	return Math::Vector3(
+		static_cast<float>(chunkID.GetX()),
+		static_cast<float>(chunkID.GetY()),
+		static_cast<float>(chunkID.GetZ())) * Chunk::k_sideLengthMeters;
+}
+
+void Chunk::CalcChunkCoords(const ChunkID chunkID,
+	Math::Vector3& outOrigin, Math::Vector3& outCenter, Math::Vector3& outMax)
+{
+	outOrigin = CalcChunkOrigin(chunkID);
+	outCenter = outOrigin + (Math::Vector3(0.5f, 0.5f, 0.5f) * Chunk::k_sideLengthMeters);
+	outMax = outOrigin + (Math::Vector3(1.0f, 1.0f, 1.0f) * Chunk::k_sideLengthMeters);
+}
+
 Chunk::Chunk()
 {}
 

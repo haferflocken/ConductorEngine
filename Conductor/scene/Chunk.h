@@ -34,6 +34,11 @@ public:
 	static Chunk LoadChunkForPlay(const File::Path& sourcePath, const File::Path& userPath,
 		const std::string& chunkFileName);
 
+	static Math::Vector3 CalcChunkOrigin(const ChunkID chunkID);
+
+	static void CalcChunkCoords(const ChunkID chunkID,
+		Math::Vector3& outOrigin, Math::Vector3& outCenter, Math::Vector3& outMax);
+
 	Chunk();
 
 	Chunk(const Chunk&) = delete;

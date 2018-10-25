@@ -24,25 +24,60 @@ void SceneAnchorSystem::Update(const Unit::Time::Millisecond delta,
 	{
 		const SceneTransformComponent& transformComponent = ecsGroup.Get<const SceneTransformComponent>();
 		const Math::Vector3& position = transformComponent.m_matrix.GetTranslation();
+		
+		const AnchorComponent& anchorComponent = ecsGroup.Get<const AnchorComponent>();
 
-		const int32_t chunkX = static_cast<int32_t>(position.x) >> Chunk::k_lgSideLength;
-		const int32_t chunkY = static_cast<int32_t>(position.y) >> Chunk::k_lgSideLength;
-		const int32_t chunkZ = static_cast<int32_t>(position.z) >> Chunk::k_lgSideLength;
+		const int32_t anchoringRadiusInChunks = anchorComponent.m_anchoringRadiusInChunks;
 
-		bool found = false;
-		for (auto& anchorChunkID : m_anchorChunkIDs)
+		const float fAnchoringRadiusInChunks = static_cast<float>(anchoringRadiusInChunks) * Chunk::k_sideLengthMeters;
+		const float anchoringRadiusSquared = fAnchoringRadiusInChunks * fAnchoringRadiusInChunks;
+
+		const int32_t entityChunkX = static_cast<int32_t>(position.x) >> Chunk::k_lgSideLength;
+		const int32_t entityChunkY = static_cast<int32_t>(position.y) >> Chunk::k_lgSideLength;
+		const int32_t entityChunkZ = static_cast<int32_t>(position.z) >> Chunk::k_lgSideLength;
+		const ChunkID entityChunkID{ entityChunkX, entityChunkY, entityChunkZ };
+
+		const Math::Vector3 entityChunkOrigin = Chunk::CalcChunkOrigin(entityChunkID);
+
+		const int32_t xMin = entityChunkX - anchoringRadiusInChunks;
+		const int32_t yMin = entityChunkY - anchoringRadiusInChunks;
+		const int32_t zMin = entityChunkZ - anchoringRadiusInChunks;
+		const int32_t xMax = entityChunkX + anchoringRadiusInChunks;
+		const int32_t yMax = entityChunkY + anchoringRadiusInChunks;
+		const int32_t zMax = entityChunkZ + anchoringRadiusInChunks;
+
+		for (int32_t z = zMin; z <= zMax; ++z)
 		{
-			if (anchorChunkID.GetX() == chunkX && anchorChunkID.GetY() == chunkY
-				&& anchorChunkID.GetZ() == chunkZ)
+			for (int32_t y = yMin; y <= yMax; ++y)
 			{
-				anchorChunkID = ChunkID(chunkX, chunkY, chunkZ, k_extraMarker);
-				found = true;
-			}
-		}
+				for (int32_t x = xMin; x <= xMax; ++x)
+				{
+					const ChunkID chunkID{ x, y, z };
+					const Math::Vector3 chunkOrigin = Chunk::CalcChunkOrigin(chunkID);
 
-		if (!found)
-		{
-			m_anchorChunkIDs.Emplace(chunkX, chunkY, chunkZ, k_extraMarker);
+					const float distanceSquared = (chunkOrigin - entityChunkOrigin).LengthSquared();
+					if (distanceSquared > anchoringRadiusSquared)
+					{
+						continue;
+					}
+
+					bool found = false;
+					for (auto& anchorChunkID : m_anchorChunkIDs)
+					{
+						if (anchorChunkID.GetWithoutExtra() == chunkID)
+						{
+							anchorChunkID = ChunkID(x, y, z, k_extraMarker);
+							found = true;
+							break;
+						}
+					}
+
+					if (!found)
+					{
+						m_anchorChunkIDs.Emplace(x, y, z, k_extraMarker);
+					}
+				}
+			}
 		}
 	}
 

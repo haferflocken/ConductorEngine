@@ -201,13 +201,8 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& entityManager, const ChunkID chunkID)
 {
 	// Determine the entities that are in the chunk.
-	const Math::Vector3 chunkOrigin = Math::Vector3(
-		static_cast<float>(chunkID.GetX()),
-		static_cast<float>(chunkID.GetY()),
-		static_cast<float>(chunkID.GetZ())) * Chunk::k_sideLengthMeters;
-
-	const Math::Vector3 chunkCenter = chunkOrigin + (Math::Vector3(0.5f, 0.5f, 0.5f) * Chunk::k_sideLengthMeters);
-	const Math::Vector3 chunkBound = chunkOrigin + (Math::Vector3(1.0f, 1.0f, 1.0f) * Chunk::k_sideLengthMeters);
+	Math::Vector3 chunkOrigin, chunkCenter, chunkBound;
+	Chunk::CalcChunkCoords(chunkID, chunkOrigin, chunkCenter, chunkBound);
 
 	const auto chunkBucketView = m_spatialHashMap.GetBucketView(chunkCenter);
 
