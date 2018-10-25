@@ -297,7 +297,7 @@ bool IsNodeName(const char* const strBegin, const char* const strEnd)
 		return false;
 	}
 
-	Dev::FatalAssert(ConvertToKeyword(strBegin, strEnd) == KeywordType::Invalid,
+	AMP_FATAL_ASSERT(ConvertToKeyword(strBegin, strEnd) == KeywordType::Invalid,
 		"Keyword strings should not be passed into IsNodeName().");
 
 	for (const char* i = strBegin + 1; i < strEnd; ++i)
@@ -427,7 +427,7 @@ ParseExpressionResult MakeComponentTypeLiteralExpression(const Token& token)
 
 ParseExpressionResult MakeStringLiteralExpression(const Token& token)
 {
-	Dev::FatalAssert(token.m_type == TokenType::StringLiteral,
+	AMP_FATAL_ASSERT(token.m_type == TokenType::StringLiteral,
 		"Only string literal tokens should be passed into MakeStringLiteralExpression().");
 
 	auto result = ParseExpressionResult::Make<Expression>();
@@ -439,7 +439,7 @@ ParseExpressionResult MakeStringLiteralExpression(const Token& token)
 
 ParseExpressionResult MakeNumericLiteralExpression(const Token& token)
 {
-	Dev::FatalAssert(token.m_type == TokenType::Text,
+	AMP_FATAL_ASSERT(token.m_type == TokenType::Text,
 		"Only text tokens should be passed into MakeNumericLiteralExpression().");
 
 	double val;
@@ -702,7 +702,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 			}
 		}
 		
-		Dev::FatalAssert(!IsTreeName(token.m_charsBegin, token.m_charsEnd),
+		AMP_FATAL_ASSERT(!IsTreeName(token.m_charsBegin, token.m_charsEnd),
 			"All tree names should be handled by the function name condition.");
 
 		return MakeNumericLiteralExpression(token);
@@ -900,7 +900,7 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 			}
 		}
 
-		Dev::FatalAssert(!IsTreeName(token.m_charsBegin, token.m_charsEnd),
+		AMP_FATAL_ASSERT(!IsTreeName(token.m_charsBegin, token.m_charsEnd),
 			"All tree names should be handled by the function name condition.");
 
 		return MakeNumericLiteralExpression(token);

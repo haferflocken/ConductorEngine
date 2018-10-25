@@ -79,7 +79,7 @@ public:
 	{
 		static_assert(OutWidth <= Width && OutHeight <= Height,
 			"CopyPortion requires a destination array with the same or smaller dimensions than the source.");
-		Dev::FatalAssert(xMin + OutWidth <= Width && yMin + OutHeight <= Height,
+		AMP_FATAL_ASSERT(xMin + OutWidth <= Width && yMin + OutHeight <= Height,
 			"[%zu, %zu] min results in out of bound copy.", xMin, yMin);
 
 		for (size_t i = 0; i < OutWidth; ++i)
@@ -115,7 +115,7 @@ public:
 	{
 		static_assert(OutWidth <= Width && OutHeight <= Height,
 			"CopyPortion requires a destination array with the same or smaller dimensions than the source.");
-		Dev::FatalAssert(xMin + OutWidth <= Width && yMin + OutHeight <= Height,
+		AMP_FATAL_ASSERT(xMin + OutWidth <= Width && yMin + OutHeight <= Height,
 			"[%zu, %zu] min results in out of bound copy.", xMin, yMin);
 
 		constexpr size_t numBytes = OutWidth * sizeof(ElemType);

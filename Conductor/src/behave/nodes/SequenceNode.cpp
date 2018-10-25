@@ -43,7 +43,7 @@ public:
 
 	virtual void NotifyChildFinished(const BehaviourNode* child, const EvaluateResult result) override
 	{
-		Dev::FatalAssert(child == m_node->GetChildAt(m_activeChildIndex),
+		AMP_FATAL_ASSERT(child == m_node->GetChildAt(m_activeChildIndex),
 			"A sequence should never receive a result from any node other than its active child.");
 
 		switch (result)

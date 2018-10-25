@@ -117,12 +117,12 @@ struct ExpressionResultToArgument
 		if constexpr(IsComponentReference<ArgType>)
 		{
 			using ComponentValueType = std::remove_reference_t<ArgType>;
-			Dev::FatalAssert(val.GetTypeHash() == ComponentValueType::Info::sk_typeHash,
+			AMP_FATAL_ASSERT(val.GetTypeHash() == ComponentValueType::Info::sk_typeHash,
 				"Mismatch between supported component type [%s] and argument [%s].",
 				ComponentValueType::Info::sk_typeName, Util::ReverseHash(val.GetTypeHash()));
 
 			ComponentValueType* const component = entityManager.FindComponent<ComponentValueType>(entity);
-			Dev::FatalAssert(component != nullptr,
+			AMP_FATAL_ASSERT(component != nullptr,
 				"Could not find component [%s] when converting argument for bound function.",
 				ComponentValueType::Info::sk_typeName);
 			return static_cast<ArgType>(*component);
@@ -188,7 +188,7 @@ inline void Interpreter::BindFunction(const char* const functionName,
 			ECS::EntityManager& entityManager,
 			const ECS::Entity& entity)
 		{
-			Dev::FatalAssert(sizeof...(ArgumentTypes) == expressions.Size(), "Expected %zu arguments, but got %u.",
+			AMP_FATAL_ASSERT(sizeof...(ArgumentTypes) == expressions.Size(), "Expected %zu arguments, but got %u.",
 				sizeof...(ArgumentTypes), expressions.Size());
 
 			auto* func = static_cast<ReturnType(*)(const ECS::Entity&, ArgumentTypes...)>(untypedFunc);
@@ -211,7 +211,7 @@ inline void Interpreter::BindFunction(const char* const functionName,
 	// can be made and then compared to using its pointer value.
 	static const ExpressionResultTypeString k_argumentTypeStrings[]{ ExpressionResultTypeString::Make<ArgumentTypes>()... };
 	
-	Dev::FatalAssert(overloads.Find([](const OverloadInfo& overloadInfo)
+	AMP_FATAL_ASSERT(overloads.Find([](const OverloadInfo& overloadInfo)
 		{
 			return overloadInfo.m_argumentTypeStrings == k_argumentTypeStrings;
 		}) == nullptr, "Cannot bind a function multiple times!");

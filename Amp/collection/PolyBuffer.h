@@ -117,7 +117,7 @@ inline bool PolyBuffer::hasRoomFor() const
 template <typename T>
 inline T* PolyBuffer::peek()
 {
-	Dev::FatalAssert(!empty(), "Cannot peek an empty buffer!");
+	AMP_FATAL_ASSERT(!empty(), "Cannot peek an empty buffer!");
 
 	const ElementMetadata& metadata = *peekMetadata();
 	return reinterpret_cast<T*>(m_top - Unit::ByteCount64(metadata.objectSize + sk_metadataSize).GetN());
@@ -126,7 +126,7 @@ inline T* PolyBuffer::peek()
 template <typename T>
 inline const T* PolyBuffer::peek() const
 {
-	Dev::FatalAssert(!empty(), "Cannot peek an empty buffer!");
+	AMP_FATAL_ASSERT(!empty(), "Cannot peek an empty buffer!");
 
 	const ElementMetadata& metadata = *peekMetadata();
 	return reinterpret_cast<const T*>(m_top - Unit::ByteCount64(metadata.objectSize + sk_metadataSize).GetN());
@@ -135,7 +135,7 @@ inline const T* PolyBuffer::peek() const
 template <typename T, typename... Args>
 inline T& PolyBuffer::emplace(Args&&... args)
 {
-	Dev::FatalAssert(hasRoomFor<T>(), "Buffer does not have room for an object of that type.");
+	AMP_FATAL_ASSERT(hasRoomFor<T>(), "Buffer does not have room for an object of that type.");
 
 	// Interpret the memory at the top as a T* and construct a T there.
 	T* const obj = reinterpret_cast<T*>(m_top);
@@ -155,7 +155,7 @@ inline T& PolyBuffer::emplace(Args&&... args)
 
 inline void PolyBuffer::pop()
 {
-	Dev::FatalAssert(!empty(), "Cannot pop an empty buffer!");
+	AMP_FATAL_ASSERT(!empty(), "Cannot pop an empty buffer!");
 
 	// Call the object's destructor.
 	const ElementMetadata& metadata = *peekMetadata();

@@ -73,7 +73,7 @@ template <typename KeyType, typename ValueType, typename HashFn>
 template <typename... Args>
 inline ValueType& LinearBlockHashMap<KeyType, ValueType, HashFn>::Emplace(const KeyType& key, Args&&... args)
 {
-	Dev::FatalAssert(m_hashMap.Find(key) == nullptr, "Cannot emplace a value at an occupied key.");
+	AMP_FATAL_ASSERT(m_hashMap.Find(key) == nullptr, "Cannot emplace a value at an occupied key.");
 
 	ValueType* const val = reinterpret_cast<ValueType*>(m_allocator.Alloc());
 	new(val) ValueType(std::forward<Args>(args)...);
@@ -85,7 +85,7 @@ template <typename KeyType, typename ValueType, typename HashFn>
 template <typename... Args>
 inline ValueType& LinearBlockHashMap<KeyType, ValueType, HashFn>::Emplace(KeyType&& key, Args&&... args)
 {
-	Dev::FatalAssert(m_hashMap.Find(key) == nullptr, "Cannot emplace a value at an occupied key.");
+	AMP_FATAL_ASSERT(m_hashMap.Find(key) == nullptr, "Cannot emplace a value at an occupied key.");
 
 	ValueType* const val = reinterpret_cast<ValueType*>(m_allocator.Alloc());
 	new(val) ValueType(std::forward<Args>(args)...);

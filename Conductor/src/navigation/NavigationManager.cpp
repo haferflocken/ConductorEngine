@@ -30,7 +30,7 @@ NavigatorID NavigationManager::CreateNavigator(const Math::Vector3& position, co
 void NavigationManager::RemoveNavigator(const NavigatorID navigatorID)
 {
 	const bool success = m_navigatorMap.TryRemove(navigatorID);
-	Dev::Assert(success, "Failed to find a navigator with ID [%u].", navigatorID.GetUniqueID());
+	AMP_ASSERT(success, "Failed to find a navigator with ID [%u].", navigatorID.GetUniqueID());
 }
 
 void NavigationManager::SetGoalPosition(const NavigatorID navigatorID, const Math::Vector3& goalPosition)

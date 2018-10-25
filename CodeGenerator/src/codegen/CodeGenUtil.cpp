@@ -82,7 +82,7 @@ public:
 
 		// Write out an inner struct for the group with an uppercase first letter.
 		const char* const groupName = field.m_fieldName.c_str();
-		Dev::FatalAssert(groupName != nullptr && groupName[0] != '\0', "Group field [%u] is missing a name.",
+		AMP_FATAL_ASSERT(groupName != nullptr && groupName[0] != '\0', "Group field [%u] is missing a name.",
 			field.m_fieldID);
 
 		WriteGroupStruct(field, groupName);
@@ -210,7 +210,7 @@ private:
 		{
 			// Write out an inner struct for the group with an uppercase first letter.
 			const char* const groupName = elementField->m_fieldName.c_str();
-			Dev::FatalAssert(groupName != nullptr && groupName[0] != '\0', "Group field [%u] is missing a name.",
+			AMP_FATAL_ASSERT(groupName != nullptr && groupName[0] != '\0', "Group field [%u] is missing a name.",
 				elementField->m_fieldID);
 
 			WriteGroupStruct(*elementField, groupName);

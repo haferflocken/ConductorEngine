@@ -32,13 +32,13 @@ public:
 
 	T& operator[](size_t i)
 	{
-		Dev::FatalAssert(i < m_count, "ArrayView index %zu is out of range: [0, %zu)", i, m_count);
+		AMP_FATAL_ASSERT(i < m_count, "ArrayView index %zu is out of range: [0, %zu)", i, m_count);
 		return m_data[i];
 	}
 
 	const T& operator[](size_t i) const
 	{
-		Dev::FatalAssert(i < m_count, "ArrayView index %zu is out of range: [0, %zu)", i, m_count);
+		AMP_FATAL_ASSERT(i < m_count, "ArrayView index %zu is out of range: [0, %zu)", i, m_count);
 		return m_data[i];
 	}
 

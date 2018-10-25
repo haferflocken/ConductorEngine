@@ -113,7 +113,7 @@ void UnboundedScene::RemoveChunkFromPlay(const ChunkID chunkID)
 			{
 				const ChunkID adjacentChunkID{ chunkID.GetX() + x, chunkID.GetY() + y, chunkID.GetZ() + z };
 				auto* const entry = m_transitionChunksToRefCounts.Find(adjacentChunkID);
-				Dev::FatalAssert(entry != nullptr,
+				AMP_FATAL_ASSERT(entry != nullptr,
 					"Transition chunk reference counts are not being maintained correctly.");
 
 				entry->second -= ChunkRefCount(1);
@@ -182,7 +182,7 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 		auto& future = m_chunkLoadingFutures[i];
 
 		const std::future_status status = future.wait_for(waitPerFuture);
-		Dev::FatalAssert(status != std::future_status::deferred, "Chunk loading should always be asynchronous.");
+		AMP_FATAL_ASSERT(status != std::future_status::deferred, "Chunk loading should always be asynchronous.");
 
 		if (status == std::future_status::ready)
 		{
@@ -226,7 +226,7 @@ void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& enti
 	fileOutput.open(m_userPath / Internal_UnboundedScene::MakeChunkFileName(chunkID),
 		std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
 
-	Dev::Assert(fileOutput.good(), "Failed to open a chunk file for writing!");
+	AMP_ASSERT(fileOutput.good(), "Failed to open a chunk file for writing!");
 
 	fileOutput.write(reinterpret_cast<const char*>(&serializedChunk.Front()), serializedChunk.Size());
 

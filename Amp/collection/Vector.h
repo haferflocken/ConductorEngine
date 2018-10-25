@@ -254,7 +254,7 @@ template <typename T>
 template <typename... Args>
 inline T& Vector<T>::EmplaceAt(const size_t i, Args&&... args)
 {
-	Dev::FatalAssert(i <= m_count, "Cannot emplace a new element outside of the range [0, size()].");
+	AMP_FATAL_ASSERT(i <= m_count, "Cannot emplace a new element outside of the range [0, size()].");
 
 	// Increase the size by 1.
 	const uint32_t lastIndex = m_count;
@@ -291,8 +291,8 @@ inline void Vector<T>::RemoveLast()
 template <typename T>
 inline void Vector<T>::Remove(const size_t start, const size_t end)
 {
-	Dev::FatalAssert(start <= end, "Collection::Vector::Remove requires that start be less than or equal to end.");
-	Dev::FatalAssert(end <= m_count, "Collection::Vector::Remove cannot remove past the end.");
+	AMP_FATAL_ASSERT(start <= end, "Collection::Vector::Remove requires that start be less than or equal to end.");
+	AMP_FATAL_ASSERT(end <= m_count, "Collection::Vector::Remove cannot remove past the end.");
 
 	if (start == end)
 	{

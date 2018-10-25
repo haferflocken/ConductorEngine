@@ -48,7 +48,7 @@ public:
 		else
 		{
 			// If the child is not null, capture its result so that this node returns it on the next call to Evaluate().
-			Dev::FatalAssert(child == m_node, "A domain should never receive a result from any node except its child.");
+			AMP_FATAL_ASSERT(child == m_node, "A domain should never receive a result from any node except its child.");
 			m_childResult = result;
 		}
 	}

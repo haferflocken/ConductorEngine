@@ -39,9 +39,9 @@ public:
 	template <typename ECSGroupType>
 	Collection::ArrayView<ECSGroupType> GetView()
 	{
-		Dev::FatalAssert((ECSGroupType::k_size * sizeof(size_t)) == sizeof(ECSGroupType),
+		AMP_FATAL_ASSERT((ECSGroupType::k_size * sizeof(size_t)) == sizeof(ECSGroupType),
 			"Component group type has mismatch between its size constant and its actual size.");
-		Dev::FatalAssert(m_groupSize == ECSGroupType::k_size,
+		AMP_FATAL_ASSERT(m_groupSize == ECSGroupType::k_size,
 			"Component group type has the wrong number of components.");
 		
 		ECSGroupType* const data = reinterpret_cast<ECSGroupType*>(&m_data[0]);

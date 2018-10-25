@@ -128,7 +128,7 @@ template <typename... Types>
 template <size_t Index>
 inline Util::TypeAtIndex<Index, Types...>& Variant<Types...>::Get()
 {
-	Dev::FatalAssert(m_tagBytes[0] == Index, "Mismatch between current type and desired type in Variant.");
+	AMP_FATAL_ASSERT(m_tagBytes[0] == Index, "Mismatch between current type and desired type in Variant.");
 	return reinterpret_cast<Util::TypeAtIndex<Index, Types...>&>(m_data);
 }
 
@@ -136,7 +136,7 @@ template <typename... Types>
 template <size_t Index>
 inline const Util::TypeAtIndex<Index, Types...>& Variant<Types...>::Get() const
 {
-	Dev::FatalAssert(m_tagBytes[0] == Index, "Mismatch between current type and desired type in Variant.");
+	AMP_FATAL_ASSERT(m_tagBytes[0] == Index, "Mismatch between current type and desired type in Variant.");
 	return reinterpret_cast<const Util::TypeAtIndex<Index, Types...>&>(m_data);
 }
 

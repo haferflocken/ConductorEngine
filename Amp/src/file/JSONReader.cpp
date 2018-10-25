@@ -78,7 +78,7 @@ bool TryToEscape(const char c, char& out)
 
 bool Internal_JSONReader::TryReadJSONString(const char*& inOutInput, JSON::JSONString& out)
 {
-	Dev::FatalAssert(inOutInput[0] == '"', "Strings must always start with a double quote.");
+	AMP_FATAL_ASSERT(inOutInput[0] == '"', "Strings must always start with a double quote.");
 
 	// Advance past the opening quote.
 	++inOutInput;
@@ -236,7 +236,7 @@ bool Internal_JSONReader::TryReadJSONNull(const char*& inOutInput, JSON::JSONNul
 
 bool Internal_JSONReader::TryReadJSONArray(const char*& inOutInput, JSON::JSONArray& out)
 {
-	Dev::FatalAssert(inOutInput[0] == '[', "Arrays must always start with a square bracket.");
+	AMP_FATAL_ASSERT(inOutInput[0] == '[', "Arrays must always start with a square bracket.");
 	
 	// Advance past the opening bracket and any opening whitespace.
 	++inOutInput;
@@ -258,7 +258,7 @@ bool Internal_JSONReader::TryReadJSONArray(const char*& inOutInput, JSON::JSONAr
 		{
 			return false;
 		}
-		Dev::FatalAssert(IsValueDelimeter(inOutInput[0]),
+		AMP_FATAL_ASSERT(IsValueDelimeter(inOutInput[0]),
 			"If this isn't at a value delimeter at this point, something is seriously wrong.");
 
 		// Inform the value of its key and store it in the output array.
@@ -280,7 +280,7 @@ bool Internal_JSONReader::TryReadJSONArray(const char*& inOutInput, JSON::JSONAr
 
 bool Internal_JSONReader::TryReadJSONObject(const char*& inOutInput, JSON::JSONObject& out)
 {
-	Dev::FatalAssert(inOutInput[0] == '{', "Objects must always start with a curly bracket.");
+	AMP_FATAL_ASSERT(inOutInput[0] == '{', "Objects must always start with a curly bracket.");
 	
 	// Advance past the opening bracket and any opening whitespace.
 	++inOutInput;

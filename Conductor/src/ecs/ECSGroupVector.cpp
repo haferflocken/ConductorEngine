@@ -6,7 +6,7 @@
 
 void ECS::ECSGroupVector::Add(const Collection::Vector<void*>& pointers)
 {
-	Dev::FatalAssert(pointers.Size() == m_groupSize,
+	AMP_FATAL_ASSERT(pointers.Size() == m_groupSize,
 		"Can only add ECS groups with the correct group size.");
 	
 	for (const auto& ptr : pointers)
@@ -17,7 +17,7 @@ void ECS::ECSGroupVector::Add(const Collection::Vector<void*>& pointers)
 
 void ECS::ECSGroupVector::Remove(const Collection::Vector<void*>& pointers)
 {
-	Dev::FatalAssert(pointers.Size() == m_groupSize,
+	AMP_FATAL_ASSERT(pointers.Size() == m_groupSize,
 		"Can only remove ECS groups with the correct group size.");
 
 	for (auto iter = m_data.begin(), iterEnd = m_data.end(); iter < iterEnd; iter += m_groupSize)

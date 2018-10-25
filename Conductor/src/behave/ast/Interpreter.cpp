@@ -99,7 +99,7 @@ ExpressionCompileResult Interpreter::Compile(Parse::Expression& parsedExpression
 				}
 
 				Expression& compiledArgument = argumentResult.Get<Expression>();
-				Dev::FatalAssert(compiledArgument.IsAny(),
+				AMP_FATAL_ASSERT(compiledArgument.IsAny(),
 					"No Behave AST compilation path may result in an invalid AST::Expression.");
 
 				compiledArgumentResultTypes.Add(compiledArgument.GetResultType());
@@ -208,7 +208,7 @@ ExpressionCompileResult Interpreter::Compile(Parse::Expression& parsedExpression
 		},
 		[&](Parse::LiteralExpression& literalExpression)
 		{
-			Dev::FatalAssert(literalExpression.IsAny(), "Cannot compile an invalid Parse::Expression.");
+			AMP_FATAL_ASSERT(literalExpression.IsAny(), "Cannot compile an invalid Parse::Expression.");
 			literalExpression.Match(
 				[&](const Parse::NumericLiteral& numericLiteral)
 				{
@@ -256,7 +256,7 @@ ExpressionCompileResult Interpreter::Compile(Parse::Expression& parsedExpression
 ExpressionResult Interpreter::EvaluateExpression(const Expression& expression, ECS::EntityManager& entityManager,
 	const ECS::Entity& entity) const
 {
-	Dev::FatalAssert(expression.IsAny(), "Cannot evaluate an invalid expression.");
+	AMP_FATAL_ASSERT(expression.IsAny(), "Cannot evaluate an invalid expression.");
 
 	ExpressionResult result;
 	expression.Match(

@@ -17,7 +17,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
 	const BehaveContext& context)
 {
-	Dev::FatalAssert(!m_callStack.IsEmpty(), "Cannot update without a call stack.");
+	AMP_FATAL_ASSERT(!m_callStack.IsEmpty(), "Cannot update without a call stack.");
 
 	// Check the active domains and make sure they are still valid.
 	// If a domain fails, unwind the call stack to the domain node and notify it of its failure.
@@ -76,7 +76,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 		case EvaluateResult::Return:
 		{
 			// Pop node states until at the previous tree.
-			Dev::FatalAssert(dynamic_cast<const Nodes::ReturnNode*>(nodeState->GetNode()) != nullptr,
+			AMP_FATAL_ASSERT(dynamic_cast<const Nodes::ReturnNode*>(nodeState->GetNode()) != nullptr,
 				"Only ReturnBehaviourState should ever result in EvaluateResult::Return.");
 
 			const Nodes::ReturnNode* const finishedNode = static_cast<const Nodes::ReturnNode*>(nodeState->GetNode());

@@ -38,7 +38,7 @@ void Client::ClientWorld::RequestShutdown()
 
 void Client::ClientWorld::NotifyOfHostConnected(Mem::UniquePtr<ConnectedHost>&& connectedHost)
 {
-	Dev::FatalAssert(m_connectedHost == nullptr, "TODO disconnect");
+	AMP_FATAL_ASSERT(m_connectedHost == nullptr, "TODO disconnect");
 	m_connectedHost = std::move(connectedHost);
 
 	m_clientThread = std::thread(&ClientWorld::ClientThreadFunction, this);

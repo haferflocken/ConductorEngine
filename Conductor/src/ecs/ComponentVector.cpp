@@ -65,13 +65,13 @@ void ECS::ComponentVector::Clear()
 
 void ECS::ComponentVector::Copy(const ComponentVector& other)
 {
-	Dev::FatalAssert(m_componentType == other.m_componentType,
+	AMP_FATAL_ASSERT(m_componentType == other.m_componentType,
 		"ComponentVector::Copy() does not support changing component types.");
 	
 	Clear();
 
 	const auto* const transmissionFns = m_componentReflector->FindTransmissionFunctions(m_componentType);
-	Dev::FatalAssert(transmissionFns != nullptr, "ComponentVector::Copy() only supports networked component types.");
+	AMP_FATAL_ASSERT(transmissionFns != nullptr, "ComponentVector::Copy() only supports networked component types.");
 	for (size_t i = 0, iEnd = other.m_keyLookup.GetNumBuckets(); i < iEnd; ++i)
 	{
 		const auto& bucketView = other.m_keyLookup.GetBucketViewAt(i);

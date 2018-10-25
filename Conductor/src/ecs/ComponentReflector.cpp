@@ -15,11 +15,11 @@ void ECS::ComponentReflector::RegisterComponentType(const char* const componentT
 {
 	const ComponentType componentType{ componentTypeHash };
 
-	Dev::FatalAssert(componentTypeHash == Util::CalcHash(componentTypeName),
+	AMP_FATAL_ASSERT(componentTypeHash == Util::CalcHash(componentTypeName),
 		"Mismatch between component type hash and component type name for component with type name \"s\".",
 		componentTypeName);
 	
-	Dev::FatalAssert(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
+	AMP_FATAL_ASSERT(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
 		&& m_componentAlignmentsInBytes.Find(componentType) == m_componentAlignmentsInBytes.end()
 		&& m_factoryFunctions.Find(componentType) == m_factoryFunctions.end()
 		&& m_destructorFunctions.Find(componentType) == m_destructorFunctions.end()
@@ -81,7 +81,7 @@ bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager
 void ECS::ComponentReflector::DestroyComponent(Component& component) const
 {
 	const auto& destructorItr = m_destructorFunctions.Find(component.m_id.GetType());
-	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
+	AMP_FATAL_ASSERT(destructorItr != m_destructorFunctions.end(),
 		"Failed to find a destructor function for component type \"%s\".",
 		Util::ReverseHash(component.m_id.GetType().GetTypeHash()));
 
@@ -91,7 +91,7 @@ void ECS::ComponentReflector::DestroyComponent(Component& component) const
 void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 {
 	const auto& swapItr = m_swapFunctions.Find(a.m_id.GetType());
-	Dev::FatalAssert(swapItr != m_swapFunctions.end() && swapItr == m_swapFunctions.Find(b.m_id.GetType()),
+	AMP_FATAL_ASSERT(swapItr != m_swapFunctions.end() && swapItr == m_swapFunctions.Find(b.m_id.GetType()),
 		"Failed to find a swap function for component type \"%s\".",
 		Util::ReverseHash(a.m_id.GetType().GetTypeHash()));
 
@@ -107,7 +107,7 @@ ECS::ComponentReflector::DestructorFunction ECS::ComponentReflector::FindDestruc
 	const ComponentType componentType) const
 {
 	const auto& destructorItr = m_destructorFunctions.Find(componentType);
-	Dev::FatalAssert(destructorItr != m_destructorFunctions.end(),
+	AMP_FATAL_ASSERT(destructorItr != m_destructorFunctions.end(),
 		"Failed to find destructor function for component type \"%s\".",
 		Util::ReverseHash(componentType.GetTypeHash()));
 

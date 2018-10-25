@@ -19,7 +19,7 @@ inline bool IsRegularFile(const Path& path) { return FileSystem::is_regular_file
 
 inline void ForEachFileInDirectory(const Path& directory, const std::function<bool(const Path&)>& fn)
 {
-	Dev::Assert(IsDirectory(directory), "\"%s\" is not a directory.", directory.c_str());
+	AMP_ASSERT(IsDirectory(directory), "\"%s\" is not a directory.", directory.c_str());
 
 	using Iterator = FileSystem::directory_iterator;
 	for (auto i = Iterator(directory), iEnd = Iterator(); i != iEnd; ++i)
@@ -38,7 +38,7 @@ inline bool ForEachFileInDirectoryRecursive(
 	const std::function<bool(const Path&, size_t)>& fn,
 	const size_t depth = 0)
 {
-	Dev::Assert(IsDirectory(directory), "\"%s\" is not a directory.", directory.c_str());
+	AMP_ASSERT(IsDirectory(directory), "\"%s\" is not a directory.", directory.c_str());
 
 	using Iterator = FileSystem::directory_iterator;
 	for (auto i = Iterator(directory), iEnd = Iterator(); i != iEnd; ++i)

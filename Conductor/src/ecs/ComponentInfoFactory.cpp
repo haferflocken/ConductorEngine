@@ -18,7 +18,7 @@ void ECS::ComponentInfoFactory::RegisterFactoryFunction(
 	const char* const componentTypeName, FactoryFunction fn)
 {
 	const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeName);
-	Dev::FatalAssert(m_factoryFunctions.Find(componentTypeHash) == m_factoryFunctions.end(),
+	AMP_FATAL_ASSERT(m_factoryFunctions.Find(componentTypeHash) == m_factoryFunctions.end(),
 		"Attempted to register a factory function for component type \"%s\", but there already is one.");
 	m_factoryFunctions[componentTypeHash] = std::move(fn);
 }

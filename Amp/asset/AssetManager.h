@@ -92,7 +92,7 @@ inline void AssetManager::RegisterAssetType(AssetLoadingFunction<TAsset>&& loadF
 	constexpr const char* const k_fileType = TAsset::k_fileType;
 	std::unique_lock<std::shared_mutex> writeLock{ m_sharedMutex };
 
-	Dev::FatalAssert(m_assetsByFileType.Find(k_fileType) == m_assetsByFileType.end(),
+	AMP_FATAL_ASSERT(m_assetsByFileType.Find(k_fileType) == m_assetsByFileType.end(),
 		"An asset type may not be registered multiple times.");
 
 	AssetContainer& assetContainer = m_assetsByFileType[k_fileType];
@@ -121,7 +121,7 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 	constexpr const char* const k_fileType = TAsset::k_fileType;
 	std::shared_lock<std::shared_mutex> readLock{ m_sharedMutex };
 
-	Dev::FatalAssert(m_assetsByFileType.Find(k_fileType) != m_assetsByFileType.end(),
+	AMP_FATAL_ASSERT(m_assetsByFileType.Find(k_fileType) != m_assetsByFileType.end(),
 		"Cannot load an asset of an unregistered type.");
 
 	// Obtain a lock on this asset type.

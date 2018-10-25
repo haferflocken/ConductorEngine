@@ -53,7 +53,7 @@ public:
 
 	virtual void NotifyChildFinished(const BehaviourNode* child, const EvaluateResult result) override
 	{
-		Dev::FatalAssert(result != EvaluateResult::Running, "A finished child should never return 'running'.");
+		AMP_FATAL_ASSERT(result != EvaluateResult::Running, "A finished child should never return 'running'.");
 		m_result = result;
 	}
 

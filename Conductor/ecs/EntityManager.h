@@ -181,7 +181,7 @@ inline const TComponent* EntityManager::FindComponent(const Entity& entity) cons
 template <typename SystemType>
 inline SystemType& EntityManager::RegisterSystem(Mem::UniquePtr<SystemType>&& system)
 {
-	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
+	AMP_FATAL_ASSERT(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
 		"EntityManager because there is not currently support for initializing the system's component groups.");
 
 	RegisteredConcurrentSystemGroup& newGroup = m_concurrentSystemGroups.Emplace();
@@ -194,7 +194,7 @@ inline void EntityManager::RegisterConcurrentSystems(Mem::UniquePtr<SystemTypes>
 	static_assert(SystemUtil::AreSystemsWriteCompatible<SystemTypes...>(),
 		"The given systems can't run concurrently due to write conflicts.");
 
-	Dev::FatalAssert(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
+	AMP_FATAL_ASSERT(m_entities.IsEmpty(), "Systems must be registered before entities are added to the "
 		"EntityManager because there is not currently support for initializing the system's component groups.");
 
 	RegisteredConcurrentSystemGroup& newGroup = m_concurrentSystemGroups.Emplace();

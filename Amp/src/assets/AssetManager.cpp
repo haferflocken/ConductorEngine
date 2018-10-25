@@ -19,7 +19,7 @@ void AssetManager::Update()
 			auto& future = assetContainer.m_loadingFutures[i];
 
 			const std::future_status status = future.wait_for(std::chrono::seconds(0));
-			Dev::FatalAssert(status != std::future_status::deferred, "Asset loading should always be asynchronous.");
+			AMP_FATAL_ASSERT(status != std::future_status::deferred, "Asset loading should always be asynchronous.");
 
 			if (status == std::future_status::ready)
 			{
@@ -64,7 +64,7 @@ void AssetManager::UnregisterAssetTypeInternal(const char* const fileType)
 	std::unique_lock<std::shared_mutex> writeLock{ m_sharedMutex };
 
 	const auto assetContainerIter = m_assetsByFileType.Find(fileType);
-	Dev::FatalAssert(assetContainerIter != m_assetsByFileType.end(),
+	AMP_FATAL_ASSERT(assetContainerIter != m_assetsByFileType.end(),
 		"Cannot unregister an asset type that isn't registered.");
 
 	AssetContainer& assetContainer = assetContainerIter->second;
@@ -77,7 +77,7 @@ void AssetManager::UnregisterAssetTypeInternal(const char* const fileType)
 
 	// Destroy all unreferenced assets and validate that there are no assets of this type remaining.
 	DestroyUnreferencedAssets(assetContainer);
-	Dev::FatalAssert(assetContainer.m_managedAssets.IsEmpty(),
+	AMP_FATAL_ASSERT(assetContainer.m_managedAssets.IsEmpty(),
 		"Cannot unregister an asset type that is still in use!");
 
 	// Remove the asset container from the asset type map.
@@ -99,7 +99,7 @@ void AssetManager::DestroyUnreferencedAssets(AssetContainer& assetContainer)
 				}
 				else
 				{
-					Dev::FatalAssert(managedAssetHeader.m_status == AssetStatus::FailedToLoad,
+					AMP_FATAL_ASSERT(managedAssetHeader.m_status == AssetStatus::FailedToLoad,
 						"Encountered unhandled AssetStatus type [%d].",
 						static_cast<int32_t>(managedAssetHeader.m_status));
 				}

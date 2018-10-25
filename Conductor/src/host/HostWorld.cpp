@@ -92,7 +92,7 @@ void Host::HostWorld::ProcessMessageFromClient(Client::MessageToHost& message)
 	{
 	case Client::MessageToHostType::Connect:
 	{
-		Dev::FatalAssert(message.m_connectPayload.m_hostToClientMessages != nullptr,
+		AMP_FATAL_ASSERT(message.m_connectPayload.m_hostToClientMessages != nullptr,
 			"HostWorld expects connect messages to have their message queues resolved in HostNetworkWorld.");
 		NotifyOfClientConnected(
 			Mem::MakeUnique<Host::ConnectedClient>(message.m_clientID, *message.m_connectPayload.m_hostToClientMessages));

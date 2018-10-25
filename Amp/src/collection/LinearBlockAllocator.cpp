@@ -28,7 +28,7 @@ LinearBlockAllocator& LinearBlockAllocator::operator=(LinearBlockAllocator&& rhs
 
 LinearBlockAllocator::~LinearBlockAllocator()
 {
-	Dev::Assert(IsEmpty(),
+	AMP_ASSERT(IsEmpty(),
 		"LinearAllocators should not be destroyed until everything allocated from them is freed.");
 }
 
@@ -70,7 +70,7 @@ void LinearBlockAllocator::Free(void* ptr)
 			const std::ptrdiff_t indexInBlock =
 				(reinterpret_cast<const uint8_t*>(ptr) - blockMemoryBegin) / m_elementSizeInBytes;
 
-			Dev::FatalAssert((block.m_vacancyMap & (1ui64 << indexInBlock)) == 0,
+			AMP_FATAL_ASSERT((block.m_vacancyMap & (1ui64 << indexInBlock)) == 0,
 				"Cannot free an already freed pointer in LinearAllocator.");
 
 			block.m_vacancyMap |= (1ui64 << indexInBlock);

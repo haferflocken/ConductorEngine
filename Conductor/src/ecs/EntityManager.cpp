@@ -199,7 +199,7 @@ const Component* EntityManager::FindComponent(const ComponentID id) const
 Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 {
 	using namespace Internal_EntityManager;
-	Dev::FatalAssert(m_transmissionBuffers != nullptr,
+	AMP_FATAL_ASSERT(m_transmissionBuffers != nullptr,
 		"Cannot serialize an EntityManager that was not flagged at creation to support transmission.");
 
 	Collection::Vector<uint8_t> transmissionBytes;
@@ -694,13 +694,13 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
 		{
 			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
-			Dev::FatalAssert(bufferedComponentVector.GetComponentType() == ComponentType(),
+			AMP_FATAL_ASSERT(bufferedComponentVector.GetComponentType() == ComponentType(),
 				"A buffered component vector was created too early.");
 			bufferedComponentVector =
 				ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
 		}
 	}
-	Dev::FatalAssert(componentVector.GetComponentType() == componentType,
+	AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
 		"Mismatch between component vector type and the key it is stored at.");
 
 	if (!m_componentReflector.TryMakeComponent(m_assetManager, componentInfo, componentID, componentVector))

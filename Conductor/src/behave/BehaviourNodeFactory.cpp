@@ -41,7 +41,7 @@ void BehaviourNodeFactory::RegisterNodeFactoryFunction(
 	NodeFactoryFunction fn)
 {
 	const Util::StringHash nodeTypeHash = Util::CalcHash(nodeType);
-	Dev::FatalAssert(m_nodeFactoryFunctions.Find(nodeTypeHash) == m_nodeFactoryFunctions.end(),
+	AMP_FATAL_ASSERT(m_nodeFactoryFunctions.Find(nodeTypeHash) == m_nodeFactoryFunctions.end(),
 		"Attempted to register a factory function for node type \"%s\", but there already is one.");
 	m_nodeFactoryFunctions[nodeTypeHash] = std::move(fn);
 }
