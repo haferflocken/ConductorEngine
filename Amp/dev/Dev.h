@@ -70,11 +70,17 @@ class Dev
 public:
 	enum class MessageType
 	{
-		Info,
+		Info = 0,
 		Warning,
 		Error,
-		FatalError
+		FatalError,
+		Count
 	};
 
+	static void SetOutputFor(const MessageType messageType, std::ostream& ostream);
+
 	static void PrintMessage(const MessageType messageType, const char* const message);
+
+private:
+	static std::ostream* s_outputByMessageType[static_cast<size_t>(MessageType::Count)];
 };
