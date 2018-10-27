@@ -16,7 +16,7 @@ class EntityManager;
  * A System updates entities which have a set of components which match the system's input components.
  * Systems should be defined by extending SystemTempl.
  * All systems must define an update function which encapsulates their logic with this signature:
- *   void Update(const const Unit::Time::Millisecond delta,
+ *   void Update(const Unit::Time::Millisecond delta,
  *      const Collection::ArrayView<ECSGroupType>& ecsGroups,
  *      Collection::Vector<std::function<void(EntityManager&)>>& deferredFunctions);
  * 

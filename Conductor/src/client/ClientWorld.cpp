@@ -114,18 +114,7 @@ void Client::ClientWorld::ProcessInputMessage(Client::InputMessage& message)
 	{
 	case Client::InputMessageType::WindowClosed:
 	{
-		m_client->NotifyOfWindowClosed();
 		m_connectedHost->Disconnect();
-		break;
-	}
-	case Client::InputMessageType::KeyUp:
-	{
-		m_client->NotifyOfKeyUp(message.m_key);
-		break;
-	}
-	case Client::InputMessageType::KeyDown:
-	{
-		m_client->NotifyOfKeyDown(message.m_key);
 		break;
 	}
 	default:
