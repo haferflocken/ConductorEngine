@@ -17,13 +17,13 @@ public:
 	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const AnchorComponentInfo& componentInfo,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
-	AnchorComponent(const ECS::ComponentID id, int32_t anchoringRadiusInChunks)
+	AnchorComponent(const ECS::ComponentID id, int16_t anchoringRadiusInChunks)
 		: ECS::Component(id)
 		, m_anchoringRadiusInChunks(anchoringRadiusInChunks)
 	{}
 
 	virtual ~AnchorComponent() {}
 
-	int32_t m_anchoringRadiusInChunks;
+	int16_t m_anchoringRadiusInChunks;
 };
 }

@@ -78,11 +78,11 @@ void UnboundedScene::BringChunkIntoPlay(const ChunkID chunkID)
 
 	// Add the chunks adjacent to the chunk to the transition zone if they are not in play.
 	// If any are already there, just increment their refernce count.
-	for (int32_t z = -1; z <= 1; ++z)
+	for (int16_t z = -1; z <= 1; ++z)
 	{
-		for (int32_t y = -1; y <= 1; ++y)
+		for (int16_t y = -1; y <= 1; ++y)
 		{
-			for (int32_t x = -1; x <= 1; ++x)
+			for (int16_t x = -1; x <= 1; ++x)
 			{
 				const ChunkID adjacentChunkID{ chunkID.GetX() + x, chunkID.GetY() + y, chunkID.GetZ() + z };
 				if (m_chunksInPlay.IndexOf(adjacentChunkID) == m_chunksInPlay.sk_InvalidIndex)
@@ -105,11 +105,11 @@ void UnboundedScene::RemoveChunkFromPlay(const ChunkID chunkID)
 	m_chunksPendingRemoval.Add(chunkID);
 
 	// Decrement the reference counts of all adjacent transition chunks.
-	for (int32_t z = -1; z <= 1; ++z)
+	for (int16_t z = -1; z <= 1; ++z)
 	{
-		for (int32_t y = -1; y <= 1; ++y)
+		for (int16_t y = -1; y <= 1; ++y)
 		{
-			for (int32_t x = -1; x <= 1; ++x)
+			for (int16_t x = -1; x <= 1; ++x)
 			{
 				const ChunkID adjacentChunkID{ chunkID.GetX() + x, chunkID.GetY() + y, chunkID.GetZ() + z };
 				auto* const entry = m_transitionChunksToRefCounts.Find(adjacentChunkID);

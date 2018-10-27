@@ -97,6 +97,10 @@ Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& us
 	if (rawChunk.empty())
 	{
 		rawChunk = File::ReadFullTextFile(sourcePath / chunkFileName);
+		if (rawChunk.empty())
+		{
+			return outChunk;
+		}
 	}
 
 	const uint8_t* iter = reinterpret_cast<const uint8_t*>(rawChunk.data());

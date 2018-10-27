@@ -27,30 +27,30 @@ void SceneAnchorSystem::Update(const Unit::Time::Millisecond delta,
 		
 		const AnchorComponent& anchorComponent = ecsGroup.Get<const AnchorComponent>();
 
-		const int32_t anchoringRadiusInChunks = anchorComponent.m_anchoringRadiusInChunks;
+		const int16_t anchoringRadiusInChunks = anchorComponent.m_anchoringRadiusInChunks;
 
 		const float fAnchoringRadiusInChunks = static_cast<float>(anchoringRadiusInChunks) * Chunk::k_sideLengthMeters;
 		const float anchoringRadiusSquared = fAnchoringRadiusInChunks * fAnchoringRadiusInChunks;
 
-		const int32_t entityChunkX = static_cast<int32_t>(position.x) >> Chunk::k_lgSideLength;
-		const int32_t entityChunkY = static_cast<int32_t>(position.y) >> Chunk::k_lgSideLength;
-		const int32_t entityChunkZ = static_cast<int32_t>(position.z) >> Chunk::k_lgSideLength;
+		const int16_t entityChunkX = static_cast<int16_t>(static_cast<int32_t>(position.x) >> Chunk::k_lgSideLength);
+		const int16_t entityChunkY = static_cast<int16_t>(static_cast<int32_t>(position.y) >> Chunk::k_lgSideLength);
+		const int16_t entityChunkZ = static_cast<int16_t>(static_cast<int32_t>(position.z) >> Chunk::k_lgSideLength);
 		const ChunkID entityChunkID{ entityChunkX, entityChunkY, entityChunkZ };
 
 		const Math::Vector3 entityChunkOrigin = Chunk::CalcChunkOrigin(entityChunkID);
 
-		const int32_t xMin = entityChunkX - anchoringRadiusInChunks;
-		const int32_t yMin = entityChunkY - anchoringRadiusInChunks;
-		const int32_t zMin = entityChunkZ - anchoringRadiusInChunks;
-		const int32_t xMax = entityChunkX + anchoringRadiusInChunks;
-		const int32_t yMax = entityChunkY + anchoringRadiusInChunks;
-		const int32_t zMax = entityChunkZ + anchoringRadiusInChunks;
+		const int16_t xMin = entityChunkX - anchoringRadiusInChunks;
+		const int16_t yMin = entityChunkY - anchoringRadiusInChunks;
+		const int16_t zMin = entityChunkZ - anchoringRadiusInChunks;
+		const int16_t xMax = entityChunkX + anchoringRadiusInChunks;
+		const int16_t yMax = entityChunkY + anchoringRadiusInChunks;
+		const int16_t zMax = entityChunkZ + anchoringRadiusInChunks;
 
-		for (int32_t z = zMin; z <= zMax; ++z)
+		for (int16_t z = zMin; z <= zMax; ++z)
 		{
-			for (int32_t y = yMin; y <= yMax; ++y)
+			for (int16_t y = yMin; y <= yMax; ++y)
 			{
-				for (int32_t x = xMin; x <= xMax; ++x)
+				for (int16_t x = xMin; x <= xMax; ++x)
 				{
 					const ChunkID chunkID{ x, y, z };
 					const Math::Vector3 chunkOrigin = Chunk::CalcChunkOrigin(chunkID);

@@ -16,13 +16,13 @@ Mem::UniquePtr<ECS::ComponentInfo> AnchorComponentInfo::LoadFromJSON(
 {
 	const auto* const maybeAnchoringRadius = jsonObject.FindNumber(Internal_AnchorComponentInfo::k_anchoringRadiusHash);
 	
-	const int32_t anchoringRadiusInChunks{
-		maybeAnchoringRadius != nullptr ? static_cast<int32_t>(maybeAnchoringRadius->m_number) : 1 };
+	const int16_t anchoringRadiusInChunks{
+		maybeAnchoringRadius != nullptr ? static_cast<int16_t>(maybeAnchoringRadius->m_number) : 1 };
 
 	return Mem::MakeUnique<AnchorComponentInfo>(anchoringRadiusInChunks);
 }
 
-AnchorComponentInfo::AnchorComponentInfo(int32_t anchoringRadiusInChunks)
+AnchorComponentInfo::AnchorComponentInfo(int16_t anchoringRadiusInChunks)
 	: m_anchoringRadiusInChunks(anchoringRadiusInChunks)
 {}
 }

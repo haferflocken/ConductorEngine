@@ -13,11 +13,11 @@ public:
 	static Mem::UniquePtr<ComponentInfo> LoadFromJSON(
 		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject);
 
-	explicit AnchorComponentInfo(int32_t anchoringRadiusInChunks);
+	explicit AnchorComponentInfo(int16_t anchoringRadiusInChunks);
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
 	virtual Util::StringHash GetTypeHash() const { return sk_typeHash; }
 
-	int32_t m_anchoringRadiusInChunks;
+	int16_t m_anchoringRadiusInChunks;
 };
 }
