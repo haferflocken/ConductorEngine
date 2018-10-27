@@ -153,6 +153,7 @@
     <ClCompile Include="src\behave\nodes\RepeatNode.cpp" />
     <ClCompile Include="src\behave\parse\BehaviourTreeParser.cpp" />
     <ClCompile Include="src\client\IClient.cpp" />
+    <ClCompile Include="src\input\CallbackRegistry.cpp" />
     <ClCompile Include="src\input\InputComponent.cpp" />
     <ClCompile Include="src\input\InputSystem.cpp" />
     <ClCompile Include="src\conductor\IGameData.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="behave\nodes\RepeatNode.h" />
     <ClInclude Include="behave\parse\BehaveParsedTree.h" />
     <ClInclude Include="behave\parse\BehaviourTreeParser.h" />
+    <ClInclude Include="input\CallbackRegistry.h" />
     <ClInclude Include="input\InputComponent.h" />
     <ClInclude Include="input\InputSystem.h" />
     <ClInclude Include="ecs\ApplyDeltaTransmissionResult.h" />

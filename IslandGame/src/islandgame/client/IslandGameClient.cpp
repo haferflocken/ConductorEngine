@@ -14,7 +14,7 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	: IClient(gameData.GetAssetManager(), gameData.GetComponentReflector(), connectedHost)
 	, m_gameData(gameData)
 {
-	m_entityManager.RegisterSystem(Mem::MakeUnique<Input::InputSystem>(*this));
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Input::InputSystem>(m_inputCallbackRegistry));
 
 	const Behave::BehaveContext context{
 		m_gameData.GetBehaviourTreeManager(),
