@@ -110,17 +110,11 @@ void Client::ClientWorld::ProcessMessageFromHost(Host::MessageToClient& message)
 
 void Client::ClientWorld::ProcessInputMessage(Client::InputMessage& message)
 {
-	switch (message.m_type)
-	{
-	case Client::InputMessageType::WindowClosed:
+	if (message.Is<Client::InputMessage_WindowClosed>())
 	{
 		m_connectedHost->Disconnect();
-		break;
+		return;
 	}
-	default:
-	{
-		m_client->NotifyOfInputMessage(message);
-		break;
-	}
-	}
+
+	m_client->NotifyOfInputMessage(message);
 }

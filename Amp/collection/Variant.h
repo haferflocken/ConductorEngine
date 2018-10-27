@@ -11,11 +11,14 @@ template <typename... Types>
 class alignas(Types...) Variant
 {
 public:
-	Variant();
-	~Variant();
-
 	template <typename T, typename... Args>
 	static Variant Make(Args&&... args);
+
+	template <typename T>
+	static size_t TagFor();
+
+	Variant();
+	~Variant();
 
 	Variant(const Variant& other);
 	Variant& operator=(const Variant& rhs);
@@ -23,17 +26,19 @@ public:
 	Variant(Variant&& other);
 	Variant& operator=(Variant&& rhs);
 
-	template <size_t Index>
-	Util::TypeAtIndex<Index, Types...>& Get();
+	template <size_t Tag>
+	Util::TypeAtIndex<Tag, Types...>& Get();
 
-	template <size_t Index>
-	const Util::TypeAtIndex<Index, Types...>& Get() const;
+	template <size_t Tag>
+	const Util::TypeAtIndex<Tag, Types...>& Get() const;
 
 	template <typename Type>
 	Type& Get();
 
 	template <typename Type>
 	const Type& Get() const;
+
+	size_t GetTag() const;
 
 	template <typename Type>
 	bool Is() const;
@@ -96,6 +101,13 @@ inline Variant<Types...> Variant<Types...>::Make(Args&&... args)
 }
 
 template <typename... Types>
+template <typename T>
+inline size_t Variant<Types...>::TagFor()
+{
+	return Util::IndexOfType<T, Types...>();
+}
+
+template <typename... Types>
 inline Variant<Types...>& Variant<Types...>::operator=(const Variant& rhs)
 {
 	Match([](Types& data) { Destroy<Types>(data); }...);
@@ -125,19 +137,19 @@ inline Variant<Types...>& Variant<Types...>::operator=(Variant&& rhs)
 }
 
 template <typename... Types>
-template <size_t Index>
-inline Util::TypeAtIndex<Index, Types...>& Variant<Types...>::Get()
+template <size_t Tag>
+inline Util::TypeAtIndex<Tag, Types...>& Variant<Types...>::Get()
 {
-	AMP_FATAL_ASSERT(m_tagBytes[0] == Index, "Mismatch between current type and desired type in Variant.");
-	return reinterpret_cast<Util::TypeAtIndex<Index, Types...>&>(m_data);
+	AMP_FATAL_ASSERT(m_tagBytes[0] == Tag, "Mismatch between current type and desired type in Variant.");
+	return reinterpret_cast<Util::TypeAtIndex<Tag, Types...>&>(m_data);
 }
 
 template <typename... Types>
-template <size_t Index>
-inline const Util::TypeAtIndex<Index, Types...>& Variant<Types...>::Get() const
+template <size_t Tag>
+inline const Util::TypeAtIndex<Tag, Types...>& Variant<Types...>::Get() const
 {
-	AMP_FATAL_ASSERT(m_tagBytes[0] == Index, "Mismatch between current type and desired type in Variant.");
-	return reinterpret_cast<const Util::TypeAtIndex<Index, Types...>&>(m_data);
+	AMP_FATAL_ASSERT(m_tagBytes[0] == Tag, "Mismatch between current type and desired type in Variant.");
+	return reinterpret_cast<const Util::TypeAtIndex<Tag, Types...>&>(m_data);
 }
 
 template <typename... Types>
@@ -152,6 +164,12 @@ template <typename Type>
 inline const Type& Variant<Types...>::Get() const
 {
 	return Get<Util::IndexOfType<Type, Types...>>();
+}
+
+template <typename... Types>
+size_t Variant<Types...>::GetTag() const
+{
+	return m_tagBytes[0];
 }
 
 template <typename... Types>

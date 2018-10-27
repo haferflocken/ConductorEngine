@@ -149,22 +149,30 @@ RenderInstance::Status RenderInstance::Update()
 			{
 				m_status = Status::Terminating;
 
-				Client::InputMessage message;
-				message.m_type = Client::InputMessageType::WindowClosed;
-
+				auto message = Client::InputMessage::Make<Client::InputMessage_WindowClosed>();
 				m_inputToClientMessages.TryPush(std::move(message));
 
 				return Status::Running;
 			}
 			case SDL_KEYDOWN:
+			{
+				auto message = Client::InputMessage::Make<Client::InputMessage_KeyDown>();
+				auto& payload = message.Get<Client::InputMessage_KeyDown>();
+
+				payload.m_keyCode = event.key.keysym.sym;
+				strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));
+
+				m_inputToClientMessages.TryPush(std::move(message));
+				break;
+			}
 			case SDL_KEYUP:
 			{
-				Client::InputMessage message;
-				message.m_type = (event.type == SDL_KEYDOWN)
-					? Client::InputMessageType::KeyDown
-					: Client::InputMessageType::KeyUp;
-				message.m_key = static_cast<char>(event.key.keysym.sym);
+				auto message = Client::InputMessage::Make<Client::InputMessage_KeyUp>();
+				auto& payload = message.Get<Client::InputMessage_KeyUp>();
 
+				payload.m_keyCode = event.key.keysym.sym;
+				strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));
+				
 				m_inputToClientMessages.TryPush(std::move(message));
 				break;
 			}

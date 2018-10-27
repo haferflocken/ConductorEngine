@@ -9,9 +9,9 @@ void IClient::NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& t
 	m_entityManager.ApplyDeltaTransmission(transmissionBytes);
 }
 
-void IClient::NotifyOfInputMessage(const Client::InputMessage& message)
+void IClient::NotifyOfInputMessage(const InputMessage& message)
 {
-	const uint64_t messageTypeBit = 1ui64 << static_cast<uint64_t>(message.m_type);
+	const uint64_t messageTypeBit = 1ui64 << static_cast<uint64_t>(message.GetTag());
 
 	for (auto&& entry : m_inputCallbacks)
 	{
@@ -23,31 +23,13 @@ void IClient::NotifyOfInputMessage(const Client::InputMessage& message)
 	}
 }
 
-uint64_t IClient::RegisterInputCallback(std::function<void(const Client::InputMessage)>&& callbackFn)
+uint64_t IClient::RegisterInputCallback(uint64_t inputTypeMask, std::function<void(const InputMessage)>&& callbackFn)
 {
 	const uint64_t id = m_nextCallbackID;
 	++m_nextCallbackID;
 
 	InputCallback& callback = m_inputCallbacks[id];
-	callback.m_inputTypeMask = UINT64_MAX;
-	callback.m_handler = std::move(callbackFn);
-
-	return id;
-}
-
-uint64_t IClient::RegisterInputCallback(const Collection::ArrayView<InputMessageType>& acceptedTypes,
-	std::function<void(const Client::InputMessage)>&& callbackFn)
-{
-	static_assert((sizeof(InputCallback::m_inputTypeMask) * 8) >= static_cast<size_t>(InputMessageType::Count));
-
-	const uint64_t id = m_nextCallbackID;
-	++m_nextCallbackID;
-
-	InputCallback& callback = m_inputCallbacks[id];
-	for (auto&& type : acceptedTypes)
-	{
-		callback.m_inputTypeMask |= (1ui64 << static_cast<uint64_t>(type));
-	}
+	callback.m_inputTypeMask = inputTypeMask;
 	callback.m_handler = std::move(callbackFn);
 
 	return id;

@@ -6,7 +6,7 @@ namespace Client
 {
 InputSystem::InputSystem(IClient& client)
 {
-	client.RegisterInputCallback([this](const InputMessage& message) { NotifyOfInputMessage(message); });
+	client.RegisterInputCallback<>([this](const InputMessage& message) { NotifyOfInputMessage(message); });
 }
 
 void InputSystem::Update(const Unit::Time::Millisecond delta,

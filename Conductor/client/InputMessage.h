@@ -1,23 +1,40 @@
 #pragma once
 
+#include <collection/Variant.h>
+
 #include <cstdint>
 
 namespace Client
 {
-enum class InputMessageType : uint8_t
+struct InputMessage_WindowClosed final {};
+
+struct InputMessage_KeyUp final
 {
-	WindowClosed = 0,
-	KeyUp,
-	KeyDown,
-	Count
+	int32_t m_keyCode;
+	char m_keyName[28];
 };
 
-struct InputMessage
+struct InputMessage_KeyDown final
 {
-	InputMessageType m_type;
-	union
+	int32_t m_keyCode;
+	char m_keyName[28];
+};
+
+struct InputMessage final : public Collection::Variant<
+	InputMessage_WindowClosed,
+	InputMessage_KeyUp,
+	InputMessage_KeyDown>
+{
+	using Variant::Variant;
+
+	InputMessage(Variant&& v)
+		: Variant(std::move(v))
+	{}
+
+	template <typename T, typename... Args>
+	static InputMessage Make(Args&&... args)
 	{
-		char m_key;
-	};
+		return InputMessage(Variant::Make<T, Args...>(std::forward<Args>(args)...));
+	}
 };
 }
