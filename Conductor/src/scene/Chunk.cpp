@@ -221,8 +221,12 @@ void Chunk::PutChunkEntitiesIntoPlay(
 			continue;
 		}
 
+		// Create the entity.
+		ECS::Entity* entity = &entityManager.CreateEntity(*info);
+
+		// TODO(scene) Preserve entity IDs.
 		// Create the entity if it does not exist.
-		ECS::Entity* entity = entityManager.FindEntity(entityDatum.m_entityID);
+		/*ECS::Entity* entity = entityManager.FindEntity(entityDatum.m_entityID);
 		if (entity == nullptr)
 		{
 			// TODO create with specific ID?
@@ -232,7 +236,7 @@ void Chunk::PutChunkEntitiesIntoPlay(
 		else
 		{
 			entityManager.SetInfoForEntity(*info, *entity);
-		}
+		}*/
 		
 		// Apply the serialized component data to the entity.
 		for (const auto& serializedComponent : entityDatum.m_serializedComponents)

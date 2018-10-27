@@ -145,7 +145,7 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 	// Save and unload any unreferenced transition chunks.
 	m_transitionChunksToRefCounts.RemoveAllMatching([&](const Collection::Pair<ChunkID, ChunkRefCount>& entry)
 	{
-		if (entry.second <= ChunkRefCount(1))
+		if (entry.second < ChunkRefCount(1))
 		{
 			SaveChunkAndQueueEntitiesForUnload(entityManager, entry.first);
 			return true;
