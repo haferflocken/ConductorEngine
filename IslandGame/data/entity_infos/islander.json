@@ -8,7 +8,6 @@
     },
     { "type": "blackboard_component" },
     { "type": "scene_transform_component" },
-    { "type": "anchor_component" },
     { "type": "islander_component" },
     {
       "type": "mesh_component",

@@ -32,7 +32,7 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::SceneAnchorSystem>(scene));
 
-	m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("islander.json")));
+	m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("player.json")));
 }
 
 IslandGame::Host::IslandGameHost::~IslandGameHost()

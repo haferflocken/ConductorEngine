@@ -1,0 +1,10 @@
+{
+  "components": [
+    { "type": "scene_transform_component" },
+    { "type": "anchor_component" },
+    {
+      "type": "mesh_component",
+      "mesh_file_path": "meshes/simple_quad.cms"
+    }
+  ]
+}

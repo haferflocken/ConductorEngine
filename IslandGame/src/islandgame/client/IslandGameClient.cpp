@@ -28,7 +28,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 	if (!isCameraCreated)
 	{
 		m_entityManager.CreateEntity(
-			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("islander.json")));
+			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("player.json")));
 		ECS::Entity& cameraEntity = m_entityManager.CreateEntity(
 			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("camera.json")));
 
