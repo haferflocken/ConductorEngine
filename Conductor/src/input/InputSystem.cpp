@@ -1,10 +1,10 @@
-#include <client/InputSystem.h>
+#include <input/InputSystem.h>
 
 #include <client/IClient.h>
 
-namespace Client
+namespace Input
 {
-InputSystem::InputSystem(IClient& client)
+InputSystem::InputSystem(Client::IClient& client)
 {
 	client.RegisterInputCallback<>([this](const InputMessage& message) { NotifyOfInputMessage(message); });
 }

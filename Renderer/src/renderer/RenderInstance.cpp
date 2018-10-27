@@ -2,7 +2,6 @@
 
 #include <asset/AssetManager.h>
 
-#include <client/InputMessage.h>
 #include <client/MessageToRenderInstance.h>
 
 #include <collection/LocklessQueue.h>
@@ -10,6 +9,8 @@
 #include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityManager.h>
+
+#include <input/InputMessage.h>
 
 #include <renderer/CameraSystem.h>
 #include <renderer/FrameSignalSystem.h>
@@ -31,7 +32,7 @@ constexpr uint16_t k_height = 720;
 RenderInstance::RenderInstance(
 	Asset::AssetManager& assetManager,
 	Collection::LocklessQueue<Client::MessageToRenderInstance>& messagesFromClient,
-	Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
+	Collection::LocklessQueue<Input::InputMessage>& inputToClientMessages,
 	const char* const applicationName)
 	: IRenderInstance(assetManager)
 	, m_status(Status::Initializing)
@@ -149,15 +150,15 @@ RenderInstance::Status RenderInstance::Update()
 			{
 				m_status = Status::Terminating;
 
-				auto message = Client::InputMessage::Make<Client::InputMessage_WindowClosed>();
+				auto message = Input::InputMessage::Make<Input::InputMessage_WindowClosed>();
 				m_inputToClientMessages.TryPush(std::move(message));
 
 				return Status::Running;
 			}
 			case SDL_KEYDOWN:
 			{
-				auto message = Client::InputMessage::Make<Client::InputMessage_KeyDown>();
-				auto& payload = message.Get<Client::InputMessage_KeyDown>();
+				auto message = Input::InputMessage::Make<Input::InputMessage_KeyDown>();
+				auto& payload = message.Get<Input::InputMessage_KeyDown>();
 
 				payload.m_keyCode = event.key.keysym.sym;
 				strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));
@@ -167,8 +168,8 @@ RenderInstance::Status RenderInstance::Update()
 			}
 			case SDL_KEYUP:
 			{
-				auto message = Client::InputMessage::Make<Client::InputMessage_KeyUp>();
-				auto& payload = message.Get<Client::InputMessage_KeyUp>();
+				auto message = Input::InputMessage::Make<Input::InputMessage_KeyUp>();
+				auto& payload = message.Get<Input::InputMessage_KeyUp>();
 
 				payload.m_keyCode = event.key.keysym.sym;
 				strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));

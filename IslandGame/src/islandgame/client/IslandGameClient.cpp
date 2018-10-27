@@ -4,8 +4,8 @@
 
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
-#include <client/InputSystem.h>
 #include <ecs/EntityInfoManager.h>
+#include <input/InputSystem.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
@@ -14,7 +14,7 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	: IClient(gameData.GetAssetManager(), gameData.GetComponentReflector(), connectedHost)
 	, m_gameData(gameData)
 {
-	m_entityManager.RegisterSystem(Mem::MakeUnique<::Client::InputSystem>(*this));
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Input::InputSystem>(*this));
 
 	const Behave::BehaveContext context{
 		m_gameData.GetBehaviourTreeManager(),

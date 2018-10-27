@@ -2,11 +2,11 @@
 
 #include <asset/AssetManager.h>
 #include <client/ConnectedHost.h>
-#include <client/InputMessage.h>
 #include <client/IRenderInstance.h>
 #include <client/MessageToRenderInstance.h>
 #include <client/ClientNetworkWorld.h>
 #include <collection/LocklessQueue.h>
+#include <input/InputMessage.h>
 #include <network/Socket.h>
 
 Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
@@ -29,7 +29,7 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.
 	constexpr size_t k_clientRenderMessageCapacity = 256;
-	Collection::LocklessQueue<Client::InputMessage> inputToClientMessages{ k_clientRenderMessageCapacity };
+	Collection::LocklessQueue<Input::InputMessage> inputToClientMessages{ k_clientRenderMessageCapacity };
 	Collection::LocklessQueue<Client::MessageToRenderInstance> clientToRenderInstanceMessages{
 		k_clientRenderMessageCapacity };
 	

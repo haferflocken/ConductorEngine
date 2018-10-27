@@ -15,6 +15,8 @@ class ComponentReflector;
 class EntityManager;
 }
 
+namespace Input { struct InputMessage; }
+
 namespace Client
 {
 /**
@@ -66,9 +68,8 @@ protected:
 	Asset::AssetManager& m_assetManager;
 };
 
-struct InputMessage;
 struct MessageToRenderInstance;
 
 using RenderInstanceFactory = std::function<Mem::UniquePtr<IRenderInstance>(Asset::AssetManager&, const File::Path&,
-	Collection::LocklessQueue<Client::MessageToRenderInstance>&, Collection::LocklessQueue<Client::InputMessage>&)>;
+	Collection::LocklessQueue<Client::MessageToRenderInstance>&, Collection::LocklessQueue<Input::InputMessage>&)>;
 }

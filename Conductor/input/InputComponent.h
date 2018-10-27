@@ -3,7 +3,7 @@
 #include <ecs/Component.h>
 #include <ecs/ComponentInfo.h>
 
-namespace Client
+namespace Input
 {
 class InputComponentInfo final : public ECS::ComponentInfo
 {

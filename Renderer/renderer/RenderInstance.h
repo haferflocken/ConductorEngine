@@ -15,7 +15,7 @@ public:
 	explicit RenderInstance(
 		Asset::AssetManager& assetManager,
 		Collection::LocklessQueue<Client::MessageToRenderInstance>& messagesFromClient,
-		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages,
+		Collection::LocklessQueue<Input::InputMessage>& inputToClientMessages,
 		const char* const applicationName);
 	~RenderInstance();
 
@@ -35,7 +35,7 @@ public:
 private:
 	Status m_status;
 	Collection::LocklessQueue<Client::MessageToRenderInstance>& m_messagesFromClient;
-	Collection::LocklessQueue<Client::InputMessage>& m_inputToClientMessages;
+	Collection::LocklessQueue<Input::InputMessage>& m_inputToClientMessages;
 
 	SDL_Window* m_window;
 };

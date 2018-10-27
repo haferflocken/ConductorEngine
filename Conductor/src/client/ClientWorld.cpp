@@ -2,8 +2,8 @@
 
 #include <client/ConnectedHost.h>
 #include <client/IClient.h>
-#include <client/InputMessage.h>
 #include <client/IRenderInstance.h>
+#include <input/InputMessage.h>
 
 #include <collection/LocklessQueue.h>
 #include <dev/Dev.h>
@@ -11,7 +11,7 @@
 
 Client::ClientWorld::ClientWorld(const Conductor::IGameData& gameData,
 	IRenderInstance& renderInstance,
-	Collection::LocklessQueue<Client::InputMessage>& inputMessages,
+	Collection::LocklessQueue<Input::InputMessage>& inputMessages,
 	Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
 	ClientFactory&& clientFactory)
 	: m_gameData(gameData)
@@ -70,7 +70,7 @@ void Client::ClientWorld::ClientThreadFunction()
 
 		// Process pending player input.
 		{
-			Client::InputMessage message;
+			Input::InputMessage message;
 			while (m_inputMessages.TryPop(message))
 			{
 				ProcessInputMessage(message);
@@ -108,9 +108,9 @@ void Client::ClientWorld::ProcessMessageFromHost(Host::MessageToClient& message)
 		});
 }
 
-void Client::ClientWorld::ProcessInputMessage(Client::InputMessage& message)
+void Client::ClientWorld::ProcessInputMessage(Input::InputMessage& message)
 {
-	if (message.Is<Client::InputMessage_WindowClosed>())
+	if (message.Is<Input::InputMessage_WindowClosed>())
 	{
 		m_connectedHost->Disconnect();
 		return;

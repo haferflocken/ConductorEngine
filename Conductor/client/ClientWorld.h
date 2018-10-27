@@ -9,12 +9,12 @@
 
 namespace Collection { template <typename T> class LocklessQueue; }
 namespace Conductor { class IGameData; }
+namespace Input { struct InputMessage; }
 
 namespace Client
 {
 class ConnectedHost;
 class IClient;
-struct InputMessage;
 class IRenderInstance;
 
 /**
@@ -27,7 +27,7 @@ public:
 
 	ClientWorld(const Conductor::IGameData& gameData,
 		IRenderInstance& renderInstance,
-		Collection::LocklessQueue<Client::InputMessage>& inputMessages,
+		Collection::LocklessQueue<Input::InputMessage>& inputMessages,
 		Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
 		ClientFactory&& clientFactory);
 
@@ -52,11 +52,11 @@ private:
 
 	void ClientThreadFunction();
 	void ProcessMessageFromHost(Host::MessageToClient& message);
-	void ProcessInputMessage(Client::InputMessage& message);
+	void ProcessInputMessage(Input::InputMessage& message);
 
 	const Conductor::IGameData& m_gameData;
 	IRenderInstance& m_renderInstance;
-	Collection::LocklessQueue<Client::InputMessage>& m_inputMessages;
+	Collection::LocklessQueue<Input::InputMessage>& m_inputMessages;
 	Collection::LocklessQueue<Host::MessageToClient>& m_networkInputQueue;
 	ClientFactory m_clientFactory;
 

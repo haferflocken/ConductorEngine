@@ -8,10 +8,10 @@
 #include <behave/BehaviourTreeManager.h>
 #include <behave/BlackboardComponent.h>
 #include <behave/BlackboardComponentInfo.h>
-#include <client/InputComponent.h>
 #include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityInfoManager.h>
+#include <input/InputComponent.h>
 #include <mesh/MeshComponent.h>
 #include <mesh/MeshComponentInfo.h>
 #include <scene/AnchorComponent.h>
@@ -39,7 +39,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	// Register ECS component types.
 	m_componentReflector->RegisterComponentType<Behave::BehaviourTreeComponent>();
 	m_componentReflector->RegisterComponentType<Behave::BlackboardComponent>();
-	m_componentReflector->RegisterComponentType<Client::InputComponent>();
+	m_componentReflector->RegisterComponentType<Input::InputComponent>();
 	m_componentReflector->RegisterComponentType<Mesh::MeshComponent>();
 	m_componentReflector->RegisterComponentType<Scene::SceneTransformComponent>();
 	m_componentReflector->RegisterComponentType<Scene::AnchorComponent>();
@@ -50,7 +50,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	// Register ECS component info types.
 	m_componentInfoFactory->RegisterFactoryFunction<Behave::BehaviourTreeComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Behave::BlackboardComponentInfo>();
-	m_componentInfoFactory->RegisterFactoryFunction<Client::InputComponentInfo>();
+	m_componentInfoFactory->RegisterFactoryFunction<Input::InputComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Mesh::MeshComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Scene::SceneTransformComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Scene::AnchorComponentInfo>();

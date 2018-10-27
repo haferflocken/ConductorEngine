@@ -1,8 +1,8 @@
-#include <client/InputComponent.h>
+#include <input/InputComponent.h>
 
 #include <ecs/ComponentVector.h>
 
-namespace Client
+namespace Input
 {
 const Util::StringHash InputComponentInfo::sk_typeHash = Util::CalcHash(sk_typeName);
 

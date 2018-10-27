@@ -12,7 +12,6 @@
 
 #include <client/ClientWorld.h>
 #include <client/ConnectedHost.h>
-#include <client/InputMessage.h>
 #include <client/IRenderInstance.h>
 #include <client/MessageToHost.h>
 #include <client/MessageToRenderInstance.h>
@@ -25,6 +24,7 @@
 #include <host/HostNetworkWorld.h>
 #include <host/HostWorld.h>
 #include <host/MessageToClient.h>
+#include <input/InputMessage.h>
 #include <network/Socket.h>
 
 #include <renderer/AssetTypes.h>
@@ -64,7 +64,7 @@ Client::RenderInstanceFactory MakeRenderInstanceFactory()
 	return [](Asset::AssetManager& assetManager,
 		const File::Path& dataDirectory,
 		Collection::LocklessQueue<Client::MessageToRenderInstance>& clientToRenderInstanceMessages,
-		Collection::LocklessQueue<Client::InputMessage>& inputToClientMessages)
+		Collection::LocklessQueue<Input::InputMessage>& inputToClientMessages)
 	{
 		return Mem::MakeUnique<Renderer::RenderInstance>(assetManager,
 			clientToRenderInstanceMessages, inputToClientMessages, "IslandGame");

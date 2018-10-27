@@ -1,6 +1,6 @@
 #include <client/IClient.h>
 
-#include <client/InputMessage.h>
+#include <input/InputMessage.h>
 
 namespace Client
 {
@@ -9,7 +9,7 @@ void IClient::NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& t
 	m_entityManager.ApplyDeltaTransmission(transmissionBytes);
 }
 
-void IClient::NotifyOfInputMessage(const InputMessage& message)
+void IClient::NotifyOfInputMessage(const Input::InputMessage& message)
 {
 	const uint64_t messageTypeBit = 1ui64 << static_cast<uint64_t>(message.GetTag());
 
@@ -23,7 +23,8 @@ void IClient::NotifyOfInputMessage(const InputMessage& message)
 	}
 }
 
-uint64_t IClient::RegisterInputCallback(uint64_t inputTypeMask, std::function<void(const InputMessage)>&& callbackFn)
+uint64_t IClient::RegisterInputCallback(uint64_t inputTypeMask,
+	std::function<void(const Input::InputMessage)>&& callbackFn)
 {
 	const uint64_t id = m_nextCallbackID;
 	++m_nextCallbackID;

@@ -6,10 +6,11 @@
 
 #include <functional>
 
+namespace Input { struct InputMessage; }
+
 namespace Client
 {
 class ConnectedHost;
-struct InputMessage;
 
 // IClient is the interface a game's client must implement.
 class IClient
@@ -29,23 +30,24 @@ public:
 	const ECS::EntityManager& GetEntityManager() const { return m_entityManager; }
 
 	void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
-	void NotifyOfInputMessage(const InputMessage& message);
+	void NotifyOfInputMessage(const Input::InputMessage& message);
 
 	template <typename... AcceptedTypes>
-	uint64_t RegisterInputCallback(std::function<void(const InputMessage)>&& callbackFn);
+	uint64_t RegisterInputCallback(std::function<void(const Input::InputMessage)>&& callbackFn);
 
 	void UnregisterInputCallback(const uint64_t callbackID);
 
 	virtual void Update(const Unit::Time::Millisecond delta) = 0;
 
 private:
-	uint64_t RegisterInputCallback(uint64_t inputTypeMask, std::function<void(const InputMessage)>&& callbackFn);
+	uint64_t RegisterInputCallback(uint64_t inputTypeMask,
+		std::function<void(const Input::InputMessage)>&& callbackFn);
 
 	// Encapsulates a callback function that is only called for certain InputMessage types.
 	struct InputCallback final
 	{
 		uint64_t m_inputTypeMask{ 0 };
-		std::function<void(const InputMessage&)> m_handler{};
+		std::function<void(const Input::InputMessage&)> m_handler{};
 	};
 
 	uint64_t m_nextCallbackID{ 0 };
@@ -57,7 +59,7 @@ private:
 namespace Client
 {
 template <typename... AcceptedTypes>
-uint64_t IClient::RegisterInputCallback(std::function<void(const InputMessage)>&& callbackFn)
+uint64_t IClient::RegisterInputCallback(std::function<void(const Input::InputMessage)>&& callbackFn)
 {
 	if constexpr (sizeof...(AcceptedTypes) == 0)
 	{
