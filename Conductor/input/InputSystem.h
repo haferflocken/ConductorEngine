@@ -3,6 +3,8 @@
 #include <ecs/System.h>
 #include <input/InputComponent.h>
 
+namespace Client { struct ClientID; }
+
 namespace Input
 {
 class CallbackRegistry;
@@ -23,6 +25,6 @@ public:
 		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const;
 
 private:
-	void NotifyOfInputMessage(const InputMessage& message);
+	void NotifyOfInputMessage(const Client::ClientID clientID, const InputMessage& message);
 };
 }

@@ -11,7 +11,6 @@ Collection::Vector<uint8_t> IHost::SerializeECSUpdateTransmission()
 
 void IHost::NotifyOfInputMessage(const Client::ClientID clientID, const Input::InputMessage& message)
 {
-	// TODO(host) Separate inputs from different clients
-	m_inputCallbackRegistry.NotifyOfInputMessage(message);
+	m_inputCallbackRegistry.NotifyOfInputMessage(clientID, message);
 }
 }

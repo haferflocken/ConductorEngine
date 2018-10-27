@@ -19,7 +19,7 @@ public:
 };
 
 /**
- * An InputComponent makes an entity aware of client inputs.
+ * An InputComponent makes an entity aware of user inputs.
  */
 class InputComponent final : public ECS::Component
 {

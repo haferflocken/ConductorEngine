@@ -1,5 +1,6 @@
 #pragma once
 
+#include <client/ClientID.h>
 #include <collection/VectorMap.h>
 #include <input/InputMessage.h>
 
@@ -14,21 +15,23 @@ namespace Input
 class CallbackRegistry final
 {
 public:
-	void NotifyOfInputMessage(const Input::InputMessage& message);
+	using CallbackFunction = std::function<void(const Client::ClientID, const Input::InputMessage)>;
+
+	void NotifyOfInputMessage(const Client::ClientID clientID, const Input::InputMessage& message);
 
 	template <typename... AcceptedTypes>
-	uint64_t RegisterInputCallback(std::function<void(const Input::InputMessage)>&& callbackFn);
+	uint64_t RegisterInputCallback(CallbackFunction&& callbackFn);
 
 	void UnregisterInputCallback(const uint64_t callbackID);
 
 private:
-	uint64_t RegisterInputCallback(uint64_t inputTypeMask, std::function<void(const InputMessage)>&& callbackFn);
+	uint64_t RegisterInputCallback(uint64_t inputTypeMask, CallbackFunction&& callbackFn);
 
 	// Encapsulates a callback function that is only called for certain InputMessage types.
 	struct InputCallback final
 	{
 		uint64_t m_inputTypeMask{ 0 };
-		std::function<void(const InputMessage&)> m_handler{};
+		CallbackFunction m_handler{};
 	};
 
 	uint64_t m_nextCallbackID{ 0 };
@@ -40,7 +43,7 @@ private:
 namespace Input
 {
 template <typename... AcceptedTypes>
-uint64_t CallbackRegistry::RegisterInputCallback(std::function<void(const InputMessage)>&& callbackFn)
+uint64_t CallbackRegistry::RegisterInputCallback(CallbackFunction&& callbackFn)
 {
 	if constexpr (sizeof...(AcceptedTypes) == 0)
 	{

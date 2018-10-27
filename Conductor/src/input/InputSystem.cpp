@@ -6,7 +6,11 @@ namespace Input
 {
 InputSystem::InputSystem(Input::CallbackRegistry& callbackRegistry)
 {
-	callbackRegistry.RegisterInputCallback<>([this](const InputMessage& message) { NotifyOfInputMessage(message); });
+	callbackRegistry.RegisterInputCallback<>(
+		[this](const Client::ClientID clientID, const InputMessage& message)
+		{
+			NotifyOfInputMessage(clientID, message);
+		});
 }
 
 void InputSystem::Update(const Unit::Time::Millisecond delta,
@@ -16,7 +20,7 @@ void InputSystem::Update(const Unit::Time::Millisecond delta,
 	// TODO(input) InputSystem
 }
 
-void InputSystem::NotifyOfInputMessage(const InputMessage& message)
+void InputSystem::NotifyOfInputMessage(const Client::ClientID clientID, const InputMessage& message)
 {
 	// TODO(input) InputSystem
 }
