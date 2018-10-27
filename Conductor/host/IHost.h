@@ -1,6 +1,9 @@
 #pragma once
 
 #include <ecs/EntityManager.h>
+#include <input/CallbackRegistry.h>
+
+namespace Client { struct ClientID; }
 
 namespace Host
 {
@@ -8,6 +11,7 @@ namespace Host
 class IHost
 {
 protected:
+	Input::CallbackRegistry m_inputCallbackRegistry;
 	ECS::EntityManager m_entityManager;
 
 public:
@@ -16,6 +20,8 @@ public:
 	{}
 
 	Collection::Vector<uint8_t> SerializeECSUpdateTransmission();
+
+	void NotifyOfInputMessage(const Client::ClientID clientID, const Input::InputMessage& message);
 
 	virtual void Update(const Unit::Time::Millisecond delta) = 0;
 };

@@ -5,6 +5,7 @@
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <ecs/EntityInfoManager.h>
+#include <input/InputSystem.h>
 #include <scene/SceneAnchorSystem.h>
 #include <scene/UnboundedScene.h>
 
@@ -19,6 +20,8 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 	, m_gameData(gameData)
 {
 	using namespace Internal_IslandGameHost;
+
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Input::InputSystem>(m_inputCallbackRegistry));
 
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(Behave::BehaveContext{
 		m_gameData.GetBehaviourTreeManager(),
