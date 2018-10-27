@@ -2,15 +2,6 @@
 
 #include <ecs/Component.h>
 
-#include <util/StringHash.h>
-
-namespace ECS
-{
-class ComponentInfo;
-class ComponentVector;
-class EntityManager;
-}
-
 namespace IslandGame
 {
 namespace Components
