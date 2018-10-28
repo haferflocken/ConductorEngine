@@ -42,10 +42,10 @@ void InputSystem::Update(const Unit::Time::Millisecond delta,
 
 		for (auto& entry : inputMap)
 		{
-			const InputSource& source = entry.first;
+			const Util::StringHash& sourceNameHash = entry.first;
 			InputStateBuffer& stateBuffer = entry.second;
 
-			const InputStateBuffer* const clientInputBuffer = clientInputManager.FindInput(source);
+			const InputStateBuffer* const clientInputBuffer = clientInputManager.FindNamedInput(sourceNameHash);
 			if (clientInputBuffer != nullptr)
 			{
 				stateBuffer = *clientInputBuffer;

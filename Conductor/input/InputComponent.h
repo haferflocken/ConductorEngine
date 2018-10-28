@@ -4,7 +4,6 @@
 #include <collection/VectorMap.h>
 #include <ecs/Component.h>
 #include <ecs/ComponentInfo.h>
-#include <input/InputSource.h>
 #include <input/InputStateBuffer.h>
 
 namespace Input
@@ -20,6 +19,9 @@ public:
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
 	virtual Util::StringHash GetTypeHash() const { return sk_typeHash; }
+
+	// The named inputs this component consumes.
+	Collection::Vector<Util::StringHash> m_inputNameHashes;
 };
 
 /**
@@ -41,6 +43,6 @@ public:
 	// The client this InputComponent receives input from.
 	Client::ClientID m_clientID;
 	// Each InputComponent receives input from the keys of this map.
-	Collection::VectorMap<InputSource, InputStateBuffer> m_inputMap;
+	Collection::VectorMap<Util::StringHash, InputStateBuffer> m_inputMap;
 };
 }

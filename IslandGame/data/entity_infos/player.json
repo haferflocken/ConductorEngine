@@ -6,6 +6,12 @@
       "type": "mesh_component",
       "mesh_file_path": "meshes/simple_quad.cms"
     },
-    { "type": "input_component" }
+    {
+      "type": "input_component",
+      "input_names": [
+        "mouse_x",
+        "mouse_y"
+      ]
+    }
   ]
 }
