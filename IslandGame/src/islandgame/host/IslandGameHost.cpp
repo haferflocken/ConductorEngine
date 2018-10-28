@@ -21,8 +21,6 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 {
 	using namespace Internal_IslandGameHost;
 
-	m_entityManager.RegisterSystem(Mem::MakeUnique<Input::InputSystem>(m_inputCallbackRegistry));
-
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(Behave::BehaveContext{
 		m_gameData.GetBehaviourTreeManager(),
 		m_gameData.GetBehaveASTInterpreter(),

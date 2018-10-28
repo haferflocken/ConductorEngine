@@ -1,16 +1,20 @@
 #include <input/InputSystem.h>
 
-#include <input/CallbackRegistry.h>
+#include <input/InputStateManager.h>
 
 namespace Input
 {
-InputSystem::InputSystem(Input::CallbackRegistry& callbackRegistry)
+void InputSystem::AddClient(const Client::ClientID clientID, const Input::InputStateManager& inputStateManager)
 {
-	callbackRegistry.RegisterInputCallback<>(
-		[this](const Client::ClientID clientID, const InputMessage& message)
-		{
-			NotifyOfInputMessage(clientID, message);
-		});
+	AMP_ASSERT(m_inputStateManagersPerClient.Find(clientID) == m_inputStateManagersPerClient.end(),
+		"A client should not be added to the InputSystem multiple times!");
+	m_inputStateManagersPerClient[clientID] = &inputStateManager;
+}
+
+void InputSystem::RemoveClient(const Client::ClientID clientID)
+{
+	[[maybe_unused]] const bool isRemoved = m_inputStateManagersPerClient.TryRemove(clientID);
+	AMP_ASSERT(isRemoved, "Failed to remove client from the InputSystem!");
 }
 
 void InputSystem::Update(const Unit::Time::Millisecond delta,
@@ -29,80 +33,23 @@ void InputSystem::Update(const Unit::Time::Millisecond delta,
 		}
 		
 		// Copy to the component any inputs it reads.
-		const Collection::VectorMap<InputSource, InputStateBuffer>& clientInputs =
-			m_inputsPerClient[inputComponent.m_clientID];
+		const auto clientInputManagerIter = m_inputStateManagersPerClient.Find(inputComponent.m_clientID);
+		if (clientInputManagerIter == m_inputStateManagersPerClient.end())
+		{
+			continue;
+		}
+		const InputStateManager& clientInputManager = *clientInputManagerIter->second;
 
-		for (const auto& entry : clientInputs)
+		for (auto& entry : inputMap)
 		{
 			const InputSource& source = entry.first;
-			const InputStateBuffer& stateBuffer = entry.second;
+			InputStateBuffer& stateBuffer = entry.second;
 
-			auto entry = inputMap.Find(source);
-			if (entry != inputMap.end())
+			const InputStateBuffer* const clientInputBuffer = clientInputManager.FindInput(source);
+			if (clientInputBuffer != nullptr)
 			{
-				entry->second = stateBuffer;
+				stateBuffer = *clientInputBuffer;
 			}
-		}
-	}
-
-	for (auto& entry : m_inputsPerClient)
-	{
-		Collection::VectorMap<InputSource, InputStateBuffer>& clientInputs = entry.second;
-		clientInputs.Clear();
-	}
-}
-
-void InputSystem::NotifyOfInputMessage(const Client::ClientID clientID, const InputMessage& message)
-{
-	static constexpr size_t k_maxSources = 2;
-	InputSource sources[k_maxSources]{
-		InputSource{ InputSource::k_invalidDeviceID },
-		InputSource{ InputSource::k_invalidDeviceID } };
-	float inputValues[k_maxSources]{ -1.0f, -1.0f };
-
-	// Transform the message to inputs.
-	message.Match(
-		[](const InputMessage_WindowClosed&) {},
-		[&](const InputMessage_KeyUp& keyUp)
-		{
-			sources[0] = { InputSource::k_keyboardID, keyUp.m_keyCode };
-			inputValues[0] = 0.0f;
-		},
-		[&](const InputMessage_KeyDown& keyDown)
-		{
-			sources[0] = { InputSource::k_keyboardID, keyDown.m_keyCode };
-			inputValues[0] = 1.0f;
-		},
-		[&](const InputMessage_MouseMotion& mouseMotion)
-		{
-			sources[0] = { InputSource::k_mouseID, InputSource::k_mouseAxisX };
-			inputValues[0] = mouseMotion.m_mouseX;
-
-			sources[1] = { InputSource::k_mouseID, InputSource::k_mouseAxisY };
-			inputValues[1] = mouseMotion.m_mouseY;
-		},
-		[&](const InputMessage_MouseButtonUp& mouseUp)
-		{
-			sources[0] = { InputSource::k_mouseID, mouseUp.m_buttonIndex };
-			inputValues[0] = 0.0f;
-		},
-		[&](const InputMessage_MouseButtonDown& mouseDown)
-		{
-			sources[0] = { InputSource::k_mouseID, mouseDown.m_buttonIndex };
-			inputValues[0] = 1.0f;
-		});
-
-	Collection::VectorMap<InputSource, InputStateBuffer>& clientInputs = m_inputsPerClient[clientID];
-	for (size_t i = 0; i < k_maxSources; ++i)
-	{
-		if (sources[i].m_deviceID == InputSource::k_invalidDeviceID)
-		{
-			break;
-		}
-		InputStateBuffer& stateBuffer = clientInputs[sources[i]];
-		if (stateBuffer.m_count < InputStateBuffer::k_capacity)
-		{
-			stateBuffer.m_values[stateBuffer.m_count++] = inputValues[i];
 		}
 	}
 }

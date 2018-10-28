@@ -84,6 +84,7 @@ void Client::ClientWorld::ClientThreadFunction()
 		const auto nowPoint = std::chrono::steady_clock::now();
 		const auto deltaMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowPoint - m_lastUpdatePoint);
 		m_client->Update(Unit::Time::Millisecond(deltaMs.count()));
+		m_client->PostUpdate();
 		m_lastUpdatePoint = nowPoint;
 
 		std::this_thread::yield();

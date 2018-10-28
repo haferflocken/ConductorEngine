@@ -1,9 +1,9 @@
 #pragma once
 
 #include <collection/Vector.h>
-#include <collection/VectorMap.h>
 #include <ecs/EntityManager.h>
 #include <input/CallbackRegistry.h>
+#include <input/InputStateManager.h>
 
 #include <functional>
 
@@ -19,14 +19,12 @@ class IClient
 protected:
 	ConnectedHost& m_connectedHost;
 	Input::CallbackRegistry m_inputCallbackRegistry{};
+	Input::InputStateManager m_inputStateManager;
 	ECS::EntityManager m_entityManager;
 
 public:
 	IClient(Asset::AssetManager& assetManager, const ECS::ComponentReflector& componentReflector,
-		ConnectedHost& connectedHost)
-		: m_connectedHost(connectedHost)
-		, m_entityManager(assetManager, componentReflector, false)
-	{}
+		ConnectedHost& connectedHost);
 
 	ECS::EntityManager& GetEntityManager() { return m_entityManager; }
 	const ECS::EntityManager& GetEntityManager() const { return m_entityManager; }
@@ -35,5 +33,7 @@ public:
 	void NotifyOfInputMessage(const Input::InputMessage& message);
 
 	virtual void Update(const Unit::Time::Millisecond delta) = 0;
+
+	void PostUpdate();
 };
 }

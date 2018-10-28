@@ -7,8 +7,7 @@
 
 namespace Input
 {
-class CallbackRegistry;
-struct InputMessage;
+class InputStateManager;
 
 /**
  * The InputSystem processes user input and stores it in InputComponents so that entities have access to it.
@@ -16,17 +15,17 @@ struct InputMessage;
 class InputSystem final : public ECS::SystemTempl<Util::TypeList<>, Util::TypeList<InputComponent>>
 {
 public:
-	explicit InputSystem(Input::CallbackRegistry& callbackRegistry);
-
+	InputSystem() = default;
 	virtual ~InputSystem() {}
+
+	void AddClient(const Client::ClientID clientID, const Input::InputStateManager& inputStateManager);
+	void RemoveClient(const Client::ClientID clientID);
 
 	void Update(const Unit::Time::Millisecond delta,
 		const Collection::ArrayView<ECSGroupType>& ecsGroups,
 		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions);
 
 private:
-	void NotifyOfInputMessage(const Client::ClientID clientID, const InputMessage& message);
-
-	Collection::VectorMap<Client::ClientID, Collection::VectorMap<InputSource, InputStateBuffer>> m_inputsPerClient;
+	Collection::VectorMap<Client::ClientID, const Input::InputStateManager*> m_inputStateManagersPerClient;
 };
 }
