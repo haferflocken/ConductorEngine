@@ -25,7 +25,7 @@ void IClient::NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& t
 
 void IClient::NotifyOfInputMessage(const Input::InputMessage& message)
 {
-	m_inputCallbackRegistry.NotifyOfInputMessage(m_connectedHost.GetClientID(), message);
+	m_inputCallbackRegistry.NotifyOfInputMessage(message);
 }
 
 void IClient::PostUpdate()

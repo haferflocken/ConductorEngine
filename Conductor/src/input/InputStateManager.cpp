@@ -14,11 +14,7 @@ InputStateManager::InputStateManager(CallbackRegistry& callbackRegistry)
 	: m_inputStateBuffers()
 	, m_namedInputMapping()
 {
-	callbackRegistry.RegisterInputCallback<>(
-		[this](const Client::ClientID, const InputMessage& message)
-		{
-			NotifyOfInputMessage(message);
-		});
+	callbackRegistry.RegisterInputCallback<>([this](const InputMessage& message) { NotifyOfInputMessage(message); });
 }
 
 const InputStateBuffer* InputStateManager::FindInput(const InputSource inputSource) const

@@ -2,7 +2,7 @@
 
 namespace Input
 {
-void CallbackRegistry::NotifyOfInputMessage(const Client::ClientID clientID, const Input::InputMessage& message)
+void CallbackRegistry::NotifyOfInputMessage(const Input::InputMessage& message)
 {
 	const uint64_t messageTypeBit = 1ui64 << static_cast<uint64_t>(message.GetTag());
 
@@ -11,7 +11,7 @@ void CallbackRegistry::NotifyOfInputMessage(const Client::ClientID clientID, con
 		InputCallback& callback = entry.second;
 		if ((callback.m_inputTypeMask & messageTypeBit) != 0)
 		{
-			callback.m_handler(clientID, message);
+			callback.m_handler(message);
 		}
 	}
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <client/ClientID.h>
 #include <collection/VectorMap.h>
 #include <input/InputMessage.h>
 
@@ -15,9 +14,9 @@ namespace Input
 class CallbackRegistry final
 {
 public:
-	using CallbackFunction = std::function<void(const Client::ClientID, const Input::InputMessage)>;
+	using CallbackFunction = std::function<void(const Input::InputMessage)>;
 
-	void NotifyOfInputMessage(const Client::ClientID clientID, const Input::InputMessage& message);
+	void NotifyOfInputMessage(const Input::InputMessage& message);
 
 	template <typename... AcceptedTypes>
 	uint64_t RegisterInputCallback(CallbackFunction&& callbackFn);
