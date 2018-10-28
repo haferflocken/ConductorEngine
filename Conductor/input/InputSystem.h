@@ -1,9 +1,9 @@
 #pragma once
 
+#include <client/ClientID.h>
+#include <collection/VectorMap.h>
 #include <ecs/System.h>
 #include <input/InputComponent.h>
-
-namespace Client { struct ClientID; }
 
 namespace Input
 {
@@ -11,7 +11,7 @@ class CallbackRegistry;
 struct InputMessage;
 
 /**
- * The InputSystem forwards user input to InputComponents so that entities have access to it.
+ * The InputSystem processes user input and stores it in InputComponents so that entities have access to it.
  */
 class InputSystem final : public ECS::SystemTempl<Util::TypeList<>, Util::TypeList<InputComponent>>
 {
@@ -22,9 +22,11 @@ public:
 
 	void Update(const Unit::Time::Millisecond delta,
 		const Collection::ArrayView<ECSGroupType>& ecsGroups,
-		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const;
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions);
 
 private:
 	void NotifyOfInputMessage(const Client::ClientID clientID, const InputMessage& message);
+
+	Collection::VectorMap<Client::ClientID, Collection::VectorMap<InputSource, InputStateBuffer>> m_inputsPerClient;
 };
 }

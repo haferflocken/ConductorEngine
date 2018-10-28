@@ -20,10 +20,36 @@ struct InputMessage_KeyDown final
 	char m_keyName[28];
 };
 
+struct InputMessage_MouseMotion final
+{
+	// The mouse position from (0, 0) to (1, 1).
+	float m_mouseX;
+	float m_mouseY;
+};
+
+struct InputMessage_MouseButtonUp final
+{
+	// The mouse position from (0, 0) to (1, 1).
+	float m_mouseX;
+	float m_mouseY;
+	uint8_t m_buttonIndex;
+};
+
+struct InputMessage_MouseButtonDown final
+{
+	// The mouse position from (0, 0) to (1, 1).
+	float m_mouseX;
+	float m_mouseY;
+	uint8_t m_buttonIndex;
+};
+
 struct InputMessage final : public Collection::Variant<
 	InputMessage_WindowClosed,
 	InputMessage_KeyUp,
-	InputMessage_KeyDown>
+	InputMessage_KeyDown,
+	InputMessage_MouseMotion,
+	InputMessage_MouseButtonUp,
+	InputMessage_MouseButtonDown>
 {
 	using Variant::Variant;
 

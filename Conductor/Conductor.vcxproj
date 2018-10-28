@@ -216,6 +216,8 @@
     <ClInclude Include="behave\parse\BehaviourTreeParser.h" />
     <ClInclude Include="input\CallbackRegistry.h" />
     <ClInclude Include="input\InputComponent.h" />
+    <ClInclude Include="input\InputSource.h" />
+    <ClInclude Include="input\InputStateBuffer.h" />
     <ClInclude Include="input\InputSystem.h" />
     <ClInclude Include="ecs\ApplyDeltaTransmissionResult.h" />
     <ClInclude Include="ecs\ComponentType.h" />

@@ -27,6 +27,102 @@ namespace Internal_RenderInstance
 {
 constexpr uint16_t k_width = 1280;
 constexpr uint16_t k_height = 720;
+
+enum class HandleEventResult
+{
+	Continue,
+	EarlyOut,
+};
+
+HandleEventResult HandleSDLEvent(const SDL_Event& event, RenderInstance::Status& outStatus,
+	Collection::LocklessQueue<Input::InputMessage>& inputToClientMessages)
+{
+	switch (event.type)
+	{
+	case SDL_QUIT:
+	{
+		outStatus = RenderInstance::Status::Terminating;
+
+		auto message = Input::InputMessage::Make<Input::InputMessage_WindowClosed>();
+		inputToClientMessages.TryPush(std::move(message));
+
+		return HandleEventResult::EarlyOut;
+	}
+	case SDL_KEYDOWN:
+	{
+		auto message = Input::InputMessage::Make<Input::InputMessage_KeyDown>();
+		auto& payload = message.Get<Input::InputMessage_KeyDown>();
+
+		payload.m_keyCode = event.key.keysym.sym;
+		strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_KEYUP:
+	{
+		auto message = Input::InputMessage::Make<Input::InputMessage_KeyUp>();
+		auto& payload = message.Get<Input::InputMessage_KeyUp>();
+
+		payload.m_keyCode = event.key.keysym.sym;
+		strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_MOUSEMOTION:
+	{
+		if (event.motion.which == SDL_TOUCH_MOUSEID)
+		{
+			return HandleEventResult::Continue;
+		}
+		auto message = Input::InputMessage::Make<Input::InputMessage_MouseMotion>();
+		auto& payload = message.Get<Input::InputMessage_MouseMotion>();
+
+		payload.m_mouseX = static_cast<float>(event.motion.x) / k_width;
+		payload.m_mouseY = static_cast<float>(event.motion.y) / k_height;
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_MOUSEBUTTONDOWN:
+	{
+		if (event.motion.which == SDL_TOUCH_MOUSEID)
+		{
+			return HandleEventResult::Continue;
+		}
+		auto message = Input::InputMessage::Make<Input::InputMessage_MouseButtonDown>();
+		auto& payload = message.Get<Input::InputMessage_MouseButtonDown>();
+
+		payload.m_mouseX = static_cast<float>(event.button.x) / k_width;
+		payload.m_mouseY = static_cast<float>(event.button.y) / k_height;
+		payload.m_buttonIndex = event.button.button;
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_MOUSEBUTTONUP:
+	{
+		if (event.motion.which == SDL_TOUCH_MOUSEID)
+		{
+			return HandleEventResult::Continue;
+		}
+		auto message = Input::InputMessage::Make<Input::InputMessage_MouseButtonUp>();
+		auto& payload = message.Get<Input::InputMessage_MouseButtonUp>();
+
+		payload.m_mouseX = static_cast<float>(event.button.x) / k_width;
+		payload.m_mouseY = static_cast<float>(event.button.y) / k_height;
+		payload.m_buttonIndex = event.button.button;
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	default:
+	{
+		return HandleEventResult::Continue;
+	}
+	}
+}
 }
 
 RenderInstance::RenderInstance(
@@ -125,6 +221,8 @@ RenderInstance::Status RenderInstance::GetStatus() const
 
 RenderInstance::Status RenderInstance::Update()
 {
+	using namespace Internal_RenderInstance;
+
 	switch (m_status)
 	{
 	case Status::Initializing:
@@ -144,43 +242,9 @@ RenderInstance::Status RenderInstance::Update()
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
 		{
-			switch (event.type)
+			if (HandleSDLEvent(event, m_status, m_inputToClientMessages) == HandleEventResult::EarlyOut)
 			{
-			case SDL_QUIT:
-			{
-				m_status = Status::Terminating;
-
-				auto message = Input::InputMessage::Make<Input::InputMessage_WindowClosed>();
-				m_inputToClientMessages.TryPush(std::move(message));
-
 				return Status::Running;
-			}
-			case SDL_KEYDOWN:
-			{
-				auto message = Input::InputMessage::Make<Input::InputMessage_KeyDown>();
-				auto& payload = message.Get<Input::InputMessage_KeyDown>();
-
-				payload.m_keyCode = event.key.keysym.sym;
-				strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));
-
-				m_inputToClientMessages.TryPush(std::move(message));
-				break;
-			}
-			case SDL_KEYUP:
-			{
-				auto message = Input::InputMessage::Make<Input::InputMessage_KeyUp>();
-				auto& payload = message.Get<Input::InputMessage_KeyUp>();
-
-				payload.m_keyCode = event.key.keysym.sym;
-				strcpy_s(payload.m_keyName, sizeof(payload.m_keyName), SDL_GetKeyName(event.key.keysym.sym));
-				
-				m_inputToClientMessages.TryPush(std::move(message));
-				break;
-			}
-			default:
-			{
-				break;
-			}
 			}
 		}
 

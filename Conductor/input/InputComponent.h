@@ -1,7 +1,11 @@
 #pragma once
 
+#include <client/ClientID.h>
+#include <collection/VectorMap.h>
 #include <ecs/Component.h>
 #include <ecs/ComponentInfo.h>
+#include <input/InputSource.h>
+#include <input/InputStateBuffer.h>
 
 namespace Input
 {
@@ -19,7 +23,8 @@ public:
 };
 
 /**
- * An InputComponent makes an entity aware of user inputs.
+ * An InputComponent makes an entity aware of user inputs. Each InputComponent can map to distinct
+ * inputs from a specific client.
  */
 class InputComponent final : public ECS::Component
 {
@@ -32,5 +37,10 @@ public:
 	explicit InputComponent(const ECS::ComponentID id)
 		: Component(id)
 	{}
+
+	// The client this InputComponent receives input from.
+	Client::ClientID m_clientID;
+	// Each InputComponent receives input from the keys of this map.
+	Collection::VectorMap<InputSource, InputStateBuffer> m_inputMap;
 };
 }
