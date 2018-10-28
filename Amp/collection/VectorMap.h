@@ -28,8 +28,8 @@ public:
 	VectorMap(VectorMap&& o) = default;
 	VectorMap& operator=(VectorMap&& o) = default;
 
-	size_t Size() const { return m_vector.Size(); }
-	size_t Capacity() const { return m_vector.Capacity(); }
+	uint32_t Size() const { return m_vector.Size(); }
+	uint32_t Capacity() const { return m_vector.Capacity(); }
 	bool IsEmpty() const { return m_vector.IsEmpty(); }
 
 	ValueType& operator[](const KeyType& key);

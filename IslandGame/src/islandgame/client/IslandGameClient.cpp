@@ -18,6 +18,11 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 		m_gameData.GetBehaveASTInterpreter(),
 		m_entityManager };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
+
+	m_inputStateManager.SetInputName({ Input::InputSource::k_mouseID, Input::InputSource::k_mouseAxisX },
+		Util::CalcHash("mouse_x"));
+	m_inputStateManager.SetInputName({ Input::InputSource::k_mouseID, Input::InputSource::k_mouseAxisY },
+		Util::CalcHash("mouse_y"));
 }
 
 void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond delta)

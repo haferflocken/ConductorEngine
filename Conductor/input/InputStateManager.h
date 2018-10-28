@@ -20,6 +20,8 @@ public:
 	InputStateManager();
 	explicit InputStateManager(Input::CallbackRegistry& callbackRegistry);
 
+	void SetInputName(const InputSource source, const Util::StringHash nameHash);
+
 	const InputStateBuffer* FindInput(const InputSource inputSource) const;
 	const InputStateBuffer* FindNamedInput(const Util::StringHash nameHash) const;
 
@@ -31,7 +33,7 @@ public:
 private:
 	void NotifyOfInputMessage(const InputMessage& message);
 
-	Collection::VectorMap<InputSource, InputStateBuffer> m_inputStateBuffers;
-	Collection::VectorMap<Util::StringHash, InputSource> m_namedInputMapping;
+	Collection::VectorMap<Util::StringHash, InputStateBuffer> m_namedInputStateBuffers;
+	Collection::VectorMap<InputSource, Util::StringHash> m_namedInputMapping;
 };
 }
