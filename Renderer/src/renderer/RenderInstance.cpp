@@ -257,11 +257,6 @@ RenderInstance::Status RenderInstance::Update()
 		// Render the next frame. This will block until bgfx::frame() is called on the client thread.
 		bgfx::renderFrame();
 
-		// Dummy draw call to ensure the view is cleared if no other draw calls are made.
-		bgfx::Encoder* const encoder = bgfx::begin();
-		encoder->touch(0);
-		bgfx::end(encoder);
-
 		return m_status;
 	}
 	case Status::Terminating:
