@@ -24,6 +24,9 @@ public:
 	const InputStateBuffer* FindNamedInput(const Util::StringHash nameHash) const;
 
 	void ResetInputStates();
+	
+	Collection::Vector<uint8_t> SerializeFullTransmission() const;
+	void ApplyFullTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 
 private:
 	void NotifyOfInputMessage(const InputMessage& message);

@@ -28,6 +28,11 @@ void IClient::NotifyOfInputMessage(const Input::InputMessage& message)
 	m_inputCallbackRegistry.NotifyOfInputMessage(message);
 }
 
+Collection::Vector<uint8_t> IClient::SerializeInputStateTransmission() const
+{
+	return m_inputStateManager.SerializeFullTransmission();
+}
+
 void IClient::PostUpdate()
 {
 	m_inputStateManager.ResetInputStates();

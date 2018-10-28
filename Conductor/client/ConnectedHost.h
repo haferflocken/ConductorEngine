@@ -1,9 +1,9 @@
 #pragma once
 
 #include <client/ClientID.h>
+#include <collection/LocklessQueue.h>
+#include <collection/Vector.h>
 #include <host/MessageToClient.h>
-
-namespace Collection { template <typename T> class LocklessQueue; }
 
 namespace Client
 {
@@ -28,5 +28,7 @@ public:
 	void Connect(Collection::LocklessQueue<Host::MessageToClient>* hostToClientMessages);
 
 	void Disconnect();
+
+	void TransmitInputStates(Collection::Vector<uint8_t>&& inputStatesBytes);
 };
 }

@@ -34,7 +34,7 @@ void Client::ClientNetworkWorld::NetworkThreadFunction()
 		Client::MessageToHost messageToHost;
 		while (m_clientToHostMessages.TryPop(messageToHost))
 		{
-			if (messageToHost.m_type == Client::MessageToHostType::Disconnect)
+			if (messageToHost.Is<Client::MessageToHost_Disconnect>())
 			{
 				m_clientID = ClientID();
 			}

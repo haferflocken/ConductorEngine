@@ -2,23 +2,29 @@
 
 #include <client/MessageToHost.h>
 
-#include <collection/LocklessQueue.h>
-
-void Client::ConnectedHost::Connect(Collection::LocklessQueue<Host::MessageToClient>* hostToClientMessages)
+namespace Client
 {
-	MessageToHost message;
-	message.m_clientID = m_clientID;
-	message.m_type = Client::MessageToHostType::Connect;
-	message.m_connectPayload.m_hostToClientMessages = hostToClientMessages;
+void ConnectedHost::Connect(Collection::LocklessQueue<Host::MessageToClient>* hostToClientMessages)
+{
+	auto message = MessageToHost::Make<MessageToHost_Connect>(m_clientID);
+	auto& payload = message.Get<MessageToHost_Connect>();
+	payload.m_hostToClientMessages = hostToClientMessages;
 
 	m_clientToHostMessages.TryPush(std::move(message));
 }
 
-void Client::ConnectedHost::Disconnect()
+void ConnectedHost::Disconnect()
 {
-	MessageToHost message;
-	message.m_clientID = m_clientID;
-	message.m_type = Client::MessageToHostType::Disconnect;
+	auto message = MessageToHost::Make<MessageToHost_Disconnect>(m_clientID);
+	m_clientToHostMessages.TryPush(std::move(message));
+}
+
+void ConnectedHost::TransmitInputStates(Collection::Vector<uint8_t>&& inputStatesBytes)
+{
+	auto message = MessageToHost::Make<MessageToHost_InputStates>(m_clientID);
+	auto& payload = message.Get<MessageToHost_InputStates>();
+	payload.m_bytes = std::move(inputStatesBytes);
 
 	m_clientToHostMessages.TryPush(std::move(message));
+}
 }

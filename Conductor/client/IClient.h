@@ -32,6 +32,8 @@ public:
 	void NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 	void NotifyOfInputMessage(const Input::InputMessage& message);
 
+	Collection::Vector<uint8_t> SerializeInputStateTransmission() const;
+
 	virtual void Update(const Unit::Time::Millisecond delta) = 0;
 
 	void PostUpdate();

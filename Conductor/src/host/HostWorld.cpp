@@ -6,7 +6,9 @@
 #include <host/ConnectedClient.h>
 #include <host/IHost.h>
 
-Host::HostWorld::HostWorld(const Conductor::IGameData& gameData,
+namespace Host
+{
+HostWorld::HostWorld(const Conductor::IGameData& gameData,
 	Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
 	HostFactory&& hostFactory)
 	: m_gameData(gameData)
@@ -20,20 +22,19 @@ Host::HostWorld::HostWorld(const Conductor::IGameData& gameData,
 	m_hostThread = std::thread(&HostWorld::HostThreadFunction, this);
 }
 
-Host::HostWorld::~HostWorld()
+HostWorld::~HostWorld()
 {
 	RequestShutdown();
 	m_hostThread.join();
 }
 
-void Host::HostWorld::RequestShutdown()
+void HostWorld::RequestShutdown()
 {
 	m_hostThreadStatus = HostThreadStatus::ShutdownRequested;
 }
 
-void Host::HostWorld::NotifyOfClientConnected(Mem::UniquePtr<ConnectedClient>&& connectedClient)
+void HostWorld::NotifyOfClientConnected(Mem::UniquePtr<ConnectedClient>&& connectedClient)
 {
-	// This function may be called by different threads.
 	while (m_hostLock.test_and_set(std::memory_order_acquire));
 
 	const Client::ClientID clientID = connectedClient->GetClientID();
@@ -48,9 +49,8 @@ void Host::HostWorld::NotifyOfClientConnected(Mem::UniquePtr<ConnectedClient>&& 
 	m_hostLock.clear(std::memory_order_release);
 }
 
-void Host::HostWorld::NotifyOfClientDisconnected(const Client::ClientID clientID)
+void HostWorld::NotifyOfClientDisconnected(const Client::ClientID clientID)
 {
-	// This function may be called by different threads.
 	while (m_hostLock.test_and_set(std::memory_order_acquire));
 
 	const size_t clientIndex = m_connectedClients.IndexOf([&](const Mem::UniquePtr<ConnectedClient>& connectedClient)
@@ -61,7 +61,7 @@ void Host::HostWorld::NotifyOfClientDisconnected(const Client::ClientID clientID
 	{
 		m_host->NotifyOfClientDisconnected(clientID);
 
-		m_connectedClients[clientIndex]->NotifyOfHostDisconnected();
+		m_connectedClients[clientIndex]->TransmitHostDisconnectedNotification();
 
 		using std::swap;
 		swap(m_connectedClients[clientIndex], m_connectedClients.Back());
@@ -71,7 +71,7 @@ void Host::HostWorld::NotifyOfClientDisconnected(const Client::ClientID clientID
 	m_hostLock.clear(std::memory_order_release);
 }
 
-void Host::HostWorld::HostThreadFunction()
+void HostWorld::HostThreadFunction()
 {
 	m_hostThreadStatus = HostThreadStatus::Running;
 	m_host = m_hostFactory(m_gameData);
@@ -118,22 +118,40 @@ void Host::HostWorld::HostThreadFunction()
 	m_hostThreadStatus = HostThreadStatus::Stopped;
 }
 
-void Host::HostWorld::ProcessMessageFromClient(Client::MessageToHost& message)
+void HostWorld::ProcessMessageFromClient(Client::MessageToHost& message)
 {
-	switch (message.m_type)
+	message.Match(
+		[&](const Client::MessageToHost_Connect& connectPayload)
+		{
+			AMP_FATAL_ASSERT(connectPayload.m_hostToClientMessages != nullptr,
+				"HostWorld expects connect messages to have their message queues resolved in HostNetworkWorld.");
+			NotifyOfClientConnected(
+				Mem::MakeUnique<Host::ConnectedClient>(message.m_clientID, *connectPayload.m_hostToClientMessages));
+		},
+		[&](const Client::MessageToHost_Disconnect&)
+		{
+			NotifyOfClientDisconnected(message.m_clientID);
+		},
+		[&](const Client::MessageToHost_InputStates& inputStatesPayload)
+		{
+			NotifyOfInputStateTransmission(message.m_clientID, inputStatesPayload.m_bytes);
+		});
+}
+
+void HostWorld::NotifyOfInputStateTransmission(const Client::ClientID clientID,
+	const Collection::Vector<uint8_t>& transmissionBytes)
+{
+	while (m_hostLock.test_and_set(std::memory_order_acquire));
+
+	for (auto& connectedClient : m_connectedClients)
 	{
-	case Client::MessageToHostType::Connect:
-	{
-		AMP_FATAL_ASSERT(message.m_connectPayload.m_hostToClientMessages != nullptr,
-			"HostWorld expects connect messages to have their message queues resolved in HostNetworkWorld.");
-		NotifyOfClientConnected(
-			Mem::MakeUnique<Host::ConnectedClient>(message.m_clientID, *message.m_connectPayload.m_hostToClientMessages));
-		break;
+		if (connectedClient->GetClientID() == clientID)
+		{
+			connectedClient->NotifyOfInputStatesTransmission(transmissionBytes);
+			break;
+		}
 	}
-	case Client::MessageToHostType::Disconnect:
-	{
-		NotifyOfClientDisconnected(message.m_clientID);
-		break;
-	}
-	}
+
+	m_hostLock.clear(std::memory_order_release);
+}
 }

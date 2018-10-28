@@ -39,11 +39,11 @@ public:
 
 	~HostWorld();
 
+	uint32_t GetNumConnectedClients() const { return m_connectedClients.Size(); }
+
 	void RequestShutdown();
 
 	void NotifyOfClientConnected(Mem::UniquePtr<ConnectedClient>&& connectedClient);
-	void NotifyOfClientDisconnected(const Client::ClientID clientID);
-	uint32_t GetNumConnectedClients() const { return m_connectedClients.Size(); }
 
 private:
 	enum class HostThreadStatus
@@ -55,7 +55,11 @@ private:
 
 	void HostThreadFunction();
 	void ProcessMessageFromClient(Client::MessageToHost& message);
-	
+
+	void NotifyOfClientDisconnected(const Client::ClientID clientID);
+	void NotifyOfInputStateTransmission(const Client::ClientID clientID,
+		const Collection::Vector<uint8_t>& transmissionBytes);
+
 	const Conductor::IGameData& m_gameData;
 	Collection::LocklessQueue<Client::MessageToHost>& m_networkInputQueue;
 	HostFactory m_hostFactory;

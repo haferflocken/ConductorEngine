@@ -4,14 +4,15 @@
 
 #include <collection/LocklessQueue.h>
 
-void Host::ConnectedClient::NotifyOfHostDisconnected()
+namespace Host
 {
-	MessageToClient message = MessageToClient::Make<NotifyOfHostDisconnected_MessageToClient>();
-	
+void ConnectedClient::TransmitHostDisconnectedNotification()
+{
+	auto message = MessageToClient::Make<NotifyOfHostDisconnected_MessageToClient>();
 	m_hostToClientMessages.TryPush(std::move(message));
 }
 
-void Host::ConnectedClient::TransmitECSUpdate(const Collection::Vector<uint8_t>& transmissionBytes)
+void ConnectedClient::TransmitECSUpdate(const Collection::Vector<uint8_t>& transmissionBytes)
 {
 	MessageToClient message = MessageToClient::Make<ECSUpdate_MessageToClient>();
 	auto& ecsUpdateMessage = message.Get<ECSUpdate_MessageToClient>();
@@ -20,4 +21,10 @@ void Host::ConnectedClient::TransmitECSUpdate(const Collection::Vector<uint8_t>&
 	memcpy(&ecsUpdateMessage.m_bytes.Front(), &transmissionBytes.Front(), transmissionBytes.Size());
 
 	m_hostToClientMessages.TryPush(std::move(message));
+}
+
+void ConnectedClient::NotifyOfInputStatesTransmission(const Collection::Vector<uint8_t>& transmissionBytes)
+{
+	m_clientInputStateManager.ApplyFullTransmission(transmissionBytes);
+}
 }

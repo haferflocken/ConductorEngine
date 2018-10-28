@@ -37,6 +37,17 @@ void InputStateManager::ResetInputStates()
 	}
 }
 
+Collection::Vector<uint8_t> InputStateManager::SerializeFullTransmission() const
+{
+	// TODO(network) serialize input
+	return Collection::Vector<uint8_t>();
+}
+
+void InputStateManager::ApplyFullTransmission(const Collection::Vector<uint8_t>& transmissionBytes)
+{
+	// TODO(network) apply transmission
+}
+
 void InputStateManager::NotifyOfInputMessage(const InputMessage& message)
 {
 	static constexpr size_t k_maxSources = 2;

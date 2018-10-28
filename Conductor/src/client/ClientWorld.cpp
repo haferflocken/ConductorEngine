@@ -68,16 +68,17 @@ void Client::ClientWorld::ClientThreadFunction()
 			}
 		}
 
-		// Process pending player input.
+		// Process pending player input and then queue it for transmission on the network.
 		{
 			Input::InputMessage message;
 			while (m_inputMessages.TryPop(message))
 			{
 				ProcessInputMessage(message);
 			}
+
+			m_connectedHost->TransmitInputStates(m_client->SerializeInputStateTransmission());
 		}
 
-		// TODO queue player input for transmission on the network
 		// TODO predict simulation state based on player input
 		// TODO interpolate between the last received server state and the predicted simulation state
 

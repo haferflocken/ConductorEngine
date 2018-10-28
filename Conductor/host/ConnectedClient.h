@@ -29,7 +29,9 @@ public:
 	Client::ClientID GetClientID() const { return m_clientID; }
 	const Input::InputStateManager GetClientInputStateManager() const { return m_clientInputStateManager; }
 
-	void NotifyOfHostDisconnected();
+	void TransmitHostDisconnectedNotification();
 	void TransmitECSUpdate(const Collection::Vector<uint8_t>& transmissionBytes);
+
+	void NotifyOfInputStatesTransmission(const Collection::Vector<uint8_t>& trasmissionBytes);
 };
 }
