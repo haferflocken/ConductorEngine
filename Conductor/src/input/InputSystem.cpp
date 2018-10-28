@@ -22,6 +22,13 @@ void InputSystem::Update(const Unit::Time::Millisecond delta,
 		auto& inputComponent = ecsGroup.Get<InputComponent>();
 		auto& inputMap = inputComponent.m_inputMap;
 
+		// Clear the component's state buffers.
+		for (auto& entry : inputMap)
+		{
+			entry.second.m_count = 0;
+		}
+		
+		// Copy to the component any inputs it reads.
 		const Collection::VectorMap<InputSource, InputStateBuffer>& clientInputs =
 			m_inputsPerClient[inputComponent.m_clientID];
 
@@ -30,7 +37,6 @@ void InputSystem::Update(const Unit::Time::Millisecond delta,
 			const InputSource& source = entry.first;
 			const InputStateBuffer& stateBuffer = entry.second;
 
-			// If the component uses the input, let it know of the buffered states.
 			auto entry = inputMap.Find(source);
 			if (entry != inputMap.end())
 			{

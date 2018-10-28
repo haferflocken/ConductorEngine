@@ -5,6 +5,7 @@
     {
       "type": "mesh_component",
       "mesh_file_path": "meshes/simple_quad.cms"
-    }
+    },
+    { "type": "input_component" }
   ]
 }
