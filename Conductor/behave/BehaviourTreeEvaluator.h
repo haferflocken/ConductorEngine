@@ -4,7 +4,11 @@
 #include <collection/Vector.h>
 #include <ecs/EntityID.h>
 
-namespace ECS { class Entity; }
+namespace ECS
+{
+	class Entity;
+	class EntityManager;
+}
 
 namespace Behave
 {
