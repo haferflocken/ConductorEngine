@@ -37,6 +37,8 @@ enum class HandleEventResult
 HandleEventResult HandleSDLEvent(const SDL_Event& event, RenderInstance::Status& outStatus,
 	Collection::LocklessQueue<Input::InputMessage>& inputToClientMessages)
 {
+	using namespace Input;
+
 	switch (event.type)
 	{
 	case SDL_QUIT:
@@ -76,11 +78,12 @@ HandleEventResult HandleSDLEvent(const SDL_Event& event, RenderInstance::Status&
 		{
 			return HandleEventResult::Continue;
 		}
-		auto message = Input::InputMessage::Make<Input::InputMessage_MouseMotion>();
-		auto& payload = message.Get<Input::InputMessage_MouseMotion>();
 
-		payload.m_mouseX = static_cast<float>(event.motion.x) / k_width;
-		payload.m_mouseY = static_cast<float>(event.motion.y) / k_height;
+		const float normalizedMouseX = static_cast<float>(event.motion.x) / k_width;
+		const float normalizedMouseY = static_cast<float>(event.motion.y) / k_height;
+
+		auto message = InputMessage::Make<InputMessage_MouseMotion>(
+			InputMessage_MouseMotion{ normalizedMouseX, normalizedMouseY });
 
 		inputToClientMessages.TryPush(std::move(message));
 		return HandleEventResult::Continue;
@@ -91,12 +94,12 @@ HandleEventResult HandleSDLEvent(const SDL_Event& event, RenderInstance::Status&
 		{
 			return HandleEventResult::Continue;
 		}
-		auto message = Input::InputMessage::Make<Input::InputMessage_MouseButtonDown>();
-		auto& payload = message.Get<Input::InputMessage_MouseButtonDown>();
 
-		payload.m_mouseX = static_cast<float>(event.button.x) / k_width;
-		payload.m_mouseY = static_cast<float>(event.button.y) / k_height;
-		payload.m_buttonIndex = event.button.button;
+		const float normalizedMouseX = static_cast<float>(event.button.x) / k_width;
+		const float normalizedMouseY = static_cast<float>(event.button.y) / k_height;
+
+		auto message = InputMessage::Make<InputMessage_MouseButtonDown>(
+			InputMessage_MouseButtonDown{ normalizedMouseX, normalizedMouseY, event.button.button });
 
 		inputToClientMessages.TryPush(std::move(message));
 		return HandleEventResult::Continue;
@@ -107,12 +110,64 @@ HandleEventResult HandleSDLEvent(const SDL_Event& event, RenderInstance::Status&
 		{
 			return HandleEventResult::Continue;
 		}
-		auto message = Input::InputMessage::Make<Input::InputMessage_MouseButtonUp>();
-		auto& payload = message.Get<Input::InputMessage_MouseButtonUp>();
 
-		payload.m_mouseX = static_cast<float>(event.button.x) / k_width;
-		payload.m_mouseY = static_cast<float>(event.button.y) / k_height;
-		payload.m_buttonIndex = event.button.button;
+		const float normalizedMouseX = static_cast<float>(event.button.x) / k_width;
+		const float normalizedMouseY = static_cast<float>(event.button.y) / k_height;
+
+		auto message = InputMessage::Make<InputMessage_MouseButtonUp>(
+			InputMessage_MouseButtonUp{ normalizedMouseX, normalizedMouseY, event.button.button });
+		
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_MOUSEWHEEL:
+	{
+		if (event.wheel.which == SDL_TOUCH_MOUSEID)
+		{
+			return HandleEventResult::Continue;
+		}
+		auto message = Input::InputMessage::Make<Input::InputMessage_MouseWheel>(
+			InputMessage_MouseWheel{ /* TODO */ });
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_CONTROLLERAXISMOTION:
+	{
+		auto message = InputMessage::Make<InputMessage_ControllerAxisMotion>(
+			InputMessage_ControllerAxisMotion{ event.caxis.which, event.caxis.value, event.caxis.axis });
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_CONTROLLERBUTTONDOWN:
+	{
+		auto message = InputMessage::Make<InputMessage_ControllerButtonDown>(
+			InputMessage_ControllerButtonDown{ event.cbutton.which, event.cbutton.button });
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_CONTROLLERBUTTONUP:
+	{
+		auto message = InputMessage::Make<InputMessage_ControllerButtonUp>(
+			InputMessage_ControllerButtonUp{ event.cbutton.which, event.cbutton.button });
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_CONTROLLERDEVICEADDED:
+	{
+		auto message = InputMessage::Make<InputMessage_ControllerAdded>(
+			InputMessage_ControllerAdded{ event.cdevice.which });
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_CONTROLLERDEVICEREMOVED:
+	{
+		auto message = InputMessage::Make<InputMessage_ControllerRemoved>(
+			InputMessage_ControllerRemoved{ event.cdevice.which });
 
 		inputToClientMessages.TryPush(std::move(message));
 		return HandleEventResult::Continue;
@@ -136,6 +191,12 @@ RenderInstance::RenderInstance(
 	, m_inputToClientMessages(inputToClientMessages)
 {
 	using namespace Internal_RenderInstance;
+
+	// Initialize SDL subsystems.
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0)
+	{
+		throw std::runtime_error("Failed to initialize SDL subsystems.");
+	}
 
 	// Create an SDL window which will present a Vulkan surface.
 	m_window = SDL_CreateWindow(applicationName, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,

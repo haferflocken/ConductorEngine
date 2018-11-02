@@ -121,31 +121,66 @@ void InputStateManager::NotifyOfInputMessage(const InputMessage& message)
 		[](const InputMessage_WindowClosed&) {},
 		[&](const InputMessage_KeyUp& keyUp)
 		{
-			sources[0] = { InputSource::k_keyboardID, keyUp.m_keyCode };
+			sources[0] = Sources::Key(keyUp.m_keyCode);
 			inputValues[0] = 0.0f;
 		},
 		[&](const InputMessage_KeyDown& keyDown)
 		{
-			sources[0] = { InputSource::k_keyboardID, keyDown.m_keyCode };
+			sources[0] = Sources::Key(keyDown.m_keyCode);
 			inputValues[0] = 1.0f;
 		},
 		[&](const InputMessage_MouseMotion& mouseMotion)
 		{
-			sources[0] = { InputSource::k_mouseID, InputSource::k_mouseAxisX };
+			sources[0] = Sources::MouseX;
 			inputValues[0] = mouseMotion.m_mouseX;
 
-			sources[1] = { InputSource::k_mouseID, InputSource::k_mouseAxisY };
+			sources[1] = Sources::MouseY;
 			inputValues[1] = mouseMotion.m_mouseY;
 		},
 		[&](const InputMessage_MouseButtonUp& mouseUp)
 		{
-			sources[0] = { InputSource::k_mouseID, mouseUp.m_buttonIndex };
+			sources[0] = Sources::MouseButton(mouseUp.m_buttonIndex);
 			inputValues[0] = 0.0f;
 		},
 		[&](const InputMessage_MouseButtonDown& mouseDown)
 		{
-			sources[0] = { InputSource::k_mouseID, mouseDown.m_buttonIndex };
+			sources[0] = Sources::MouseButton(mouseDown.m_buttonIndex);
 			inputValues[0] = 1.0f;
+		},
+		[&](const InputMessage_MouseWheel& mouseWheel)
+		{
+			// TODO
+		},
+		[&](const InputMessage_ControllerAxisMotion& controllerAxis)
+		{
+			sources[0] = Sources::ControllerAxis(controllerAxis.m_controllerID, controllerAxis.m_axis);
+			inputValues[0] = static_cast<float>(controllerAxis.m_value) / INT16_MAX;
+		},
+		[&](const InputMessage_ControllerButtonUp& controllerButtonUp)
+		{
+			sources[0] = Sources::ControllerButton(controllerButtonUp.m_controllerID, controllerButtonUp.m_button);
+			inputValues[0] = 0.0f;
+		},
+		[&](const InputMessage_ControllerButtonDown& controllerButtonDown)
+		{
+			sources[0] = Sources::ControllerButton(controllerButtonDown.m_controllerID, controllerButtonDown.m_button);
+			inputValues[0] = 1.0f;
+		}, 
+		[](const InputMessage_ControllerAdded& controllerAdded) {},
+		[&](const InputMessage_ControllerRemoved& controllerRemoved)
+		{
+			m_namedInputStateBuffers.RemoveAllMatching(
+				[&](const auto& entry) -> bool
+				{
+					for (const auto& nameEntry : m_namedInputMapping)
+					{
+						if (nameEntry.first.m_deviceID == controllerRemoved.m_controllerID)
+						{
+							return true;
+						}
+					}
+					return false;
+				});
 		});
 
 	// Map the inputs to names and store them.
