@@ -2,6 +2,7 @@ Amp/Conductor TODO:
 [ ] Input
 	[ ] Set InputComponent ClientID so that transmission works
 	[ ] Save/load default input mapping and user input mapping
+	[ ] Mouse wheel input
 
 [ ] Use UnboundedScene as a level format.
 	[x] New component & system that loads chunks around it: Scene::AnchorComponent

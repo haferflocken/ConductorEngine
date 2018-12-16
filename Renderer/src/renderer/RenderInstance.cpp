@@ -127,7 +127,7 @@ HandleEventResult HandleSDLEvent(const SDL_Event& event, RenderInstance::Status&
 			return HandleEventResult::Continue;
 		}
 		auto message = Input::InputMessage::Make<Input::InputMessage_MouseWheel>(
-			InputMessage_MouseWheel{ /* TODO */ });
+			InputMessage_MouseWheel{ /* TODO(input) */ });
 
 		inputToClientMessages.TryPush(std::move(message));
 		return HandleEventResult::Continue;
