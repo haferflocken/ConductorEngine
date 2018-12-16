@@ -12,7 +12,9 @@ Amp/Conductor TODO:
 [ ] Entity hierarchy: Allow entities to be attached to each other.
 	[x] Add a parent/child relationship to entities and allow components/systems to use this
 	[x] Make SceneTransformComponent aware of parent/child relationships
-	[ ] Make UnboundedScene and the chunk system aware of parent/child relationships
+	[x] Make UnboundedScene and the chunk system aware of parent/child relationships
+	[x] Make chunks preserve entity IDs. This is required so that parent/child relationships are correctly preserved
+	[ ] Thoroughly test
 
 [ ] Meshes
 	[ ] Decide on a mesh format. Needs to support triangles, UVs, rigs, vertex weights

@@ -31,13 +31,15 @@ namespace Scene
  * UnboundedScenes are aggreates of Chunks: discrete portions of the scene that can be saved to and loaded from disk.
  * UnboundedScenes are not responsible for deciding what chunks are loaded: they are only responsible for saving and
  *   and loading chunks and updating their EntityManager appropriately.
+ *
+ * Entity hierarchies are always considered to be in the chunk that their root entity is in.
  * 
  * Each chunk in an unbounded scene is either in-play or out-of-play. In-play chunks run a full simulation of their
  * entities. Out-of-play chunks run an extremely simplified simulation. Chunks on the boundary of in-play and
  * out-of-play are called "transition" chunks which buffer the scene from in/out of play oscillations.
  *
- * UnboundedScenes are ECS::Systems and should not run concurrently with other systems because they add entities,
- * remove entities, and change the EntityInfo of entities as they run.
+ * UnboundedScenes are ECS::Systems and should not run concurrently with other systems because they add entities
+ * and remove entities as they run.
  */
 class UnboundedScene final : public ECS::SystemTempl<
 	Util::TypeList<Scene::SceneTransformComponent>,

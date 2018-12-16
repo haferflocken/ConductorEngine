@@ -42,7 +42,7 @@ public:
 	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector, bool transmitsState);
 	~EntityManager();
 
-	Entity& CreateEntity(const EntityInfo& entityInfo);
+	Entity& CreateEntity(const EntityInfo& entityInfo, const EntityID requestedID = EntityID());
 	void SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity);
 	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);

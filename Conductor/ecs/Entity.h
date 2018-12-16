@@ -40,7 +40,7 @@ public:
 
 	const EntityID& GetID() const { return m_id; }
 	const Entity* GetParent() const { return m_parent; }
-	const Collection::Vector<Entity*>& GetChildren() const { return m_children; }
+	Collection::ArrayView<const Entity* const> GetChildren() const { return m_children.GetView(); }
 	const Collection::Vector<ComponentID>& GetComponentIDs() const { return m_componentIDs; }
 	const Util::StringHash& GetInfoNameHash() const { return m_infoNameHash; }
 

@@ -32,6 +32,45 @@ void SerializeString(const char* const str, Collection::Vector<char>& outBytes)
 	SerializeBytes(shortStrLength, outBytes);
 	outBytes.AddAll({ str, strLength });
 }
+
+void SaveEntity(const ECS::EntityManager& entityManager, const ECS::Entity& entity, const ECS::EntityID parentID,
+	Collection::Vector<uint8_t>& outChunkBytes)
+{
+	Mem::Serialize(parentID.GetUniqueID(), outChunkBytes);
+
+	const uint32_t entityID = entity.GetID().GetUniqueID();
+	Mem::Serialize(entityID, outChunkBytes);
+
+	const char* const infoName = Util::ReverseHash(entity.GetInfoNameHash());
+	Mem::Serialize(infoName, outChunkBytes);
+
+	const uint16_t numComponents = static_cast<uint16_t>(entity.GetComponentIDs().Size());
+	Mem::Serialize(numComponents, outChunkBytes);
+
+	for (const auto& componentID : entity.GetComponentIDs())
+	{
+		const char* const componentTypeName = Util::ReverseHash(componentID.GetType().GetTypeHash());
+		Mem::Serialize(componentTypeName, outChunkBytes);
+
+		const uint64_t componentUniqueID = componentID.GetUniqueID();
+		Mem::Serialize(componentUniqueID, outChunkBytes);
+
+		// Serialize a placeholder for the length of the component bytes.
+		const uint32_t numComponentBytesIndex = outChunkBytes.Size();
+		Mem::Serialize(uint16_t(0), outChunkBytes);
+
+		// Serialize the component to bytes and store its length before it.
+		const uint32_t componentBytesIndex = outChunkBytes.Size();
+
+		const ECS::Component& component = *entityManager.FindComponent(componentID);
+		component.Save(outChunkBytes);
+
+		const uint32_t numComponentBytes = outChunkBytes.Size() - componentBytesIndex;
+
+		outChunkBytes[numComponentBytesIndex] = static_cast<uint8_t>(numComponentBytes >> 8);
+		outChunkBytes[numComponentBytesIndex + 1] = static_cast<uint8_t>(numComponentBytes);
+	}
+}
 }
 
 namespace Scene
@@ -41,47 +80,45 @@ Collection::Vector<uint8_t> Chunk::SaveInPlayChunk(const ChunkID chunkID, const 
 {
 	using namespace Internal_Chunk;
 
-	// Save the entities in the chunk.
+	// Save the root entities in the chunk.
 	Collection::Vector<uint8_t> chunkBytes;
 
-	const uint32_t numEntities = entitiesInChunk.Size();
-	Mem::Serialize(numEntities, chunkBytes);
+	// Serialize a placeholder for the total number of entities in the chunk.
+	Mem::Serialize(uint16_t(0), chunkBytes);
 
 	for (const auto& entity : entitiesInChunk)
 	{
-		const uint32_t entityID = entity->GetID().GetUniqueID();
-		Mem::Serialize(entityID, chunkBytes);
-
-		const char* const infoName = Util::ReverseHash(entity->GetInfoNameHash());
-		Mem::Serialize(infoName, chunkBytes);
-
-		const uint16_t numComponents = static_cast<uint16_t>(entity->GetComponentIDs().Size());
-		Mem::Serialize(numComponents, chunkBytes);
-
-		for (const auto& componentID : entity->GetComponentIDs())
-		{
-			const char* const componentTypeName = Util::ReverseHash(componentID.GetType().GetTypeHash());
-			Mem::Serialize(componentTypeName, chunkBytes);
-
-			const uint64_t componentUniqueID = componentID.GetUniqueID();
-			Mem::Serialize(componentUniqueID, chunkBytes);
-
-			// Serialize a placeholder for the length of the component bytes.
-			const uint32_t numComponentBytesIndex = chunkBytes.Size();
-			Mem::Serialize(uint16_t(0), chunkBytes);
-
-			// Serialize the component to bytes and store its length before it.
-			const uint32_t componentBytesIndex = chunkBytes.Size();
-
-			const ECS::Component& component = *entityManager.FindComponent(componentID);
-			component.Save(chunkBytes);
-
-			const uint32_t numComponentBytes = chunkBytes.Size() - componentBytesIndex;
-
-			chunkBytes[numComponentBytesIndex] = static_cast<uint8_t>(numComponentBytes >> 8);
-			chunkBytes[numComponentBytesIndex + 1] = static_cast<uint8_t>(numComponentBytes);
-		}
+		AMP_FATAL_ASSERT(entity->GetParent() == nullptr, "Only root entities should be provided to SaveInPlayChunk!");
+		SaveEntity(entityManager, *entity, ECS::EntityID(), chunkBytes);
 	}
+
+	// Recursively save the children of the root entities in the chunk.
+	Collection::Vector<const ECS::Entity*> childEntities;
+	for (const auto& entity : entitiesInChunk)
+	{
+		childEntities.AddAll(entity->GetChildren());
+	}
+
+	const size_t numRootEntities = entitiesInChunk.Size();
+	size_t numEntities = numRootEntities;
+	
+	while (!childEntities.IsEmpty())
+	{
+		const ECS::Entity& entity = *childEntities.Back();
+		childEntities.RemoveLast();
+
+		SaveEntity(entityManager, entity, entity.GetParent()->GetID(), chunkBytes);
+
+		childEntities.AddAll(entity.GetChildren());
+
+		++numEntities;
+	}
+
+	// Store the number of entities at the beginning of the chunk.
+	AMP_FATAL_ASSERT(numEntities <= UINT16_MAX,
+		"Exceeded the maximum number of entities in a chunk! Chunk data will not load correctly.");
+	chunkBytes[0] = static_cast<uint8_t>(numEntities >> 8);
+	chunkBytes[1] = static_cast<uint8_t>(numEntities);
 
 	return chunkBytes;
 }
@@ -107,16 +144,23 @@ Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& us
 	const uint8_t* const iterEnd = iter + rawChunk.size();
 	
 	// Load the entities.
-	const Collection::Pair<uint32_t, bool> maybeNumEntities = Mem::DeserializeUi32(iter, iterEnd);
+	const Collection::Pair<uint16_t, bool> maybeNumEntities = Mem::DeserializeUi16(iter, iterEnd);
 	if (!maybeNumEntities.second)
 	{
 		return outChunk;
 	}
-	const uint32_t numEntities = maybeNumEntities.first;
+	const size_t numEntities = maybeNumEntities.first;
 
 	for (size_t i = 0, iEnd = numEntities; i < iEnd; ++i)
 	{
 		// Create the EntityDatum.
+		const Collection::Pair<uint32_t, bool> maybeParentID = Mem::DeserializeUi32(iter, iterEnd);
+		if (!maybeParentID.second)
+		{
+			return outChunk;
+		}
+		const uint32_t parentID = maybeParentID.first;
+
 		const Collection::Pair<uint32_t, bool> maybeEntityID = Mem::DeserializeUi32(iter, iterEnd);
 		if (!maybeEntityID.second)
 		{
@@ -132,6 +176,7 @@ Chunk Chunk::LoadChunkForPlay(const File::Path& sourcePath, const File::Path& us
 		const Util::StringHash entityInfoNameHash = Util::CalcHash(entityInfoNameBuffer);
 
 		SerializedEntity entityDatum;
+		entityDatum.m_parentID = ECS::EntityID(parentID);
 		entityDatum.m_entityID = ECS::EntityID(entityID);
 		entityDatum.m_entityInfoNameHash = entityInfoNameHash;
 
@@ -220,28 +265,32 @@ void Chunk::PutChunkEntitiesIntoPlay(
 				entityDatum.m_entityID.GetUniqueID());
 			continue;
 		}
+		
+		// Find the entity's parent.
+		ECS::Entity* const parent = entityManager.FindEntity(entityDatum.m_parentID);
+		if (parent == nullptr)
+		{
+			AMP_LOG_WARNING("Failed to find parent entity with ID [%u] for serialized entity with ID [%u]",
+				entityDatum.m_parentID.GetUniqueID(),
+				entityDatum.m_entityID.GetUniqueID());
+			continue;
+		}
+
+		// Ensure the entity doesn't already exist.
+		if (entityManager.FindEntity(entityDatum.m_entityID) != nullptr)
+		{
+			AMP_LOG_WARNING("Failed to create entity with ID [%u] because an entity with that ID already exists.",
+				entityDatum.m_entityID.GetUniqueID());
+			continue;
+		}
 
 		// Create the entity.
-		ECS::Entity* entity = &entityManager.CreateEntity(*info);
+		ECS::Entity& entity = entityManager.CreateEntity(*info, entityDatum.m_entityID);
 
-		// TODO(scene) Preserve entity IDs.
-		// Create the entity if it does not exist.
-		/*ECS::Entity* entity = entityManager.FindEntity(entityDatum.m_entityID);
-		if (entity == nullptr)
-		{
-			// TODO create with specific ID?
-			entity = &entityManager.CreateEntity(*info);
-		}
-		// If the entity exists, ensure it has the correct components.
-		else
-		{
-			entityManager.SetInfoForEntity(*info, *entity);
-		}*/
-		
 		// Apply the serialized component data to the entity.
 		for (const auto& serializedComponent : entityDatum.m_serializedComponents)
 		{
-			const ECS::ComponentID componentID = entity->FindComponentID(serializedComponent.m_componentType);
+			const ECS::ComponentID componentID = entity.FindComponentID(serializedComponent.m_componentType);
 			if (componentID == ECS::ComponentID())
 			{
 				AMP_LOG_WARNING("Failed to find a component with type [%s] in entity with ID [%u].",
@@ -253,6 +302,9 @@ void Chunk::PutChunkEntitiesIntoPlay(
 			ECS::Component& component = *entityManager.FindComponent(componentID);
 			component.Load(serializedComponent.m_componentBytes);
 		}
+
+		// Set the parent/child relationship for the entity.
+		entityManager.SetParentEntity(entity, parent);
 	}
 }
 }

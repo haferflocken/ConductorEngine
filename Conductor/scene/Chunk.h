@@ -68,6 +68,7 @@ private:
 		SerializedEntity(SerializedEntity&& other) = default;
 		SerializedEntity& operator=(SerializedEntity&& rhs) = default;
 
+		ECS::EntityID m_parentID{};
 		ECS::EntityID m_entityID{};
 		Util::StringHash m_entityInfoNameHash{};
 		Collection::Vector<SerializedComponent> m_serializedComponents{};

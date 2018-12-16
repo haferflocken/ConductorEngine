@@ -20,6 +20,16 @@ public:
 		, m_count(count)
 	{}
 
+	ArrayView(const ArrayView<T>&) = default;
+	ArrayView<T>& operator=(const ArrayView<T>&) = default;
+
+	// ArrayView<T> can be implicitly converted to ArrayView<const T>.
+	template <typename NonConstT = std::enable_if_t<std::is_const_v<T>, std::remove_const_t<T>>>
+	ArrayView(const ArrayView<NonConstT>& rhs)
+		: m_data(rhs.begin())
+		, m_count(rhs.Size())
+	{}
+
 	size_t Size() const { return m_count; }
 
 	iterator begin() { return m_data; }

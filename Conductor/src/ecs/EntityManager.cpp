@@ -55,11 +55,25 @@ EntityManager::~EntityManager()
 	m_concurrentSystemGroups.Clear();
 }
 
-Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
+Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID requestedID)
 {
+	// Determine the entity's ID.
+	EntityID entityID;
+	if (requestedID == EntityID())
+	{
+		entityID = m_nextEntityID;
+		m_nextEntityID = EntityID(entityID.GetUniqueID() + 1);
+	}
+	else
+	{
+		entityID = requestedID;
+		if (m_nextEntityID.GetUniqueID() <= requestedID.GetUniqueID())
+		{
+			m_nextEntityID = EntityID(requestedID.GetUniqueID() + 1);
+		}
+	}
+
 	// Create the entity.
-	const EntityID entityID = m_nextEntityID;
-	
 	Entity& entity = m_entities.Emplace(entityID, entityID, entityInfo.m_nameHash);
 
 	// Create the entity's components using our component reflector.
@@ -67,9 +81,6 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo)
 	{
 		AddComponentToEntity(*componentInfo, entity);
 	}
-	
-	// Update the next unique ID.
-	m_nextEntityID = EntityID(entityID.GetUniqueID() + 1);
 
 	// Add the entity to the system execution groups.
 	AddECSPointersToSystems(Collection::ArrayView<Entity>(&entity, 1));
@@ -192,8 +203,23 @@ void EntityManager::DeleteEntities(const Collection::ArrayView<const EntityID>& 
 		Entity& entity = *allEntitiesToDelete.Back();
 		allEntitiesToDelete.RemoveLast();
 
-		// Queue the children for removal.
-		allEntitiesToDelete.AddAll(entity.m_children.GetConstView());
+		// Queue the children not already in entitiesToDelete for removal.
+		for (const auto& child : entity.m_children)
+		{
+			bool shouldQueue = true;
+			for (const auto& requestedID : entitiesToDelete)
+			{
+				if (child->m_id == requestedID)
+				{
+					shouldQueue = false;
+					break;
+				}
+			}
+			if (shouldQueue)
+			{
+				allEntitiesToDelete.Add(child);
+			}
+		}
 
 		// Delete the entity.
 		RemoveECSPointersFromSystems(entity);

@@ -126,14 +126,17 @@ void UnboundedScene::Update(const Unit::Time::Millisecond delta,
 	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
-	// Update the hash map with the location of all entities.
+	// Update the hash map with the location of all root entities.
 	m_spatialHashMap.Clear();
 	for (const auto& ecsGroup : ecsGroups)
 	{
 		const ECS::Entity& entity = ecsGroup.Get<ECS::Entity>();
-		const auto& sceneTransformComponent = ecsGroup.Get<const SceneTransformComponent>();
-		const Math::Vector3& position = sceneTransformComponent.m_matrix.GetTranslation();
-		m_spatialHashMap[position] = &entity;
+		if (entity.GetParent() == nullptr)
+		{
+			const auto& sceneTransformComponent = ecsGroup.Get<const SceneTransformComponent>();
+			const Math::Vector3& position = sceneTransformComponent.m_matrix.GetTranslation();
+			m_spatialHashMap[position] = &entity;
+		}
 	}
 
 	// Apply all pending chunk changes.
@@ -175,7 +178,7 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 
 	constexpr size_t k_syncBudgetMilliseconds = 8;
 	constexpr size_t k_syncBudgetMicroseconds = k_syncBudgetMilliseconds * 1000;
-	
+
 	const std::chrono::microseconds waitPerFuture{ k_syncBudgetMicroseconds / m_chunkLoadingFutures.Size() };
 	for (size_t i = 0; i < m_chunkLoadingFutures.Size();)
 	{
@@ -233,9 +236,8 @@ void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& enti
 	fileOutput.flush();
 	fileOutput.close();
 
-	// Add the entities in the chunk to the list of entities to unload. This is deferred
-	// (as opposed to unloading entities immediately) because removing entities from the EntityManager
-	// will invalidate the pointers in m_spatialHashMap.
+	// Add the entities in the chunk to the list of entities to unload. Only root entities are in this list.
+	// Non-root entities will be unloaded by their parents.
 	for (const auto& entity : entitiesInChunk)
 	{
 		m_entitiesPendingUnload.Add(entity->GetID());
