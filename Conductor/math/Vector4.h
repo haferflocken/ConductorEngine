@@ -16,6 +16,8 @@ public:
 	Vector4(const Vector4&) = default;
 	Vector4& operator=(const Vector4&) = default;
 
+	float Dot(const Vector4& rhs) const;
+
 	float x;
 	float y;
 	float z;
@@ -35,4 +37,10 @@ inline Vector4::Vector4(float _x, float _y, float _z, float _w)
 	, z(_z)
 	, w(_w)
 {}
+
+inline float Vector4::Dot(const Vector4& rhs) const
+{
+	const float result = (x * rhs.x) + (y * rhs.y) + (z * rhs.z) + (w * rhs.w);
+	return result;
+}
 }
