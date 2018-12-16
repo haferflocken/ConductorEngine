@@ -1,13 +1,23 @@
 Amp/Conductor TODO:
+[ ] Code-driven declarative UI creation functions for debug UI
+	[ ] Formatted text display
+	[ ] Hierarchical panes
+	[ ] Mouse input support
+	[ ] Buttons
+	[ ] Scroll panes
+	[ ] Keyboard input support
+	[ ] Text boxes
+	
+[ ] Use UnboundedScene as a level format.
+	[x] New component & system that loads chunks around it: Scene::AnchorComponent
+	[x] Test scene of a camera and a mesh
+	[x] Binary chunk format
+	[ ] Basic level editor
+
 [ ] Input
 	[ ] Set InputComponent ClientID so that transmission works
 	[ ] Save/load default input mapping and user input mapping
 	[ ] Mouse wheel input
-
-[ ] Use UnboundedScene as a level format.
-	[x] New component & system that loads chunks around it: Scene::AnchorComponent
-	[ ] Test scene of a camera and a mesh
-	[ ] Binary chunk format
 
 [ ] Entity hierarchy: Allow entities to be attached to each other.
 	[x] Add a parent/child relationship to entities and allow components/systems to use this
@@ -21,10 +31,7 @@ Amp/Conductor TODO:
 	[x] Load static meshes
 	[ ] Rigged meshes
 		[ ] Load meshes with rigging
-		[ ] Animate meshes with rigging
-		[ ] Support bones in the attachment hierarchy??? does this make them entities/???/
-
-[ ] UI
+		[ ] Animate meshes with rigging. Bones are entities so that other entities can easily attach to them.
 
 Renderer TODO:
 [ ] Shader program loading and rendering
