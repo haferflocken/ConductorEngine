@@ -6,6 +6,7 @@
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <ecs/EntityInfoManager.h>
 #include <input/InputSystem.h>
+#include <scene/RelativeTransformSystem.h>
 #include <scene/SceneAnchorSystem.h>
 #include <scene/UnboundedScene.h>
 
@@ -32,6 +33,8 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 		gameData.GetUserDirectory() / k_chunkUserDirectory));
 
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::SceneAnchorSystem>(scene));
+
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::RelativeTransformSystem>());
 
 	m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("player.json")));
 }

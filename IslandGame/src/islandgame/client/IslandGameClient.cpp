@@ -5,6 +5,7 @@
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <ecs/EntityInfoManager.h>
+#include <scene/RelativeTransformSystem.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
@@ -13,16 +14,18 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	: IClient(gameData.GetAssetManager(), gameData.GetComponentReflector(), connectedHost)
 	, m_gameData(gameData)
 {
+	m_inputStateManager.SetInputName({ Input::InputSource::k_mouseID, Input::InputSource::k_mouseAxisX },
+		Util::CalcHash("mouse_x"));
+	m_inputStateManager.SetInputName({ Input::InputSource::k_mouseID, Input::InputSource::k_mouseAxisY },
+		Util::CalcHash("mouse_y"));
+
 	const Behave::BehaveContext context{
 		m_gameData.GetBehaviourTreeManager(),
 		m_gameData.GetBehaveASTInterpreter(),
 		m_entityManager };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 
-	m_inputStateManager.SetInputName({ Input::InputSource::k_mouseID, Input::InputSource::k_mouseAxisX },
-		Util::CalcHash("mouse_x"));
-	m_inputStateManager.SetInputName({ Input::InputSource::k_mouseID, Input::InputSource::k_mouseAxisY },
-		Util::CalcHash("mouse_y"));
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::RelativeTransformSystem>());
 }
 
 void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond delta)
