@@ -10,7 +10,8 @@ Amp/Conductor TODO:
 	[ ] Binary chunk format
 
 [ ] Entity hierarchy: Allow entities to be attached to each other.
-	[ ] Decide if a new component for attachment is needed or if it should be part of SceneTransformComponent
+	[ ] Add a parent/child relationship to entities and allow components/systems to use this
+	[ ] Make SceneTransformComponent aware of parent/child relationships
 
 [ ] Meshes
 	[ ] Decide on a mesh format. Needs to support triangles, UVs, rigs, vertex weights

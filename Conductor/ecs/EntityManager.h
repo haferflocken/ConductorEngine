@@ -44,6 +44,7 @@ public:
 
 	Entity& CreateEntity(const EntityInfo& entityInfo);
 	void SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity);
+	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
 
 	Entity* FindEntity(const EntityID id);

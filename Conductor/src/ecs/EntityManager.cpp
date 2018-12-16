@@ -96,9 +96,9 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 	RemoveECSPointersFromSystems(entity);
 
 	// Remove any components the entity no longer needs.
-	for (size_t i = 0; i < entity.m_components.Size();)
+	for (size_t i = 0; i < entity.m_componentIDs.Size();)
 	{
-		const ComponentID& componentID = entity.m_components[i];
+		const ComponentID& componentID = entity.m_componentIDs[i];
 
 		const auto* const matchingComponentInfo = entityInfo.m_componentInfos.Find(
 			[&](const Mem::UniquePtr<ComponentInfo>& componentInfo)
@@ -109,7 +109,7 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 		if (matchingComponentInfo == nullptr)
 		{
 			RemoveComponent(componentID);
-			entity.m_components.SwapWithAndRemoveLast(i);
+			entity.m_componentIDs.SwapWithAndRemoveLast(i);
 		}
 		else
 		{
@@ -138,6 +138,24 @@ void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entit
 	}
 }
 
+void EntityManager::SetParentEntity(Entity& entity, Entity* parentEntity)
+{
+	// Detach the entity from its existing parent, if it has one.
+	if (entity.m_parent != nullptr)
+	{
+		Entity& parent = *entity.m_parent;
+		const size_t indexInParent = parent.m_children.IndexOf(&entity);
+		parent.m_children.SwapWithAndRemoveLast(indexInParent);
+	}
+
+	// Attach the entity to the given parent.
+	entity.m_parent = parentEntity;
+	if (parentEntity != nullptr)
+	{
+		parentEntity->m_children.Add(&entity);
+	}
+}
+
 void EntityManager::DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete)
 {
 	// If we can transmit state, track the entities that are removed.
@@ -149,7 +167,9 @@ void EntityManager::DeleteEntities(const Collection::ArrayView<const EntityID>& 
 		}
 	}
 
-	// Delete the entities.
+	// Detach the entities from their parents and delete the entities.
+	// Recursively traverse their children to delete them as well.
+	Collection::Vector<Entity*> allEntitiesToDelete;
 	for (const auto& entityID : entitiesToDelete)
 	{
 		Entity* const entity = m_entities.Find(entityID);
@@ -158,13 +178,31 @@ void EntityManager::DeleteEntities(const Collection::ArrayView<const EntityID>& 
 			continue;
 		}
 
-		RemoveECSPointersFromSystems(*entity);
+		if (entity->m_parent != nullptr)
+		{
+			Entity& parent = *entity->m_parent;
+			const size_t indexInParent = parent.m_children.IndexOf(entity);
+			parent.m_children.SwapWithAndRemoveLast(indexInParent);
+		}
+		allEntitiesToDelete.Add(entity);
+	}
 
-		for (const auto& componentID : entity->GetComponentIDs())
+	while (!allEntitiesToDelete.IsEmpty())
+	{
+		Entity& entity = *allEntitiesToDelete.Back();
+		allEntitiesToDelete.RemoveLast();
+
+		// Queue the children for removal.
+		allEntitiesToDelete.AddAll(entity.m_children.GetConstView());
+
+		// Delete the entity.
+		RemoveECSPointersFromSystems(entity);
+
+		for (const auto& componentID : entity.GetComponentIDs())
 		{
 			RemoveComponent(componentID);
 		}
-		m_entities.TryRemove(entityID);
+		m_entities.TryRemove(entity.GetID());
 	}
 }
 
@@ -561,7 +599,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			Entity* const entity = FindEntity(entityID);
 			if (entity != nullptr)
 			{
-				entity->m_components.Clear();
+				entity->m_componentIDs.Clear();
 			}
 
 			for (size_t i = 0; i < numComponents; ++i)
@@ -592,7 +630,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 					}
 					if (found)
 					{
-						entity->m_components.Add(ComponentID(entry.first, maybeComponentID.first));
+						entity->m_componentIDs.Add(ComponentID(entry.first, maybeComponentID.first));
 						break;
 					}
 				}
@@ -662,7 +700,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 					}
 					if (found)
 					{
-						entity.m_components.Add(ComponentID(entry.first, maybeComponentID.first));
+						entity.m_componentIDs.Add(ComponentID(entry.first, maybeComponentID.first));
 						break;
 					}
 				}
@@ -710,7 +748,7 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 	}
 
 	++m_nextComponentID;
-	entity.m_components.Add(componentID);
+	entity.m_componentIDs.Add(componentID);
 
 	// If we can transmit state, track the newly added component.
 	if (m_transmissionBuffers != nullptr)
