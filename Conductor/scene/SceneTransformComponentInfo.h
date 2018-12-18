@@ -2,10 +2,6 @@
 
 #include <ecs/ComponentInfo.h>
 
-namespace Behave { class BehaviourTreeManager; }
-namespace JSON { class JSONObject; }
-namespace Mem { template <typename T> class UniquePtr; }
-
 namespace Scene
 {
 class SceneTransformComponentInfo final : public ECS::ComponentInfo
