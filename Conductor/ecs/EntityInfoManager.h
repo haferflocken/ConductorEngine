@@ -26,6 +26,8 @@ public:
 	{}
 
 	void LoadEntityInfosInDirectory(const File::Path& directory);
+
+	void RegisterEntityInfo(const Util::StringHash nameHash, EntityInfo&& info);
 	
 	const EntityInfo* FindEntityInfo(const Util::StringHash entityInfoNameHash) const;
 

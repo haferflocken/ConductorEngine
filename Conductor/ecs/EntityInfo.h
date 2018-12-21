@@ -9,7 +9,7 @@ namespace ECS
 class EntityInfo
 {
 public:
-	static constexpr char* sk_typeName = "entity";
+	static constexpr const char* const sk_typeName = "entity";
 	static const Util::StringHash sk_typeHash;
 
 	Util::StringHash m_nameHash;

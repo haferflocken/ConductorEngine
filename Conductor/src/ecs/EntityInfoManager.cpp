@@ -96,6 +96,11 @@ void ECS::EntityInfoManager::LoadEntityInfosInDirectory(const File::Path& direct
 	});
 }
 
+void ECS::EntityInfoManager::RegisterEntityInfo(const Util::StringHash nameHash, EntityInfo&& info)
+{
+	m_entityInfos[nameHash] = std::move(info);
+}
+
 const ECS::EntityInfo* ECS::EntityInfoManager::FindEntityInfo(const Util::StringHash entityInfoNameHash) const
 {
 	const auto itr = m_entityInfos.Find(entityInfoNameHash);
