@@ -24,6 +24,9 @@ public:
 	const Vector3& GetTranslation() const { return reinterpret_cast<const Vector3&>(m_matrix[12]); }
 	void SetTranslation(const Vector3& v) { reinterpret_cast<Vector3&>(m_matrix[12]) = v; }
 
+	Vector3 GetScale() const { return Vector3(m_matrix[0], m_matrix[5], m_matrix[10]); }
+	void SetScale(const Vector3& v);
+
 	Vector4& GetColumn(const size_t i) { return reinterpret_cast<Vector4&>(m_matrix[i * 4]); }
 	const Vector4& GetColumn(const size_t i) const { return reinterpret_cast<const Vector4&>(m_matrix[i * 4]); }
 
@@ -92,6 +95,13 @@ inline Matrix4x4 Matrix4x4::operator*(const Matrix4x4& rhs) const
 	result3.w = lhs3.Dot(rhs3);
 
 	return result;
+}
+
+inline void Matrix4x4::SetScale(const Vector3& v)
+{
+	m_matrix[0] = v.x;
+	m_matrix[5] = v.y;
+	m_matrix[10] = v.z;
 }
 
 inline Matrix4x4& Matrix4x4::operator*=(const Matrix4x4& rhs)
