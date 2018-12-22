@@ -26,6 +26,7 @@ public:
 private:
 	void RenderCharacterQuad(bgfx::Encoder& encoder,
 		const Math::Matrix4x4& uiTransform,
+		const float fontScale,
 		const int x,
 		const int y,
 		const char c) const;

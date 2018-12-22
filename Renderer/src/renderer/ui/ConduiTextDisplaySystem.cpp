@@ -7,7 +7,7 @@ namespace Renderer::UI
 {
 namespace Internal_TextDisplaySystem
 {
-constexpr float k_characterWidthPixels = 8;
+constexpr float k_characterWidthPixels = 9;
 constexpr float k_characterHeightPixels = 16;
 
 const Mesh::StaticMesh k_characterQuad{
@@ -106,7 +106,7 @@ void TextDisplaySystem::Update(const Unit::Time::Millisecond delta,
 			}
 			default:
 			{
-				RenderCharacterQuad(*encoder, transformComponent.m_uiTransform, x, y, c);
+				RenderCharacterQuad(*encoder, transformComponent.m_uiTransform, textComponent.m_fontScale, x, y, c);
 				x += 1;
 				break;
 			}
@@ -118,17 +118,21 @@ void TextDisplaySystem::Update(const Unit::Time::Millisecond delta,
 
 void TextDisplaySystem::RenderCharacterQuad(bgfx::Encoder& encoder,
 	const Math::Matrix4x4& uiTransform,
+	const float fontScale,
 	const int x,
 	const int y,
 	const char c) const
 {
+	const float scaledCharacterWidth = m_characterWidth * fontScale;
+	const float scaledCharacterHeight = m_characterHeight * fontScale;
+
 	Math::Vector3 offset{ 0.0f, 0.0f, 0.0f };
-	offset.x = x * m_characterWidth;
-	offset.y = y * m_characterHeight;
+	offset.x = x * scaledCharacterWidth;
+	offset.y = y * scaledCharacterHeight;
 
 	Math::Matrix4x4 characterTransform;
 	characterTransform.SetTranslation(offset);
-	characterTransform.SetScale(Math::Vector3(m_characterWidth, m_characterHeight, 0.0f));
+	characterTransform.SetScale(Math::Vector3(scaledCharacterWidth, scaledCharacterHeight, 0.0f));
 
 	const Math::Matrix4x4 transform = uiTransform * characterTransform;
 
