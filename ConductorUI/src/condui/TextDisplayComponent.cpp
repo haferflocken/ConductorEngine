@@ -4,6 +4,8 @@
 
 namespace Condui
 {
+const Util::StringHash TextDisplayComponentInfo::sk_typeHash = Util::CalcHash(TextDisplayComponentInfo::sk_typeName);
+
 Mem::UniquePtr<ECS::ComponentInfo> TextDisplayComponentInfo::LoadFromJSON(
 	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
 {

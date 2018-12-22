@@ -82,6 +82,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -115,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -123,13 +125,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="condui\Condui.h" />
-    <ClInclude Include="condui\ConduiEntityInfo.h" />
+    <ClInclude Include="condui\ConduiECSRegistration.h" />
+    <ClInclude Include="condui\RelativeUITransformSystem.h" />
     <ClInclude Include="condui\TextDisplayComponent.h" />
-    <ClInclude Include="condui\UITransfromComponent.h" />
+    <ClInclude Include="condui\UITransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\condui\Condui.cpp" />
-    <ClCompile Include="src\condui\ConduiEntityInfo.cpp" />
+    <ClCompile Include="src\condui\ConduiECSRegistration.cpp" />
+    <ClCompile Include="src\condui\RelativeUITransformSystem.cpp" />
     <ClCompile Include="src\condui\TextDisplayComponent.cpp" />
     <ClCompile Include="src\condui\UITransformComponent.cpp" />
   </ItemGroup>

@@ -94,13 +94,13 @@ public:
 	using ECSGroupType = SystemDetail::ECSGroupForTypeList<ECSTypeList>;
 
 	template <typename OtherSystemType>
-	static constexpr bool WritesToInputsOf() { return OtherSystemType::ImmutableTypesList::ContainsType<const ::ECS::Entity>() || MutableTypesList::ConstList::ContainsAny(OtherSystemType::ImmutableTypesList()); }
+	static constexpr bool WritesToInputsOf() { return OtherSystemType::ImmutableTypesList::template ContainsType<const ::ECS::Entity>() || MutableTypesList::ConstList::ContainsAny(OtherSystemType::ImmutableTypesList()); }
 
 	template <typename... OtherSystemTypes>
 	static constexpr bool WritesToInputsOfAny() { return (... || WritesToInputsOf<OtherSystemTypes>()); }
 
 	template <typename OtherSystemType>
-	static constexpr bool WritesToOutputsOf() { return MutableTypesList::ContainsType<::ECS::Entity>() || MutableTypesList::ContainsAny(OtherSystemType::MutableTypesList()); }
+	static constexpr bool WritesToOutputsOf() { return MutableTypesList::template ContainsType<::ECS::Entity>() || MutableTypesList::ContainsAny(OtherSystemType::MutableTypesList()); }
 
 	template <typename... OtherSystemTypes>
 	static constexpr bool WritesToOutputsOfAny() { return (... || WritesToOutputsOf<OtherSystemTypes>()); }

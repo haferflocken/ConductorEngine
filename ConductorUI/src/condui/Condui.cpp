@@ -1,8 +1,8 @@
 #include <condui/Condui.h>
 
-#include <condui/ConduiEntityInfo.h>
+#include <condui/ConduiECSRegistration.h>
 #include <condui/TextDisplayComponent.h>
-#include <condui/UITransfromComponent.h>
+#include <condui/UITransformComponent.h>
 #include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
 

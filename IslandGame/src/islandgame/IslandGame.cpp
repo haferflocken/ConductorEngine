@@ -20,6 +20,7 @@
 #include <conductor/LocalClientHostMain.h>
 #include <conductor/HostMain.h>
 #include <conductor/RemoteClientMain.h>
+#include <condui/ConduiECSRegistration.h>
 #include <host/ConnectedClient.h>
 #include <host/HostNetworkWorld.h>
 #include <host/HostWorld.h>
@@ -76,8 +77,13 @@ Conductor::GameDataFactory MakeGameDataFactory()
 	return [](Asset::AssetManager& assetManager, const File::Path& dataDirectory, const File::Path& userDirectory)
 	{
 		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>(dataDirectory, userDirectory, assetManager);
+
+		Condui::RegisterComponentTypes(gameData->GetComponentReflector(),
+			gameData->GetComponentInfoFactory());
 		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(), 
 			gameData->GetComponentInfoFactory());
+
+		Condui::RegisterEntityInfo(gameData->GetEntityInfoManager());
 
 		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 		gameData->LoadEntityInfosInDirectory(dataDirectory / k_entityInfosPath);
@@ -89,8 +95,12 @@ Client::ClientWorld::ClientFactory MakeClientFactory()
 {
 	return [](const Conductor::IGameData& gameData, Client::ConnectedHost& connectedHost)
 	{
-		return Mem::MakeUnique<IslandGame::Client::IslandGameClient>(
+		auto client = Mem::MakeUnique<IslandGame::Client::IslandGameClient>(
 			static_cast<const IslandGame::IslandGameData&>(gameData), connectedHost);
+
+		Condui::RegisterSystems(client->GetEntityManager());
+
+		return client;
 	};
 }
 
