@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ecs/Component.h>
+#include <renderer/ViewIDs.h>
 
 namespace Renderer
 {
@@ -20,7 +21,7 @@ public:
 
 	explicit CameraComponent(const ECS::ComponentID id)
 		: Component(id)
-		, m_viewID(0)
+		, m_viewID(k_sceneViewID)
 		, m_verticalFieldOfView(60.0f)
 	{}
 

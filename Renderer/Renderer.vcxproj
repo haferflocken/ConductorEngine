@@ -70,10 +70,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Renderer;$(SolutionDir)Conductor;$(SolutionDir)Amp;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Renderer;$(SolutionDir)ConductorUI;$(SolutionDir)Conductor;$(SolutionDir)Amp;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Renderer;$(SolutionDir)Conductor;$(SolutionDir)Amp;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Renderer;$(SolutionDir)ConductorUI;$(SolutionDir)Conductor;$(SolutionDir)Amp;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -136,9 +136,11 @@
     <ClInclude Include="renderer\CameraComponent.h" />
     <ClInclude Include="renderer\CameraComponentInfo.h" />
     <ClInclude Include="renderer\CameraSystem.h" />
+    <ClInclude Include="renderer\ui\ConduiTextDisplaySystem.h" />
     <ClInclude Include="renderer\FrameSignalSystem.h" />
     <ClInclude Include="renderer\MeshSystem.h" />
     <ClInclude Include="renderer\RenderInstance.h" />
+    <ClInclude Include="renderer\ViewIDs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\renderer\CameraComponent.cpp" />
@@ -147,6 +149,7 @@
     <ClCompile Include="src\renderer\FrameSignalSystem.cpp" />
     <ClCompile Include="src\renderer\MeshSystem.cpp" />
     <ClCompile Include="src\renderer\RenderInstance.cpp" />
+    <ClCompile Include="src\renderer\ui\ConduiTextDisplaySystem.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

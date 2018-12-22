@@ -6,12 +6,13 @@
 #include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
 
-Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str)
+Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, const float fontScale)
 {
 	auto element = ConduiElement::Make<TextDisplayElement>();
 	TextDisplayElement& textDisplayElement = element.Get<TextDisplayElement>();
 
 	textDisplayElement.m_string = str;
+	textDisplayElement.m_fontScale = fontScale;
 
 	return element;
 }

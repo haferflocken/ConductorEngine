@@ -23,7 +23,8 @@ struct ConduiElement;
  */
 struct TextDisplayElement final
 {
-	std::string m_string;
+	std::string m_string{};
+	float m_fontScale{ 1.0f };
 };
 
 /**
@@ -43,6 +44,8 @@ struct ConduiElement final : public Collection::Variant<
 	PanelElement>
 {
 	using Variant::Variant;
+
+	ConduiElement() = default;
 
 	ConduiElement(Variant&& v)
 		: Variant(std::move(v))
@@ -64,7 +67,7 @@ struct ElementRoot final
 	ConduiElement m_element;
 };
 
-ConduiElement MakeTextDisplayElement(const char* const str);
+ConduiElement MakeTextDisplayElement(const char* const str, const float fontScale = 1.0f);
 ConduiElement MakePanelElement(
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms);
 

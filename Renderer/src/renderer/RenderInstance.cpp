@@ -15,6 +15,7 @@
 #include <renderer/CameraSystem.h>
 #include <renderer/FrameSignalSystem.h>
 #include <renderer/MeshSystem.h>
+#include <renderer/ui/ConduiTextDisplaySystem.h>
 
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
@@ -272,6 +273,7 @@ void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 	using namespace Internal_RenderInstance;
 	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(k_width, k_height));
 	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>());
+	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextDisplaySystem>(k_width, k_height));
 	entityManager.RegisterSystem(Mem::MakeUnique<FrameSignalSystem>());
 }
 

@@ -1,5 +1,7 @@
 #include <renderer/MeshSystem.h>
 
+#include <renderer/ViewIDs.h>
+
 namespace Renderer
 {
 MeshSystem::MeshSystem()
@@ -83,7 +85,7 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 		encoder->setVertexBuffer(0, datum.m_vertexBuffer);
 		encoder->setIndexBuffer(datum.m_indexBuffer);
 		encoder->setState(BGFX_STATE_DEFAULT);
-		encoder->submit(0, m_program);
+		encoder->submit(k_sceneViewID, m_program);
 	}
 
 	// Discard any data for meshes that haven't been accessed recently.

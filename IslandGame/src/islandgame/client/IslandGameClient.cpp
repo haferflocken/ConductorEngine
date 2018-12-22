@@ -4,6 +4,7 @@
 
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
+#include <condui/Condui.h>
 #include <ecs/EntityInfoManager.h>
 #include <scene/RelativeTransformSystem.h>
 #include <scene/SceneTransformComponent.h>
@@ -41,6 +42,12 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 
 		auto& sceneTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
 		sceneTransformComponent.m_matrix.SetTranslation(Math::Vector3(0.0f, 0.0f, -5.0f));
+
+		Condui::ElementRoot elementRoot;
+		elementRoot.m_uiTransform.SetTranslation(Math::Vector3(0.0f, 1.0f, 0.0f));
+		elementRoot.m_element = Condui::MakeTextDisplayElement("Test text\ntest new line\n\ttab\ttest\ttab");
+
+		Condui::CreateConduiRootEntity(m_gameData.GetEntityInfoManager(), m_entityManager, elementRoot);
 
 		isCameraCreated = true;
 	}

@@ -35,6 +35,7 @@ public:
 
 	virtual ~TextDisplayComponent() {}
 
-	std::string m_string;
+	std::string m_string{};
+	float m_fontScale{ 1.0f };
 };
 }
