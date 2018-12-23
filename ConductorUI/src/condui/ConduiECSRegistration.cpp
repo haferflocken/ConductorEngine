@@ -31,13 +31,22 @@ void Condui::RegisterSystems(ECS::EntityManager& entityManager)
 	entityManager.RegisterSystem(Mem::MakeUnique<RelativeUITransformSystem>());
 }
 
-void Condui::RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager)
+void Condui::RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager,
+	const uint16_t characterWidthPixels,
+	const uint16_t characterHeightPixels,
+	const File::Path& codePagePath)
 {
 	using namespace Internal_ConduiEntityInfo;
 	{
 		ECS::EntityInfo textDisplayInfo;
 		textDisplayInfo.m_nameHash = k_textDisplayInfoNameHash;
-		textDisplayInfo.m_componentInfos.Add(Mem::MakeUnique<TextDisplayComponentInfo>());
+
+		auto textDisplayComponentInfo = Mem::MakeUnique<TextDisplayComponentInfo>();
+		textDisplayComponentInfo->m_characterWidthPixels = characterWidthPixels;
+		textDisplayComponentInfo->m_characterHeightPixels = characterHeightPixels;
+		textDisplayComponentInfo->m_codePagePath = codePagePath;
+
+		textDisplayInfo.m_componentInfos.Add(std::move(textDisplayComponentInfo));
 		textDisplayInfo.m_componentInfos.Add(Mem::MakeUnique<UITransformComponentInfo>());
 		entityInfoManager.RegisterEntityInfo(k_textDisplayInfoNameHash, std::move(textDisplayInfo));
 	}

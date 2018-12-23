@@ -1,5 +1,7 @@
 #pragma once
 
+#include <file/Path.h>
+
 namespace ECS
 {
 class ComponentInfoFactory;
@@ -22,7 +24,12 @@ void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
 void RegisterSystems(ECS::EntityManager& entityManager);
 
 // Registers all Condui EntityInfo from C++ rather than through JSON files.
-void RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager);
+// All Condui text is rendered in monospace fonts generated from monochrome bitmap files; the parameters here are for
+// the default font.
+void RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager,
+	const uint16_t characterWidthPixels,
+	const uint16_t characterHeightPixels,
+	const File::Path& codePagePath);
 
 // Gets the entity info name hash for the given element's type.
 Util::StringHash GetEntityInfoNameHashFor(const ConduiElement& element);

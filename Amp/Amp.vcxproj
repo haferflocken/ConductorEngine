@@ -153,8 +153,10 @@
     <ClInclude Include="file\FullFileReader.h" />
     <ClInclude Include="file\JSONReader.h" />
     <ClInclude Include="file\Path.h" />
+    <ClInclude Include="image\Pixel1Image.h" />
     <ClInclude Include="json\JSONPrintVisitor.h" />
     <ClInclude Include="json\JSONTypes.h" />
+    <ClInclude Include="mem\DeserializeLittleEndian.h" />
     <ClInclude Include="mem\Serialize.h" />
     <ClInclude Include="mem\UniquePtr.h" />
     <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
@@ -174,6 +176,7 @@
     <ClCompile Include="src\dev\Dev.cpp" />
     <ClCompile Include="src\file\FullFileReader.cpp" />
     <ClCompile Include="src\file\JSONReader.cpp" />
+    <ClCompile Include="src\image\Pixel1Image.cpp" />
     <ClCompile Include="src\json\JSONPrintVisitor.cpp" />
     <ClCompile Include="src\json\JSONTypes.cpp" />
     <ClCompile Include="src\collection\LinearBlockAllocator.cpp" />

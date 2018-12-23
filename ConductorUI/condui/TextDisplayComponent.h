@@ -1,7 +1,10 @@
 #pragma once
 
+#include <asset/AssetHandle.h>
 #include <ecs/Component.h>
 #include <ecs/ComponentInfo.h>
+#include <file/Path.h>
+#include <image/Pixel1Image.h>
 
 namespace Condui
 {
@@ -16,6 +19,10 @@ public:
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
 	virtual Util::StringHash GetTypeHash() const { return sk_typeHash; }
+
+	uint16_t m_characterWidthPixels{ 0 };
+	uint16_t m_characterHeightPixels{ 0 };
+	File::Path m_codePagePath{};
 };
 
 /**
@@ -36,6 +43,11 @@ public:
 	virtual ~TextDisplayComponent() {}
 
 	std::string m_string{};
+
+	uint16_t m_characterWidthPixels{ 0 };
+	uint16_t m_characterHeightPixels{ 0 };
+	Asset::AssetHandle<Image::Pixel1Image> m_codePage{};
+
 	float m_fontScale{ 1.0f };
 };
 }

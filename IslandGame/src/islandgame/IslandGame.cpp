@@ -83,7 +83,8 @@ Conductor::GameDataFactory MakeGameDataFactory()
 		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(), 
 			gameData->GetComponentInfoFactory());
 
-		Condui::RegisterEntityInfo(gameData->GetEntityInfoManager());
+		Condui::RegisterEntityInfo(
+			gameData->GetEntityInfoManager(), 9, 16, File::MakePath("fonts/Codepage-437-monochome.bmp"));
 
 		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 		gameData->LoadEntityInfosInDirectory(dataDirectory / k_entityInfosPath);

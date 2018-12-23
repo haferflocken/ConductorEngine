@@ -11,6 +11,7 @@
 #include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityInfoManager.h>
+#include <image/Pixel1Image.h>
 #include <input/InputComponent.h>
 #include <mesh/MeshComponent.h>
 #include <mesh/MeshComponentInfo.h>
@@ -34,6 +35,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	, m_entityInfoManager(Mem::MakeUnique<ECS::EntityInfoManager>(*m_componentInfoFactory, *m_behaviourTreeManager))
 {
 	// Register asset types.
+	m_assetManager.RegisterAssetType<Image::Pixel1Image>(&Image::Pixel1Image::TryLoad);
 	m_assetManager.RegisterAssetType<Mesh::StaticMesh>(&Mesh::StaticMesh::TryLoad);
 
 	// Register ECS component types.
