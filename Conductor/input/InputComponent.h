@@ -11,14 +11,14 @@ namespace Input
 class InputComponentInfo final : public ECS::ComponentInfo
 {
 public:
-	static constexpr char* sk_typeName = "input_component";
+	static constexpr const char* const sk_typeName = "input_component";
 	static const Util::StringHash sk_typeHash;
 
 	static Mem::UniquePtr<ECS::ComponentInfo> LoadFromJSON(
 		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject);
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
-	virtual Util::StringHash GetTypeHash() const { return sk_typeHash; }
+	virtual Util::StringHash GetTypeHash() const override { return sk_typeHash; }
 
 	// The named inputs this component consumes.
 	Collection::Vector<Util::StringHash> m_inputNameHashes;

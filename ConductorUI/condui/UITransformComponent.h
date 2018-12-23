@@ -17,7 +17,7 @@ public:
 		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject);
 
 	virtual const char* GetTypeName() const override { return sk_typeName; }
-	virtual Util::StringHash GetTypeHash() const { return sk_typeHash; }
+	virtual Util::StringHash GetTypeHash() const override { return sk_typeHash; }
 };
 
 /**
