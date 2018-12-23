@@ -62,6 +62,7 @@ IGameData::~IGameData()
 {
 	// Unregister asset types in the opposite order in which they where registered.
 	m_assetManager.UnregisterAssetType<Mesh::StaticMesh>();
+	m_assetManager.UnregisterAssetType<Image::Pixel1Image>();
 }
 
 void IGameData::LoadBehaviourTreesInDirectory(const File::Path& directory)

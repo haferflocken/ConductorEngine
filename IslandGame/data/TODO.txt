@@ -34,6 +34,7 @@ Amp/Conductor TODO:
 		[ ] Animate meshes with rigging. Bones are entities so that other entities can easily attach to them.
 
 Renderer TODO:
+[ ] Monospace text rendering
 [ ] Shader program loading and rendering
 [ ] Texture loading and rendering
 [ ] Render rigged meshes
@@ -52,3 +53,4 @@ DONE:
 			added and removed on entities that they match.
 			This will make it easier for systems to store data about their components outside of their components.
 		[x] Store bgfx data in Renderer::MeshSystem rather than in MeshComponent
+
