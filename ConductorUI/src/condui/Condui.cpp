@@ -2,6 +2,7 @@
 
 #include <condui/ConduiECSRegistration.h>
 #include <condui/TextDisplayComponent.h>
+#include <condui/TextInputComponent.h>
 #include <condui/UITransformComponent.h>
 #include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
@@ -13,6 +14,16 @@ Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, cons
 
 	textDisplayElement.m_string = str;
 	textDisplayElement.m_fontScale = fontScale;
+
+	return element;
+}
+
+Condui::ConduiElement Condui::MakeTextInputElement(const float fontScale)
+{
+	auto element = ConduiElement::Make<TextInputElement>();
+	TextInputElement& textInputElement = element.Get<TextInputElement>();
+
+	textInputElement.m_fontScale = fontScale;
 
 	return element;
 }
@@ -46,6 +57,14 @@ ECS::Entity& Condui::CreateConduiEntity(
 		{
 			TextDisplayComponent& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(entity);
 			textDisplayComponent.m_string = textDisplayElement.m_string;
+			textDisplayComponent.m_fontScale = textDisplayElement.m_fontScale;
+		},
+		[&](const TextInputElement& textInputElement)
+		{
+			TextInputComponent& textInputComponent = *entityManager.FindComponent<TextInputComponent>(entity);
+			textInputComponent.m_xScale = textInputElement.m_xScale;
+			textInputComponent.m_yScale = textInputElement.m_yScale;
+			textInputComponent.m_fontScale = textInputElement.m_fontScale;
 		},
 		[&](const PanelElement& panelElement)
 		{

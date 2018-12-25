@@ -4,6 +4,8 @@
 #include <collection/Variant.h>
 #include <collection/Vector.h>
 #include <math/Matrix4x4.h>
+#include <mem/UniquePtr.h>
+#include <util/StringHash.h>
 
 #include <string>
 
@@ -28,6 +30,17 @@ struct TextDisplayElement final
 };
 
 /**
+ * An element that can be typed in.
+ */
+struct TextInputElement final
+{
+	// The bounds of the text input rectangle as scales of the parent space.
+	float m_xScale{ 1.0f };
+	float m_yScale{ 1.0f };
+	float m_fontScale{ 1.0f };
+};
+
+/**
  * An element that contains other elements transformed from itself.
  */
 struct PanelElement final
@@ -37,10 +50,25 @@ struct PanelElement final
 };
 
 /**
+ * An element with one child that is enabled/disabled by an input.
+ */
+struct InputToggledElement final
+{
+	Mem::UniquePtr<ConduiElement> m_child;
+	// The input which toggles the child element.
+	Util::StringHash m_inputName;
+	// When the input value increases above or equal to m_inputThresholdUp, the child is toggled.
+	// It will not toggle crossing m_inputThresholdUp again until the input decreases below m_inputThresoldDown.
+	float m_inputThresholdUp;
+	float m_inputThresholdDown;
+};
+
+/**
  * A union of all element types.
  */
 struct ConduiElement final : public Collection::Variant<
 	TextDisplayElement,
+	TextInputElement,
 	PanelElement>
 {
 	using Variant::Variant;
@@ -68,6 +96,7 @@ struct ElementRoot final
 };
 
 ConduiElement MakeTextDisplayElement(const char* const str, const float fontScale = 1.0f);
+ConduiElement MakeTextInputElement(const float fontScale = 1.0f);
 ConduiElement MakePanelElement(
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms);
 

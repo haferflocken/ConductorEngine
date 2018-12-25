@@ -73,6 +73,28 @@ HandleEventResult HandleSDLEvent(const SDL_Event& event, RenderInstance::Status&
 		inputToClientMessages.TryPush(std::move(message));
 		return HandleEventResult::Continue;
 	}
+	case SDL_TEXTEDITING:
+	{
+		auto message = Input::InputMessage::Make<Input::InputMessage_TextEditing>();
+		auto& payload = message.Get<Input::InputMessage_TextEditing>();
+
+		payload.m_editStart = event.edit.start;
+		payload.m_editLength = event.edit.length;
+		strcpy_s(payload.m_text, sizeof(payload.m_text), event.edit.text);
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
+	case SDL_TEXTINPUT:
+	{
+		auto message = Input::InputMessage::Make<Input::InputMessage_TextInput>();
+		auto& payload = message.Get<Input::InputMessage_TextInput>();
+
+		strcpy_s(payload.m_text, sizeof(payload.m_text), event.text.text);
+
+		inputToClientMessages.TryPush(std::move(message));
+		return HandleEventResult::Continue;
+	}
 	case SDL_MOUSEMOTION:
 	{
 		if (event.motion.which == SDL_TOUCH_MOUSEID)

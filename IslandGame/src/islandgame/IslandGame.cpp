@@ -99,7 +99,7 @@ Client::ClientWorld::ClientFactory MakeClientFactory()
 		auto client = Mem::MakeUnique<IslandGame::Client::IslandGameClient>(
 			static_cast<const IslandGame::IslandGameData&>(gameData), connectedHost);
 
-		Condui::RegisterSystems(client->GetEntityManager());
+		Condui::RegisterSystems(client->GetEntityManager(), client->GetInputCallbackRegistry());
 
 		return client;
 	};

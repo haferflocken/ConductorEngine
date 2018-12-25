@@ -20,6 +20,18 @@ struct InputMessage_KeyDown final
 	char m_keyName[28];
 };
 
+struct InputMessage_TextEditing final
+{
+	int32_t m_editStart;
+	int32_t m_editLength;
+	char m_text[32];
+};
+
+struct InputMessage_TextInput final
+{
+	char m_text[32];
+};
+
 struct InputMessage_MouseMotion final
 {
 	// The mouse position from (0, 0) to (1, 1).
@@ -45,7 +57,7 @@ struct InputMessage_MouseButtonDown final
 
 struct InputMessage_MouseWheel final
 {
-	// TODO
+	// TODO(input) mouse wheel
 };
 
 struct InputMessage_ControllerAxisMotion final
@@ -81,6 +93,8 @@ struct InputMessage final : public Collection::Variant<
 	InputMessage_WindowClosed,
 	InputMessage_KeyUp,
 	InputMessage_KeyDown,
+	InputMessage_TextEditing,
+	InputMessage_TextInput,
 	InputMessage_MouseMotion,
 	InputMessage_MouseButtonUp,
 	InputMessage_MouseButtonDown,

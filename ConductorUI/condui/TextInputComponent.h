@@ -6,12 +6,14 @@
 #include <file/Path.h>
 #include <image/Pixel1Image.h>
 
+#include <string>
+
 namespace Condui
 {
-class TextDisplayComponentInfo final : public ECS::ComponentInfo
+class TextInputComponentInfo final : public ECS::ComponentInfo
 {
 public:
-	static constexpr const char* sk_typeName = "text_display_component";
+	static constexpr const char* sk_typeName = "text_input_component";
 	static const Util::StringHash sk_typeHash;
 
 	static Mem::UniquePtr<ComponentInfo> LoadFromJSON(
@@ -26,28 +28,30 @@ public:
 };
 
 /**
- * A TextDisplayComponent makes an entity appear in the UI as a text display.
+ * A TextInputComponent makes an entity able to receive text input and display it.
  */
-class TextDisplayComponent final : public ECS::Component
+class TextInputComponent final : public ECS::Component
 {
 public:
-	using Info = TextDisplayComponentInfo;
+	using Info = TextInputComponentInfo;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const TextDisplayComponentInfo& componentInfo,
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const TextInputComponentInfo& componentInfo,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
-	explicit TextDisplayComponent(const ECS::ComponentID id)
+	explicit TextInputComponent(const ECS::ComponentID id)
 		: ECS::Component(id)
 	{}
 
-	virtual ~TextDisplayComponent() {}
+	virtual ~TextInputComponent() {}
 
-	std::string m_string{};
+	std::string m_text{};
 
 	Asset::AssetHandle<Image::Pixel1Image> m_codePage{};
 	uint16_t m_characterWidthPixels{ 0 };
 	uint16_t m_characterHeightPixels{ 0 };
 
+	float m_xScale{ 1.0f };
+	float m_yScale{ 1.0f };
 	float m_fontScale{ 1.0f };
 };
 }

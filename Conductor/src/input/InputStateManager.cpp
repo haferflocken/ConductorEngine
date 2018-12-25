@@ -129,6 +129,8 @@ void InputStateManager::NotifyOfInputMessage(const InputMessage& message)
 			sources[0] = Sources::Key(keyDown.m_keyCode);
 			inputValues[0] = 1.0f;
 		},
+		[](const InputMessage_TextEditing&) {},
+		[](const InputMessage_TextInput&) {},
 		[&](const InputMessage_MouseMotion& mouseMotion)
 		{
 			sources[0] = Sources::MouseX;
@@ -149,7 +151,7 @@ void InputStateManager::NotifyOfInputMessage(const InputMessage& message)
 		},
 		[&](const InputMessage_MouseWheel& mouseWheel)
 		{
-			// TODO
+			// TODO(input) mouse wheel input
 		},
 		[&](const InputMessage_ControllerAxisMotion& controllerAxis)
 		{

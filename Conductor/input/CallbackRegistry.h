@@ -14,7 +14,7 @@ namespace Input
 class CallbackRegistry final
 {
 public:
-	using CallbackFunction = std::function<void(const Input::InputMessage)>;
+	using CallbackFunction = std::function<void(const Input::InputMessage&)>;
 
 	void NotifyOfInputMessage(const Input::InputMessage& message);
 

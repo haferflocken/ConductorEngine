@@ -26,6 +26,9 @@ public:
 	IClient(Asset::AssetManager& assetManager, const ECS::ComponentReflector& componentReflector,
 		ConnectedHost& connectedHost);
 
+	Input::CallbackRegistry& GetInputCallbackRegistry() { return m_inputCallbackRegistry; }
+	const Input::CallbackRegistry& GetInputCallbackRegistry() const { return m_inputCallbackRegistry; }
+
 	ECS::EntityManager& GetEntityManager() { return m_entityManager; }
 	const ECS::EntityManager& GetEntityManager() const { return m_entityManager; }
 

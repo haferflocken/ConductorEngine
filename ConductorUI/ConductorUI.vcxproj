@@ -128,6 +128,8 @@
     <ClInclude Include="condui\ConduiECSRegistration.h" />
     <ClInclude Include="condui\RelativeUITransformSystem.h" />
     <ClInclude Include="condui\TextDisplayComponent.h" />
+    <ClInclude Include="condui\TextInputComponent.h" />
+    <ClInclude Include="condui\TextInputSystem.h" />
     <ClInclude Include="condui\UITransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
@@ -135,6 +137,8 @@
     <ClCompile Include="src\condui\ConduiECSRegistration.cpp" />
     <ClCompile Include="src\condui\RelativeUITransformSystem.cpp" />
     <ClCompile Include="src\condui\TextDisplayComponent.cpp" />
+    <ClCompile Include="src\condui\TextInputComponent.cpp" />
+    <ClCompile Include="src\condui\TextInputSystem.cpp" />
     <ClCompile Include="src\condui\UITransformComponent.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
