@@ -104,7 +104,7 @@ template <typename... Types>
 template <typename T>
 inline size_t Variant<Types...>::TagFor()
 {
-	return Util::IndexOfType<T, Types...>();
+	return Util::IndexOfType<T, Types...>;
 }
 
 template <typename... Types>
