@@ -6,6 +6,7 @@
 #include <file/Path.h>
 #include <image/Pixel1Image.h>
 
+#include <functional>
 #include <string>
 
 namespace Condui
@@ -28,15 +29,20 @@ public:
 };
 
 /**
- * A TextInputComponent makes an entity able to receive text input and display it.
+ * A TextInputComponent makes an entity able to receive text input and display it. An input handler function is used to
+ * process the input as it's received. The default input handler appends all received input to the displayed text and
+ * supports backspace.
  */
 class TextInputComponent final : public ECS::Component
 {
 public:
 	using Info = TextInputComponentInfo;
+	using InputHandler = std::function<void(TextInputComponent&, const char*)>;
 
 	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const TextInputComponentInfo& componentInfo,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+
+	static void DefaultInputHandler(TextInputComponent& component, const char* text);
 
 	explicit TextInputComponent(const ECS::ComponentID id)
 		: ECS::Component(id)
@@ -45,6 +51,8 @@ public:
 	virtual ~TextInputComponent() {}
 
 	std::string m_text{};
+
+	InputHandler m_inputHandler{ &DefaultInputHandler };
 
 	Asset::AssetHandle<Image::Pixel1Image> m_codePage{};
 	uint16_t m_characterWidthPixels{ 0 };

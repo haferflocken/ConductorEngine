@@ -91,7 +91,7 @@ void TextInputSystem::NotifyOfTextInput(const Input::InputMessage& message)
 		return;
 	}
 	auto& textInputMessage = message.Get<Input::InputMessage_TextInput>();
-	m_focusedComponent->m_text.append(textInputMessage.m_text);
+	m_focusedComponent->m_inputHandler(*m_focusedComponent, textInputMessage.m_text);
 }
 
 void TextInputSystem::NotifyOfKeyDown(const Input::InputMessage& message)
@@ -105,17 +105,17 @@ void TextInputSystem::NotifyOfKeyDown(const Input::InputMessage& message)
 	{
 	case '\b':
 	{
-		m_focusedComponent->m_text.pop_back();
+		m_focusedComponent->m_inputHandler(*m_focusedComponent, "\b");
 		break;
 	}
 	case '\r':
 	{
-		m_focusedComponent->m_text.push_back('\r');
+		m_focusedComponent->m_inputHandler(*m_focusedComponent, "\r");
 		break;
 	}
 	case '\t':
 	{
-		m_focusedComponent->m_text.push_back('\t');
+		m_focusedComponent->m_inputHandler(*m_focusedComponent, "\t");
 		break;
 	}
 	}

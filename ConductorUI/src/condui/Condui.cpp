@@ -18,11 +18,13 @@ Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, cons
 	return element;
 }
 
-Condui::ConduiElement Condui::MakeTextInputElement(const float xScale, const float yScale, const float fontScale)
+Condui::ConduiElement Condui::MakeTextInputElement(
+	const float xScale, const float yScale, TextInputElement::InputHandler inputHandler, const float fontScale)
 {
 	auto element = ConduiElement::Make<TextInputElement>();
 	TextInputElement& textInputElement = element.Get<TextInputElement>();
 
+	textInputElement.m_inputHandler = inputHandler;
 	textInputElement.m_xScale = xScale;
 	textInputElement.m_yScale = yScale;
 	textInputElement.m_fontScale = fontScale;
@@ -64,6 +66,12 @@ ECS::Entity& Condui::CreateConduiEntity(
 		[&](const TextInputElement& textInputElement)
 		{
 			TextInputComponent& textInputComponent = *entityManager.FindComponent<TextInputComponent>(entity);
+			
+			if (textInputElement.m_inputHandler)
+			{
+				textInputComponent.m_inputHandler = textInputElement.m_inputHandler;
+			}
+
 			textInputComponent.m_xScale = textInputElement.m_xScale;
 			textInputComponent.m_yScale = textInputElement.m_yScale;
 			textInputComponent.m_fontScale = textInputElement.m_fontScale;

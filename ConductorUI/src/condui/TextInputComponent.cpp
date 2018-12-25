@@ -25,4 +25,16 @@ bool TextInputComponent::TryCreateFromInfo(
 	component.m_codePage = assetManager.RequestAsset<Image::Pixel1Image>(componentInfo.m_codePagePath);
 	return true;
 }
+
+void TextInputComponent::DefaultInputHandler(TextInputComponent& component, const char* text)
+{
+	if (strcmp(text, "\b") == 0)
+	{
+		component.m_text.pop_back();
+	}
+	else
+	{
+		component.m_text.append(text);
+	}
+}
 }

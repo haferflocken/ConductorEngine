@@ -7,6 +7,7 @@
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
 
+#include <functional>
 #include <string>
 
 namespace ECS
@@ -19,6 +20,7 @@ class EntityManager;
 namespace Condui
 {
 struct ConduiElement;
+class TextInputComponent;
 
 /**
  * An element that displays a string.
@@ -34,6 +36,11 @@ struct TextDisplayElement final
  */
 struct TextInputElement final
 {
+	using InputHandler = std::function<void(TextInputComponent&, const char*)>;
+
+	// The function called to process this element's input.
+	InputHandler m_inputHandler{};
+
 	// The bounds of the text input rectangle as scales of the parent space.
 	float m_xScale{ 1.0f };
 	float m_yScale{ 1.0f };
@@ -95,11 +102,18 @@ struct ElementRoot final
 	ConduiElement m_element;
 };
 
+/**
+ * Functions to create Condui elements in a declarative style.
+ */
 ConduiElement MakeTextDisplayElement(const char* const str, const float fontScale = 1.0f);
-ConduiElement MakeTextInputElement(const float xScale, const float yScale, const float fontScale = 1.0f);
+ConduiElement MakeTextInputElement(
+	const float xScale, const float yScale, TextInputElement::InputHandler inputHandler, float fontScale = 1.0f);
 ConduiElement MakePanelElement(
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms);
 
+/**
+ * Functions to actualize a ConduiElement as an ECS::Entity.
+ */
 ECS::Entity& CreateConduiEntity(
 	const ECS::EntityInfoManager& entityInfoManager,
 	ECS::EntityManager& entityManager,
