@@ -15,7 +15,9 @@
 #include <renderer/CameraSystem.h>
 #include <renderer/FrameSignalSystem.h>
 #include <renderer/MeshSystem.h>
-#include <renderer/ui/ConduiTextDisplaySystem.h>
+#include <renderer/ui/ConduiTextDisplayRenderSystem.h>
+#include <renderer/ui/ConduiTextInputRenderSystem.h>
+#include <renderer/ui/TextRenderer.h>
 
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
@@ -212,6 +214,8 @@ RenderInstance::RenderInstance(
 	, m_status(Status::Initializing)
 	, m_messagesFromClient(messagesFromClient)
 	, m_inputToClientMessages(inputToClientMessages)
+	, m_textRenderer(Mem::MakeUnique<UI::TextRenderer>(
+		Internal_RenderInstance::k_width, Internal_RenderInstance::k_height))
 {
 	using namespace Internal_RenderInstance;
 
@@ -295,7 +299,8 @@ void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 	using namespace Internal_RenderInstance;
 	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(k_width, k_height));
 	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>());
-	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextDisplaySystem>(k_width, k_height));
+	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextDisplayRenderSystem>(*m_textRenderer));
+	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextInputRenderSystem>(*m_textRenderer));
 	entityManager.RegisterSystem(Mem::MakeUnique<FrameSignalSystem>());
 }
 

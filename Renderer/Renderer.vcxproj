@@ -136,11 +136,13 @@
     <ClInclude Include="renderer\CameraComponent.h" />
     <ClInclude Include="renderer\CameraComponentInfo.h" />
     <ClInclude Include="renderer\CameraSystem.h" />
-    <ClInclude Include="renderer\ui\ConduiTextDisplaySystem.h" />
+    <ClInclude Include="renderer\ui\ConduiTextDisplayRenderSystem.h" />
     <ClInclude Include="renderer\FrameSignalSystem.h" />
     <ClInclude Include="renderer\MeshSystem.h" />
     <ClInclude Include="renderer\RenderInstance.h" />
+    <ClInclude Include="renderer\ui\TextRenderer.h" />
     <ClInclude Include="renderer\ViewIDs.h" />
+    <ClInclude Include="renderer\ui\ConduiTextInputRenderSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\renderer\CameraComponent.cpp" />
@@ -149,7 +151,9 @@
     <ClCompile Include="src\renderer\FrameSignalSystem.cpp" />
     <ClCompile Include="src\renderer\MeshSystem.cpp" />
     <ClCompile Include="src\renderer\RenderInstance.cpp" />
-    <ClCompile Include="src\renderer\ui\ConduiTextDisplaySystem.cpp" />
+    <ClCompile Include="src\renderer\ui\ConduiTextDisplayRenderSystem.cpp" />
+    <ClCompile Include="src\renderer\ui\ConduiTextInputRenderSystem.cpp" />
+    <ClCompile Include="src\renderer\ui\TextRenderer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,8 +1,11 @@
 #pragma once
 
 #include <client/IRenderInstance.h>
+#include <mem/UniquePtr.h>
 
 struct SDL_Window;
+
+namespace Renderer::UI { class TextRenderer; }
 
 namespace Renderer
 {
@@ -38,5 +41,7 @@ private:
 	Collection::LocklessQueue<Input::InputMessage>& m_inputToClientMessages;
 
 	SDL_Window* m_window;
+
+	Mem::UniquePtr<UI::TextRenderer> m_textRenderer;
 };
 }

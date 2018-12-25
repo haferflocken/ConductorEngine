@@ -15,6 +15,8 @@ TextInputSystem::TextInputSystem(Input::CallbackRegistry& inputCallbackRegistry)
 		[this](const InputMessage& message) { NotifyOfTextEditing(message); });
 	inputCallbackRegistry.RegisterInputCallback<InputMessage_TextInput>(
 		[this](const InputMessage& message) { NotifyOfTextInput(message); });
+	inputCallbackRegistry.RegisterInputCallback<InputMessage_KeyDown>(
+		[this](const InputMessage& message) { NotifyOfKeyDown(message); });
 }
 
 void TextInputSystem::Update(const Unit::Time::Millisecond delta,
@@ -67,10 +69,6 @@ void TextInputSystem::NotifyOfEntityRemoved(const ECS::EntityID id, const ECSGro
 
 void TextInputSystem::NotifyOfMouseDown(const Input::InputMessage& message)
 {
-	if (m_focusedComponent == nullptr)
-	{
-		return;
-	}
 	auto& mouseDownMessage = message.Get<Input::InputMessage_MouseButtonDown>();
 	m_mouseDownPos.x = mouseDownMessage.m_mouseX;
 	m_mouseDownPos.y = mouseDownMessage.m_mouseY;
@@ -94,5 +92,32 @@ void TextInputSystem::NotifyOfTextInput(const Input::InputMessage& message)
 	}
 	auto& textInputMessage = message.Get<Input::InputMessage_TextInput>();
 	m_focusedComponent->m_text.append(textInputMessage.m_text);
+}
+
+void TextInputSystem::NotifyOfKeyDown(const Input::InputMessage& message)
+{
+	if (m_focusedComponent == nullptr)
+	{
+		return;
+	}
+	auto& keyDownMessage = message.Get<Input::InputMessage_KeyDown>();
+	switch (keyDownMessage.m_keyCode)
+	{
+	case '\b':
+	{
+		m_focusedComponent->m_text.pop_back();
+		break;
+	}
+	case '\r':
+	{
+		m_focusedComponent->m_text.push_back('\r');
+		break;
+	}
+	case '\t':
+	{
+		m_focusedComponent->m_text.push_back('\t');
+		break;
+	}
+	}
 }
 }

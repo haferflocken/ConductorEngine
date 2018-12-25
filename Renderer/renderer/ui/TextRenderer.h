@@ -1,37 +1,43 @@
 #pragma once
 
+#include <collection/Vector.h>
 #include <collection/VectorMap.h>
-#include <condui/TextDisplayComponent.h>
-#include <condui/UITransformComponent.h>
-#include <ecs/EntityID.h>
-#include <ecs/System.h>
-#include <image/Pixel1Image.h>
-#include <mesh/Vertex.h>
 
 #include <bgfx/bgfx.h>
 
 #include <array>
 
+namespace Asset
+{
+template <typename TAsset>
+class AssetHandle;
+}
+namespace Image { class Pixel1Image; }
+namespace Math { class Matrix4x4; }
+namespace Mesh { struct Vertex; }
+
 namespace Renderer::UI
 {
 /**
- * Makes entities visible by rendering their Condui::TextDisplayComponent.
+ * The TextRenderer creates and stores font meshes from Pixel1Images so that it can render text.
  */
-class TextDisplaySystem final : public ECS::SystemTempl<
-	Util::TypeList<Condui::UITransformComponent, Condui::TextDisplayComponent>,
-	Util::TypeList<>,
-	ECS::SystemBindingType::Extended>
+class TextRenderer final
 {
 public:
-	TextDisplaySystem(uint16_t widthPixels, uint16_t heightPixels);
-	~TextDisplaySystem();
+	TextRenderer(uint16_t widthPixels, uint16_t heightPixels);
+	~TextRenderer();
 
-	void Update(const Unit::Time::Millisecond delta,
-		const Collection::ArrayView<ECSGroupType>& ecsGroups,
-		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions);
+	// Request that a font be created from the code page if it doesn't already exist.
+	void RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& codePage,
+		const uint16_t characterWidthPixels,
+		const uint16_t characterHeightPixels);
 
-	void NotifyOfEntityAdded(const ECS::EntityID id, const ECSGroupType& group);
-	void NotifyOfEntityRemoved(const ECS::EntityID id, const ECSGroupType& group);
+	// Submit text for rendering. This will silently fail if the font for the code page is unavailable.
+	void SubmitText(bgfx::Encoder& encoder,
+		const Math::Matrix4x4& uiTransform,
+		const Asset::AssetHandle<Image::Pixel1Image>& codePage,
+		const char* const text,
+		const float fontScale) const;
 
 private:
 	struct FontMeshDatum
@@ -55,7 +61,7 @@ private:
 	void CreateFontMeshFromImage(const Image::Pixel1Image& image,
 		FontMeshDatum& font) const;
 
-	void RenderCharacterQuad(bgfx::Encoder& encoder,
+	void SubmitCharacterQuad(bgfx::Encoder& encoder,
 		const FontMeshDatum& font,
 		const Math::Matrix4x4& uiTransform,
 		const float characterWidth,

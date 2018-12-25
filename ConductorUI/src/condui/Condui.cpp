@@ -18,11 +18,13 @@ Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, cons
 	return element;
 }
 
-Condui::ConduiElement Condui::MakeTextInputElement(const float fontScale)
+Condui::ConduiElement Condui::MakeTextInputElement(const float xScale, const float yScale, const float fontScale)
 {
 	auto element = ConduiElement::Make<TextInputElement>();
 	TextInputElement& textInputElement = element.Get<TextInputElement>();
 
+	textInputElement.m_xScale = xScale;
+	textInputElement.m_yScale = yScale;
 	textInputElement.m_fontScale = fontScale;
 
 	return element;

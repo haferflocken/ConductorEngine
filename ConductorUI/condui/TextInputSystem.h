@@ -41,6 +41,7 @@ private:
 	void NotifyOfMouseDown(const Input::InputMessage& message);
 	void NotifyOfTextEditing(const Input::InputMessage& message);
 	void NotifyOfTextInput(const Input::InputMessage& message);
+	void NotifyOfKeyDown(const Input::InputMessage& message);
 
 	// The position where the mouse was pressed. Is Vector2() when there wasn't a mouse press last frame.
 	Math::Vector2 m_mouseDownPos{};

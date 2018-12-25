@@ -96,7 +96,7 @@ struct ElementRoot final
 };
 
 ConduiElement MakeTextDisplayElement(const char* const str, const float fontScale = 1.0f);
-ConduiElement MakeTextInputElement(const float fontScale = 1.0f);
+ConduiElement MakeTextInputElement(const float xScale, const float yScale, const float fontScale = 1.0f);
 ConduiElement MakePanelElement(
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms);
 

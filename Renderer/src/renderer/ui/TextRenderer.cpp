@@ -1,12 +1,15 @@
-#include <renderer/ui/ConduiTextDisplaySystem.h>
+#include <renderer/ui/TextRenderer.h>
 
+#include <asset/AssetHandle.h>
+#include <image/Pixel1Image.h>
+#include <math/Matrix4x4.h>
+#include <mesh/Vertex.h>
 #include <renderer/ViewIDs.h>
 
 namespace Renderer::UI
 {
-TextDisplaySystem::TextDisplaySystem(uint16_t widthPixels, uint16_t heightPixels)
-	: SystemTempl()
-	, m_widthPixels(widthPixels)
+TextRenderer::TextRenderer(uint16_t widthPixels, uint16_t heightPixels)
+	: m_widthPixels(widthPixels)
 	, m_heightPixels(heightPixels)
 	, m_program()
 	, m_vertexDecl()
@@ -20,134 +23,115 @@ TextDisplaySystem::TextDisplaySystem(uint16_t widthPixels, uint16_t heightPixels
 		.end();
 }
 
-TextDisplaySystem::~TextDisplaySystem()
+TextRenderer::~TextRenderer()
 {
 	//bgfx::destroy(m_program);
 }
 
-void TextDisplaySystem::Update(const Unit::Time::Millisecond delta,
-	const Collection::ArrayView<ECSGroupType>& ecsGroups,
-	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
+void TextRenderer::RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& codePageHandle,
+	const uint16_t characterWidthPixels,
+	const uint16_t characterHeightPixels)
 {
-	bgfx::Encoder* const encoder = bgfx::begin();
-	if (encoder == nullptr)
+	const Image::Pixel1Image* const codePage = codePageHandle.TryGetAsset();
+	if (codePage == nullptr)
 	{
 		return;
 	}
 
-	// Create font meshes for any code page images that finished loading.
-	for (auto& entry : m_fontMeshData)
+	FontMeshDatum& font = m_fontMeshData[codePageHandle];
+	if (bgfx::isValid(font.m_glyphVertexBufferHandle))
 	{
-		const Asset::AssetHandle<Image::Pixel1Image>& handle = entry.first;
-		FontMeshDatum& font = entry.second;
+		AMP_ASSERT(characterWidthPixels == font.m_characterWidthPixels
+			&& characterHeightPixels == font.m_characterHeightPixels,
+			"Dimensions of a font can't be changed after it's created!");
+		return;
+	}
+	font.m_characterWidthPixels = characterWidthPixels;
+	font.m_characterHeightPixels = characterHeightPixels;
+	CreateFontMeshFromImage(*codePage, font);
+}
 
-		const Image::Pixel1Image* const codePage = handle.TryGetAsset();
-		if (codePage == nullptr)
-		{
-			continue;
-		}
-
-		if (!bgfx::isValid(font.m_glyphVertexBufferHandle))
-		{
-			CreateFontMeshFromImage(*codePage, font);
-		}
+void TextRenderer::SubmitText(bgfx::Encoder& encoder,
+	const Math::Matrix4x4& uiTransform,
+	const Asset::AssetHandle<Image::Pixel1Image>& codePage,
+	const char* const text,
+	const float fontScale) const
+{
+	const auto datumIter = m_fontMeshData.Find(codePage);
+	if (datumIter == m_fontMeshData.end())
+	{
+		return;
 	}
 
-	// Render each text display entity using its font mesh.
-	for (const auto& ecsGroup : ecsGroups)
+	const FontMeshDatum& font = datumIter->second;
+	if (!bgfx::isValid(font.m_glyphVertexBufferHandle))
 	{
-		const auto& transformComponent = ecsGroup.Get<const Condui::UITransformComponent>();
-		const auto& textComponent = ecsGroup.Get<const Condui::TextDisplayComponent>();
+		return;
+	}
 
-		const auto datumIter = m_fontMeshData.Find(textComponent.m_codePage);
-		if (datumIter == m_fontMeshData.end())
+	const float characterWidth = (fontScale * font.m_characterWidthPixels) / m_widthPixels;
+	const float characterHeight = (fontScale * font.m_characterHeightPixels) / m_heightPixels;
+
+	int x = 0;
+	int y = -1; // We begin at -1 because characters render from the bottom up.
+	char previous = '#';
+
+	for (const char* c = text; *c != '\0'; ++c)
+	{
+		switch (*c)
 		{
-			continue;
+		case ' ':
+		{
+			x += 1;
+			break;
 		}
-
-		const FontMeshDatum& font = datumIter->second;
-		if (!bgfx::isValid(font.m_glyphVertexBufferHandle))
+		case '\t':
 		{
-			continue;
+			const int xAt4 = x & ~(0b11);
+			x = xAt4 + 4;
+			break;
 		}
-
-		const float characterWidth = (textComponent.m_fontScale * textComponent.m_characterWidthPixels) / m_widthPixels;
-		const float characterHeight = (textComponent.m_fontScale * textComponent.m_characterHeightPixels) / m_heightPixels;
-
-		int x = 0;
-		int y = -1; // We begin at -1 because characters render from the bottom up.
-		char previous = '#';
-		
-		for (const auto& c : textComponent.m_string)
+		case '\r':
 		{
-			switch (c)
-			{
-			case ' ':
-			{
-				x += 1;
-				break;
-			}
-			case '\t':
-			{
-				const int xAt4 = x & ~(0b11);
-				x = xAt4 + 4;
-				break;
-			}
-			case '\r':
+			x = 0;
+			y -= 1;
+			break;
+		}
+		case '\n':
+		{
+			if (previous != '\r')
 			{
 				x = 0;
 				y -= 1;
-				break;
 			}
-			case '\n':
-			{
-				if (previous != '\r')
-				{
-					x = 0;
-					y -= 1;
-				}
-				break;
-			}
-			default:
-			{
-				RenderCharacterQuad(*encoder,
-					font,
-					transformComponent.m_uiTransform,
-					characterWidth,
-					characterHeight,
-					x,
-					y,
-					c);
-
-				x += 1;
-				break;
-			}
-			}
-			previous = c;
+			break;
 		}
+		default:
+		{
+			SubmitCharacterQuad(encoder,
+				font,
+				uiTransform,
+				characterWidth,
+				characterHeight,
+				x,
+				y,
+				*c);
+
+			x += 1;
+			break;
+		}
+		}
+		previous = *c;
 	}
 }
 
-void TextDisplaySystem::NotifyOfEntityAdded(const ECS::EntityID id, const ECSGroupType& group)
-{
-	// Create an entry in the font mesh data for the entity's code page handle.
-	const auto& textDisplayComponent = group.Get<const Condui::TextDisplayComponent>();
-	FontMeshDatum& font = m_fontMeshData[textDisplayComponent.m_codePage];
-	font.m_characterWidthPixels = textDisplayComponent.m_characterWidthPixels;
-	font.m_characterHeightPixels = textDisplayComponent.m_characterHeightPixels;
-}
-
-void TextDisplaySystem::NotifyOfEntityRemoved(const ECS::EntityID id, const ECSGroupType& group)
-{
-}
-
-TextDisplaySystem::FontMeshDatum::FontMeshDatum()
+TextRenderer::FontMeshDatum::FontMeshDatum()
 {
 	std::fill(m_glyphIndexBufferHandles.begin(), m_glyphIndexBufferHandles.end(),
 		bgfx::IndexBufferHandle(BGFX_INVALID_HANDLE));
 }
 
-TextDisplaySystem::FontMeshDatum::~FontMeshDatum()
+TextRenderer::FontMeshDatum::~FontMeshDatum()
 {
 	if (bgfx::isValid(m_glyphVertexBufferHandle))
 	{
@@ -162,7 +146,7 @@ TextDisplaySystem::FontMeshDatum::~FontMeshDatum()
 	}
 }
 
-void TextDisplaySystem::CreateFontMeshFromImage(const Image::Pixel1Image& image,
+void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 	FontMeshDatum& font) const
 {
 	const uint32_t characterWidthPixels = font.m_characterWidthPixels;
@@ -242,7 +226,7 @@ void TextDisplaySystem::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 	}
 }
 
-void TextDisplaySystem::RenderCharacterQuad(bgfx::Encoder& encoder,
+void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 	const FontMeshDatum& font,
 	const Math::Matrix4x4& uiTransform,
 	const float characterWidth,

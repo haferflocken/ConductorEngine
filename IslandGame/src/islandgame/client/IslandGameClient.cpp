@@ -44,8 +44,8 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		sceneTransformComponent.m_matrix.SetTranslation(Math::Vector3(0.0f, 0.0f, -5.0f));
 
 		Condui::ElementRoot elementRoot;
-		elementRoot.m_uiTransform.SetTranslation(Math::Vector3(0.0f, 1.0f, 0.0f));
-		elementRoot.m_element = Condui::MakeTextDisplayElement("The quick brown fox jumped over the lazy dog.\nWhat a show-off.");
+		elementRoot.m_uiTransform.SetTranslation(Math::Vector3(0.0f, 0.0f, 0.0f));
+		elementRoot.m_element = Condui::MakeTextInputElement(1.0f, 1.0f);
 
 		Condui::CreateConduiRootEntity(m_gameData.GetEntityInfoManager(), m_entityManager, elementRoot);
 
