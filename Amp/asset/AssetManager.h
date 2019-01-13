@@ -14,6 +14,12 @@
 
 namespace Asset
 {
+enum class LoadingMode
+{
+	Async = 0,
+	Immediate
+};
+
 /**
  * A type safe, thread safe, general purpose solution for asynchronously loading files from disk.
  * Loaded assets are made available through AssetHandles.
@@ -44,9 +50,11 @@ public:
 	void UnregisterAssetType();
 
 	// Request an asset. If the asset has already been loaded, it will be immediately available.
-	// Otherwise, the asset begins to load asynchronously and becomes available once it is loaded.
+	// Otherwise, the asset must be loaded. If loadingMode == LoadingMode::Async, the asset begins to load
+	// asynchronously and becomes available once it is loaded. If it's LoadingMode::Immediate, this function
+	// doesn't terminate until the asset is loaded.
 	template <typename TAsset>
-	AssetHandle<TAsset> RequestAsset(const File::Path& filePath);
+	AssetHandle<TAsset> RequestAsset(const File::Path& filePath, const LoadingMode loadingMode = LoadingMode::Async);
 
 	// Allow the asset manager to perform any book-keeping it needs to do.
 	void Update();
@@ -116,7 +124,7 @@ inline void AssetManager::UnregisterAssetType()
 }
 
 template <typename TAsset>
-inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath)
+inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath, const LoadingMode loadingMode)
 {
 	constexpr const char* const k_fileType = TAsset::k_fileType;
 	std::shared_lock<std::shared_mutex> readLock{ m_sharedMutex };
@@ -144,8 +152,11 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 	managedAsset->m_header.m_refCount = 1;
 
 	assetContainer.m_managedAssets[filePath] = managedAsset;
-	assetContainer.m_loadingFutures.Add(std::async(std::launch::async,
-		[fullPath = m_assetDirectory / filePath, loadFn = assetContainer.m_loadingFunction, managedAsset]()
+
+	if (loadingMode == LoadingMode::Async)
+	{
+		assetContainer.m_loadingFutures.Add(std::async(std::launch::async,
+			[fullPath = m_assetDirectory / filePath, loadFn = assetContainer.m_loadingFunction, managedAsset]()
 		{
 			// loadFn is a copy of the asset container's loading function so that a read-lock
 			// doesn't have to be maintained on m_sharedMutex while the asset loads.
@@ -158,6 +169,18 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 				managedAsset->m_header.m_status = AssetStatus::FailedToLoad;
 			}
 		}));
+	}
+	else
+	{
+		if (assetContainer.m_loadingFunction(m_assetDirectory / filePath, &managedAsset->m_asset))
+		{
+			managedAsset->m_header.m_status = AssetStatus::Loaded;
+		}
+		else
+		{
+			managedAsset->m_header.m_status = AssetStatus::FailedToLoad;
+		}
+	}
 
 	return AssetHandle<TAsset>(*managedAsset);
 }
