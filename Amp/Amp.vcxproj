@@ -153,6 +153,7 @@
     <ClInclude Include="file\FullFileReader.h" />
     <ClInclude Include="file\JSONReader.h" />
     <ClInclude Include="file\Path.h" />
+    <ClInclude Include="image\Colour.h" />
     <ClInclude Include="image\Pixel1Image.h" />
     <ClInclude Include="json\JSONPrintVisitor.h" />
     <ClInclude Include="json\JSONTypes.h" />
