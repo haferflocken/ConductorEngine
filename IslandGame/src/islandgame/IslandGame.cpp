@@ -38,9 +38,6 @@ namespace Internal_IslandGame
 constexpr char* k_dataDirectoryParameter = "-datapath";
 constexpr char* k_userGamePath = "Documents/My Games/IslandGame/";
 
-constexpr char* k_vertexShaderPath = "shaders/vertex_shader.glsl";
-constexpr char* k_fragmentShaderPath = "shaders/fragment_shader.glsl";
-
 constexpr char* k_behaviourTreesPath = "behaviour_trees";
 constexpr char* k_entityInfosPath = "entity_infos";
 
