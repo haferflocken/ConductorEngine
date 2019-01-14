@@ -30,7 +30,10 @@ void TextInputComponent::DefaultInputHandler(TextInputComponent& component, cons
 {
 	if (strcmp(text, "\b") == 0)
 	{
-		component.m_text.pop_back();
+		if (!component.m_text.empty())
+		{
+			component.m_text.pop_back();
+		}
 	}
 	else
 	{
