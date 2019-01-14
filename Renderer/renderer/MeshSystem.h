@@ -1,5 +1,6 @@
 #pragma once
 
+#include <asset/AssetHandle.h>
 #include <collection/VectorMap.h>
 #include <ecs/EntityID.h>
 #include <ecs/System.h>
@@ -7,8 +8,11 @@
 #include <mesh/MeshComponentInfo.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
+#include <renderer/Shader.h>
 
 #include <bgfx/bgfx.h>
+
+namespace Asset { class AssetManager; }
 
 namespace Renderer
 {
@@ -21,7 +25,7 @@ class MeshSystem final : public ECS::SystemTempl<
 	ECS::SystemBindingType::Extended>
 {
 public:
-	MeshSystem();
+	explicit MeshSystem(Asset::AssetManager& assetManager);
 	~MeshSystem();
 
 	void Update(const Unit::Time::Millisecond delta,
@@ -45,8 +49,9 @@ private:
 		Unit::Time::Millisecond m_timeSinceLastAccess{ 0 };
 	};
 
+	Asset::AssetHandle<Shader> m_vertexShader;
+	Asset::AssetHandle<Shader> m_fragmentShader;
 	bgfx::ProgramHandle m_program;
-	bgfx::VertexDecl m_vertexDecl;
 	Collection::VectorMap<Asset::AssetHandle<Mesh::StaticMesh>, MeshDatum> m_staticMeshData;
 };
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <asset/AssetHandle.h>
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
 
@@ -7,14 +8,17 @@
 
 #include <array>
 
-namespace Asset
+namespace Asset { class AssetManager; }
+
+namespace Image
 {
-template <typename TAsset>
-class AssetHandle;
+struct ColourARGB;
+class Pixel1Image;
 }
-namespace Image { class Pixel1Image; }
+
 namespace Math { class Matrix4x4; }
 namespace Mesh { struct Vertex; }
+namespace Renderer { class Shader; }
 
 namespace Renderer::UI
 {
@@ -27,6 +31,9 @@ public:
 	TextRenderer(uint16_t widthPixels, uint16_t heightPixels);
 	~TextRenderer();
 
+	// Load the shaders this TextRenderer needs. 
+	bool TryLoadShaders(Asset::AssetManager& assetManager);
+
 	// Request that a font be created from the code page if it doesn't already exist.
 	void RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& codePage,
 		const uint16_t characterWidthPixels,
@@ -35,6 +42,7 @@ public:
 	// Submit text for rendering. This will silently fail if the font for the code page is unavailable.
 	void SubmitText(bgfx::Encoder& encoder,
 		const Math::Matrix4x4& uiTransform,
+		const Image::ColourARGB colour,
 		const Asset::AssetHandle<Image::Pixel1Image>& codePage,
 		const char* const text,
 		const float fontScale) const;
@@ -64,6 +72,7 @@ private:
 	void SubmitCharacterQuad(bgfx::Encoder& encoder,
 		const FontMeshDatum& font,
 		const Math::Matrix4x4& uiTransform,
+		const Image::ColourARGB colour,
 		const float characterWidth,
 		const float characterHeight,
 		const int x,
@@ -73,8 +82,10 @@ private:
 	uint16_t m_widthPixels;
 	uint16_t m_heightPixels;
 
+	Asset::AssetHandle<Shader> m_vertexShader;
+	Asset::AssetHandle<Shader> m_fragmentShader;
 	bgfx::ProgramHandle m_program;
-	bgfx::VertexDecl m_vertexDecl;
+	bgfx::UniformHandle m_colourUniform;
 	Collection::VectorMap<Asset::AssetHandle<Image::Pixel1Image>, FontMeshDatum> m_fontMeshData;
 };
 }

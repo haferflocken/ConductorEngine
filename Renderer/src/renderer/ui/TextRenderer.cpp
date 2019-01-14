@@ -1,9 +1,13 @@
 #include <renderer/ui/TextRenderer.h>
 
 #include <asset/AssetHandle.h>
+#include <asset/AssetManager.h>
+#include <image/Colour.h>
 #include <image/Pixel1Image.h>
 #include <math/Matrix4x4.h>
+#include <renderer/Shader.h>
 #include <mesh/Vertex.h>
+#include <renderer/VertexDeclarations.h>
 #include <renderer/ViewIDs.h>
 
 namespace Renderer::UI
@@ -11,21 +15,43 @@ namespace Renderer::UI
 TextRenderer::TextRenderer(uint16_t widthPixels, uint16_t heightPixels)
 	: m_widthPixels(widthPixels)
 	, m_heightPixels(heightPixels)
-	, m_program()
-	, m_vertexDecl()
+	, m_vertexShader()
+	, m_fragmentShader()
+	, m_program(BGFX_INVALID_HANDLE)
+	, m_colourUniform(BGFX_INVALID_HANDLE)
 	, m_fontMeshData()
 {
-	//m_program = bgfx::createProgram(vertexShader, fragmentShader, true);
-
-	m_vertexDecl.begin()
-		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8)
-		.end();
 }
 
 TextRenderer::~TextRenderer()
 {
-	//bgfx::destroy(m_program);
+	if (bgfx::isValid(m_colourUniform))
+	{
+		bgfx::destroy(m_colourUniform);
+	}
+	if (bgfx::isValid(m_program))
+	{
+		bgfx::destroy(m_program);
+	}
+}
+
+bool TextRenderer::TryLoadShaders(Asset::AssetManager& assetManager)
+{
+	m_vertexShader = assetManager.RequestAsset<Shader>(
+		File::MakePath("shaders\\vs_text.bin"), Asset::LoadingMode::Immediate);
+	m_fragmentShader = assetManager.RequestAsset<Shader>(
+		File::MakePath("shaders\\fs_text.bin"), Asset::LoadingMode::Immediate);
+
+	const Shader* const vertexShader = m_vertexShader.TryGetAsset();
+	const Shader* const fragmentShader = m_fragmentShader.TryGetAsset();
+
+	if (vertexShader != nullptr && fragmentShader != nullptr)
+	{
+		m_program = bgfx::createProgram(vertexShader->GetShaderHandle(), fragmentShader->GetShaderHandle(), false);
+		m_colourUniform = bgfx::createUniform("u_color", bgfx::UniformType::Vec4);
+		return bgfx::isValid(m_program);
+	}
+	return false;
 }
 
 void TextRenderer::RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& codePageHandle,
@@ -53,6 +79,7 @@ void TextRenderer::RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& cod
 
 void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 	const Math::Matrix4x4& uiTransform,
+	const Image::ColourARGB colour,
 	const Asset::AssetHandle<Image::Pixel1Image>& codePage,
 	const char* const text,
 	const float fontScale) const
@@ -111,6 +138,7 @@ void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 			SubmitCharacterQuad(encoder,
 				font,
 				uiTransform,
+				colour,
 				characterWidth,
 				characterHeight,
 				x,
@@ -179,7 +207,7 @@ void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 
 	font.m_glyphVertexBufferHandle = bgfx::createVertexBuffer(
 		bgfx::makeRef(&font.m_vertexGrid.Front(), font.m_vertexGrid.Size() * sizeof(Mesh::Vertex)),
-		m_vertexDecl);
+		k_staticMeshVertexDecl);
 
 	// Create index buffers for each character.
 	for (uint32_t y = 0; y < numRows; ++y)
@@ -229,6 +257,7 @@ void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 	const FontMeshDatum& font,
 	const Math::Matrix4x4& uiTransform,
+	const Image::ColourARGB colour,
 	const float characterWidth,
 	const float characterHeight,
 	const int x,
@@ -254,10 +283,13 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 
 	const Math::Matrix4x4 transform = uiTransform * characterTransform;
 
+	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
+
 	encoder.setTransform(transform.GetData());
 	encoder.setVertexBuffer(0, font.m_glyphVertexBufferHandle);
 	encoder.setIndexBuffer(indexBuffer);
-	encoder.setState(BGFX_STATE_DEFAULT);
+	encoder.setUniform(m_colourUniform, &floatColour);
+	encoder.setState(BGFX_STATE_DEFAULT & ~(BGFX_STATE_CULL_CW));
 	encoder.submit(k_uiViewID, m_program);
 }
 }

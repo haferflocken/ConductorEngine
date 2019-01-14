@@ -1,26 +1,34 @@
 #include <renderer/MeshSystem.h>
 
+#include <asset/AssetManager.h>
+#include <renderer/VertexDeclarations.h>
 #include <renderer/ViewIDs.h>
 
 namespace Renderer
 {
-MeshSystem::MeshSystem()
+MeshSystem::MeshSystem(Asset::AssetManager& assetManager)
 	: SystemTempl()
-	, m_program()
-	, m_vertexDecl()
+	, m_vertexShader(assetManager.RequestAsset<Shader>(
+		File::MakePath("shaders\\vs_static_mesh.bin"), Asset::LoadingMode::Immediate))
+	, m_fragmentShader(assetManager.RequestAsset<Shader>(
+		File::MakePath("shaders\\fs_static_mesh.bin"), Asset::LoadingMode::Immediate))
+	, m_program(BGFX_INVALID_HANDLE)
 	, m_staticMeshData()
 {
-	//m_program = bgfx::createProgram(vertexShader, fragmentShader, true);
-
-	m_vertexDecl.begin()
-		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8)
-		.end();
+	const Shader* const vertexShader = m_vertexShader.TryGetAsset();
+	const Shader* const fragmentShader = m_fragmentShader.TryGetAsset();
+	if (vertexShader != nullptr && fragmentShader != nullptr)
+	{
+		m_program = bgfx::createProgram(vertexShader->GetShaderHandle(), fragmentShader->GetShaderHandle(), false);
+	}
 }
 
 MeshSystem::~MeshSystem()
 {
-	//bgfx::destroy(m_program);
+	if (bgfx::isValid(m_program))
+	{
+		bgfx::destroy(m_program);
+	}
 }
 
 void MeshSystem::Update(const Unit::Time::Millisecond delta,
@@ -51,7 +59,7 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 		{
 			datum.m_vertexBuffer = bgfx::createVertexBuffer(
 				bgfx::makeRef(&mesh->GetVertices().Front(), mesh->GetVertices().Size() * sizeof(Mesh::Vertex)),
-				m_vertexDecl);
+				k_staticMeshVertexDecl);
 		}
 
 		if (!bgfx::isValid(datum.m_indexBuffer))

@@ -15,6 +15,7 @@
 #include <renderer/CameraSystem.h>
 #include <renderer/FrameSignalSystem.h>
 #include <renderer/MeshSystem.h>
+#include <renderer/PrimitiveRenderer.h>
 #include <renderer/ui/ConduiTextDisplayRenderSystem.h>
 #include <renderer/ui/ConduiTextInputRenderSystem.h>
 #include <renderer/ui/TextRenderer.h>
@@ -272,14 +273,29 @@ void RenderInstance::InitOnClientThread()
 		throw std::runtime_error("Failed to initialize BGFX.");
 	}
 
-	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xf0f0f0ff);
-	
+	bgfx::setViewClear(k_sceneViewID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xf0f0f0ff);
+
+	// Load the text renderer's shaders.
+	if (!m_textRenderer->TryLoadShaders(m_assetManager))
+	{
+		throw std::runtime_error("Failed to load text rendering shaders.");
+	}
+
+	// Initialize the primitive renderer.
+	if (!PrimitiveRenderer::Initialize(m_assetManager))
+	{
+		throw std::runtime_error("Failed to initialize the PrimitiveRenderer.");
+	}
+
 	// Mark initialization as complete.
 	m_status = Status::Initialized;
 }
 
 void RenderInstance::ShutdownOnClientThread()
 {
+	// Shut down the primitive renderer.
+	PrimitiveRenderer::Shutdown();
+
 	// Shutdown bgfx.
 	bgfx::shutdown();
 
@@ -298,7 +314,7 @@ void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 {
 	using namespace Internal_RenderInstance;
 	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(k_width, k_height));
-	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>());
+	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>(m_assetManager));
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextDisplayRenderSystem>(*m_textRenderer));
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextInputRenderSystem>(*m_textRenderer));
 	entityManager.RegisterSystem(Mem::MakeUnique<FrameSignalSystem>());

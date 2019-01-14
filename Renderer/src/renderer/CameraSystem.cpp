@@ -29,14 +29,11 @@ void CameraSystem::Update(const Unit::Time::Millisecond delta,
 	}
 
 	// Set the UI view to an orthographic view covering the space from (0, 0, 0) to (1, 1, 1).
-	float uiViewMatrix[16];
-	bx::mtxIdentity(uiViewMatrix);
-
 	float uiProjectionMatrix[16];
-	bx::mtxOrtho(uiProjectionMatrix, 0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f, homogeneousDepth);
+	bx::mtxOrtho(uiProjectionMatrix, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1000.0f, 0.0f, homogeneousDepth);
 
 	bgfx::setViewName(k_uiViewID, "UI View");
-	bgfx::setViewTransform(k_uiViewID, uiViewMatrix, uiProjectionMatrix);
+	bgfx::setViewTransform(k_uiViewID, nullptr, uiProjectionMatrix);
 	bgfx::setViewRect(k_uiViewID, 0, 0, m_widthPixels, m_heightPixels);
 }
 }

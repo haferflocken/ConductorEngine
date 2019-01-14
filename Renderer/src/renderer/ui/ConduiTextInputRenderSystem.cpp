@@ -1,6 +1,10 @@
 #include <renderer/ui/ConduiTextInputRenderSystem.h>
 
+#include <image/Colour.h>
+#include <mesh/StaticMesh.h>
+#include <renderer/PrimitiveRenderer.h>
 #include <renderer/ui/TextRenderer.h>
+#include <renderer/ViewIDs.h>
 
 namespace Renderer::UI
 {
@@ -32,17 +36,24 @@ void TextInputRenderSystem::Update(const Unit::Time::Millisecond delta,
 		m_textRenderer.RequestFont(
 			textComponent.m_codePage, textComponent.m_characterWidthPixels, textComponent.m_characterHeightPixels);
 
-		Math::Vector3 position = transformComponent.m_uiTransform.GetTranslation();
-		position.y += textComponent.m_yScale;
+		const Math::Matrix4x4& uiTransform = transformComponent.m_uiTransform;
 
-		Math::Matrix4x4 transform = transformComponent.m_uiTransform;
-		transform.SetTranslation(position);
+		Math::Vector3 topPosition = uiTransform.GetTranslation();
+		topPosition.y += textComponent.m_yScale;
+
+		Math::Matrix4x4 textTransform = uiTransform;
+		textTransform.SetTranslation(topPosition);
 
 		m_textRenderer.SubmitText(*encoder,
-			transform,
+			textTransform,
+			Image::ColoursARBG::k_black,
 			textComponent.m_codePage,
 			textComponent.m_text.c_str(),
 			textComponent.m_fontScale);
+
+		PrimitiveRenderer::DrawQuad(*encoder, k_uiViewID, uiTransform, Image::ColoursARBG::k_cyan);
 	}
+
+	bgfx::end(encoder);
 }
 }

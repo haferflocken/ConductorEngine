@@ -88,6 +88,17 @@
     <Lib>
       <AdditionalDependencies>$(SolutionDir)lib\SDL2\SDL2.lib;$(SolutionDir)lib\bgfx\bxDebug.lib;$(SolutionDir)lib\bgfx\bimgDebug.lib;$(SolutionDir)lib\bgfx\bimg_decodeDebug.lib;$(SolutionDir)lib\bgfx\bgfxDebug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
+    <CustomBuild>
+      <Command>$(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern vs.+ --command $(SolutionDir)tools\shaderc\shadercRelease.exe -f %(FullPath) -o $(SolutionDir)IslandGame\data\shaders\%(Filename).bin --type v --platform windows -p spirv
+$(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command $(SolutionDir)tools\shaderc\shadercRelease.exe -f %(FullPath) -o $(SolutionDir)IslandGame\data\shaders\%(Filename).bin --type f --platform windows -p spirv</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Compiling shader %(Filename)</Message>
+      <Outputs>$(SolutionDir)IslandGame\data\shaders\%(Filename).bin</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -130,12 +141,26 @@
     <Lib>
       <AdditionalDependencies>$(SolutionDir)lib\SDL2\SDL2.lib;$(SolutionDir)lib\bgfx\bxRelease.lib;$(SolutionDir)lib\bgfx\bimgRelease.lib;$(SolutionDir)lib\bgfx\bimg_decodeRelease.lib;$(SolutionDir)lib\bgfx\bgfxRelease.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
+    <CustomBuild>
+      <Command>$(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern vs.+ --command $(SolutionDir)tools\shaderc\shadercRelease.exe -f %(FullPath) -o $(SolutionDir)IslandGame\data\shaders\%(Filename).bin --type v --platform windows -p spirv
+$(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command $(SolutionDir)tools\shaderc\shadercRelease.exe -f %(FullPath) -o $(SolutionDir)IslandGame\data\shaders\%(Filename).bin --type f --platform windows -p spirv</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Compiling shader %(Filename)</Message>
+      <Outputs>$(SolutionDir)IslandGame\data\shaders\%(Filename).bin</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="renderer\AssetTypes.h" />
     <ClInclude Include="renderer\CameraComponent.h" />
     <ClInclude Include="renderer\CameraComponentInfo.h" />
     <ClInclude Include="renderer\CameraSystem.h" />
+    <ClInclude Include="renderer\PrimitiveRenderer.h" />
+    <ClInclude Include="renderer\Shader.h" />
+    <ClInclude Include="renderer\VertexDeclarations.h" />
     <ClInclude Include="renderer\ui\ConduiTextDisplayRenderSystem.h" />
     <ClInclude Include="renderer\FrameSignalSystem.h" />
     <ClInclude Include="renderer\MeshSystem.h" />
@@ -150,10 +175,34 @@
     <ClCompile Include="src\renderer\CameraSystem.cpp" />
     <ClCompile Include="src\renderer\FrameSignalSystem.cpp" />
     <ClCompile Include="src\renderer\MeshSystem.cpp" />
+    <ClCompile Include="src\renderer\PrimitiveRenderer.cpp" />
     <ClCompile Include="src\renderer\RenderInstance.cpp" />
+    <ClCompile Include="src\renderer\Shader.cpp" />
     <ClCompile Include="src\renderer\ui\ConduiTextDisplayRenderSystem.cpp" />
     <ClCompile Include="src\renderer\ui\ConduiTextInputRenderSystem.cpp" />
     <ClCompile Include="src\renderer\ui\TextRenderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="data\shaders\fs_static_mesh.sc">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="data\shaders\vs_static_mesh.sc">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="data\shaders\fs_primitive.sc">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="data\shaders\fs_text.sc">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="data\shaders\vs_primitive.sc">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="data\shaders\vs_text.sc">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,6 @@
 #include <renderer/ui/ConduiTextDisplayRenderSystem.h>
 
+#include <image/Colour.h>
 #include <renderer/ui/TextRenderer.h>
 
 namespace Renderer::UI
@@ -34,9 +35,12 @@ void TextDisplayRenderSystem::Update(const Unit::Time::Millisecond delta,
 
 		m_textRenderer.SubmitText(*encoder,
 			transformComponent.m_uiTransform,
+			Image::ColoursARBG::k_white,
 			textComponent.m_codePage,
 			textComponent.m_string.c_str(),
 			textComponent.m_fontScale);
 	}
+
+	bgfx::end(encoder);
 }
 }
