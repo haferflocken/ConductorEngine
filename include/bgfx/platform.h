@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2018 Branimir Karadzic. All rights reserved.
+ * Copyright 2011-2019 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE
  */
 
@@ -47,20 +47,6 @@ namespace bgfx
 	///   allow creating separate rendering thread. If it is called before
 	///   to bgfx::init, render thread won't be created by bgfx::init call.
 	RenderFrame::Enum renderFrame(int32_t _msecs = -1);
-
-	/// Platform data.
-	///
-	/// @attention C99 equivalent is `bgfx_platform_data_t`.
-	///
-	struct PlatformData
-	{
-		void* ndt;          //!< Native display type.
-		void* nwh;          //!< Native window handle.
-		void* context;      //!< GL context, or D3D device.
-		void* backBuffer;   //!< GL backbuffer, or D3D render target view.
-		void* backBufferDS; //!< Backbuffer depth/stencil.
-		void* session;      //!< ovrSession, for Oculus SDK
-	};
 
 	/// Set platform data.
 	///
