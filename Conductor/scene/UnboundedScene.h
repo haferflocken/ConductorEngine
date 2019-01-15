@@ -11,6 +11,7 @@
 #include <math/Vector3.h>
 #include <scene/Chunk.h>
 #include <scene/ChunkID.h>
+#include <scene/SceneSaveComponent.h>
 #include <scene/SceneTransformComponent.h>
 #include <unit/UnitTempl.h>
 
@@ -42,7 +43,7 @@ namespace Scene
  * and remove entities as they run.
  */
 class UnboundedScene final : public ECS::SystemTempl<
-	Util::TypeList<Scene::SceneTransformComponent>,
+	Util::TypeList<Scene::SceneTransformComponent, Scene::SceneSaveComponent>,
 	Util::TypeList<ECS::Entity>>
 {
 public:

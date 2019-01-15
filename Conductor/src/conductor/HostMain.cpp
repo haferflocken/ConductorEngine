@@ -29,7 +29,7 @@ Conductor::ApplicationErrorCode Conductor::HostMain(
 		return ApplicationErrorCode::FailedToInitializeNetworkThread;
 	}
 
-	// Load data files.
+	// Initialize asset types, register component types, and load game data.
 	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
 
 	// Create and run a host.

@@ -17,6 +17,7 @@
 #include <mesh/MeshComponentInfo.h>
 #include <scene/AnchorComponent.h>
 #include <scene/AnchorComponentInfo.h>
+#include <scene/SceneSaveComponent.h>
 #include <scene/SceneTransformComponent.h>
 #include <scene/SceneTransformComponentInfo.h>
 
@@ -43,6 +44,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	m_componentReflector->RegisterComponentType<Behave::BlackboardComponent>();
 	m_componentReflector->RegisterComponentType<Input::InputComponent>();
 	m_componentReflector->RegisterComponentType<Mesh::MeshComponent>();
+	m_componentReflector->RegisterTagComponentType<Scene::SceneSaveComponent>();
 	m_componentReflector->RegisterComponentType<Scene::SceneTransformComponent>();
 	m_componentReflector->RegisterComponentType<Scene::AnchorComponent>();
 
@@ -54,6 +56,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	m_componentInfoFactory->RegisterFactoryFunction<Behave::BlackboardComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Input::InputComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Mesh::MeshComponentInfo>();
+	m_componentInfoFactory->RegisterFactoryFunction<Scene::SceneSaveComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Scene::SceneTransformComponentInfo>();
 	m_componentInfoFactory->RegisterFactoryFunction<Scene::AnchorComponentInfo>();
 }

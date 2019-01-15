@@ -272,8 +272,8 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 	if (!m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.IsEmpty())
 	{
 		// First, sort them by type and within each type by ID.
-		std::sort(m_transmissionBuffers->m_componentsAddedSinceLastTransmission.begin(),
-			m_transmissionBuffers->m_componentsAddedSinceLastTransmission.end());
+		std::sort(m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.begin(),
+			m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.end());
 
 		// Serialize the IDs within each type.
 		auto iter = m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.begin();
@@ -746,31 +746,36 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 	const ComponentType componentType{ componentInfo.GetTypeHash() };
 	const ComponentID componentID{ componentType, m_nextComponentID };
 
-	ComponentVector& componentVector = m_components[componentType];
-	if (componentVector.GetComponentType() == ComponentType())
+	const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
+
+	// Components with size 0 are tag components and are not instantiated.
+	if (componentSize.GetN() > 0)
 	{
-		// This is a type that has not yet been encountered and therefore must be initialized.
-		const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
-		const Unit::ByteCount64 componentAlignment = m_componentReflector.GetAlignOfComponentInBytes(componentType);
-
-		componentVector = ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
-
-		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
+		ComponentVector& componentVector = m_components[componentType];
+		if (componentVector.GetComponentType() == ComponentType())
 		{
-			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
-			AMP_FATAL_ASSERT(bufferedComponentVector.GetComponentType() == ComponentType(),
-				"A buffered component vector was created too early.");
-			bufferedComponentVector =
-				ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
-		}
-	}
-	AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
-		"Mismatch between component vector type and the key it is stored at.");
+			// This is a type that has not yet been encountered and therefore must be initialized.
+			const Unit::ByteCount64 componentAlignment = m_componentReflector.GetAlignOfComponentInBytes(componentType);
 
-	if (!m_componentReflector.TryMakeComponent(m_assetManager, componentInfo, componentID, componentVector))
-	{
-		AMP_LOG_WARNING("Failed to create component of type [%s].", componentInfo.GetTypeName());
-		return;
+			componentVector = ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
+
+			if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
+			{
+				ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
+				AMP_FATAL_ASSERT(bufferedComponentVector.GetComponentType() == ComponentType(),
+					"A buffered component vector was created too early.");
+				bufferedComponentVector =
+					ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
+			}
+		}
+		AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
+			"Mismatch between component vector type and the key it is stored at.");
+
+		if (!m_componentReflector.TryMakeComponent(m_assetManager, componentInfo, componentID, componentVector))
+		{
+			AMP_LOG_WARNING("Failed to create component of type [%s].", componentInfo.GetTypeName());
+			return;
+		}
 	}
 
 	++m_nextComponentID;

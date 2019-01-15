@@ -296,6 +296,13 @@ void RenderInstance::ShutdownOnClientThread()
 	// Shut down the primitive renderer.
 	PrimitiveRenderer::Shutdown();
 
+	// Shut down the text renderer.
+	m_textRenderer.Reset();
+
+	// Update the asset manager before shutting down bgfx because clearing out bgfx assets may require bgfx
+	// to be initialized.
+	m_assetManager.Update();
+
 	// Shutdown bgfx.
 	bgfx::shutdown();
 

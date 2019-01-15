@@ -50,10 +50,15 @@ public:
 	};
 
 	ComponentReflector();
-	
-	// Register a component type that does not support network transmission.
+
+	// Register a component type that doesn't support network transmission.
 	template <typename ComponentType>
 	void RegisterComponentType();
+
+	// Registers a component type that can't be instantiated and doesn't support network transmission.
+	// These components only exist as "tags" for entities to be matched with in ECS::Systems.
+	template <typename ComponentType>
+	void RegisterTagComponentType();
 
 	// Register a component type that supports network transmission using static functions defined in ComponentType.
 	template <typename ComponentType>
@@ -126,6 +131,13 @@ inline void ComponentReflector::RegisterComponentType()
 	RegisterComponentType(ComponentType::Info::sk_typeName, ComponentType::Info::sk_typeHash,
 		Unit::ByteCount64(sizeof(ComponentType)), Unit::ByteCount64(alignof(ComponentType)),
 		&ComponentTypeFunctions::TryCreateFromInfo, &ComponentTypeFunctions::Destroy, &ComponentTypeFunctions::Swap);
+}
+
+template <typename ComponentType>
+inline void ComponentReflector::RegisterTagComponentType()
+{
+	RegisterComponentType(ComponentType::Info::sk_typeName, ComponentType::Info::sk_typeHash, Unit::ByteCount64(0),
+		Unit::ByteCount64(0), nullptr, nullptr, nullptr);
 }
 
 template <typename ComponentType>

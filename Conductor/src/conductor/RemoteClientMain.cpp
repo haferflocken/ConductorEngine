@@ -26,6 +26,9 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 		return ApplicationErrorCode::FailedToInitializeSocketAPI;
 	}
 
+	// Initialize asset types, register component types, and load game data.
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
+
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.
 	constexpr size_t k_clientRenderMessageCapacity = 256;
@@ -35,9 +38,6 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	
 	Mem::UniquePtr<Client::IRenderInstance> renderInstance =
 		renderInstanceFactory(assetManager, dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
-
-	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
 
 	// Establish a connection to the networked host.
 	Client::ClientNetworkWorld clientNetworkWorld{ hostName, hostPort };

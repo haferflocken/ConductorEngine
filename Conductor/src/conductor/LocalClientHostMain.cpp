@@ -19,6 +19,9 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 	Client::ClientWorld::ClientFactory&& clientFactory,
 	Host::HostWorld::HostFactory&& hostFactory)
 {
+	// Initialize asset types, register component types, and load game data.
+	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
+
 	// Create a render instance. Because a render instance creates a window,
 	// it must be created and managed on the main thread.
 	constexpr size_t k_clientRenderMessageCapacity = 256;
@@ -28,9 +31,6 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 	
 	Mem::UniquePtr<Client::IRenderInstance> renderInstance =
 		renderInstanceFactory(assetManager, dataDirectory, clientToRenderInstanceMessages, inputToClientMessages);
-
-	// Load data files.
-	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
 
 	// Create the message queues that will allow the client and host to communicate.
 	Collection::LocklessQueue<Client::MessageToHost> clientToHostMessages{
