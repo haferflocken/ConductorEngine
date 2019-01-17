@@ -32,6 +32,8 @@ public:
 
 	Vector4 GetRow(const size_t i) const { return Vector4(m_matrix[i], m_matrix[i + 4], m_matrix[i + 8], m_matrix[i + 12]); }
 
+	Matrix4x4 Transpose() const;
+
 	Matrix4x4 operator*(const Matrix4x4& rhs) const;
 	Matrix4x4& operator*=(const Matrix4x4& rhs);
 
@@ -49,6 +51,23 @@ inline Matrix4x4::Matrix4x4()
 	m_matrix[5] = 1.0f;
 	m_matrix[10] = 1.0f;
 	m_matrix[15] = 1.0f;
+}
+
+inline void Matrix4x4::SetScale(const Vector3& v)
+{
+	m_matrix[0] = v.x;
+	m_matrix[5] = v.y;
+	m_matrix[10] = v.z;
+}
+
+inline Matrix4x4 Matrix4x4::Transpose() const
+{
+	Matrix4x4 result;
+	result.GetColumn(0) = GetRow(0);
+	result.GetColumn(1) = GetRow(1);
+	result.GetColumn(2) = GetRow(2);
+	result.GetColumn(3) = GetRow(3);
+	return result;
 }
 
 inline Matrix4x4 Matrix4x4::operator*(const Matrix4x4& rhs) const
@@ -95,13 +114,6 @@ inline Matrix4x4 Matrix4x4::operator*(const Matrix4x4& rhs) const
 	result3.w = lhs3.Dot(rhs3);
 
 	return result;
-}
-
-inline void Matrix4x4::SetScale(const Vector3& v)
-{
-	m_matrix[0] = v.x;
-	m_matrix[5] = v.y;
-	m_matrix[10] = v.z;
 }
 
 inline Matrix4x4& Matrix4x4::operator*=(const Matrix4x4& rhs)
