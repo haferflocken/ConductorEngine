@@ -1,7 +1,5 @@
 #include <renderer/CameraSystem.h>
 
-#include <renderer/ViewIDs.h>
-
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
 
@@ -27,13 +25,5 @@ void CameraSystem::Update(const Unit::Time::Millisecond delta,
 		bgfx::setViewTransform(cameraComponent.m_viewID, viewMatrix, projectionMatrix);
 		bgfx::setViewRect(cameraComponent.m_viewID, 0, 0, m_widthPixels, m_heightPixels);
 	}
-
-	// Set the UI view to an orthographic view covering the space from (0, 0, 0) to (1, 1, 1).
-	float uiProjectionMatrix[16];
-	bx::mtxOrtho(uiProjectionMatrix, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1000.0f, 0.0f, homogeneousDepth);
-
-	bgfx::setViewName(k_uiViewID, "UI View");
-	bgfx::setViewTransform(k_uiViewID, nullptr, uiProjectionMatrix);
-	bgfx::setViewRect(k_uiViewID, 0, 0, m_widthPixels, m_heightPixels);
 }
 }

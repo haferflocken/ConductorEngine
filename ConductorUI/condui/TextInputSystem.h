@@ -1,10 +1,10 @@
 #pragma once
 
-#include <ecs/System.h>
-
 #include <condui/TextInputComponent.h>
-#include <condui/UITransformComponent.h>
+#include <ecs/System.h>
 #include <math/Vector2.h>
+#include <scene/SceneTransformComponent.h>
+#include <scene/SceneTransformComponentInfo.h>
 
 namespace ECS { class EntityID; }
 
@@ -22,7 +22,7 @@ namespace Condui
  * long as it's in focus.
  */
 class TextInputSystem final : public ECS::SystemTempl<
-	Util::TypeList<UITransformComponent>,
+	Util::TypeList<Scene::SceneTransformComponent>,
 	Util::TypeList<TextInputComponent>,
 	ECS::SystemBindingType::Extended>
 {

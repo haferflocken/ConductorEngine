@@ -78,6 +78,7 @@ void TextRenderer::RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& cod
 }
 
 void TextRenderer::SubmitText(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
 	const Math::Matrix4x4& uiTransform,
 	const Image::ColourARGB colour,
 	const Asset::AssetHandle<Image::Pixel1Image>& codePage,
@@ -136,6 +137,7 @@ void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 		default:
 		{
 			SubmitCharacterQuad(encoder,
+				viewID,
 				font,
 				uiTransform,
 				colour,
@@ -255,6 +257,7 @@ void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 }
 
 void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
 	const FontMeshDatum& font,
 	const Math::Matrix4x4& uiTransform,
 	const Image::ColourARGB colour,
@@ -279,7 +282,7 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 
 	Math::Matrix4x4 characterTransform;
 	characterTransform.SetTranslation(offset);
-	characterTransform.SetScale(Math::Vector3(characterWidth, characterHeight, 0.0f));
+	characterTransform.SetScale(Math::Vector3(characterWidth, characterHeight, 1.0f));
 
 	const Math::Matrix4x4 transform = uiTransform * characterTransform;
 
@@ -290,6 +293,6 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 	encoder.setIndexBuffer(indexBuffer);
 	encoder.setUniform(m_colourUniform, &floatColour);
 	encoder.setState(BGFX_STATE_DEFAULT & ~(BGFX_STATE_CULL_CW));
-	encoder.submit(k_uiViewID, m_program);
+	encoder.submit(viewID, m_program);
 }
 }

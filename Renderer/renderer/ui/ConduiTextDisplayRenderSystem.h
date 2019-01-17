@@ -1,8 +1,9 @@
 #pragma once
 
 #include <condui/TextDisplayComponent.h>
-#include <condui/UITransformComponent.h>
 #include <ecs/System.h>
+#include <scene/SceneTransformComponent.h>
+#include <scene/SceneTransformComponentInfo.h>
 
 namespace Renderer::UI
 {
@@ -12,7 +13,7 @@ class TextRenderer;
  * Makes entities visible by rendering their Condui::TextDisplayComponent.
  */
 class TextDisplayRenderSystem final : public ECS::SystemTempl<
-	Util::TypeList<Condui::UITransformComponent, Condui::TextDisplayComponent>,
+	Util::TypeList<Scene::SceneTransformComponent, Condui::TextDisplayComponent>,
 	Util::TypeList<>>
 {
 public:

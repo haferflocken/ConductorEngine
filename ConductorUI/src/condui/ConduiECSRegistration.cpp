@@ -1,16 +1,17 @@
 #include <condui/ConduiECSRegistration.h>
 
 #include <condui/Condui.h>
-#include <condui/RelativeUITransformSystem.h>
 #include <condui/TextDisplayComponent.h>
 #include <condui/TextInputComponent.h>
 #include <condui/TextInputSystem.h>
-#include <condui/UITransformComponent.h>
 
 #include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
+#include <scene/SceneTransformComponent.h>
+#include <scene/SceneTransformComponentInfo.h>
+
 
 namespace Internal_ConduiEntityInfo
 {
@@ -24,16 +25,13 @@ void Condui::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
 {
 	componentReflector.RegisterComponentType<TextDisplayComponent>();
 	componentReflector.RegisterComponentType<TextInputComponent>();
-	componentReflector.RegisterComponentType<UITransformComponent>();
 
 	componentInfoFactory.RegisterFactoryFunction<TextDisplayComponentInfo>();
 	componentInfoFactory.RegisterFactoryFunction<TextInputComponentInfo>();
-	componentInfoFactory.RegisterFactoryFunction<UITransformComponentInfo>();
 }
 
 void Condui::RegisterSystems(ECS::EntityManager& entityManager, Input::CallbackRegistry& callbackRegistry)
 {
-	entityManager.RegisterSystem(Mem::MakeUnique<RelativeUITransformSystem>());
 	entityManager.RegisterSystem(Mem::MakeUnique<TextInputSystem>(callbackRegistry));
 }
 
@@ -53,7 +51,7 @@ void Condui::RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager,
 		textDisplayComponentInfo->m_codePagePath = codePagePath;
 
 		textDisplayInfo.m_componentInfos.Add(std::move(textDisplayComponentInfo));
-		textDisplayInfo.m_componentInfos.Add(Mem::MakeUnique<UITransformComponentInfo>());
+		textDisplayInfo.m_componentInfos.Add(Mem::MakeUnique<Scene::SceneTransformComponentInfo>());
 		entityInfoManager.RegisterEntityInfo(k_textDisplayInfoNameHash, std::move(textDisplayInfo));
 	}
 	{
@@ -66,13 +64,13 @@ void Condui::RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager,
 		textInputComponentInfo->m_codePagePath = codePagePath;
 
 		textInputInfo.m_componentInfos.Add(std::move(textInputComponentInfo));
-		textInputInfo.m_componentInfos.Add(Mem::MakeUnique<UITransformComponentInfo>());
+		textInputInfo.m_componentInfos.Add(Mem::MakeUnique<Scene::SceneTransformComponentInfo>());
 		entityInfoManager.RegisterEntityInfo(k_textInputInfoNameHash, std::move(textInputInfo));
 	}
 	{
 		ECS::EntityInfo panelInfo;
 		panelInfo.m_nameHash = k_panelInfoNameHash;
-		panelInfo.m_componentInfos.Add(Mem::MakeUnique<UITransformComponentInfo>());
+		panelInfo.m_componentInfos.Add(Mem::MakeUnique<Scene::SceneTransformComponentInfo>());
 		entityInfoManager.RegisterEntityInfo(k_panelInfoNameHash, std::move(panelInfo));
 	}
 }

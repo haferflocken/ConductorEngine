@@ -2,6 +2,7 @@
 
 #include <image/Colour.h>
 #include <renderer/ui/TextRenderer.h>
+#include <renderer/ViewIDs.h>
 
 namespace Renderer::UI
 {
@@ -27,14 +28,15 @@ void TextDisplayRenderSystem::Update(const Unit::Time::Millisecond delta,
 
 	for (const auto& ecsGroup : ecsGroups)
 	{
-		const auto& transformComponent = ecsGroup.Get<const Condui::UITransformComponent>();
+		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
 		const auto& textComponent = ecsGroup.Get<const Condui::TextDisplayComponent>();
 
 		m_textRenderer.RequestFont(
 			textComponent.m_codePage, textComponent.m_characterWidthPixels, textComponent.m_characterHeightPixels);
 
 		m_textRenderer.SubmitText(*encoder,
-			transformComponent.m_uiTransform,
+			k_sceneViewID,
+			transformComponent.m_matrix,
 			Image::ColoursARBG::k_white,
 			textComponent.m_codePage,
 			textComponent.m_string.c_str(),

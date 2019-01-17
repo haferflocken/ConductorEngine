@@ -41,6 +41,7 @@ public:
 
 	// Submit text for rendering. This will silently fail if the font for the code page is unavailable.
 	void SubmitText(bgfx::Encoder& encoder,
+		const bgfx::ViewId viewID,
 		const Math::Matrix4x4& uiTransform,
 		const Image::ColourARGB colour,
 		const Asset::AssetHandle<Image::Pixel1Image>& codePage,
@@ -70,6 +71,7 @@ private:
 		FontMeshDatum& font) const;
 
 	void SubmitCharacterQuad(bgfx::Encoder& encoder,
+		const bgfx::ViewId viewID,
 		const FontMeshDatum& font,
 		const Math::Matrix4x4& uiTransform,
 		const Image::ColourARGB colour,

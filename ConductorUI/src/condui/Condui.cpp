@@ -3,9 +3,10 @@
 #include <condui/ConduiECSRegistration.h>
 #include <condui/TextDisplayComponent.h>
 #include <condui/TextInputComponent.h>
-#include <condui/UITransformComponent.h>
 #include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
+#include <scene/SceneTransformComponent.h>
+#include <scene/SceneTransformComponentInfo.h>
 
 Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, const float fontScale)
 {
@@ -86,9 +87,9 @@ ECS::Entity& Condui::CreateConduiEntity(
 				const ConduiElement& childElement = panelElement.m_children[i];
 
 				ECS::Entity& childEntity = CreateConduiEntity(entityInfoManager, entityManager, childElement);
-				UITransformComponent& childTransformComponent =
-					*entityManager.FindComponent<UITransformComponent>(childEntity);
-				childTransformComponent.m_transformFromParent = transformFromParent;
+				auto& childTransformComponent =
+					*entityManager.FindComponent<Scene::SceneTransformComponent>(childEntity);
+				childTransformComponent.m_transformFromParentTransform = transformFromParent;
 
 				entityManager.SetParentEntity(childEntity, &entity);
 			}
@@ -102,7 +103,7 @@ ECS::Entity& Condui::CreateConduiRootEntity(
 	const ElementRoot& elementRoot)
 {
 	ECS::Entity& entity = CreateConduiEntity(entityInfoManager, entityManager, elementRoot.m_element);
-	UITransformComponent& transformComponent = *entityManager.FindComponent<UITransformComponent>(entity);
-	transformComponent.m_uiTransform = elementRoot.m_uiTransform;
+	auto& transformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
+	transformComponent.m_matrix = elementRoot.m_uiTransform;
 	return entity;
 }

@@ -45,10 +45,10 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		ECS::Entity& cameraEntity = m_entityManager.CreateEntity(
 			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("camera.json")));
 
-		auto& sceneTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
-		sceneTransformComponent.m_matrix.SetTranslation(Math::Vector3(0.0f, 0.0f, -5.0f));
+		auto& cameraTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
+		cameraTransformComponent.m_matrix.SetTranslation(Math::Vector3(0.0f, 0.0f, -5.0f));
 
-		// Create a console.
+		// Create a console and attach it to the camera.
 		Condui::ElementRoot consoleRoot;
 		consoleRoot.m_uiTransform.SetTranslation(Math::Vector3(0.0f, 0.0f, 0.0f));
 		consoleRoot.m_element = Condui::MakeTextInputElement(1.0f, 1.0f,
@@ -65,7 +65,12 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 				}
 			});
 
-		Condui::CreateConduiRootEntity(m_gameData.GetEntityInfoManager(), m_entityManager, consoleRoot);
+		ECS::Entity& consoleEntity =
+			Condui::CreateConduiRootEntity(m_gameData.GetEntityInfoManager(), m_entityManager, consoleRoot);
+		m_entityManager.SetParentEntity(consoleEntity, &cameraEntity);
+
+		auto& consoleTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(consoleEntity);
+		consoleTransformComponent.m_transformFromParentTransform.SetTranslation(Math::Vector3(0.0f, 0.0f, 0.5f));
 	}
 
 	m_entityManager.Update(delta);

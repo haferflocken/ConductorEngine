@@ -29,15 +29,16 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 		return;
 	}
 
+	// TODO(condui) raycast the mouse into the scene
 	// Determine which entity has text input focus, if any.
 	m_focusedComponent = nullptr;
 	for (const auto& ecsGroup : ecsGroups)
 	{
-		const auto& uiTransformComponent = ecsGroup.Get<const UITransformComponent>();
+		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
 		auto& textInputComponent = ecsGroup.Get<TextInputComponent>();
 		
-		const Math::Vector3& position = uiTransformComponent.m_uiTransform.GetTranslation();
-		const Math::Vector3 scale = uiTransformComponent.m_uiTransform.GetScale();
+		const Math::Vector3& position = transformComponent.m_matrix.GetTranslation();
+		const Math::Vector3 scale = transformComponent.m_matrix.GetScale();
 
 		const float rightX = position.x + (textInputComponent.m_xScale * scale.x);
 		const float topY = position.y + (textInputComponent.m_yScale * scale.y);
