@@ -15,6 +15,9 @@ class Matrix4x4
 public:
 	static Matrix4x4 MakeTranslation(const Vector3& translation);
 	static Matrix4x4 MakeScale(const Vector3& scale);
+	static Matrix4x4 MakeRotateX(const float radians);
+	static Matrix4x4 MakeRotateY(const float radians);
+	static Matrix4x4 MakeRotateZ(const float radians);
 
 	// Identity matrix constructor.
 	Matrix4x4();
@@ -55,6 +58,36 @@ inline Matrix4x4 Matrix4x4::MakeScale(const Vector3& scale)
 {
 	Matrix4x4 result;
 	result.SetScale(scale);
+	return result;
+}
+
+inline Matrix4x4 Matrix4x4::MakeRotateX(const float radians)
+{
+	Matrix4x4 result;
+	result.m_matrix[5] = cosf(radians);
+	result.m_matrix[6] = sinf(radians);
+	result.m_matrix[9] = -result.m_matrix[6];
+	result.m_matrix[10] = result.m_matrix[5];
+	return result;
+}
+
+inline Matrix4x4 Matrix4x4::MakeRotateY(const float radians)
+{
+	Matrix4x4 result;
+	result.m_matrix[0] = cosf(radians);
+	result.m_matrix[2] = -sinf(radians);
+	result.m_matrix[8] = -result.m_matrix[2];
+	result.m_matrix[10] = result.m_matrix[0];
+	return result;
+}
+
+inline Matrix4x4 Matrix4x4::MakeRotateZ(const float radians)
+{
+	Matrix4x4 result;
+	result.m_matrix[0] = cosf(radians);
+	result.m_matrix[1] = sinf(radians);
+	result.m_matrix[4] = -result.m_matrix[1];
+	result.m_matrix[5] = result.m_matrix[0];
 	return result;
 }
 
