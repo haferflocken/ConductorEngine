@@ -284,11 +284,10 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 	characterTransform.SetTranslation(offset);
 	characterTransform.SetScale(Math::Vector3(characterWidth, characterHeight, 1.0f));
 
-	const Math::Matrix4x4 transform = uiTransform * characterTransform;
-
+	const Math::Matrix4x4 m = (uiTransform * characterTransform).Transpose();
 	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
 
-	encoder.setTransform(transform.GetData());
+	encoder.setTransform(m.GetData());
 	encoder.setVertexBuffer(0, font.m_glyphVertexBufferHandle);
 	encoder.setIndexBuffer(indexBuffer);
 	encoder.setUniform(m_colourUniform, &floatColour);

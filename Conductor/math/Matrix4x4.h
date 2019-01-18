@@ -8,11 +8,14 @@ namespace Math
 class Vector4;
 
 /**
- * A 4x4 column-major matrix. Vectors are treated as columns when multiplying.
+ * A 4x4 column-major matrix.
  */
 class Matrix4x4
 {
 public:
+	static Matrix4x4 MakeTranslation(const Vector3& translation);
+	static Matrix4x4 MakeScale(const Vector3& scale);
+
 	// Identity matrix constructor.
 	Matrix4x4();
 
@@ -40,6 +43,20 @@ public:
 private:
 	float m_matrix[16];
 };
+
+inline Matrix4x4 Matrix4x4::MakeTranslation(const Vector3& translation)
+{
+	Matrix4x4 result;
+	result.SetTranslation(translation);
+	return result;
+}
+
+inline Matrix4x4 Matrix4x4::MakeScale(const Vector3& scale)
+{
+	Matrix4x4 result;
+	result.SetScale(scale);
+	return result;
+}
 
 inline Matrix4x4::Matrix4x4()
 {

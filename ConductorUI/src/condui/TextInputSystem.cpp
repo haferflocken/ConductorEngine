@@ -37,8 +37,8 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
 		auto& textInputComponent = ecsGroup.Get<TextInputComponent>();
 		
-		const Math::Vector3& position = transformComponent.m_matrix.GetTranslation();
-		const Math::Vector3 scale = transformComponent.m_matrix.GetScale();
+		const Math::Vector3& position = transformComponent.m_modelToWorldMatrix.GetTranslation();
+		const Math::Vector3 scale = transformComponent.m_modelToWorldMatrix.GetScale();
 
 		const float rightX = position.x + (textInputComponent.m_xScale * scale.x);
 		const float topY = position.y + (textInputComponent.m_yScale * scale.y);

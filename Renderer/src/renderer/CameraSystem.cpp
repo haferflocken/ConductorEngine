@@ -16,7 +16,7 @@ void CameraSystem::Update(const Unit::Time::Millisecond delta,
 		const auto& cameraComponent = ecsGroup.Get<const CameraComponent>();
 
 		float viewMatrix[16];
-		bx::mtxInverse(viewMatrix, transformComponent.m_matrix.GetData());
+		bx::mtxInverse(viewMatrix, transformComponent.m_modelToWorldMatrix.GetData());
 
 		float projectionMatrix[16];
 		bx::mtxProj(projectionMatrix, cameraComponent.m_verticalFieldOfView, m_aspectRatio, 0.1f, 100.0f,

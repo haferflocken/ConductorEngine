@@ -36,7 +36,7 @@ void TextInputRenderSystem::Update(const Unit::Time::Millisecond delta,
 		m_textRenderer.RequestFont(
 			textComponent.m_codePage, textComponent.m_characterWidthPixels, textComponent.m_characterHeightPixels);
 
-		const Math::Matrix4x4& transform = transformComponent.m_matrix;
+		const Math::Matrix4x4& transform = transformComponent.m_modelToWorldMatrix;
 
 		Math::Vector3 topPosition = transform.GetTranslation();
 		topPosition.y += textComponent.m_yScale;

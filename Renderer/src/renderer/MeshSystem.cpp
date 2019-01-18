@@ -89,7 +89,9 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 			continue;
 		}
 
-		encoder->setTransform(transformComponent.m_matrix.GetData());
+		const Math::Matrix4x4 m = transformComponent.m_modelToWorldMatrix.Transpose();
+
+		encoder->setTransform(m.GetData());
 		encoder->setVertexBuffer(0, datum.m_vertexBuffer);
 		encoder->setIndexBuffer(datum.m_indexBuffer);
 		encoder->setState(BGFX_STATE_DEFAULT);

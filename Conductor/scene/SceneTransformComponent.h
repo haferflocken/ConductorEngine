@@ -26,8 +26,8 @@ public:
 	virtual ~SceneTransformComponent() {}
 
 	// A 4x4 transform matrix in scene space.
-	Math::Matrix4x4 m_matrix{};
+	Math::Matrix4x4 m_modelToWorldMatrix{};
 	// A relative transform from the parent's transform.
-	Math::Matrix4x4 m_transformFromParentTransform{};
+	Math::Matrix4x4 m_childToParentMatrix{};
 };
 }

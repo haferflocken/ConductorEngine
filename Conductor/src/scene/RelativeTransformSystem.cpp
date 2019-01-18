@@ -45,8 +45,8 @@ void RelativeTransformSystem::ProcessUpdateBuffer(ECS::EntityManager& entityMana
 			entityManager.FindComponent<SceneTransformComponent>(*updateEntry.m_entity->GetParent());
 		if (parentComponent != nullptr)
 		{
-			const Math::Matrix4x4& parentTransform = parentComponent->m_matrix;
-			component.m_matrix = parentTransform * component.m_transformFromParentTransform;
+			const Math::Matrix4x4& parentTransform = parentComponent->m_modelToWorldMatrix;
+			component.m_modelToWorldMatrix = parentTransform * component.m_childToParentMatrix;
 		}
 	}
 }

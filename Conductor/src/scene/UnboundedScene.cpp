@@ -134,7 +134,7 @@ void UnboundedScene::Update(const Unit::Time::Millisecond delta,
 		if (entity.GetParent() == nullptr)
 		{
 			const auto& sceneTransformComponent = ecsGroup.Get<const SceneTransformComponent>();
-			const Math::Vector3& position = sceneTransformComponent.m_matrix.GetTranslation();
+			const Math::Vector3& position = sceneTransformComponent.m_modelToWorldMatrix.GetTranslation();
 			m_spatialHashMap[position] = &entity;
 		}
 	}

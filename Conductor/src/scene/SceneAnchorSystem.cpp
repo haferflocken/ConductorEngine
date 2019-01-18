@@ -23,7 +23,7 @@ void SceneAnchorSystem::Update(const Unit::Time::Millisecond delta,
 	for (const auto& ecsGroup : ecsGroups)
 	{
 		const SceneTransformComponent& transformComponent = ecsGroup.Get<const SceneTransformComponent>();
-		const Math::Vector3& position = transformComponent.m_matrix.GetTranslation();
+		const Math::Vector3& position = transformComponent.m_modelToWorldMatrix.GetTranslation();
 		
 		const AnchorComponent& anchorComponent = ecsGroup.Get<const AnchorComponent>();
 

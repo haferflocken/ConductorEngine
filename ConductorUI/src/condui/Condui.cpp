@@ -89,7 +89,7 @@ ECS::Entity& Condui::CreateConduiEntity(
 				ECS::Entity& childEntity = CreateConduiEntity(entityInfoManager, entityManager, childElement);
 				auto& childTransformComponent =
 					*entityManager.FindComponent<Scene::SceneTransformComponent>(childEntity);
-				childTransformComponent.m_transformFromParentTransform = transformFromParent;
+				childTransformComponent.m_childToParentMatrix = transformFromParent;
 
 				entityManager.SetParentEntity(childEntity, &entity);
 			}
@@ -104,6 +104,6 @@ ECS::Entity& Condui::CreateConduiRootEntity(
 {
 	ECS::Entity& entity = CreateConduiEntity(entityInfoManager, entityManager, elementRoot.m_element);
 	auto& transformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
-	transformComponent.m_matrix = elementRoot.m_uiTransform;
+	transformComponent.m_modelToWorldMatrix = elementRoot.m_uiTransform;
 	return entity;
 }

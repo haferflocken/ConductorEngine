@@ -36,7 +36,7 @@ void TextDisplayRenderSystem::Update(const Unit::Time::Millisecond delta,
 
 		m_textRenderer.SubmitText(*encoder,
 			k_sceneViewID,
-			transformComponent.m_matrix,
+			transformComponent.m_modelToWorldMatrix,
 			Image::ColoursARBG::k_white,
 			textComponent.m_codePage,
 			textComponent.m_string.c_str(),
