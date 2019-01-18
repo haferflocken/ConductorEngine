@@ -85,7 +85,6 @@ void PrimitiveRenderer::DrawQuad(bgfx::Encoder& encoder,
 {
 	using namespace Internal_PrimitiveRenderer;
 
-	const Math::Matrix4x4 m = transform.Transpose();
 	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
 
 	encoder.setTransform(transform.GetData());

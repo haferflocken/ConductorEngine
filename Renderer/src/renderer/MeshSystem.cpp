@@ -89,7 +89,7 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 			continue;
 		}
 
-		const Math::Matrix4x4 m = transformComponent.m_modelToWorldMatrix.Transpose();
+		const Math::Matrix4x4& m = transformComponent.m_modelToWorldMatrix;
 
 		encoder->setTransform(m.GetData());
 		encoder->setVertexBuffer(0, datum.m_vertexBuffer);

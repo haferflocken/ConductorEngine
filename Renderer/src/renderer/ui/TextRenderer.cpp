@@ -278,13 +278,13 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 
 	Math::Vector3 offset{ 0.0f, 0.0f, 0.0f };
 	offset.x = x * characterWidth;
-	offset.y = y * characterHeight;
+	offset.y = y;
 
 	Math::Matrix4x4 characterTransform;
 	characterTransform.SetTranslation(offset);
 	characterTransform.SetScale(Math::Vector3(characterWidth, characterHeight, 1.0f));
 
-	const Math::Matrix4x4 m = (uiTransform * characterTransform).Transpose();
+	const Math::Matrix4x4 m = (uiTransform * characterTransform);
 	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
 
 	encoder.setTransform(m.GetData());
