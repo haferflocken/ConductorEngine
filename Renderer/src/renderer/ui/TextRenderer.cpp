@@ -278,7 +278,7 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 
 	Math::Vector3 offset{ 0.0f, 0.0f, 0.0f };
 	offset.x = x * characterWidth;
-	offset.y = y;
+	offset.y = y * characterHeight;
 
 	Math::Matrix4x4 characterTransform;
 	characterTransform.SetTranslation(offset);

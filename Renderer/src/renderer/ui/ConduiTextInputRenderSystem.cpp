@@ -38,11 +38,9 @@ void TextInputRenderSystem::Update(const Unit::Time::Millisecond delta,
 
 		const Math::Matrix4x4& transform = transformComponent.m_modelToWorldMatrix;
 
-		Math::Vector3 topPosition = transform.GetTranslation();
-		topPosition.y += textComponent.m_yScale;
-
-		Math::Matrix4x4 textTransform = transform;
-		textTransform.SetTranslation(topPosition);
+		const Math::Matrix4x4 textToTopTransform =
+			Math::Matrix4x4::MakeTranslation(Math::Vector3(0.0f, textComponent.m_yScale, 0.0f));
+		const Math::Matrix4x4 textTransform = transform * textToTopTransform;
 
 		m_textRenderer.SubmitText(*encoder,
 			k_sceneViewID,
