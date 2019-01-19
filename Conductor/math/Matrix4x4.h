@@ -127,19 +127,22 @@ inline Vector3 Matrix4x4::operator*(const Vector3& rhs) const
 	const float& row0X = m_matrix[0];
 	const float& row0Y = m_matrix[4];
 	const float& row0Z = m_matrix[8];
+	const float& row0W = m_matrix[12];
 
 	const float& row1X = m_matrix[1];
 	const float& row1Y = m_matrix[5];
 	const float& row1Z = m_matrix[9];
+	const float& row1W = m_matrix[13];
 
 	const float& row2X = m_matrix[2];
 	const float& row2Y = m_matrix[6];
 	const float& row2Z = m_matrix[10];
+	const float& row2W = m_matrix[14];
 
 	Vector3 result;
-	result.x = (row0X * rhs.x) + (row0Y * rhs.y) + (row0Z * rhs.z);
-	result.y = (row1X * rhs.x) + (row1Y * rhs.y) + (row1Z * rhs.z);
-	result.z = (row2X * rhs.x) + (row2Y * rhs.y) + (row2Z * rhs.z);
+	result.x = (row0X * rhs.x) + (row0Y * rhs.y) + (row0Z * rhs.z) + row0W;
+	result.y = (row1X * rhs.x) + (row1Y * rhs.y) + (row1Z * rhs.z) + row1W;
+	result.z = (row2X * rhs.x) + (row2Y * rhs.y) + (row2Z * rhs.z) + row2W;
 	return result;
 }
 
