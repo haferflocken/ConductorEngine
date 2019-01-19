@@ -1,6 +1,5 @@
 #include <renderer/ui/ConduiTextInputRenderSystem.h>
 
-#include <image/Colour.h>
 #include <mesh/StaticMesh.h>
 #include <renderer/PrimitiveRenderer.h>
 #include <renderer/ui/TextRenderer.h>
@@ -51,12 +50,12 @@ void TextInputRenderSystem::Update(const Unit::Time::Millisecond delta,
 		m_textRenderer.SubmitText(*encoder,
 			k_sceneViewID,
 			textTransform,
-			Image::ColoursARBG::k_black,
+			textComponent.m_textColour,
 			textComponent.m_codePage,
 			textComponent.m_text.c_str(),
 			textComponent.m_fontScale);
 
-		PrimitiveRenderer::DrawQuad(*encoder, k_sceneViewID, transform, Image::ColoursARBG::k_cyan);
+		PrimitiveRenderer::DrawQuad(*encoder, k_sceneViewID, transform, textComponent.m_backgroundColour);
 	}
 
 	bgfx::end(encoder);

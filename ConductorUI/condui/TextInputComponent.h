@@ -4,6 +4,7 @@
 #include <ecs/Component.h>
 #include <ecs/ComponentInfo.h>
 #include <file/Path.h>
+#include <image/Colour.h>
 #include <image/Pixel1Image.h>
 
 #include <functional>
@@ -61,5 +62,8 @@ public:
 	float m_xScale{ 1.0f };
 	float m_yScale{ 1.0f };
 	float m_fontScale{ 1.0f };
+
+	Image::ColourARGB m_textColour{ Image::ColoursARBG::k_black };
+	Image::ColourARGB m_backgroundColour{ Image::ColoursARBG::k_cyan };
 };
 }

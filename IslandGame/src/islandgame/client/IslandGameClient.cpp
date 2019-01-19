@@ -59,7 +59,15 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 			{
 				if (strcmp(text, "\r") == 0)
 				{
-					// TODO do something with the existing text
+					// TODO useful commands
+					if (strcmp(component.m_text.c_str(), "yellow") == 0)
+					{
+						component.m_backgroundColour = Image::ColoursARBG::k_yellow;
+					}
+					else if (strcmp(component.m_text.c_str(), "cyan") == 0)
+					{
+						component.m_backgroundColour = Image::ColoursARBG::k_cyan;
+					}
 					component.m_text.clear();
 				}
 				else
