@@ -27,7 +27,7 @@ public:
 	{}
 
 	// Project through a point on the near plane into the scene. Inputs must be in the range [0, 1].
-	Ray3 ProjectThroughNearPlane(const float normalizedX, const float normalizedY) const;
+	Ray3 ProjectThroughNearPlane(const float screenX, const float screenY) const;
 
 	Math::Matrix4x4 m_frustumToWorldMatrix{};
 	float m_nearDistance{ 0.0f };
@@ -40,14 +40,14 @@ public:
 // Inline implementations.
 namespace Math
 {
-inline Ray3 Frustum::ProjectThroughNearPlane(const float normalizedX, const float normalizedY) const
+inline Ray3 Frustum::ProjectThroughNearPlane(const float screenX, const float screenY) const
 {
 	const float tanHalfFOV = tanf(m_verticalFieldOfViewRadians * 0.5f);
 	const float halfNearPlaneHeight = m_nearDistance * tanHalfFOV;
 	const float halfNearPlaneWidth = m_aspectRatio * halfNearPlaneHeight;
 
-	const float xOnNearPlane = (normalizedX * halfNearPlaneWidth * 2.0f) - halfNearPlaneWidth;
-	const float yOnNearPlane = (normalizedY * halfNearPlaneHeight * 2.0f) - halfNearPlaneHeight;
+	const float xOnNearPlane = (screenX * halfNearPlaneWidth * 2.0f) - halfNearPlaneWidth;
+	const float yOnNearPlane = ((1.0f - screenY) * halfNearPlaneHeight * 2.0f) - halfNearPlaneHeight;
 
 	const Math::Matrix4x4 nearToFrustumMatrix = Math::Matrix4x4::MakeTranslation(
 		Math::Vector3(xOnNearPlane, yOnNearPlane, m_nearDistance));

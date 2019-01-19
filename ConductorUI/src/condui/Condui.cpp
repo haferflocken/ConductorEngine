@@ -60,13 +60,13 @@ ECS::Entity& Condui::CreateConduiEntity(
 	element.Match(
 		[&](const TextDisplayElement& textDisplayElement)
 		{
-			TextDisplayComponent& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(entity);
+			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(entity);
 			textDisplayComponent.m_string = textDisplayElement.m_string;
 			textDisplayComponent.m_fontScale = textDisplayElement.m_fontScale;
 		},
 		[&](const TextInputElement& textInputElement)
 		{
-			TextInputComponent& textInputComponent = *entityManager.FindComponent<TextInputComponent>(entity);
+			auto& textInputComponent = *entityManager.FindComponent<TextInputComponent>(entity);
 			
 			if (textInputElement.m_inputHandler)
 			{
@@ -76,6 +76,10 @@ ECS::Entity& Condui::CreateConduiEntity(
 			textInputComponent.m_xScale = textInputElement.m_xScale;
 			textInputComponent.m_yScale = textInputElement.m_yScale;
 			textInputComponent.m_fontScale = textInputElement.m_fontScale;
+
+			auto& sceneTransformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
+			sceneTransformComponent.m_childToParentMatrix.SetScale(
+				Math::Vector3(textInputElement.m_xScale, textInputElement.m_yScale, 1.0f));
 		},
 		[&](const PanelElement& panelElement)
 		{
@@ -89,7 +93,8 @@ ECS::Entity& Condui::CreateConduiEntity(
 				ECS::Entity& childEntity = CreateConduiEntity(entityInfoManager, entityManager, childElement);
 				auto& childTransformComponent =
 					*entityManager.FindComponent<Scene::SceneTransformComponent>(childEntity);
-				childTransformComponent.m_childToParentMatrix = transformFromParent;
+				childTransformComponent.m_childToParentMatrix =
+					transformFromParent * childTransformComponent.m_childToParentMatrix;
 
 				entityManager.SetParentEntity(childEntity, &entity);
 			}

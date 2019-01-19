@@ -38,8 +38,14 @@ void TextInputRenderSystem::Update(const Unit::Time::Millisecond delta,
 
 		const Math::Matrix4x4& transform = transformComponent.m_modelToWorldMatrix;
 
-		const Math::Matrix4x4 textToTopTransform =
-			Math::Matrix4x4::MakeTranslation(Math::Vector3(0.0f, textComponent.m_yScale, 0.0f));
+		// Text rendering shouldn't be affected by other transform scaling.
+		const Math::Vector3 appliedTextScale = transformComponent.m_childToParentMatrix.GetScale();
+		const Math::Vector3 inverseTextScale{
+			1.0f / appliedTextScale.x, 1.0f / appliedTextScale.y, 1.0f / appliedTextScale.z };
+
+		Math::Matrix4x4 textToTopTransform = Math::Matrix4x4::MakeTranslation(Math::Vector3(0.0f, 1.0f, 0.0f));
+		textToTopTransform.SetScale(inverseTextScale);
+
 		const Math::Matrix4x4 textTransform = transform * textToTopTransform;
 
 		m_textRenderer.SubmitText(*encoder,

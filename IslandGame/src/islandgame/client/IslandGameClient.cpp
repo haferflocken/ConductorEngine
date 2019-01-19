@@ -54,7 +54,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		// Create a console and attach it to the camera.
 		Condui::ElementRoot consoleRoot;
 		consoleRoot.m_uiTransform.SetTranslation(Math::Vector3(0.0f, 0.0f, 0.0f));
-		consoleRoot.m_element = Condui::MakeTextInputElement(1.0f, 1.0f,
+		consoleRoot.m_element = Condui::MakeTextInputElement(0.5f, 0.025f,
 			[this](Condui::TextInputComponent& component, const char* text)
 			{
 				if (strcmp(text, "\r") == 0)
@@ -66,7 +66,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 				{
 					Condui::TextInputComponent::DefaultInputHandler(component, text);
 				}
-			}, 2.0f);
+			}, 1.0f);
 
 		ECS::Entity& consoleEntity =
 			Condui::CreateConduiRootEntity(m_gameData.GetEntityInfoManager(), m_entityManager, consoleRoot);
@@ -74,7 +74,6 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 
 		auto& consoleTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(consoleEntity);
 		consoleTransformComponent.m_childToParentMatrix.SetTranslation(Math::Vector3(-0.25f, -0.25f, 0.5f));
-		consoleTransformComponent.m_childToParentMatrix.SetScale(Math::Vector3(0.5f, 0.5f, 1.0f));
 	}
 
 	m_entityManager.Update(delta);
