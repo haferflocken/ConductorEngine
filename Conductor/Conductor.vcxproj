@@ -253,6 +253,8 @@
     <ClInclude Include="behave\BehaviourTreeComponentInfo.h" />
     <ClInclude Include="behave\BlackboardComponent.h" />
     <ClInclude Include="behave\BlackboardComponentInfo.h" />
+    <ClInclude Include="math\Frustum.h" />
+    <ClInclude Include="math\Ray3.h" />
     <ClInclude Include="mesh\MeshComponent.h" />
     <ClInclude Include="mesh\MeshComponentInfo.h" />
     <ClInclude Include="mesh\StaticMesh.h" />
