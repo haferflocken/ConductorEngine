@@ -31,6 +31,7 @@ public:
 	Vector3 operator/(float rhs) const;
 
 	float Dot(const Vector3& rhs) const;
+	Vector3 Cross(const Vector3& rhs) const;
 
 	bool operator==(const Vector3& rhs) const;
 	bool operator!=(const Vector3& rhs) const;
@@ -117,6 +118,15 @@ inline Vector3 Vector3::operator/(float rhs) const
 inline float Vector3::Dot(const Vector3& rhs) const
 {
 	return (x * rhs.x) + (y * rhs.y) + (z * rhs.z);
+}
+
+inline Vector3 Vector3::Cross(const Vector3& rhs) const
+{
+	Vector3 result;
+	result.x = (y * rhs.z) - (z * rhs.y);
+	result.y = (z * rhs.x) - (x * rhs.z);
+	result.z = (x * rhs.y) - (y * rhs.x);
+	return result;
 }
 
 inline bool Vector3::operator==(const Vector3& rhs) const

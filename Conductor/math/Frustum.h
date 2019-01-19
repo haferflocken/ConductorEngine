@@ -26,8 +26,8 @@ public:
 		, m_aspectRatio(aspectRatio)
 	{}
 
-	// Project a point on the near plane into the scene. Inputs must be in the range [0, 1].
-	Ray3 ProjectFromNearPlane(const float normalizedX, const float normalizedY) const;
+	// Project through a point on the near plane into the scene. Inputs must be in the range [0, 1].
+	Ray3 ProjectThroughNearPlane(const float normalizedX, const float normalizedY) const;
 
 	Math::Matrix4x4 m_frustumToWorldMatrix{};
 	float m_nearDistance{ 0.0f };
@@ -40,7 +40,7 @@ public:
 // Inline implementations.
 namespace Math
 {
-inline Ray3 Frustum::ProjectFromNearPlane(const float normalizedX, const float normalizedY) const
+inline Ray3 Frustum::ProjectThroughNearPlane(const float normalizedX, const float normalizedY) const
 {
 	const float tanHalfFOV = tanf(m_verticalFieldOfViewRadians * 0.5f);
 	const float halfNearPlaneHeight = m_nearDistance * tanHalfFOV;
@@ -57,6 +57,6 @@ inline Ray3 Frustum::ProjectFromNearPlane(const float normalizedX, const float n
 	const Math::Vector3 rayOffset = rayOrigin - m_frustumToWorldMatrix.GetTranslation();
 	const Math::Vector3 rayDirection = rayOffset / rayOffset.Length();
 
-	return Ray3(rayOrigin, rayDirection);
+	return Ray3(m_frustumToWorldMatrix.GetTranslation(), rayDirection);
 }
 }

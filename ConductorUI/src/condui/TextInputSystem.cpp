@@ -7,6 +7,60 @@
 
 namespace Condui
 {
+namespace Internal_TextInputSystem
+{
+bool TryCalcIntersectionWithPlane(const Math::Ray3& ray,
+	const Math::Vector3& planeNormal,
+	const Math::Vector3& pointOnPlane,
+	Math::Vector3& outIntersection)
+{
+	const float denominator = planeNormal.Dot(ray.m_direction);
+	if (denominator > FLT_EPSILON)
+	{
+		const float numerator = planeNormal.Dot(pointOnPlane - ray.m_origin);
+		const float t = numerator / denominator;
+		outIntersection = ray.m_origin + (ray.m_direction * t);
+		return t >= 0.0f;
+	}
+	return false;
+}
+
+// The vertices of the rectangle must be in counterclockwise order, they must form 4 right angles,
+// and the given point must be on the rectangle for this to work.
+bool IsPointWithinRectangle(const Math::Vector3& rectV0,
+	const Math::Vector3& rectV1,
+	const Math::Vector3& rectV2,
+	const Math::Vector3& rectV3,
+	const Math::Vector3& point)
+{
+	const Math::Vector3 v0ToPoint = point - rectV0;
+	const Math::Vector3 v0ToV1 = rectV1 - rectV0;
+	if (v0ToPoint.Dot(v0ToV1) < 0.0f)
+	{
+		return false;
+	}
+	const Math::Vector3 v1ToPoint = point - rectV1;
+	const Math::Vector3 v1ToV2 = rectV2 - rectV1;
+	if (v1ToPoint.Dot(v1ToV2) < 0.0f)
+	{
+		return false;
+	}
+	const Math::Vector3 v2ToPoint = point - rectV2;
+	const Math::Vector3 v2ToV3 = rectV3 - rectV2;
+	if (v2ToPoint.Dot(v2ToV3) < 0.0f)
+	{
+		return false;
+	}
+	const Math::Vector3 v3ToPoint = point - rectV3;
+	const Math::Vector3 v3ToV0 = rectV0 - rectV3;
+	if (v3ToPoint.Dot(v3ToV0) < 0.0f)
+	{
+		return false;
+	}
+	return true;
+}
+}
+
 TextInputSystem::TextInputSystem(const Math::Frustum& sceneViewFrustum,
 	Input::CallbackRegistry& inputCallbackRegistry)
 	: SystemTempl()
@@ -27,6 +81,8 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
+	using namespace Internal_TextInputSystem;
+
 	// If the mouse wasn't pressed last frame, the focus doesn't change.
 	if (m_mouseDownScreenPos == Math::Vector2())
 	{
@@ -34,7 +90,7 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 	}
 
 	// Determine which entity has text input focus, if any.
-	const Math::Ray3 mouseRay = m_sceneViewFrustum.ProjectFromNearPlane(m_mouseDownScreenPos.x, m_mouseDownScreenPos.y);
+	const Math::Ray3 mouseRay = m_sceneViewFrustum.ProjectThroughNearPlane(m_mouseDownScreenPos.x, m_mouseDownScreenPos.y);
 
 	m_focusedComponent = nullptr;
 	for (const auto& ecsGroup : ecsGroups)
@@ -43,13 +99,23 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 		auto& textInputComponent = ecsGroup.Get<TextInputComponent>();
 		
 		const Math::Matrix4x4& modelToWorldMatrix = transformComponent.m_modelToWorldMatrix;
-		const Math::Vector3& rootPosition = modelToWorldMatrix.GetTranslation();
-		const Math::Vector3 scalePosition = modelToWorldMatrix * Math::Vector3(1.0f, 1.0f, 0.0f);
 
-		// TODO(condui) determine if the ray intersects the rectangle from rootPosition to scalePosition
+		const Math::Vector3& a = modelToWorldMatrix.GetTranslation();
+		const Math::Vector3 b = modelToWorldMatrix * Math::Vector3(1.0f, 0.0f, 0.0f);
+		const Math::Vector3 c = modelToWorldMatrix * Math::Vector3(1.0f, 1.0f, 0.0f);
+		const Math::Vector3 d = modelToWorldMatrix * Math::Vector3(0.0f, 1.0f, 0.0f);
 
+		const Math::Vector3 unscaledNormal = (b - a).Cross(c - a);
+		const Math::Vector3 normal = unscaledNormal / unscaledNormal.Length();
+
+		Math::Vector3 p;
+		if (!TryCalcIntersectionWithPlane(mouseRay, normal, a, p))
+		{
+			continue;
+		}
+		
 		// If the mouse is down within the entity, it gets focus.
-		if (true)
+		if (IsPointWithinRectangle(a, b, c, d, p))
 		{
 			m_focusedComponent = &textInputComponent;
 			break;
