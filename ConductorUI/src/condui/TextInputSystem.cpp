@@ -3,10 +3,14 @@
 #include <ecs/EntityID.h>
 #include <input/CallbackRegistry.h>
 #include <input/InputMessage.h>
+#include <math/Frustum.h>
 
 namespace Condui
 {
-TextInputSystem::TextInputSystem(Input::CallbackRegistry& inputCallbackRegistry)
+TextInputSystem::TextInputSystem(const Math::Frustum& sceneViewFrustum,
+	Input::CallbackRegistry& inputCallbackRegistry)
+	: SystemTempl()
+	, m_sceneViewFrustum(sceneViewFrustum)
 {
 	using namespace Input;
 	inputCallbackRegistry.RegisterInputCallback<InputMessage_MouseButtonDown>(
@@ -24,28 +28,28 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
 	// If the mouse wasn't pressed last frame, the focus doesn't change.
-	if (m_mouseDownPos == Math::Vector2())
+	if (m_mouseDownScreenPos == Math::Vector2())
 	{
 		return;
 	}
 
-	// TODO(condui) raycast the mouse into the scene
 	// Determine which entity has text input focus, if any.
+	const Math::Ray3 mouseRay = m_sceneViewFrustum.ProjectFromNearPlane(m_mouseDownScreenPos.x, m_mouseDownScreenPos.y);
+
 	m_focusedComponent = nullptr;
 	for (const auto& ecsGroup : ecsGroups)
 	{
 		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
 		auto& textInputComponent = ecsGroup.Get<TextInputComponent>();
 		
-		const Math::Vector3& position = transformComponent.m_modelToWorldMatrix.GetTranslation();
-		const Math::Vector3 scale = transformComponent.m_modelToWorldMatrix.GetScale();
+		const Math::Matrix4x4& modelToWorldMatrix = transformComponent.m_modelToWorldMatrix;
+		const Math::Vector3& rootPosition = modelToWorldMatrix.GetTranslation();
+		const Math::Vector3 scalePosition = modelToWorldMatrix * Math::Vector3(1.0f, 1.0f, 0.0f);
 
-		const float rightX = position.x + (textInputComponent.m_xScale * scale.x);
-		const float topY = position.y + (textInputComponent.m_yScale * scale.y);
-		
+		// TODO(condui) determine if the ray intersects the rectangle from rootPosition to scalePosition
+
 		// If the mouse is down within the entity, it gets focus.
-		if (m_mouseDownPos.x >= position.x && m_mouseDownPos.y >= position.y
-			&& m_mouseDownPos.x < rightX && m_mouseDownPos.y < topY)
+		if (true)
 		{
 			m_focusedComponent = &textInputComponent;
 			break;
@@ -53,7 +57,7 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 	}
 
 	// Clear the mouse pressed state.
-	m_mouseDownPos = Math::Vector2();
+	m_mouseDownScreenPos = Math::Vector2();
 }
 
 void TextInputSystem::NotifyOfEntityAdded(const ECS::EntityID id, const ECSGroupType& group)
@@ -71,8 +75,8 @@ void TextInputSystem::NotifyOfEntityRemoved(const ECS::EntityID id, const ECSGro
 void TextInputSystem::NotifyOfMouseDown(const Input::InputMessage& message)
 {
 	auto& mouseDownMessage = message.Get<Input::InputMessage_MouseButtonDown>();
-	m_mouseDownPos.x = mouseDownMessage.m_mouseX;
-	m_mouseDownPos.y = mouseDownMessage.m_mouseY;
+	m_mouseDownScreenPos.x = mouseDownMessage.m_mouseX;
+	m_mouseDownScreenPos.y = mouseDownMessage.m_mouseY;
 }
 
 void TextInputSystem::NotifyOfTextEditing(const Input::InputMessage& message)

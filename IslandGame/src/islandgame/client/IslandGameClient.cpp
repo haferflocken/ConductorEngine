@@ -66,7 +66,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 				{
 					Condui::TextInputComponent::DefaultInputHandler(component, text);
 				}
-			});
+			}, 2.0f);
 
 		ECS::Entity& consoleEntity =
 			Condui::CreateConduiRootEntity(m_gameData.GetEntityInfoManager(), m_entityManager, consoleRoot);

@@ -14,6 +14,8 @@ class CallbackRegistry;
 struct InputMessage;
 }
 
+namespace Math { class Frustum; }
+
 namespace Condui
 {
 /**
@@ -27,7 +29,7 @@ class TextInputSystem final : public ECS::SystemTempl<
 	ECS::SystemBindingType::Extended>
 {
 public:
-	TextInputSystem(Input::CallbackRegistry& inputCallbackRegistry);
+	TextInputSystem(const Math::Frustum& sceneViewFrustum, Input::CallbackRegistry& inputCallbackRegistry);
 	virtual ~TextInputSystem() {}
 
 	void Update(const Unit::Time::Millisecond delta,
@@ -42,9 +44,11 @@ private:
 	void NotifyOfTextEditing(const Input::InputMessage& message);
 	void NotifyOfTextInput(const Input::InputMessage& message);
 	void NotifyOfKeyDown(const Input::InputMessage& message);
+	
+	const Math::Frustum& m_sceneViewFrustum;
 
 	// The position where the mouse was pressed. Is Vector2() when there wasn't a mouse press last frame.
-	Math::Vector2 m_mouseDownPos{};
+	Math::Vector2 m_mouseDownScreenPos{};
 
 	// The TextInputComponent of the entity that is currently receiving input.
 	TextInputComponent* m_focusedComponent{ nullptr };

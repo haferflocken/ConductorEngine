@@ -10,6 +10,7 @@
 namespace Collection { template <typename T> class LocklessQueue; }
 namespace Conductor { class IGameData; }
 namespace Input { struct InputMessage; }
+namespace Math { class Frustum; }
 
 namespace Client
 {
@@ -23,7 +24,9 @@ class IRenderInstance;
 class ClientWorld final
 {
 public:
-	using ClientFactory = std::function<Mem::UniquePtr<IClient>(const Conductor::IGameData&, ConnectedHost&)>;
+	using ClientFactory = std::function<Mem::UniquePtr<IClient>(const Conductor::IGameData&,
+		const Math::Frustum&,
+		ConnectedHost&)>;
 
 	ClientWorld(const Conductor::IGameData& gameData,
 		IRenderInstance& renderInstance,

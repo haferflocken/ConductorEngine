@@ -1,6 +1,7 @@
 #pragma once
 
 #include <client/IRenderInstance.h>
+#include <math/Frustum.h>
 #include <mem/UniquePtr.h>
 
 struct SDL_Window;
@@ -32,6 +33,7 @@ public:
 	virtual void RegisterSystems(ECS::EntityManager& entityManager) override;
 
 	virtual Status GetStatus() const override;
+	virtual const Math::Frustum& GetSceneViewFrustum() const override;
 
 	virtual Status Update() override;
 
@@ -42,6 +44,7 @@ private:
 
 	SDL_Window* m_window;
 
+	Math::Frustum m_sceneViewFrustum;
 	Mem::UniquePtr<UI::TextRenderer> m_textRenderer;
 };
 }

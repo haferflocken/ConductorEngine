@@ -53,7 +53,7 @@ void Client::ClientWorld::ClientThreadFunction()
 {
 	m_clientThreadStatus = ClientThreadStatus::Running;
 	m_renderInstance.InitOnClientThread();
-	m_client = m_clientFactory(m_gameData, *m_connectedHost);
+	m_client = m_clientFactory(m_gameData, m_renderInstance.GetSceneViewFrustum(), *m_connectedHost);
 	m_renderInstance.RegisterSystems(m_client->GetEntityManager());
 	m_lastUpdatePoint = std::chrono::steady_clock::now();
 

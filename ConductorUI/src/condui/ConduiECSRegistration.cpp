@@ -30,9 +30,11 @@ void Condui::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
 	componentInfoFactory.RegisterFactoryFunction<TextInputComponentInfo>();
 }
 
-void Condui::RegisterSystems(ECS::EntityManager& entityManager, Input::CallbackRegistry& callbackRegistry)
+void Condui::RegisterSystems(ECS::EntityManager& entityManager,
+	const Math::Frustum& sceneViewFrustum,
+	Input::CallbackRegistry& callbackRegistry)
 {
-	entityManager.RegisterSystem(Mem::MakeUnique<TextInputSystem>(callbackRegistry));
+	entityManager.RegisterSystem(Mem::MakeUnique<TextInputSystem>(sceneViewFrustum, callbackRegistry));
 }
 
 void Condui::RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager,

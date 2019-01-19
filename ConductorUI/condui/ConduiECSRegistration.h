@@ -11,7 +11,7 @@ class EntityManager;
 }
 
 namespace Input { class CallbackRegistry; }
-
+namespace Math { class Frustum; }
 namespace Util { class StringHash; }
 
 namespace Condui
@@ -23,7 +23,9 @@ void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
 	ECS::ComponentInfoFactory& componentInfoFactory);
 
 // Register all Condui ECS systems.
-void RegisterSystems(ECS::EntityManager& entityManager, Input::CallbackRegistry& callbackRegistry);
+void RegisterSystems(ECS::EntityManager& entityManager,
+	const Math::Frustum& sceneViewFrustum,
+	Input::CallbackRegistry& callbackRegistry);
 
 // Registers all Condui EntityInfo from C++ rather than through JSON files.
 // All Condui text is rendered in monospace fonts generated from monochrome bitmap files; the parameters here are for

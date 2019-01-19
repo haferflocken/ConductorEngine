@@ -21,13 +21,13 @@ public:
 
 	explicit CameraComponent(const ECS::ComponentID id)
 		: Component(id)
-		, m_viewID(k_sceneViewID)
-		, m_verticalFieldOfView(60.0f)
 	{}
 
 	virtual ~CameraComponent() {}
 
-	uint16_t m_viewID;
-	float m_verticalFieldOfView;
+	uint16_t m_viewID{ k_sceneViewID };
+	float m_nearDistance{ 0.1f };
+	float m_farDistance{ 1000.f };
+	float m_verticalFieldOfView{ 60.0f };
 };
 }

@@ -320,7 +320,7 @@ void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentRe
 void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 {
 	using namespace Internal_RenderInstance;
-	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(k_width, k_height));
+	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(m_sceneViewFrustum, k_width, k_height));
 	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>(m_assetManager));
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextDisplayRenderSystem>(*m_textRenderer));
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextInputRenderSystem>(*m_textRenderer));
@@ -330,6 +330,11 @@ void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 RenderInstance::Status RenderInstance::GetStatus() const
 {
 	return m_status;
+}
+
+const Math::Frustum& RenderInstance::GetSceneViewFrustum() const
+{
+	return m_sceneViewFrustum;
 }
 
 RenderInstance::Status RenderInstance::Update()

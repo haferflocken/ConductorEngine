@@ -77,7 +77,7 @@ Conductor::GameDataFactory MakeGameDataFactory()
 
 		Condui::RegisterComponentTypes(gameData->GetComponentReflector(),
 			gameData->GetComponentInfoFactory());
-		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(), 
+		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(),
 			gameData->GetComponentInfoFactory());
 
 		Condui::RegisterEntityInfo(
@@ -89,17 +89,16 @@ Conductor::GameDataFactory MakeGameDataFactory()
 	};
 }
 
-Client::ClientWorld::ClientFactory MakeClientFactory()
+Mem::UniquePtr<Client::IClient> MakeClient(const Conductor::IGameData& gameData, const Math::Frustum& sceneViewFrustum,
+	Client::ConnectedHost& connectedHost)
 {
-	return [](const Conductor::IGameData& gameData, Client::ConnectedHost& connectedHost)
-	{
-		auto client = Mem::MakeUnique<IslandGame::Client::IslandGameClient>(
-			static_cast<const IslandGame::IslandGameData&>(gameData), connectedHost);
+	auto client = Mem::MakeUnique<IslandGame::Client::IslandGameClient>(
+		static_cast<const IslandGame::IslandGameData&>(gameData),
+		connectedHost);
 
-		Condui::RegisterSystems(client->GetEntityManager(), client->GetInputCallbackRegistry());
+	Condui::RegisterSystems(client->GetEntityManager(), sceneViewFrustum, client->GetInputCallbackRegistry());
 
-		return client;
-	};
+	return client;
 }
 
 Host::HostWorld::HostFactory MakeHostFactory()
@@ -190,7 +189,7 @@ int Internal_IslandGame::ClientMain(
 	if (strcmp(hostParam.c_str(), "newhost") == 0)
 	{
 		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(params, dataDirectory, userDirectory,
-			assetManager, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory(), MakeHostFactory());
+			assetManager, MakeRenderInstanceFactory(), MakeGameDataFactory(), &MakeClient, MakeHostFactory());
 		return static_cast<int>(errorCode);
 	}
 	else
@@ -206,7 +205,7 @@ int Internal_IslandGame::ClientMain(
 		const char* const hostPort = hostName + portStartIndex + 1;
 
 		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(params, dataDirectory, userDirectory,
-			assetManager, hostName, hostPort, MakeRenderInstanceFactory(), MakeGameDataFactory(), MakeClientFactory());
+			assetManager, hostName, hostPort, MakeRenderInstanceFactory(), MakeGameDataFactory(), &MakeClient);
 		return static_cast<int>(errorCode);
 	}
 
@@ -225,7 +224,7 @@ int Internal_IslandGame::HostMain(
 	{
 		return static_cast<int>(Conductor::ApplicationErrorCode::MissingHostPort);
 	}
-	
+
 	// Run the host.
 	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, userDirectory,
 		assetManager, port.c_str(), MakeGameDataFactory(), MakeHostFactory());

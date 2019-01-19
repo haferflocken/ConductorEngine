@@ -40,9 +40,11 @@ public:
 
 	Matrix4x4 Transpose() const;
 
+	Vector3 operator*(const Vector3& rhs) const;
+
 	Matrix4x4 operator*(const Matrix4x4& rhs) const;
 	Matrix4x4& operator*=(const Matrix4x4& rhs);
-
+	
 private:
 	float m_matrix[16];
 };
@@ -117,6 +119,27 @@ inline Matrix4x4 Matrix4x4::Transpose() const
 	result.GetColumn(1) = GetRow(1);
 	result.GetColumn(2) = GetRow(2);
 	result.GetColumn(3) = GetRow(3);
+	return result;
+}
+
+inline Vector3 Matrix4x4::operator*(const Vector3& rhs) const
+{
+	const float& row0X = m_matrix[0];
+	const float& row0Y = m_matrix[4];
+	const float& row0Z = m_matrix[8];
+
+	const float& row1X = m_matrix[1];
+	const float& row1Y = m_matrix[5];
+	const float& row1Z = m_matrix[9];
+
+	const float& row2X = m_matrix[2];
+	const float& row2Y = m_matrix[6];
+	const float& row2Z = m_matrix[10];
+
+	Vector3 result;
+	result.x = (row0X * rhs.x) + (row0Y * rhs.y) + (row0Z * rhs.z);
+	result.y = (row1X * rhs.x) + (row1Y * rhs.y) + (row1Z * rhs.z);
+	result.z = (row2X * rhs.x) + (row2Y * rhs.y) + (row2Z * rhs.z);
 	return result;
 }
 

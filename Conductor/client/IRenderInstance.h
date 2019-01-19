@@ -16,6 +16,7 @@ class EntityManager;
 }
 
 namespace Input { struct InputMessage; }
+namespace Math { class Frustum; }
 
 namespace Client
 {
@@ -61,6 +62,10 @@ public:
 
 	// Returns the current status of the render instance.
 	virtual Status GetStatus() const = 0;
+
+	// Returns a const reference to the scene view frustum of the renderer.
+	// The reference is valid for the renderer's lifetime.
+	virtual const Math::Frustum& GetSceneViewFrustum() const = 0;
 
 	virtual Status Update() = 0;
 
