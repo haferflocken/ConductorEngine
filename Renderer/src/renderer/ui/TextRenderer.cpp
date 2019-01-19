@@ -291,7 +291,7 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 	encoder.setVertexBuffer(0, font.m_glyphVertexBufferHandle);
 	encoder.setIndexBuffer(indexBuffer);
 	encoder.setUniform(m_colourUniform, &floatColour);
-	encoder.setState(BGFX_STATE_DEFAULT & ~(BGFX_STATE_CULL_CW));
+	encoder.setState(BGFX_STATE_DEFAULT);
 	encoder.submit(viewID, m_program);
 }
 }

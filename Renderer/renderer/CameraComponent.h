@@ -26,7 +26,7 @@ public:
 	virtual ~CameraComponent() {}
 
 	uint16_t m_viewID{ k_sceneViewID };
-	float m_nearDistance{ 0.1f };
+	float m_nearDistance{ 0.02f };
 	float m_farDistance{ 1000.f };
 	float m_verticalFieldOfView{ 60.0f };
 };

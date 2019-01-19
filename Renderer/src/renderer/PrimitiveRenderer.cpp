@@ -91,7 +91,7 @@ void PrimitiveRenderer::DrawQuad(bgfx::Encoder& encoder,
 	encoder.setVertexBuffer(0, g_quadVertexBufferHandle);
 	encoder.setIndexBuffer(g_quadIndexBufferHandle);
 	encoder.setUniform(g_colourUniform, &floatColour);
-	encoder.setState(BGFX_STATE_DEFAULT & ~(BGFX_STATE_CULL_CW));
+	encoder.setState(BGFX_STATE_DEFAULT);
 	encoder.submit(viewID, g_program);
 }
 }
