@@ -9,22 +9,6 @@ namespace Condui
 {
 namespace Internal_TextInputSystem
 {
-bool TryCalcIntersectionWithPlane(const Math::Ray3& ray,
-	const Math::Vector3& planeNormal,
-	const Math::Vector3& pointOnPlane,
-	Math::Vector3& outIntersection)
-{
-	const float denominator = planeNormal.Dot(ray.m_direction);
-	if (denominator > FLT_EPSILON)
-	{
-		const float numerator = planeNormal.Dot(pointOnPlane - ray.m_origin);
-		const float t = numerator / denominator;
-		outIntersection = ray.m_origin + (ray.m_direction * t);
-		return t >= 0.0f;
-	}
-	return false;
-}
-
 // The vertices of the rectangle must be in counterclockwise order, they must form 4 right angles,
 // and the given point must be on the rectangle for this to work.
 bool IsPointWithinRectangle(const Math::Vector3& rectV0,
@@ -109,7 +93,7 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 		const Math::Vector3 normal = unscaledNormal / unscaledNormal.Length();
 
 		Math::Vector3 p;
-		if (!TryCalcIntersectionWithPlane(mouseRay, normal, a, p))
+		if (!mouseRay.TryCalcIntersectionWithPlane(normal, a, p))
 		{
 			continue;
 		}
