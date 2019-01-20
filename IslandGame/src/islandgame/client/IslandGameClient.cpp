@@ -48,36 +48,26 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		auto& cameraTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
 
 		const Math::Matrix4x4 cameraTranslation = Math::Matrix4x4::MakeTranslation(Math::Vector3(0.0f, 0.0f, -5.0f));
+		const Math::Matrix4x4 cameraRotation = Math::Matrix4x4::MakeRotateX(0.5f);
 
-		cameraTransformComponent.m_modelToWorldMatrix = cameraTranslation;
+		cameraTransformComponent.m_modelToWorldMatrix = cameraRotation * cameraTranslation;
 
 		// Create a console and attach it to the camera.
-		Condui::ElementRoot consoleRoot;
-		consoleRoot.m_uiTransform.SetTranslation(Math::Vector3(0.0f, 0.0f, 0.0f));
-		consoleRoot.m_element = Condui::MakeTextInputElement(0.5f, 0.025f,
-			[this](Condui::TextInputComponent& component, const char* text)
-			{
-				if (strcmp(text, "\r") == 0)
-				{
-					// TODO useful commands
-					if (strcmp(component.m_text.c_str(), "yellow") == 0)
-					{
-						component.m_backgroundColour = Image::ColoursARBG::k_yellow;
-					}
-					else if (strcmp(component.m_text.c_str(), "cyan") == 0)
-					{
-						component.m_backgroundColour = Image::ColoursARBG::k_cyan;
-					}
-					component.m_text.clear();
-				}
-				else
-				{
-					Condui::TextInputComponent::DefaultInputHandler(component, text);
-				}
-			}, 1.0f);
+		Collection::VectorMap<const char*, std::function<void(Condui::TextInputComponent&)>> commandMap;
+		commandMap["yellow"] = [](Condui::TextInputComponent& component)
+		{
+			component.m_backgroundColour = Image::ColoursARBG::k_yellow;
+		};
+		commandMap["cyan"] = [](Condui::TextInputComponent& component)
+		{
+			component.m_backgroundColour = Image::ColoursARBG::k_cyan;
+		};
+
+		Condui::ConduiElement consoleElement =
+			Condui::MakeTextInputCommandElement(0.5f, 0.025f, std::move(commandMap), 1.0f);
 
 		ECS::Entity& consoleEntity =
-			Condui::CreateConduiRootEntity(m_gameData.GetEntityInfoManager(), m_entityManager, consoleRoot);
+			Condui::CreateConduiEntity(m_gameData.GetEntityInfoManager(), m_entityManager, std::move(consoleElement));
 		m_entityManager.SetParentEntity(consoleEntity, &cameraEntity);
 
 		auto& consoleTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(consoleEntity);

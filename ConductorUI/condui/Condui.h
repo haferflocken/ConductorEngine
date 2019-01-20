@@ -3,6 +3,7 @@
 #include <collection/Pair.h>
 #include <collection/Variant.h>
 #include <collection/Vector.h>
+#include <collection/VectorMap.h>
 #include <math/Matrix4x4.h>
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
@@ -106,21 +107,31 @@ struct ElementRoot final
  * Functions to create Condui elements in a declarative style.
  */
 ConduiElement MakeTextDisplayElement(const char* const str, const float fontScale = 1.0f);
-ConduiElement MakeTextInputElement(
-	const float xScale, const float yScale, TextInputElement::InputHandler inputHandler, float fontScale = 1.0f);
+ConduiElement MakeTextInputElement(const float xScale,
+	const float yScale,
+	TextInputElement::InputHandler&& inputHandler,
+	const float fontScale = 1.0f);
 ConduiElement MakePanelElement(
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms);
 
 /**
- * Functions to actualize a ConduiElement as an ECS::Entity.
+ * Functions to make Condui elements for specific purposes.
+ */
+ConduiElement MakeTextInputCommandElement(const float xScale,
+	const float yScale,
+	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap,
+	const float fontScale = 1.0f);
+
+/**
+ * Functions to actualize a ConduiElement as an ECS::Entity. These consume the ConduiElement.
  */
 ECS::Entity& CreateConduiEntity(
 	const ECS::EntityInfoManager& entityInfoManager,
 	ECS::EntityManager& entityManager,
-	const ConduiElement& element);
+	ConduiElement&& element);
 
 ECS::Entity& CreateConduiRootEntity(
 	const ECS::EntityInfoManager& entityInfoManager,
 	ECS::EntityManager& entityManager,
-	const ElementRoot& elementRoot);
+	ElementRoot&& elementRoot);
 }

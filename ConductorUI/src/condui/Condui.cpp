@@ -20,12 +20,12 @@ Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, cons
 }
 
 Condui::ConduiElement Condui::MakeTextInputElement(
-	const float xScale, const float yScale, TextInputElement::InputHandler inputHandler, const float fontScale)
+	const float xScale, const float yScale, TextInputElement::InputHandler&& inputHandler, const float fontScale)
 {
 	auto element = ConduiElement::Make<TextInputElement>();
 	TextInputElement& textInputElement = element.Get<TextInputElement>();
 
-	textInputElement.m_inputHandler = inputHandler;
+	textInputElement.m_inputHandler = std::move(inputHandler);
 	textInputElement.m_xScale = xScale;
 	textInputElement.m_yScale = yScale;
 	textInputElement.m_fontScale = fontScale;
@@ -48,29 +48,56 @@ Condui::ConduiElement Condui::MakePanelElement(
 	return element;
 }
 
+Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
+	const float yScale,
+	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap,
+	const float fontScale)
+{
+	TextInputElement::InputHandler commandHandler =
+		[commandsAndHandlers = std::move(commandMap)](TextInputComponent& component, const char* text) mutable
+	{
+		if (strcmp(text, "\r") != 0)
+		{
+			Condui::TextInputComponent::DefaultInputHandler(component, text);
+			return;
+		}
+
+		for (const auto& entry : commandsAndHandlers)
+		{
+			if (strcmp(component.m_text.c_str(), entry.first) == 0)
+			{
+				entry.second(component);
+				break;
+			}
+		}
+		component.m_text.clear();
+	};
+	return MakeTextInputElement(xScale, yScale, std::move(commandHandler), fontScale);
+}
+
 ECS::Entity& Condui::CreateConduiEntity(
 	const ECS::EntityInfoManager& entityInfoManager,
 	ECS::EntityManager& entityManager,
-	const ConduiElement& element)
+	ConduiElement&& element)
 {
 	const Util::StringHash infoNameHash = GetEntityInfoNameHashFor(element);
 	const ECS::EntityInfo& entityInfo = *entityInfoManager.FindEntityInfo(infoNameHash);
 
 	ECS::Entity& entity = entityManager.CreateEntity(entityInfo);
 	element.Match(
-		[&](const TextDisplayElement& textDisplayElement)
+		[&](TextDisplayElement& textDisplayElement)
 		{
 			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(entity);
-			textDisplayComponent.m_string = textDisplayElement.m_string;
+			textDisplayComponent.m_string = std::move(textDisplayElement.m_string);
 			textDisplayComponent.m_fontScale = textDisplayElement.m_fontScale;
 		},
-		[&](const TextInputElement& textInputElement)
+		[&](TextInputElement& textInputElement)
 		{
 			auto& textInputComponent = *entityManager.FindComponent<TextInputComponent>(entity);
-			
+
 			if (textInputElement.m_inputHandler)
 			{
-				textInputComponent.m_inputHandler = textInputElement.m_inputHandler;
+				textInputComponent.m_inputHandler = std::move(textInputElement.m_inputHandler);
 			}
 
 			textInputComponent.m_xScale = textInputElement.m_xScale;
@@ -81,16 +108,17 @@ ECS::Entity& Condui::CreateConduiEntity(
 			sceneTransformComponent.m_childToParentMatrix.SetScale(
 				Math::Vector3(textInputElement.m_xScale, textInputElement.m_yScale, 1.0f));
 		},
-		[&](const PanelElement& panelElement)
+		[&](PanelElement& panelElement)
 		{
 			AMP_FATAL_ASSERT(panelElement.m_children.Size() == panelElement.m_childRelativeTransforms.Size(),
 				"There is an expected 1-to-1 relationship between elements in a panel and their relative transforms.");
 			for (size_t i = 0, iEnd = panelElement.m_children.Size(); i < iEnd; ++i)
 			{
 				const Math::Matrix4x4& transformFromParent = panelElement.m_childRelativeTransforms[i];
-				const ConduiElement& childElement = panelElement.m_children[i];
+				ConduiElement& childElement = panelElement.m_children[i];
 
-				ECS::Entity& childEntity = CreateConduiEntity(entityInfoManager, entityManager, childElement);
+				ECS::Entity& childEntity =
+					CreateConduiEntity(entityInfoManager, entityManager, std::move(childElement));
 				auto& childTransformComponent =
 					*entityManager.FindComponent<Scene::SceneTransformComponent>(childEntity);
 				childTransformComponent.m_childToParentMatrix =
@@ -105,9 +133,9 @@ ECS::Entity& Condui::CreateConduiEntity(
 ECS::Entity& Condui::CreateConduiRootEntity(
 	const ECS::EntityInfoManager& entityInfoManager,
 	ECS::EntityManager& entityManager,
-	const ElementRoot& elementRoot)
+	ElementRoot&& elementRoot)
 {
-	ECS::Entity& entity = CreateConduiEntity(entityInfoManager, entityManager, elementRoot.m_element);
+	ECS::Entity& entity = CreateConduiEntity(entityInfoManager, entityManager, std::move(elementRoot.m_element));
 	auto& transformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
 	transformComponent.m_modelToWorldMatrix = elementRoot.m_uiTransform;
 	return entity;

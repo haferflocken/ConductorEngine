@@ -25,8 +25,8 @@ public:
 	VectorMap(const VectorMap& o) = default;
 	VectorMap& operator=(const VectorMap& rhs) = default;
 
-	VectorMap(VectorMap&& o) = default;
-	VectorMap& operator=(VectorMap&& o) = default;
+	VectorMap(VectorMap&& o);
+	VectorMap& operator=(VectorMap&& o);
 
 	uint32_t Size() const { return m_vector.Size(); }
 	uint32_t Capacity() const { return m_vector.Capacity(); }
@@ -58,6 +58,19 @@ private:
 	// TODO(refactor) separate key and value types into separate vectors
 	Vector<Pair<KeyType, ValueType>> m_vector;
 };
+
+template <typename KeyType, typename ValueType, typename ComparisonType>
+inline VectorMap<KeyType, ValueType, ComparisonType>::VectorMap(VectorMap&& o)
+	: m_vector(std::move(o.m_vector))
+{}
+
+template <typename KeyType, typename ValueType, typename ComparisonType>
+inline VectorMap<KeyType, ValueType, ComparisonType>& VectorMap<KeyType, ValueType, ComparisonType>::operator=(
+	VectorMap&& o)
+{
+	m_vector = std::move(o.m_vector);
+	return *this;
+}
 
 template <typename KeyType, typename ValueType, typename ComparisonType>
 inline ValueType& VectorMap<KeyType, ValueType, ComparisonType>::operator[](const KeyType& key)
