@@ -5,7 +5,7 @@ Amp/Conductor TODO:
 	[ ] Mouse input support
 	[ ] Buttons
 	[ ] Scroll panes
-	[ ] Keyboard input support
+	[x] Keyboard input support
 	[ ] Text boxes
 	
 [ ] Use UnboundedScene as a level format.
@@ -19,13 +19,6 @@ Amp/Conductor TODO:
 	[ ] Save/load default input mapping and user input mapping
 	[ ] Mouse wheel input
 
-[ ] Entity hierarchy: Allow entities to be attached to each other.
-	[x] Add a parent/child relationship to entities and allow components/systems to use this
-	[x] Make SceneTransformComponent aware of parent/child relationships
-	[x] Make UnboundedScene and the chunk system aware of parent/child relationships
-	[x] Make chunks preserve entity IDs. This is required so that parent/child relationships are correctly preserved
-	[ ] Thoroughly test
-
 [ ] Meshes
 	[ ] Decide on a mesh format. Needs to support triangles, UVs, rigs, vertex weights
 	[x] Load static meshes
@@ -34,8 +27,8 @@ Amp/Conductor TODO:
 		[ ] Animate meshes with rigging. Bones are entities so that other entities can easily attach to them.
 
 Renderer TODO:
-[ ] Monospace text rendering
-[ ] Shader program loading and rendering
+[x] Monospace text rendering
+[x] Shader program loading and rendering
 [ ] Texture loading and rendering
 [ ] Render rigged meshes
 
@@ -54,3 +47,9 @@ DONE:
 			This will make it easier for systems to store data about their components outside of their components.
 		[x] Store bgfx data in Renderer::MeshSystem rather than in MeshComponent
 
+[x] Entity hierarchy: Allow entities to be attached to each other.
+	[x] Add a parent/child relationship to entities and allow components/systems to use this
+	[x] Make SceneTransformComponent aware of parent/child relationships
+	[x] Make UnboundedScene and the chunk system aware of parent/child relationships
+	[x] Make chunks preserve entity IDs. This is required so that parent/child relationships are correctly preserved
+	[x] Thoroughly test
