@@ -13,7 +13,7 @@ Amp/Conductor TODO:
 	[x] Test scene of a camera and a mesh
 	[x] Binary chunk format
 	[ ] Remove ComponentInfo; it's redundant with Component
-		[ ] Make behaviour trees load using the asset system
+		[x] Make behaviour trees load using the asset system
 		[ ] Remove ComponentInfo
 	[ ] Remove EntityInfo; it's redundant with Chunk serialization
 	[ ] Basic level editor
