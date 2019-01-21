@@ -2,10 +2,10 @@
 
 #include <asset/AssetManager.h>
 #include <behave/ast/Interpreter.h>
+#include <behave/BehaviourForest.h>
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourTreeComponent.h>
 #include <behave/BehaviourTreeComponentInfo.h>
-#include <behave/BehaviourTreeManager.h>
 #include <behave/BlackboardComponent.h>
 #include <behave/BlackboardComponentInfo.h>
 #include <ecs/ComponentInfoFactory.h>
@@ -31,13 +31,17 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	, m_componentReflector(Mem::MakeUnique<ECS::ComponentReflector>())
 	, m_behaveASTInterpreter(Mem::MakeUnique<Behave::AST::Interpreter>(*m_componentReflector))
 	, m_behaviourNodeFactory(Mem::MakeUnique<Behave::BehaviourNodeFactory>(*m_behaveASTInterpreter))
-	, m_behaviourTreeManager(Mem::MakeUnique<Behave::BehaviourTreeManager>(*m_behaviourNodeFactory))
 	, m_componentInfoFactory(Mem::MakeUnique<ECS::ComponentInfoFactory>())
-	, m_entityInfoManager(Mem::MakeUnique<ECS::EntityInfoManager>(*m_componentInfoFactory, *m_behaviourTreeManager))
+	, m_entityInfoManager(Mem::MakeUnique<ECS::EntityInfoManager>(assetManager, *m_componentInfoFactory))
 {
 	// Register asset types.
 	m_assetManager.RegisterAssetType<Image::Pixel1Image>(&Image::Pixel1Image::TryLoad);
 	m_assetManager.RegisterAssetType<Mesh::StaticMesh>(&Mesh::StaticMesh::TryLoad);
+	m_assetManager.RegisterAssetType<Behave::BehaviourForest>(
+		[&](const File::Path& filePath, Behave::BehaviourForest* destination)
+		{
+			return Behave::BehaviourForest::TryLoad(*m_behaviourNodeFactory, filePath, destination);
+		});
 
 	// Register ECS component types.
 	m_componentReflector->RegisterComponentType<Behave::BehaviourTreeComponent>();
@@ -64,13 +68,9 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 IGameData::~IGameData()
 {
 	// Unregister asset types in the opposite order in which they where registered.
+	m_assetManager.UnregisterAssetType<Behave::BehaviourForest>();
 	m_assetManager.UnregisterAssetType<Mesh::StaticMesh>();
 	m_assetManager.UnregisterAssetType<Image::Pixel1Image>();
-}
-
-void IGameData::LoadBehaviourTreesInDirectory(const File::Path& directory)
-{
-	m_behaviourTreeManager->LoadTreesInDirectory(directory);
 }
 
 void IGameData::LoadEntityInfosInDirectory(const File::Path& directory)

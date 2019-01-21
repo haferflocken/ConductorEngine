@@ -130,12 +130,12 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 			++i;
 			++state.characterInLine;
 		}
-		
+
 		const int64_t indentationDifference = indent - currentIndent;
 		currentIndent = indent;
 
 		if (indentationDifference < 0)
-		{	
+		{
 			for (int64_t j = 0; j > indentationDifference; --j)
 			{
 				outTokens.Emplace(TokenType::Dedent, nullptr, state.lineNumber, state.characterInLine);
@@ -231,7 +231,7 @@ bool ParseNextTokens(TokenizingState& state, Collection::Vector<Token>& outToken
 		}
 		token.m_charsEnd = i;
 	}
-	
+
 	return true;
 }
 
@@ -253,7 +253,7 @@ KeywordType ConvertToKeyword(const char* const strBegin, const char* const strEn
 	{
 		return KeywordType::Tree;
 	}
-	if (strLength == 7 &&  strncmp(strBegin, "success", 7) == 0)
+	if (strLength == 7 && strncmp(strBegin, "success", 7) == 0)
 	{
 		return KeywordType::Success;
 	}
@@ -499,7 +499,7 @@ ParseArgumentListResult ParseArgumentListHelper(ParsingState& state,
 	{
 		state.Increment();
 	}
-	
+
 	return ParseArgumentListResult::Make<Collection::Vector<Expression>>(std::move(arguments));
 }
 
@@ -528,7 +528,7 @@ ParseArgumentListResult ParseArgumentList(ParsingState& state)
 		state.Increment();
 		return ParseArgumentListHelper(state, false, TokenType::NewLine, TokenType::Dedent);
 	}
-	
+
 	return ParseArgumentListResult::Make<SyntaxError>(
 		"Argument lists must be begin with an open parenthesis or an indented new line.",
 		token.m_lineNumber, token.m_characterInLine);
@@ -600,7 +600,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 	state.Increment();
 
 	const Token& token = state.GetCurrentToken();
-	
+
 	switch (token.m_type)
 	{
 	case TokenType::Indent:
@@ -662,7 +662,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 		else if (IsFunctionName(token.m_charsBegin, token.m_charsEnd))
 		{
 			std::string name{ token.m_charsBegin, token.m_charsEnd };
-			
+
 			// If the next token is an open parenthesis, this is a function call expression.
 			// Otherwise, this is a tree identifier.
 			if (!state.HasMoreTokens())
@@ -701,7 +701,7 @@ ParseExpressionResult ParseSingleLineExpression(ParsingState& state)
 				return result;
 			}
 		}
-		
+
 		AMP_FATAL_ASSERT(!IsTreeName(token.m_charsBegin, token.m_charsEnd),
 			"All tree names should be handled by the function name condition.");
 
@@ -792,7 +792,7 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 	state.Increment();
 
 	const Token& token = state.GetCurrentToken();
-	
+
 	switch (token.m_type)
 	{
 	case TokenType::Indent:
@@ -915,21 +915,23 @@ ParseExpressionResult ParseExpression(ParsingState& state)
 }
 
 /**
- * An input contains one or more trees.
+ * An input contains zero or more imports followed by one or more trees.
  *
  * Keywords:
  *   tree, success, failure, true, false
  *
  * Grammar:
+ *   An import is the keyword import followed by a string literal file path.
  *   A tree is the keyword tree, followed by a tree name, followed by the tree's root node on the
  *   next line. The tree keyword must not be indented. The tree's root node must not be indented.
- *   
+ *
  *   A line comment begins with # and continues to the end of that line.
  */
 ParseResult Parser::ParseTrees(const char* const input)
 {
 	using namespace Internal_Parser;
 
+	Collection::Vector<std::string> outImports;
 	Collection::Vector<ParsedTree> outTrees;
 
 	TokenizingState tokenizingState;
@@ -942,9 +944,52 @@ ParseResult Parser::ParseTrees(const char* const input)
 	Collection::Vector<Token> tokens;
 	while (ParseNextTokens(tokenizingState, tokens)) {}
 
-	// Transform the tokens into a ParsedTree.
+	// Parse imports if there are any.
 	ParsingState parsingState{ tokens };
+	while (parsingState.HasMoreTokens() && parsingState.PeekNextToken().m_type == TokenType::Text)
+	{
+		const std::ptrdiff_t tokenLength =
+			parsingState.PeekNextToken().m_charsEnd - parsingState.PeekNextToken().m_charsBegin;
+		if (tokenLength == 6 && strncmp(parsingState.PeekNextToken().m_charsBegin, "import", 6) == 0)
+		{
+			parsingState.Increment();
+			if (!parsingState.HasMoreTokens())
+			{
+				return ParseResult::Make<SyntaxError>("Unexpected end of input encountered.",
+					parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
+			}
 
+			parsingState.Increment();
+			if (parsingState.GetCurrentToken().m_type != TokenType::StringLiteral)
+			{
+				return ParseResult::Make<SyntaxError>("An import path must be a string literal.",
+					parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
+			}
+
+			std::string importPath{
+				parsingState.GetCurrentToken().m_charsBegin, parsingState.GetCurrentToken().m_charsEnd };
+			outImports.Add(std::move(importPath));
+
+			if (!parsingState.HasMoreTokens())
+			{
+				return ParseResult::Make<SyntaxError>("Unexpected end of input encountered.",
+					parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
+			}
+
+			parsingState.Increment();
+			if (parsingState.GetCurrentToken().m_type != TokenType::NewLine)
+			{
+				return ParseResult::Make<SyntaxError>("Imports must be terminated with a new line.",
+					parsingState.GetCurrentToken().m_lineNumber, parsingState.GetCurrentToken().m_characterInLine);
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	// Parse trees.
 	while (parsingState.HasMoreTokens())
 	{
 		// Parse the "tree" keyword, skipping blank lines between trees.
@@ -1046,6 +1091,6 @@ ParseResult Parser::ParseTrees(const char* const input)
 		}
 	}
 
-	return ParseResult::Make<Collection::Vector<ParsedTree>>(std::move(outTrees));
+	return ParseResult::Make<ParsedForest>(std::move(outImports), std::move(outTrees));
 }
 }

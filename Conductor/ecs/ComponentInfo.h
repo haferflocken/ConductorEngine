@@ -3,7 +3,7 @@
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
 
-namespace Behave { class BehaviourTreeManager; }
+namespace Asset { class AssetManager; }
 namespace JSON { class JSONObject; }
 
 namespace ECS

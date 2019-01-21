@@ -1,10 +1,12 @@
 #include <behave/nodes/CallNode.h>
 
+#include <asset/AssetHandle.h>
+
 #include <behave/BehaveContext.h>
+#include <behave/BehaviourForest.h>
 #include <behave/BehaviourNodeState.h>
 #include <behave/BehaviourTree.h>
 #include <behave/BehaviourTreeEvaluator.h>
-#include <behave/BehaviourTreeManager.h>
 #include <behave/parse/BehaveParsedTree.h>
 
 #include <mem/UniquePtr.h>
@@ -24,9 +26,10 @@ public:
 
 	virtual const BehaviourNode* GetNode() const override { return m_node; }
 
-	virtual EvaluateResult Evaluate(ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
-		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
-		const BehaveContext& context) override
+	virtual EvaluateResult Evaluate(const BehaveContext& context,
+		const Collection::Vector<Asset::AssetHandle<BehaviourForest>>& forests,
+		ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) override
 	{
 		// Evaluate will be called twice during the lifetime of a CallBehaviourState.
 		// First, Evaluate is called when the state is first encountered. In this case, m_result is Running,
@@ -36,8 +39,17 @@ public:
 		// the called tree's result in m_result, so we just returns that.
 		if (m_result == EvaluateResult::Running)
 		{
-			const BehaviourTree* const treeToCall =
-				context.m_behaviourTreeManager.FindTree(m_node->GetTreeToCall());
+			const BehaviourTree* treeToCall = nullptr;
+			for (const auto& forestHandle : forests)
+			{
+				const BehaviourForest& forest = *forestHandle.TryGetAsset();
+				treeToCall = forest.FindTree(m_node->GetTreeToCall());
+				if (treeToCall != nullptr)
+				{
+					break;
+				}
+			}
+
 			if (treeToCall == nullptr)
 			{
 				AMP_LOG_WARNING("Failed to resolve \"%s\" into a tree to call.",

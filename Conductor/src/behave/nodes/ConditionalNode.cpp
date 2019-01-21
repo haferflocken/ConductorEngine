@@ -22,9 +22,11 @@ public:
 
 	virtual const BehaviourNode* GetNode() const override { return m_node; }
 
-	virtual EvaluateResult Evaluate(ECS::Entity& entity, BehaviourTreeEvaluator& treeEvaluator,
-		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
-		const BehaveContext& context) override
+	virtual EvaluateResult Evaluate(const BehaveContext& context,
+		const Collection::Vector<Asset::AssetHandle<BehaviourForest>>& forests,
+		ECS::Entity& entity,
+		BehaviourTreeEvaluator& treeEvaluator,
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) override
 	{
 		// If m_childResult is Running, it means that a child has not been evaluated yet.
 		if (m_childResult == EvaluateResult::Running)

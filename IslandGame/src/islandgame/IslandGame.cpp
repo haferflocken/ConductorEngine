@@ -38,7 +38,6 @@ namespace Internal_IslandGame
 constexpr char* k_dataDirectoryParameter = "-datapath";
 constexpr char* k_userGamePath = "Documents/My Games/IslandGame/";
 
-constexpr char* k_behaviourTreesPath = "behaviour_trees";
 constexpr char* k_entityInfosPath = "entity_infos";
 
 constexpr char* k_applicationModeClientParameter = "-client";
@@ -83,7 +82,6 @@ Conductor::GameDataFactory MakeGameDataFactory()
 		Condui::RegisterEntityInfo(
 			gameData->GetEntityInfoManager(), 9, 16, File::MakePath("fonts/Codepage-437-monochome.bmp"));
 
-		gameData->LoadBehaviourTreesInDirectory(dataDirectory / k_behaviourTreesPath);
 		gameData->LoadEntityInfosInDirectory(dataDirectory / k_entityInfosPath);
 		return gameData;
 	};

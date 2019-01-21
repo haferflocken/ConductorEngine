@@ -5,7 +5,6 @@ namespace ECS { class EntityManager; }
 namespace Behave
 {
 namespace AST { class Interpreter; }
-class BehaviourTreeManager;
 
 /**
  * A BehaveContext allows behaviour trees and behaviour systems to access data outside
@@ -15,7 +14,6 @@ class BehaviourTreeManager;
 class BehaveContext
 {
 public:
-	const BehaviourTreeManager& m_behaviourTreeManager;
 	const AST::Interpreter& m_interpreter;
 	ECS::EntityManager& m_entityManager;
 };

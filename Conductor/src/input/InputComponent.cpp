@@ -13,7 +13,7 @@ const Util::StringHash k_inputNamesHash = Util::CalcHash("input_names");
 const Util::StringHash InputComponentInfo::sk_typeHash = Util::CalcHash(sk_typeName);
 
 Mem::UniquePtr<ECS::ComponentInfo> InputComponentInfo::LoadFromJSON(
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
+	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
 {
 	auto outComponentInfo = Mem::MakeUnique<InputComponentInfo>();
 	

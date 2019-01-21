@@ -6,7 +6,7 @@ const Util::StringHash IslandGame::Components::IslanderComponentInfo::sk_typeHas
 	Util::CalcHash(IslanderComponentInfo::sk_typeName);
 
 Mem::UniquePtr<ECS::ComponentInfo> IslandGame::Components::IslanderComponentInfo::LoadFromJSON(
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
+	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
 {
 	return Mem::MakeUnique<IslanderComponentInfo>();
 }

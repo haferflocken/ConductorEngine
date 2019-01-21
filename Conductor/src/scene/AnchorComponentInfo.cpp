@@ -12,7 +12,7 @@ const Util::StringHash k_anchoringRadiusHash = Util::CalcHash("anchoring_radius_
 const Util::StringHash AnchorComponentInfo::sk_typeHash = Util::CalcHash(AnchorComponentInfo::sk_typeName);
 
 Mem::UniquePtr<ECS::ComponentInfo> AnchorComponentInfo::LoadFromJSON(
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
+	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
 {
 	const auto* const maybeAnchoringRadius = jsonObject.FindNumber(Internal_AnchorComponentInfo::k_anchoringRadiusHash);
 	

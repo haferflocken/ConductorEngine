@@ -12,10 +12,10 @@ const Behave::BehaviourTree* Behave::BehaviourTreeEvaluator::GetCurrentTree() co
 	return (!m_callStack.IsEmpty()) ? &m_callStack.Peek()->GetNode()->GetTree() : nullptr;
 }
 
-void Behave::BehaviourTreeEvaluator::Update(
+void Behave::BehaviourTreeEvaluator::Update(const BehaveContext& context,
+	const Collection::Vector<Asset::AssetHandle<BehaviourForest>>& forests,
 	ECS::Entity& entity,
-	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
-	const BehaveContext& context)
+	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions)
 {
 	AMP_FATAL_ASSERT(!m_callStack.IsEmpty(), "Cannot update without a call stack.");
 
@@ -42,7 +42,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 
 	// Update the node states.
 	BehaviourNodeState* nodeState = m_callStack.Peek();
-	EvaluateResult result = nodeState->Evaluate(entity, *this, deferredFunctions, context);
+	EvaluateResult result = nodeState->Evaluate(context, forests, entity, *this, deferredFunctions);
 	while (result != EvaluateResult::Running)
 	{
 		switch (result)
@@ -51,7 +51,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 		{
 			// Immediately evaluate the pushed node.
 			nodeState = m_callStack.Peek();
-			result = nodeState->Evaluate(entity, *this, deferredFunctions, context);
+			result = nodeState->Evaluate(context, forests, entity, *this, deferredFunctions);
 			break;
 		}
 		case EvaluateResult::Success:
@@ -70,7 +70,7 @@ void Behave::BehaviourTreeEvaluator::Update(
 			// Otherwise, immediately evaluate its parent.
 			nodeState = m_callStack.Peek();
 			nodeState->NotifyChildFinished(finishedNode, result);
-			result = nodeState->Evaluate(entity, *this, deferredFunctions, context);
+			result = nodeState->Evaluate(context, forests, entity, *this, deferredFunctions);
 			break;
 		}
 		case EvaluateResult::Return:

@@ -14,8 +14,9 @@ using namespace ECS;
 
 const Util::StringHash k_componentsHash = Util::CalcHash("components");
 
-Mem::UniquePtr<EntityInfo> MakeEntityInfo(const ComponentInfoFactory& componentInfoFactory,
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject,
+Mem::UniquePtr<EntityInfo> MakeEntityInfo(Asset::AssetManager& assetManager,
+	const ComponentInfoFactory& componentInfoFactory,
+	const JSON::JSONObject& jsonObject,
 	const Util::StringHash nameHash)
 {
 	const JSON::JSONArray* const componentsArray = jsonObject.FindArray(k_componentsHash);
@@ -37,7 +38,7 @@ Mem::UniquePtr<EntityInfo> MakeEntityInfo(const ComponentInfoFactory& componentI
 		}
 		const JSON::JSONObject& valueObject = static_cast<const JSON::JSONObject&>(*value);
 		Mem::UniquePtr<ComponentInfo> componentInfo =
-			componentInfoFactory.MakeComponentInfo(behaviourTreeManager, valueObject);
+			componentInfoFactory.MakeComponentInfo(assetManager, valueObject);
 		if (componentInfo == nullptr)
 		{
 			AMP_LOG_WARNING("Failed to make an component info.");
@@ -73,7 +74,7 @@ void ECS::EntityInfoManager::LoadEntityInfosInDirectory(const File::Path& direct
 			const Util::StringHash fileNameHash = Util::CalcHash(fileName.string());
 
 			Mem::UniquePtr<EntityInfo> entityInfo = Internal_EntityInfoManager::MakeEntityInfo(
-				m_componentInfoFactory, m_behaviourTreeManager, jsonObject, fileNameHash);
+				m_assetManager, m_componentInfoFactory, jsonObject, fileNameHash);
 			if (entityInfo != nullptr)
 			{
 				m_entityInfos[fileNameHash] = std::move(*entityInfo);

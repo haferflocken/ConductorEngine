@@ -18,7 +18,7 @@ void Behave::BehaviourTreeEvaluationSystem::Update(
 		auto& behaviourTreeComponent = ecsGroup.Get<Behave::BehaviourTreeComponent>();
 		for (auto& evaluator : behaviourTreeComponent.m_treeEvaluators)
 		{
-			evaluator.Update(entity, deferredFunctions, m_context);
+			evaluator.Update(m_context, behaviourTreeComponent.m_referencedForests, entity, deferredFunctions);
 		}
 
 		// Destroy any evaluators which are no longer running a tree.

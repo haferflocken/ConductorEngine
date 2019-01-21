@@ -25,7 +25,7 @@ void ECS::ComponentInfoFactory::RegisterFactoryFunction(
 }
 
 Mem::UniquePtr<ECS::ComponentInfo> ECS::ComponentInfoFactory::MakeComponentInfo(
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject) const
+	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject) const
 {
 	const JSON::JSONString* const jsonTypeName =
 		jsonObject.FindString(Internal_ComponentInfoFactory::k_typeKeyHash);
@@ -43,5 +43,5 @@ Mem::UniquePtr<ECS::ComponentInfo> ECS::ComponentInfoFactory::MakeComponentInfo(
 		return nullptr;
 	}
 
-	return factoryItr->second(behaviourTreeManager, jsonObject);
+	return factoryItr->second(assetManager, jsonObject);
 }

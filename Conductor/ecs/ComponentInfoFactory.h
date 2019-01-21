@@ -4,7 +4,7 @@
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
 
-namespace Behave { class BehaviourTreeManager; }
+namespace Asset { class AssetManager; }
 namespace JSON { class JSONObject; }
 
 namespace ECS
@@ -17,7 +17,7 @@ class ComponentInfo;
 class ComponentInfoFactory
 {
 public:
-	using FactoryFunction = Mem::UniquePtr<ComponentInfo>(*)(const Behave::BehaviourTreeManager&, const JSON::JSONObject&);
+	using FactoryFunction = Mem::UniquePtr<ComponentInfo>(*)(Asset::AssetManager&, const JSON::JSONObject&);
 
 	ComponentInfoFactory();
 
@@ -25,7 +25,7 @@ public:
 	void RegisterFactoryFunction();
 
 	Mem::UniquePtr<ComponentInfo> MakeComponentInfo(
-		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject) const;
+		Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject) const;
 
 private:
 	void RegisterFactoryFunction(const char* const componentTypeName, FactoryFunction fn);

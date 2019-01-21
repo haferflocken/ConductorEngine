@@ -1,5 +1,8 @@
 EXAMPLE OF SYNTAX
 
+import "dog.behave"
+import "folder/cat.behave"
+
 tree ExampleTree
 domain
 	{ HasComponent($blackboard_component) & GetBool($blackboard_component, "is_alive") }
@@ -27,7 +30,9 @@ domain
 #####################################################################################################################################
 PARSING RULES
 
-	a file contains one or more trees.
+	a file contains zero or more imports followed by one or more trees.
+	an import is the keyword import followed by a string literal file path.
+
 	a tree is the keyword tree, followed by a tree name, followed by the tree's root node on the next line.
 		The tree keyword must not be indented. The tree's root node must not be indented.
 

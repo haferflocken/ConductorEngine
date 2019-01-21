@@ -4,6 +4,17 @@
 
 namespace Behave::Parse
 {
+struct ParsedForest
+{
+	ParsedForest(Collection::Vector<std::string>&& imports, Collection::Vector<ParsedTree>&& parsedTrees)
+		: m_imports(std::move(imports))
+		, m_parsedTrees(std::move(parsedTrees))
+	{}
+
+	Collection::Vector<std::string> m_imports;
+	Collection::Vector<ParsedTree> m_parsedTrees;
+};
+
 struct SyntaxError
 {
 	explicit SyntaxError(const char* message, int32_t lineNumber, int32_t characterInLine)
@@ -22,8 +33,7 @@ struct SyntaxError
 	int32_t m_lineNumber;
 	int32_t m_characterInLine;
 };
-
-using ParseResult = Collection::Variant<Collection::Vector<ParsedTree>, SyntaxError>;
+using ParseResult = Collection::Variant<ParsedForest, SyntaxError>;
 
 namespace Parser
 {

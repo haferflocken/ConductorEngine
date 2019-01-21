@@ -1,5 +1,7 @@
 #pragma once
 
+#include <asset/AssetHandle.h>
+#include <behave/BehaviourForest.h>
 #include <behave/BehaviourTreeEvaluator.h>
 #include <ecs/Component.h>
 
@@ -31,6 +33,7 @@ public:
 
 	virtual ~BehaviourTreeComponent() {}
 
-	Collection::Vector<Behave::BehaviourTreeEvaluator> m_treeEvaluators;
+	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_referencedForests;
+	Collection::Vector<BehaviourTreeEvaluator> m_treeEvaluators;
 };
 }

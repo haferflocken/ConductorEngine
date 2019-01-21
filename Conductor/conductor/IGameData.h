@@ -10,7 +10,6 @@ namespace Asset { class AssetManager; }
 namespace Behave
 {
 class BehaviourNodeFactory;
-class BehaviourTreeManager;
 }
 
 namespace Behave::AST
@@ -52,7 +51,6 @@ public:
 
 	const Behave::AST::Interpreter& GetBehaveASTInterpreter() const { return *m_behaveASTInterpreter; }
 	const Behave::BehaviourNodeFactory& GetBehaviourNodeFactory() const { return *m_behaviourNodeFactory; }
-	const Behave::BehaviourTreeManager& GetBehaviourTreeManager() const { return *m_behaviourTreeManager; }
 
 	ECS::ComponentInfoFactory& GetComponentInfoFactory() { return *m_componentInfoFactory; }
 	const ECS::ComponentInfoFactory& GetComponentInfoFactory() const { return *m_componentInfoFactory; }
@@ -60,7 +58,6 @@ public:
 	ECS::EntityInfoManager& GetEntityInfoManager() { return *m_entityInfoManager; }
 	const ECS::EntityInfoManager& GetEntityInfoManager() const { return *m_entityInfoManager; }
 
-	void LoadBehaviourTreesInDirectory(const File::Path& directory);
 	void LoadEntityInfosInDirectory(const File::Path& directory);
 
 protected:
@@ -73,7 +70,6 @@ protected:
 
 	Mem::UniquePtr<Behave::AST::Interpreter> m_behaveASTInterpreter;
 	Mem::UniquePtr<Behave::BehaviourNodeFactory> m_behaviourNodeFactory;
-	Mem::UniquePtr<Behave::BehaviourTreeManager> m_behaviourTreeManager;
 
 	Mem::UniquePtr<ECS::ComponentInfoFactory> m_componentInfoFactory;
 	Mem::UniquePtr<ECS::EntityInfoManager> m_entityInfoManager;

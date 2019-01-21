@@ -1,2 +1,4 @@
+import "behaviour_trees/test.behave"
+
 tree TestCall
 call(TestTree)

@@ -5,7 +5,7 @@
 #include <file/Path.h>
 #include <util/StringHash.h>
 
-namespace Behave { class BehaviourTreeManager; }
+namespace Asset { class AssetManager; }
 namespace JSON { class JSONObject; }
 
 namespace ECS
@@ -18,10 +18,9 @@ class ComponentInfoFactory;
 class EntityInfoManager
 {
 public:
-	EntityInfoManager(const ComponentInfoFactory& componentInfoFactory,
-		const Behave::BehaviourTreeManager& treeManager)
-		: m_componentInfoFactory(componentInfoFactory)
-		, m_behaviourTreeManager(treeManager)
+	EntityInfoManager(Asset::AssetManager& assetManager, const ComponentInfoFactory& componentInfoFactory)
+		: m_assetManager(assetManager)
+		, m_componentInfoFactory(componentInfoFactory)
 		, m_entityInfos()
 	{}
 
@@ -32,8 +31,9 @@ public:
 	const EntityInfo* FindEntityInfo(const Util::StringHash entityInfoNameHash) const;
 
 private:
+	Asset::AssetManager& m_assetManager;
 	const ComponentInfoFactory& m_componentInfoFactory;
-	const Behave::BehaviourTreeManager& m_behaviourTreeManager;
+
 	Collection::VectorMap<Util::StringHash, EntityInfo> m_entityInfos;
 };
 }

@@ -12,7 +12,7 @@ public:
 	static const Util::StringHash sk_typeHash;
 
 	static Mem::UniquePtr<ComponentInfo> LoadFromJSON(
-		const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject);
+		Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject);
 
 	SceneSaveComponentInfo() = default;
 	virtual ~SceneSaveComponentInfo() = default;

@@ -22,7 +22,6 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 		Util::CalcHash("mouse_y"));
 
 	const Behave::BehaveContext context{
-		m_gameData.GetBehaviourTreeManager(),
 		m_gameData.GetBehaveASTInterpreter(),
 		m_entityManager };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));

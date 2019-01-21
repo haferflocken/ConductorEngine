@@ -8,7 +8,7 @@ namespace Condui
 const Util::StringHash TextInputComponentInfo::sk_typeHash = Util::CalcHash(TextInputComponentInfo::sk_typeName);
 
 Mem::UniquePtr<ECS::ComponentInfo> TextInputComponentInfo::LoadFromJSON(
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
+	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
 {
 	return Mem::MakeUnique<TextInputComponentInfo>();
 }

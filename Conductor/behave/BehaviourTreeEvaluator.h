@@ -4,16 +4,23 @@
 #include <collection/Vector.h>
 #include <ecs/EntityID.h>
 
+namespace Asset
+{
+template <typename TAsset>
+class AssetHandle;
+}
+
 namespace ECS
 {
-	class Entity;
-	class EntityManager;
+class Entity;
+class EntityManager;
 }
 
 namespace Behave
 {
 class BehaveContext;
 class BehaviourCondition;
+class BehaviourForest;
 class BehaviourNodeState;
 class BehaviourTree;
 
@@ -53,9 +60,11 @@ public:
 
 	Collection::PolyStack<BehaviourNodeState>& GetCallStack() { return m_callStack; }
 	Collection::Vector<DomainEntry>& GetDomainStack() { return m_domainStack; }
-	
-	void Update(ECS::Entity& entity, Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions,
-		const BehaveContext& context);
+
+	void Update(const BehaveContext& context,
+		const Collection::Vector<Asset::AssetHandle<BehaviourForest>>& forests,
+		ECS::Entity& entity,
+		Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions);
 
 private:
 	Collection::PolyStack<BehaviourNodeState> m_callStack;

@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="src\behave\BehaviourCondition.cpp" />
     <ClCompile Include="src\behave\ast\Interpreter.cpp" />
+    <ClCompile Include="src\behave\BehaviourForest.cpp" />
     <ClCompile Include="src\behave\nodes\DoNode.cpp" />
     <ClCompile Include="src\behave\nodes\RepeatNode.cpp" />
     <ClCompile Include="src\behave\parse\BehaviourTreeParser.cpp" />
@@ -169,7 +170,6 @@
     <ClCompile Include="src\behave\BehaviourNodeFactory.cpp" />
     <ClCompile Include="src\behave\BehaviourTree.cpp" />
     <ClCompile Include="src\behave\BehaviourTreeEvaluator.cpp" />
-    <ClCompile Include="src\behave\BehaviourTreeManager.cpp" />
     <ClCompile Include="src\behave\Blackboard.cpp" />
     <ClCompile Include="src\behave\BehaviourTreeComponent.cpp" />
     <ClCompile Include="src\behave\BehaviourTreeComponentInfo.cpp" />
@@ -213,6 +213,7 @@
     <ClInclude Include="behave\ast\ExpressionResultType.h" />
     <ClInclude Include="behave\ast\Interpreter.h" />
     <ClInclude Include="behave\ast\ASTTypes.h" />
+    <ClInclude Include="behave\BehaviourForest.h" />
     <ClInclude Include="behave\nodes\DoNode.h" />
     <ClInclude Include="behave\nodes\RepeatNode.h" />
     <ClInclude Include="behave\parse\BehaveParsedTree.h" />
@@ -246,7 +247,6 @@
     <ClInclude Include="ecs\System.h" />
     <ClInclude Include="behave\BehaviourTree.h" />
     <ClInclude Include="behave\BehaviourTreeEvaluator.h" />
-    <ClInclude Include="behave\BehaviourTreeManager.h" />
     <ClInclude Include="behave\BehaviourNode.h" />
     <ClInclude Include="behave\Blackboard.h" />
     <ClInclude Include="behave\BehaviourTreeComponent.h" />

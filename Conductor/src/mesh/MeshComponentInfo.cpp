@@ -12,7 +12,7 @@ const Util::StringHash k_meshFilePathHash = Util::CalcHash("mesh_file_path");
 const Util::StringHash MeshComponentInfo::sk_typeHash = Util::CalcHash(MeshComponentInfo::sk_typeName);
 
 Mem::UniquePtr<ECS::ComponentInfo> MeshComponentInfo::LoadFromJSON(
-	const Behave::BehaviourTreeManager& behaviourTreeManager, const JSON::JSONObject& jsonObject)
+	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
 {
 	const JSON::JSONString* const meshFilePath = jsonObject.FindString(Internal_MeshComponentInfo::k_meshFilePathHash);
 	if (meshFilePath == nullptr)
