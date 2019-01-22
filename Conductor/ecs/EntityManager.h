@@ -40,7 +40,10 @@ public:
 	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector, bool transmitsState);
 	~EntityManager();
 
-	Entity& CreateEntity(const EntityInfo& entityInfo, const EntityID requestedID = EntityID());
+	Entity& CreateEntityWithComponents(const Collection::ArrayView<const ComponentType>& componentTypes,
+		const EntityID requestedID = EntityID());
+	Entity& CreateEntityFromFullSerialization(
+		const uint8_t*& entityBytes, const uint8_t* entityBytesEnd, const EntityID requestedID = EntityID());
 	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
 
@@ -98,8 +101,12 @@ private:
 	};
 
 	template <typename SystemType> struct SystemTypeFunctions;
+
+	// Access a ComponentVector, initializing it if necessary. Returns null for tag components.
+	ComponentVector* GetComponentVector(const ComponentType componentType);
 	
 	// Add a component to an entity.
+	void AddComponentToEntity(const ComponentType componentType, Entity& entity);
 	void AddComponentToEntity(
 		const ComponentType componentType, const uint8_t*& bytes, const uint8_t* bytesEnd, Entity& entity);
 	// Remove a component from this EntityManager. Does not remove it from the entity referencing it.
@@ -111,6 +118,7 @@ private:
 	void AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd);
 	void RemoveECSPointersFromSystems(Entity& entity);
 	
+private:
 	// Components that load resources from disk use the AssetManager to do so efficiently.
 	Asset::AssetManager& m_assetManager;
 

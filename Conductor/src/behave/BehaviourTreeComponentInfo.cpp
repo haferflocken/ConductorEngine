@@ -14,7 +14,8 @@ const Util::StringHash k_behaviourTreesHash = Util::CalcHash("behaviour_trees");
 const Util::StringHash Behave::BehaviourTreeComponentInfo::sk_typeHash =
 	Util::CalcHash(BehaviourTreeComponentInfo::sk_typeName);
 
-Mem::UniquePtr<ECS::ComponentInfo> Behave::BehaviourTreeComponentInfo::LoadFromJSON(Asset::AssetManager& assetManager,
+Mem::UniquePtr<Behave::BehaviourTreeComponentInfo> Behave::BehaviourTreeComponentInfo::LoadFromJSON(
+	Asset::AssetManager& assetManager,
 	const JSON::JSONObject& jsonObject)
 {
 	using namespace Internal_BehaviourTreeComponentInfo;

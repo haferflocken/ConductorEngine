@@ -24,10 +24,9 @@ public:
 
 	Entity() = default;
 
-	explicit Entity(const EntityID& id, const Util::StringHash infoNameHash)
+	explicit Entity(const EntityID& id)
 		: m_id(id)
 		, m_componentIDs()
-		, m_infoNameHash(infoNameHash)
 	{}
 
 	Entity(const Entity&) = delete;
@@ -42,7 +41,6 @@ public:
 	const Entity* GetParent() const { return m_parent; }
 	Collection::ArrayView<const Entity* const> GetChildren() const { return m_children.GetView(); }
 	const Collection::Vector<ComponentID>& GetComponentIDs() const { return m_componentIDs; }
-	const Util::StringHash& GetInfoNameHash() const { return m_infoNameHash; }
 
 	template <typename TComponent>
 	ComponentID FindComponentID() const;
@@ -52,7 +50,7 @@ public:
 private:
 	friend class EntityManager;
 
-	uint8_t m_padding[12];
+	uint8_t m_padding[18];
 
 	// A unique ID for this entity.
 	EntityID m_id;
@@ -64,9 +62,6 @@ private:
 
 	// The components this entity is composed of.
 	Collection::Vector<ComponentID> m_componentIDs;
-
-	// The hash of the EntityInfo this entity was created from.
-	Util::StringHash m_infoNameHash;
 };
 
 template <typename TComponent>

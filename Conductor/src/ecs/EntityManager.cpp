@@ -54,7 +54,9 @@ EntityManager::~EntityManager()
 	m_concurrentSystemGroups.Clear();
 }
 
-Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID requestedID)
+
+Entity& EntityManager::CreateEntityWithComponents(const Collection::ArrayView<const ComponentType>& componentTypes,
+	const EntityID requestedID)
 {
 	// Determine the entity's ID.
 	EntityID entityID;
@@ -73,12 +75,12 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID
 	}
 
 	// Create the entity.
-	Entity& entity = m_entities.Emplace(entityID, entityID, entityInfo.m_nameHash);
+	Entity& entity = m_entities.Emplace(entityID, entityID);
 
-	// Create the entity's components using our component reflector.
-	for (const auto& componentInfo : entityInfo.m_componentInfos)
+	// Create the entity's components.
+	for (const auto& componentType : componentTypes)
 	{
-		AddComponentToEntity(*componentInfo, entity);
+		AddComponentToEntity(componentType, entity);
 	}
 
 	// Add the entity to the system execution groups.
@@ -92,6 +94,13 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID
 
 	// Return the entity after it is fully initialized.
 	return entity;
+}
+
+Entity& EntityManager::CreateEntityFromFullSerialization(
+	const uint8_t*& entityBytes, const uint8_t* entityBytesEnd, const EntityID requestedID)
+{
+	// TODO(info) actually write this!!
+	return CreateEntityWithComponents({ nullptr, 0 }, requestedID);
 }
 
 void EntityManager::SetParentEntity(Entity& entity, Entity* parentEntity)
@@ -341,10 +350,10 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 			}
 
 			Mem::Serialize(entityID.GetUniqueID(), transmissionBytes);
-			Mem::Serialize(Util::ReverseHash(entity->GetInfoNameHash()), transmissionBytes);
 			Mem::Serialize(entity->GetComponentIDs().Size(), transmissionBytes);
 			for (const auto& componentID : entity->GetComponentIDs())
 			{
+				Mem::Serialize(Util::ReverseHash(componentID.GetType().GetTypeHash()), transmissionBytes);
 				Mem::Serialize(componentID.GetUniqueID(), transmissionBytes);
 			}
 		}
@@ -556,13 +565,6 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		{
 			const EntityID entityID{ maybeEntityID.first };
 
-			char infoNameBuffer[64];
-			if (!Mem::DeserializeString(iter, iterEnd, infoNameBuffer))
-			{
-				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
-			}
-			const Util::StringHash infoNameHash = Util::CalcHash(infoNameBuffer);
-
 			const auto maybeNumComponents = Mem::DeserializeUi32(iter, iterEnd);
 			if (!maybeNumComponents.second)
 			{
@@ -578,6 +580,14 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 
 			for (size_t i = 0; i < numComponents; ++i)
 			{
+				char componentTypeNameBuffer[64];
+				if (!Mem::DeserializeString(iter, iterEnd, componentTypeNameBuffer))
+				{
+					return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+				}
+				const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeNameBuffer);
+				// TODO(network) what should happen if the components on an entity change?
+
 				const auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 				if (!maybeComponentID.second)
 				{
@@ -635,13 +645,6 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			//	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_EntityAddedOutOfOrder>();
 			//}
 
-			char infoNameBuffer[64];
-			if (!Mem::DeserializeString(iter, iterEnd, infoNameBuffer))
-			{
-				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
-			}
-			const Util::StringHash infoNameHash = Util::CalcHash(infoNameBuffer);
-
 			const auto maybeNumComponents = Mem::DeserializeUi32(iter, iterEnd);
 			if (!maybeNumComponents.second)
 			{
@@ -649,10 +652,18 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			}
 			const uint32_t numComponents = maybeNumComponents.first;
 
-			Entity& entity = m_entities.Emplace(entityID, entityID, infoNameHash);
+			Entity& entity = m_entities.Emplace(entityID, entityID);
 
 			for (size_t i = 0; i < numComponents; ++i)
 			{
+				char componentTypeNameBuffer[64];
+				if (!Mem::DeserializeString(iter, iterEnd, componentTypeNameBuffer))
+				{
+					return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+				}
+				const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeNameBuffer);
+				// TODO(network) what should happen if the components on an entity change?
+
 				const auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 				if (!maybeComponentID.second)
 				{
@@ -689,37 +700,71 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_Success>();
 }
 
+ComponentVector* EntityManager::GetComponentVector(const ComponentType componentType)
+{
+	// Components with size 0 are tag components and are never instantiated.
+	const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
+	if (componentSize.GetN() == 0)
+	{
+		return nullptr;
+	}
+
+	ComponentVector& componentVector = m_components[componentType];
+	if (componentVector.GetComponentType() == ComponentType())
+	{
+		// This is a type that has not yet been encountered and therefore must be initialized.
+		const Unit::ByteCount64 componentAlignment = m_componentReflector.GetAlignOfComponentInBytes(componentType);
+
+		componentVector = ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
+
+		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
+		{
+			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
+			AMP_FATAL_ASSERT(bufferedComponentVector.GetComponentType() == ComponentType(),
+				"A buffered component vector was created too early.");
+			bufferedComponentVector =
+				ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
+		}
+	}
+	AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
+		"Mismatch between component vector type and the key it is stored at.");
+
+	return &componentVector;
+}
+
+void EntityManager::AddComponentToEntity(const ComponentType componentType, Entity& entity)
+{
+	const ComponentID componentID{ componentType, m_nextComponentID };
+
+	ComponentVector* const componentVector = GetComponentVector(componentType);
+	if (componentVector != nullptr)
+	{
+		if (!m_componentReflector.TryBasicConstructComponent(componentID, *componentVector))
+		{
+			AMP_LOG_WARNING("Failed to create component of type [%s].", Util::ReverseHash(componentType.GetTypeHash()));
+			return;
+		}
+	}
+
+	++m_nextComponentID;
+	entity.m_componentIDs.Add(componentID);
+
+	// If we can transmit state, track the newly added component.
+	if (m_transmissionBuffers != nullptr)
+	{
+		m_transmissionBuffers->m_componentsAddedSinceLastTransmission.Add(componentID);
+	}
+}
+
 void EntityManager::AddComponentToEntity(
 	const ComponentType componentType, const uint8_t*& bytes, const uint8_t* bytesEnd, Entity& entity)
 {
 	const ComponentID componentID{ componentType, m_nextComponentID };
 
-	const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
-
-	// Components with size 0 are tag components and are not instantiated.
-	if (componentSize.GetN() > 0)
+	ComponentVector* const componentVector = GetComponentVector(componentType);
+	if (componentVector != nullptr)
 	{
-		ComponentVector& componentVector = m_components[componentType];
-		if (componentVector.GetComponentType() == ComponentType())
-		{
-			// This is a type that has not yet been encountered and therefore must be initialized.
-			const Unit::ByteCount64 componentAlignment = m_componentReflector.GetAlignOfComponentInBytes(componentType);
-
-			componentVector = ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
-
-			if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
-			{
-				ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
-				AMP_FATAL_ASSERT(bufferedComponentVector.GetComponentType() == ComponentType(),
-					"A buffered component vector was created too early.");
-				bufferedComponentVector =
-					ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
-			}
-		}
-		AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
-			"Mismatch between component vector type and the key it is stored at.");
-
-		if (!m_componentReflector.TryMakeComponent(m_assetManager, bytes, bytesEnd, componentID, componentVector))
+		if (!m_componentReflector.TryMakeComponent(m_assetManager, bytes, bytesEnd, componentID, *componentVector))
 		{
 			AMP_LOG_WARNING("Failed to create component of type [%s].", Util::ReverseHash(componentType.GetTypeHash()));
 			return;

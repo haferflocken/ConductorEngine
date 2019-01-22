@@ -4,10 +4,12 @@
 
 #include <dev/Dev.h>
 
-ECS::ComponentReflector::ComponentReflector()
+namespace ECS
+{
+ComponentReflector::ComponentReflector()
 {}
 
-void ECS::ComponentReflector::RegisterComponentType(const char* const componentTypeName,
+void ComponentReflector::RegisterComponentType(const char* const componentTypeName,
 	const Util::StringHash componentTypeHash,
 	const Unit::ByteCount64 sizeOfComponent,
 	const Unit::ByteCount64 alignOfComponent,
@@ -18,24 +20,24 @@ void ECS::ComponentReflector::RegisterComponentType(const char* const componentT
 	AMP_FATAL_ASSERT(componentTypeHash == Util::CalcHash(componentTypeName),
 		"Mismatch between component type hash and component type name for component with type name \"%s\".",
 		componentTypeName);
-	
+
 	AMP_FATAL_ASSERT(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
 		&& m_componentAlignmentsInBytes.Find(componentType) == m_componentAlignmentsInBytes.end()
 		&& m_mandatoryComponentFunctions.Find(componentType) == m_mandatoryComponentFunctions.end()
 		&& m_transmissionFunctions.Find(componentType) == m_transmissionFunctions.end(),
 		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
-	
+
 	m_componentSizesInBytes[componentType] = sizeOfComponent;
 	m_componentAlignmentsInBytes[componentType] = alignOfComponent;
 	m_mandatoryComponentFunctions[componentType] = mandatoryFunctions;
 }
 
-bool ECS::ComponentReflector::IsRegistered(const ComponentType componentType) const
+bool ComponentReflector::IsRegistered(const ComponentType componentType) const
 {
 	return (m_componentSizesInBytes.Find(componentType) != m_componentSizesInBytes.end());
 }
 
-Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(const ComponentType componentType) const
+Unit::ByteCount64 ComponentReflector::GetSizeOfComponentInBytes(const ComponentType componentType) const
 {
 	const auto sizeItr = m_componentSizesInBytes.Find(componentType);
 	if (sizeItr == m_componentSizesInBytes.end())
@@ -48,7 +50,7 @@ Unit::ByteCount64 ECS::ComponentReflector::GetSizeOfComponentInBytes(const Compo
 	return sizeItr->second;
 }
 
-Unit::ByteCount64 ECS::ComponentReflector::GetAlignOfComponentInBytes(const ComponentType componentType) const
+Unit::ByteCount64 ComponentReflector::GetAlignOfComponentInBytes(const ComponentType componentType) const
 {
 	const auto alignItr = m_componentAlignmentsInBytes.Find(componentType);
 	if (alignItr == m_componentAlignmentsInBytes.end())
@@ -61,7 +63,21 @@ Unit::ByteCount64 ECS::ComponentReflector::GetAlignOfComponentInBytes(const Comp
 	return alignItr->second;
 }
 
-bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager,
+bool ComponentReflector::TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const
+{
+	const auto iter = m_mandatoryComponentFunctions.Find(reservedID.GetType());
+	if (iter == m_mandatoryComponentFunctions.end())
+	{
+		AMP_LOG_WARNING("Failed to find a factory function for component type \"%s\".",
+			Util::ReverseHash(reservedID.GetType().GetTypeHash()));
+		return false;
+	}
+
+	iter->second.m_basicConstructFunction(reservedID, destination);
+	return true;
+}
+
+bool ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager,
 	const uint8_t*& bytes,
 	const uint8_t* bytesEnd,
 	const ComponentID reservedID,
@@ -79,7 +95,7 @@ bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager
 		assetManager, bytes, bytesEnd, reservedID, destination);
 }
 
-void ECS::ComponentReflector::DestroyComponent(Component& component) const
+void ComponentReflector::DestroyComponent(Component& component) const
 {
 	const auto iter = m_mandatoryComponentFunctions.Find(component.m_id.GetType());
 	AMP_FATAL_ASSERT(iter != m_mandatoryComponentFunctions.end(),
@@ -89,7 +105,7 @@ void ECS::ComponentReflector::DestroyComponent(Component& component) const
 	iter->second.m_destructorFunction(component);
 }
 
-void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
+void ComponentReflector::SwapComponents(Component& a, Component& b) const
 {
 	const auto iter = m_mandatoryComponentFunctions.Find(a.m_id.GetType());
 	AMP_FATAL_ASSERT(iter != m_mandatoryComponentFunctions.end()
@@ -100,12 +116,12 @@ void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 	iter->second.m_swapFunction(a, b);
 }
 
-bool ECS::ComponentReflector::IsNetworkedComponent(const ComponentType componentType) const
+bool ComponentReflector::IsNetworkedComponent(const ComponentType componentType) const
 {
 	return (m_transmissionFunctions.Find(componentType) != m_transmissionFunctions.end());
 }
 
-const ECS::ComponentReflector::MandatoryComponentFunctions& ECS::ComponentReflector::FindComponentFunctions(
+const ComponentReflector::MandatoryComponentFunctions& ECS::ComponentReflector::FindComponentFunctions(
 	const ComponentType componentType) const
 {
 	const auto iter = m_mandatoryComponentFunctions.Find(componentType);
@@ -116,7 +132,7 @@ const ECS::ComponentReflector::MandatoryComponentFunctions& ECS::ComponentReflec
 	return iter->second;
 }
 
-const ECS::ComponentReflector::TransmissionFunctions* ECS::ComponentReflector::FindTransmissionFunctions(
+const ComponentReflector::TransmissionFunctions* ECS::ComponentReflector::FindTransmissionFunctions(
 	const ComponentType componentType) const
 {
 	const auto transmissionItr = m_transmissionFunctions.Find(componentType);
@@ -125,4 +141,5 @@ const ECS::ComponentReflector::TransmissionFunctions* ECS::ComponentReflector::F
 		return &transmissionItr->second;
 	}
 	return nullptr;
+}
 }

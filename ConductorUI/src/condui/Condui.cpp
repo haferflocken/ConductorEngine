@@ -3,10 +3,8 @@
 #include <condui/ConduiECSRegistration.h>
 #include <condui/TextDisplayComponent.h>
 #include <condui/TextInputComponent.h>
-#include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, const float fontScale)
 {
@@ -75,10 +73,7 @@ Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
 	return MakeTextInputElement(xScale, yScale, std::move(commandHandler), fontScale);
 }
 
-ECS::Entity& Condui::CreateConduiEntity(
-	const ECS::EntityInfoManager& entityInfoManager,
-	ECS::EntityManager& entityManager,
-	ConduiElement&& element)
+ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, ConduiElement&& element)
 {
 	const Util::StringHash infoNameHash = GetEntityInfoNameHashFor(element);
 	const ECS::EntityInfo& entityInfo = *entityInfoManager.FindEntityInfo(infoNameHash);
@@ -117,8 +112,7 @@ ECS::Entity& Condui::CreateConduiEntity(
 				const Math::Matrix4x4& transformFromParent = panelElement.m_childRelativeTransforms[i];
 				ConduiElement& childElement = panelElement.m_children[i];
 
-				ECS::Entity& childEntity =
-					CreateConduiEntity(entityInfoManager, entityManager, std::move(childElement));
+				ECS::Entity& childEntity = CreateConduiEntity(entityManager, std::move(childElement));
 				auto& childTransformComponent =
 					*entityManager.FindComponent<Scene::SceneTransformComponent>(childEntity);
 				childTransformComponent.m_childToParentMatrix =
@@ -130,12 +124,9 @@ ECS::Entity& Condui::CreateConduiEntity(
 	return entity;
 }
 
-ECS::Entity& Condui::CreateConduiRootEntity(
-	const ECS::EntityInfoManager& entityInfoManager,
-	ECS::EntityManager& entityManager,
-	ElementRoot&& elementRoot)
+ECS::Entity& Condui::CreateConduiRootEntity(ECS::EntityManager& entityManager, ElementRoot&& elementRoot)
 {
-	ECS::Entity& entity = CreateConduiEntity(entityInfoManager, entityManager, std::move(elementRoot.m_element));
+	ECS::Entity& entity = CreateConduiEntity(entityManager, std::move(elementRoot.m_element));
 	auto& transformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
 	transformComponent.m_modelToWorldMatrix = elementRoot.m_uiTransform;
 	return entity;

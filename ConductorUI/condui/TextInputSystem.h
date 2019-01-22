@@ -4,7 +4,6 @@
 #include <ecs/System.h>
 #include <math/Vector2.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 namespace ECS { class EntityID; }
 

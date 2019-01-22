@@ -2,7 +2,6 @@
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>
-#include <mesh/MeshComponentInfo.h>
 
 namespace Mesh
 {

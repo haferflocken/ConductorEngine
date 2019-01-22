@@ -51,12 +51,12 @@ void ECS::ComponentVector::Clear()
 {
 	if (m_componentReflector != nullptr)
 	{
-		const auto destructorFn = m_componentReflector->FindDestructorFunction(m_componentType);
+		const auto& componentFunctions = m_componentReflector->FindComponentFunctions(m_componentType);
 		for (size_t i = 0, n = m_keyLookup.GetNumBuckets(); i < n; ++i)
 		{
 			for (auto&& componentPtr : m_keyLookup.GetBucketViewAt(i).m_values)
 			{
-				destructorFn(*componentPtr);
+				componentFunctions.m_destructorFunction(*componentPtr);
 				m_allocator.Free(componentPtr);
 			}
 		}
@@ -112,7 +112,7 @@ void ECS::ComponentVector::Remove(const ComponentID id)
 
 void ECS::ComponentVector::RemoveSorted(const Collection::ArrayView<const uint64_t> ids)
 {
-	const auto destructorFn = m_componentReflector->FindDestructorFunction(m_componentType);
+	const auto componentFunctions = m_componentReflector->FindComponentFunctions(m_componentType);
 
 	Component* component = nullptr;
 	for (auto&& componentIDValue : ids)
@@ -124,7 +124,7 @@ void ECS::ComponentVector::RemoveSorted(const Collection::ArrayView<const uint64
 			return;
 		}
 
-		destructorFn(*component);
+		componentFunctions.m_destructorFunction(*component);
 		m_allocator.Free(component);
 	}
 }

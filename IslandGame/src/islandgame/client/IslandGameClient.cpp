@@ -6,10 +6,8 @@
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <condui/Condui.h>
 #include <condui/TextInputComponent.h>
-#include <ecs/EntityInfoManager.h>
 #include <scene/RelativeTransformSystem.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 IslandGame::Client::IslandGameClient::IslandGameClient(
 	const IslandGameData& gameData, ::Client::ConnectedHost& connectedHost)

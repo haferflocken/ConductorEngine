@@ -5,7 +5,6 @@
 #include <behave/BehaviourForest.h>
 #include <behave/BehaviourNodeFactory.h>
 #include <behave/BehaviourTreeComponent.h>
-#include <behave/BehaviourTreeComponentInfo.h>
 #include <behave/BlackboardComponent.h>
 #include <ecs/ComponentReflector.h>
 #include <image/Pixel1Image.h>

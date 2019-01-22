@@ -2,7 +2,6 @@
 
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeComponent.h>
-#include <behave/BehaviourTreeComponentInfo.h>
 #include <ecs/Entity.h>
 #include <ecs/System.h>
 

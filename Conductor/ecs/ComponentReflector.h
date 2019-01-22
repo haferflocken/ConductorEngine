@@ -17,7 +17,7 @@ class ComponentVector;
 /**
  * Reflects functions of components using templates and storing function pointers. This is used to provide
  * more type safety and more flexible interfaces for components than is straightforwardly possible with virtual
- * function interfaces.
+ * function interfaces. Additionally, it removes the need for components to have a vtable pointer.
  * Component types can be registered using RegisterComponentType().
  */
 class ComponentReflector final
@@ -84,6 +84,7 @@ public:
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
 	Unit::ByteCount64 GetAlignOfComponentInBytes(const ComponentType componentType) const;
 
+	bool TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const;
 	bool TryMakeComponent(Asset::AssetManager& assetManager,
 		const uint8_t*& bytes,
 		const uint8_t* bytesEnd,

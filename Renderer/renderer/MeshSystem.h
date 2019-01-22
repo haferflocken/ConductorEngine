@@ -5,9 +5,7 @@
 #include <ecs/EntityID.h>
 #include <ecs/System.h>
 #include <mesh/MeshComponent.h>
-#include <mesh/MeshComponentInfo.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 #include <renderer/Shader.h>
 
 #include <bgfx/bgfx.h>

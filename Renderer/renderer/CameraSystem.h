@@ -1,12 +1,10 @@
 #pragma once
 
 #include <renderer/CameraComponent.h>
-#include <renderer/CameraComponentInfo.h>
 
 #include <ecs/System.h>
 #include <math/Frustum.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 namespace Renderer
 {

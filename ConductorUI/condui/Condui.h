@@ -14,7 +14,6 @@
 namespace ECS
 {
 class Entity;
-class EntityInfoManager;
 class EntityManager;
 }
 
@@ -125,13 +124,6 @@ ConduiElement MakeTextInputCommandElement(const float xScale,
 /**
  * Functions to actualize a ConduiElement as an ECS::Entity. These consume the ConduiElement.
  */
-ECS::Entity& CreateConduiEntity(
-	const ECS::EntityInfoManager& entityInfoManager,
-	ECS::EntityManager& entityManager,
-	ConduiElement&& element);
-
-ECS::Entity& CreateConduiRootEntity(
-	const ECS::EntityInfoManager& entityInfoManager,
-	ECS::EntityManager& entityManager,
-	ElementRoot&& elementRoot);
+ECS::Entity& CreateConduiEntity(ECS::EntityManager& entityManager, ConduiElement&& element);
+ECS::Entity& CreateConduiRootEntity(ECS::EntityManager& entityManager, ElementRoot&& elementRoot);
 }
