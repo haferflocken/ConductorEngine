@@ -1,7 +1,6 @@
 #include <ecs/ComponentReflector.h>
 
 #include <ecs/Component.h>
-#include <ecs/ComponentInfo.h>
 
 #include <dev/Dev.h>
 
@@ -9,9 +8,10 @@ ECS::ComponentReflector::ComponentReflector()
 {}
 
 void ECS::ComponentReflector::RegisterComponentType(const char* const componentTypeName,
-	const Util::StringHash componentTypeHash, const Unit::ByteCount64 sizeOfComponent,
+	const Util::StringHash componentTypeHash,
+	const Unit::ByteCount64 sizeOfComponent,
 	const Unit::ByteCount64 alignOfComponent,
-	FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn)
+	const MandatoryComponentFunctions& mandatoryFunctions)
 {
 	const ComponentType componentType{ componentTypeHash };
 
@@ -21,17 +21,13 @@ void ECS::ComponentReflector::RegisterComponentType(const char* const componentT
 	
 	AMP_FATAL_ASSERT(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
 		&& m_componentAlignmentsInBytes.Find(componentType) == m_componentAlignmentsInBytes.end()
-		&& m_factoryFunctions.Find(componentType) == m_factoryFunctions.end()
-		&& m_destructorFunctions.Find(componentType) == m_destructorFunctions.end()
-		&& m_swapFunctions.Find(componentType) == m_swapFunctions.end()
+		&& m_mandatoryComponentFunctions.Find(componentType) == m_mandatoryComponentFunctions.end()
 		&& m_transmissionFunctions.Find(componentType) == m_transmissionFunctions.end(),
 		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
 	
 	m_componentSizesInBytes[componentType] = sizeOfComponent;
 	m_componentAlignmentsInBytes[componentType] = alignOfComponent;
-	m_factoryFunctions[componentType] = factoryFn;
-	m_destructorFunctions[componentType] = destructorFn;
-	m_swapFunctions[componentType] = swapFn;
+	m_mandatoryComponentFunctions[componentType] = mandatoryFunctions;
 }
 
 bool ECS::ComponentReflector::IsRegistered(const ComponentType componentType) const
@@ -65,37 +61,43 @@ Unit::ByteCount64 ECS::ComponentReflector::GetAlignOfComponentInBytes(const Comp
 	return alignItr->second;
 }
 
-bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager, const ComponentInfo& componentInfo,
-	const ComponentID reservedID, ComponentVector& destination) const
+bool ECS::ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd,
+	const ComponentID reservedID,
+	ComponentVector& destination) const
 {
-	const auto factoryItr = m_factoryFunctions.Find(ComponentType(componentInfo.GetTypeHash()));
-	if (factoryItr == m_factoryFunctions.end())
+	const auto iter = m_mandatoryComponentFunctions.Find(reservedID.GetType());
+	if (iter == m_mandatoryComponentFunctions.end())
 	{
-		AMP_LOG_WARNING("Failed to find a factory function for component type \"%s\".", componentInfo.GetTypeName());
+		AMP_LOG_WARNING("Failed to find a factory function for component type \"%s\".",
+			Util::ReverseHash(reservedID.GetType().GetTypeHash()));
 		return false;
 	}
 
-	return factoryItr->second(assetManager, componentInfo, reservedID, destination);
+	return iter->second.m_tryCreateFromFullSerializationFunction(
+		assetManager, bytes, bytesEnd, reservedID, destination);
 }
 
 void ECS::ComponentReflector::DestroyComponent(Component& component) const
 {
-	const auto& destructorItr = m_destructorFunctions.Find(component.m_id.GetType());
-	AMP_FATAL_ASSERT(destructorItr != m_destructorFunctions.end(),
+	const auto iter = m_mandatoryComponentFunctions.Find(component.m_id.GetType());
+	AMP_FATAL_ASSERT(iter != m_mandatoryComponentFunctions.end(),
 		"Failed to find a destructor function for component type \"%s\".",
 		Util::ReverseHash(component.m_id.GetType().GetTypeHash()));
 
-	destructorItr->second(component);
+	iter->second.m_destructorFunction(component);
 }
 
 void ECS::ComponentReflector::SwapComponents(Component& a, Component& b) const
 {
-	const auto& swapItr = m_swapFunctions.Find(a.m_id.GetType());
-	AMP_FATAL_ASSERT(swapItr != m_swapFunctions.end() && swapItr == m_swapFunctions.Find(b.m_id.GetType()),
+	const auto iter = m_mandatoryComponentFunctions.Find(a.m_id.GetType());
+	AMP_FATAL_ASSERT(iter != m_mandatoryComponentFunctions.end()
+		&& iter == m_mandatoryComponentFunctions.Find(b.m_id.GetType()),
 		"Failed to find a swap function for component type \"%s\".",
 		Util::ReverseHash(a.m_id.GetType().GetTypeHash()));
 
-	swapItr->second(a, b);
+	iter->second.m_swapFunction(a, b);
 }
 
 bool ECS::ComponentReflector::IsNetworkedComponent(const ComponentType componentType) const
@@ -103,15 +105,15 @@ bool ECS::ComponentReflector::IsNetworkedComponent(const ComponentType component
 	return (m_transmissionFunctions.Find(componentType) != m_transmissionFunctions.end());
 }
 
-ECS::ComponentReflector::DestructorFunction ECS::ComponentReflector::FindDestructorFunction(
+const ECS::ComponentReflector::MandatoryComponentFunctions& ECS::ComponentReflector::FindComponentFunctions(
 	const ComponentType componentType) const
 {
-	const auto& destructorItr = m_destructorFunctions.Find(componentType);
-	AMP_FATAL_ASSERT(destructorItr != m_destructorFunctions.end(),
-		"Failed to find destructor function for component type \"%s\".",
+	const auto iter = m_mandatoryComponentFunctions.Find(componentType);
+	AMP_FATAL_ASSERT(iter != m_mandatoryComponentFunctions.end(),
+		"Failed to find mandatory component functions for component type \"%s\".",
 		Util::ReverseHash(componentType.GetTypeHash()));
 
-	return destructorItr->second;
+	return iter->second;
 }
 
 const ECS::ComponentReflector::TransmissionFunctions* ECS::ComponentReflector::FindTransmissionFunctions(

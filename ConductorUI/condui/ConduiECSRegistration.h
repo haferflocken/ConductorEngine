@@ -4,9 +4,7 @@
 
 namespace ECS
 {
-class ComponentInfoFactory;
 class ComponentReflector;
-class EntityInfoManager;
 class EntityManager;
 }
 
@@ -19,8 +17,7 @@ namespace Condui
 struct ConduiElement;
 
 // Registers all Condui component types.
-void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
-	ECS::ComponentInfoFactory& componentInfoFactory);
+void RegisterComponentTypes(ECS::ComponentReflector& componentReflector);
 
 // Register all Condui ECS systems.
 void RegisterSystems(ECS::EntityManager& entityManager,
@@ -30,8 +27,7 @@ void RegisterSystems(ECS::EntityManager& entityManager,
 // Registers all Condui EntityInfo from C++ rather than through JSON files.
 // All Condui text is rendered in monospace fonts generated from monochrome bitmap files; the parameters here are for
 // the default font.
-void RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager,
-	const uint16_t characterWidthPixels,
+void RegisterEntityInfo(const uint16_t characterWidthPixels,
 	const uint16_t characterHeightPixels,
 	const File::Path& codePagePath);
 

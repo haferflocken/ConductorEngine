@@ -6,8 +6,6 @@ namespace IslandGame
 {
 namespace Components
 {
-class IslanderComponentInfo;
-
 /**
  * An islander lives on an island and has two priorities:
  * - To survive, by staying fed and getting sleep
@@ -17,9 +15,10 @@ class IslanderComponentInfo;
 class IslanderComponent final : public ECS::Component
 {
 public:
-	using Info = IslanderComponentInfo;
+	static constexpr char* k_typeName = "islander_component";
+	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const IslanderComponentInfo& componentInfo,
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 	
 	explicit IslanderComponent(const ECS::ComponentID id)

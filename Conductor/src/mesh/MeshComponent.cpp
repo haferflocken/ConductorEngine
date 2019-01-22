@@ -6,14 +6,15 @@
 
 namespace Mesh
 {
+const Util::StringHash MeshComponent::k_typeHash = Util::CalcHash(k_typeName);
+
 bool MeshComponent::TryCreateFromInfo(
 	Asset::AssetManager& assetManager,
-	const MeshComponentInfo& componentInfo,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {
 	MeshComponent& meshComponent = destination.Emplace<MeshComponent>(reservedID);
-	meshComponent.m_meshHandle = assetManager.RequestAsset<StaticMesh>(componentInfo.m_meshFilePath);
+	// meshComponent.m_meshHandle = assetManager.RequestAsset<StaticMesh>(componentInfo.m_meshFilePath);
 	return true;
 }
 }

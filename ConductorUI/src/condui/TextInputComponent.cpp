@@ -5,24 +5,17 @@
 
 namespace Condui
 {
-const Util::StringHash TextInputComponentInfo::sk_typeHash = Util::CalcHash(TextInputComponentInfo::sk_typeName);
-
-Mem::UniquePtr<ECS::ComponentInfo> TextInputComponentInfo::LoadFromJSON(
-	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
-{
-	return Mem::MakeUnique<TextInputComponentInfo>();
-}
+const Util::StringHash TextInputComponent::k_typeHash = Util::CalcHash(k_typeName);
 
 bool TextInputComponent::TryCreateFromInfo(
 	Asset::AssetManager& assetManager,
-	const TextInputComponentInfo& componentInfo,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {
 	TextInputComponent& component = destination.Emplace<TextInputComponent>(reservedID);
-	component.m_characterWidthPixels = componentInfo.m_characterWidthPixels;
-	component.m_characterHeightPixels = componentInfo.m_characterHeightPixels;
-	component.m_codePage = assetManager.RequestAsset<Image::Pixel1Image>(componentInfo.m_codePagePath);
+	//component.m_characterWidthPixels = componentInfo.m_characterWidthPixels;
+	//component.m_characterHeightPixels = componentInfo.m_characterHeightPixels;
+	//component.m_codePage = assetManager.RequestAsset<Image::Pixel1Image>(componentInfo.m_codePagePath);
 	return true;
 }
 

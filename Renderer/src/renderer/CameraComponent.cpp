@@ -4,9 +4,10 @@
 
 namespace Renderer
 {
+const Util::StringHash CameraComponent::k_typeHash = Util::CalcHash(k_typeName);
+
 bool CameraComponent::TryCreateFromInfo(
 	Asset::AssetManager& assetManager,
-	const CameraComponentInfo& componentInfo,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {

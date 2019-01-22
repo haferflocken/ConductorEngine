@@ -10,9 +10,9 @@ namespace ECS
 class ComponentVector;
 
 /**
- * A Component holds data for an entity. A component is always instantiated using a ComponentInfo.
- * Components must define an Info type which they are instantiated from, and must define a TryCreateFromInfo
- * static function which creates them from their info.
+ * A Component holds data for an entity. Components must define a static const char* k_typeName and
+ * a static const Util::StringHash k_typeHash that are unique for their component type.
+ * Dependening on how they are registered with the ComponentReflector, Components may have additional requirements.
  */
 class Component
 {
@@ -20,13 +20,6 @@ public:
 	explicit Component(const ComponentID id)
 		: m_id(id)
 	{}
-
-	virtual ~Component() {}
-
-	// Save() must generate a list of bytes which can be used to restore the state of the component using Load(...).
-	// Save() and Load(...) don't need to serialize the type of the component.
-	virtual void Save(Collection::Vector<uint8_t>& outBytes) const {}
-	virtual void Load(const Collection::Vector<uint8_t>& bytes) {}
 
 	ComponentID m_id;
 };

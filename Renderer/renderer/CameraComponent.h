@@ -5,8 +5,6 @@
 
 namespace Renderer
 {
-class CameraComponentInfo;
-
 /**
  * The renderer views the world through entities with CameraComponents.
  * There should only be one camera per bgfx view active at any given time.
@@ -14,9 +12,10 @@ class CameraComponentInfo;
 class CameraComponent final : public ECS::Component
 {
 public:
-	using Info = CameraComponentInfo;
+	static constexpr const char* k_typeName = "camera_component";
+	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const CameraComponentInfo& componentInfo,
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit CameraComponent(const ECS::ComponentID id)

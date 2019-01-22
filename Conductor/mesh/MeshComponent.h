@@ -7,17 +7,16 @@
 
 namespace Mesh
 {
-class MeshComponentInfo;
-
 /**
  * Entities with a MeshComponent have a mesh drawn at their scene transform.
  */
 class MeshComponent final : public ECS::Component
 {
 public:
-	using Info = MeshComponentInfo;
+	static constexpr const char* k_typeName = "mesh_component";
+	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const MeshComponentInfo& componentInfo,
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit MeshComponent(const ECS::ComponentID id)
@@ -31,7 +30,7 @@ public:
 	MeshComponent(MeshComponent&&) = default;
 	MeshComponent& operator=(MeshComponent&&) = default;
 
-	virtual ~MeshComponent() {}
+	~MeshComponent() {}
 
 	Asset::AssetHandle<Mesh::StaticMesh> m_meshHandle;
 };

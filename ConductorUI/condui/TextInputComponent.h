@@ -2,7 +2,6 @@
 
 #include <asset/AssetHandle.h>
 #include <ecs/Component.h>
-#include <ecs/ComponentInfo.h>
 #include <file/Path.h>
 #include <image/Colour.h>
 #include <image/Pixel1Image.h>
@@ -12,23 +11,6 @@
 
 namespace Condui
 {
-class TextInputComponentInfo final : public ECS::ComponentInfo
-{
-public:
-	static constexpr const char* sk_typeName = "text_input_component";
-	static const Util::StringHash sk_typeHash;
-
-	static Mem::UniquePtr<ComponentInfo> LoadFromJSON(
-		Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject);
-
-	virtual const char* GetTypeName() const override { return sk_typeName; }
-	virtual Util::StringHash GetTypeHash() const override { return sk_typeHash; }
-
-	uint16_t m_characterWidthPixels{ 0 };
-	uint16_t m_characterHeightPixels{ 0 };
-	File::Path m_codePagePath{};
-};
-
 /**
  * A TextInputComponent makes an entity able to receive text input and display it. An input handler function is used to
  * process the input as it's received. The default input handler appends all received input to the displayed text and
@@ -37,10 +19,12 @@ public:
 class TextInputComponent final : public ECS::Component
 {
 public:
-	using Info = TextInputComponentInfo;
 	using InputHandler = std::function<void(TextInputComponent&, const char*)>;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const TextInputComponentInfo& componentInfo,
+	static constexpr const char* k_typeName = "text_input_component";
+	static const Util::StringHash k_typeHash;
+
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	static void DefaultInputHandler(TextInputComponent& component, const char* text);

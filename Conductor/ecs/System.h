@@ -61,7 +61,7 @@ namespace SystemDetail
 template <typename TypeList, size_t... Indices>
 Collection::Vector<Util::StringHash> MapTupleTypeHashesToVector(std::index_sequence<Indices...>)
 {
-	return Collection::Vector<Util::StringHash>({ TypeList::Get<Indices>::Info::sk_typeHash... });
+	return Collection::Vector<Util::StringHash>({ TypeList::Get<Indices>::k_typeHash... });
 }
 
 template <typename TypeList>

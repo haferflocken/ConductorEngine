@@ -5,7 +5,6 @@
 #include <ecs/ComponentVector.h>
 #include <ecs/ECSGroupVector.h>
 #include <ecs/Entity.h>
-#include <ecs/EntityInfo.h>
 #include <ecs/System.h>
 
 #include <collection/ArrayView.h>
@@ -93,60 +92,6 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID
 
 	// Return the entity after it is fully initialized.
 	return entity;
-}
-
-void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity)
-{
-	// Early out if the entity is already using the given info.
-	if (entity.GetInfoNameHash() == entityInfo.m_nameHash)
-	{
-		return;
-	}
-
-	// Remove the entity from all ECS groups.
-	RemoveECSPointersFromSystems(entity);
-
-	// Remove any components the entity no longer needs.
-	for (size_t i = 0; i < entity.m_componentIDs.Size();)
-	{
-		const ComponentID& componentID = entity.m_componentIDs[i];
-
-		const auto* const matchingComponentInfo = entityInfo.m_componentInfos.Find(
-			[&](const Mem::UniquePtr<ComponentInfo>& componentInfo)
-		{
-			return componentInfo->GetTypeHash() == componentID.GetType().GetTypeHash();
-		});
-
-		if (matchingComponentInfo == nullptr)
-		{
-			RemoveComponent(componentID);
-			entity.m_componentIDs.SwapWithAndRemoveLast(i);
-		}
-		else
-		{
-			++i;
-		}
-	}
-
-	// Add any components the entity is missing.
-	for (const auto& componentInfo : entityInfo.m_componentInfos)
-	{
-		const ComponentID componentID = entity.FindComponentID(ComponentType(componentInfo->GetTypeHash()));
-		if (componentID != ComponentID())
-		{
-			continue;
-		}
-		AddComponentToEntity(*componentInfo, entity);
-	}
-
-	// Add the entity to the ECS group vectors.
-	AddECSPointersToSystems(Collection::ArrayView<Entity>(&entity, 1));
-
-	// If we can transmit state, track the changed entity.
-	if (m_transmissionBuffers != nullptr)
-	{
-		m_transmissionBuffers->m_entitiesChangedSinceLastTransmission.Add(entity.GetID());
-	}
 }
 
 void EntityManager::SetParentEntity(Entity& entity, Entity* parentEntity)
@@ -278,7 +223,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		// Serialize the IDs within each type.
 		auto iter = m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.begin();
 		const auto iterEnd = m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.end();
-		
+
 		while (iter < iterEnd)
 		{
 			const ComponentType componentType = iter->GetType();
@@ -325,10 +270,10 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 			Mem::Serialize(bufferedComponent->m_id.GetUniqueID(), transmissionBytes);
 			serializer.m_serializeDeltaTransmissionFunction(*bufferedComponent, component, transmissionBytes);
 		}
-		
+
 		// Serialize the invalid component ID to indicate the end of the component type.
 		Mem::Serialize(ComponentID::sk_invalidUniqueID, transmissionBytes);
-		
+
 		// Copy the current component data into the buffered component data.
 		bufferedComponents.Copy(currentComponents);
 	}
@@ -347,7 +292,8 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		while (iter < iterEnd)
 		{
 			const ComponentType componentType = iter->GetType();
-			const auto* const serializer = m_componentReflector.FindTransmissionFunctions(componentType);
+			const auto& componentFunctions = m_componentReflector.FindComponentFunctions(componentType);
+			const auto* const transmissionFunctions = m_componentReflector.FindTransmissionFunctions(componentType);
 
 			Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::ComponentsAdded), transmissionBytes);
 			Mem::Serialize(Util::ReverseHash(componentType.GetTypeHash()), transmissionBytes);
@@ -362,10 +308,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 				if (component != nullptr)
 				{
 					Mem::Serialize(iter->GetUniqueID(), transmissionBytes);
-					if (serializer != nullptr)
-					{
-						serializer->m_serializeFullTransmissionFunction(*component, transmissionBytes);
-					}
+					componentFunctions.m_fullSerializationFunction(*component, transmissionBytes);
 				}
 				++iter;
 			}
@@ -470,7 +413,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			ComponentVector& components = componenVectorIter->second;
 
 			const ApplyDeltaTransmissionResult result = work(
-				m_componentReflector, ComponentType(componentTypeHash), components, iter, iterEnd);
+				m_assetManager, m_componentReflector, ComponentType(componentTypeHash), components, iter, iterEnd);
 			if (result.IsAny())
 			{
 				return result;
@@ -488,8 +431,12 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	};
 
 	auto result = ComponentSectionHelper(TransmissionSectionType::ComponentsRemoved,
-		[](const ComponentReflector& componentReflector, const ComponentType componentType,
-			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
+		[](Asset::AssetManager& assetManager,
+			const ComponentReflector& componentReflector,
+			const ComponentType componentType,
+			ComponentVector& components,
+			const uint8_t*& iter,
+			const uint8_t* iterEnd)
 		{
 			Collection::Vector<uint64_t> componentIDsToRemove;
 			auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
@@ -510,8 +457,12 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	}
 
 	result = ComponentSectionHelper(TransmissionSectionType::ComponentsDeltaUpdate,
-		[](const ComponentReflector& componentReflector, const ComponentType componentType,
-			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
+		[](Asset::AssetManager& assetManager,
+			const ComponentReflector& componentReflector,
+			const ComponentType componentType,
+			ComponentVector& components,
+			const uint8_t*& iter,
+			const uint8_t* iterEnd)
 		{
 			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentType);
 			if (deserializer == nullptr)
@@ -539,11 +490,15 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		return result;
 	}
 
-	result = ComponentSectionHelper(TransmissionSectionType::ComponentsAdded, 
-		[](const ComponentReflector& componentReflector, const ComponentType componentType,
-			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
+	result = ComponentSectionHelper(TransmissionSectionType::ComponentsAdded,
+		[](Asset::AssetManager& assetManager,
+			const ComponentReflector& componentReflector,
+			const ComponentType componentType,
+			ComponentVector& components,
+			const uint8_t*& iter,
+			const uint8_t* iterEnd)
 		{
-			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentType);
+			const auto& componentFunctions = componentReflector.FindComponentFunctions(componentType);
 
 			auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			while (maybeComponentID.second && maybeComponentID.first != ComponentID::sk_invalidUniqueID)
@@ -555,15 +510,8 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				//}
 
 				// TODO(network) what should be done if a component fails to be created?
-				if (deserializer != nullptr)
-				{
-					deserializer->m_tryCreateFromTransmissionFunction(iter, iterEnd,
-						ComponentID(componentType, componentID), components);
-				}
-				else
-				{
-					// TODO(network) make the component even though it wasn't serialized
-				}
+				componentFunctions.m_tryCreateFromFullSerializationFunction(assetManager, iter, iterEnd,
+					ComponentID(componentType, componentID), components);
 
 				maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			}
@@ -590,7 +538,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		}
 
 		DeleteEntities(entitiesToRemove.GetConstView());
-		
+
 		// Read the next section marker.
 		maybeSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
 		if (!maybeSectionMarker.second)
@@ -741,9 +689,9 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_Success>();
 }
 
-void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity)
+void EntityManager::AddComponentToEntity(
+	const ComponentType componentType, const uint8_t*& bytes, const uint8_t* bytesEnd, Entity& entity)
 {
-	const ComponentType componentType{ componentInfo.GetTypeHash() };
 	const ComponentID componentID{ componentType, m_nextComponentID };
 
 	const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
@@ -771,9 +719,9 @@ void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Ent
 		AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
 			"Mismatch between component vector type and the key it is stored at.");
 
-		if (!m_componentReflector.TryMakeComponent(m_assetManager, componentInfo, componentID, componentVector))
+		if (!m_componentReflector.TryMakeComponent(m_assetManager, bytes, bytesEnd, componentID, componentVector))
 		{
-			AMP_LOG_WARNING("Failed to create component of type [%s].", componentInfo.GetTypeName());
+			AMP_LOG_WARNING("Failed to create component of type [%s].", Util::ReverseHash(componentType.GetTypeHash()));
 			return;
 		}
 	}
@@ -832,7 +780,7 @@ bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<Ut
 	bool foundAll = true;
 	for (const auto& typeHash : componentTypes)
 	{
-		if (typeHash == EntityInfo::sk_typeHash)
+		if (typeHash == Entity::k_typeHash)
 		{
 			pointers.Add(&entity);
 			continue;

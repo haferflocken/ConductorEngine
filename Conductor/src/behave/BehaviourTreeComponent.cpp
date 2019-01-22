@@ -1,13 +1,13 @@
 #include <behave/BehaviourTreeComponent.h>
 
-#include <behave/BehaviourTreeComponentInfo.h>
 #include <behave/BehaviourNode.h>
 #include <behave/BehaviourTree.h>
 #include <ecs/ComponentVector.h>
 
+const Util::StringHash Behave::BehaviourTreeComponent::k_typeHash = Util::CalcHash(k_typeName);
+
 bool Behave::BehaviourTreeComponent::TryCreateFromInfo(
 	Asset::AssetManager& assetManager,
-	const BehaviourTreeComponentInfo& componentInfo,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {

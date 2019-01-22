@@ -8,7 +8,6 @@
 
 namespace ECS
 {
-class EntityInfo;
 class EntityManager;
 
 /**
@@ -20,7 +19,8 @@ class EntityManager;
 class Entity final
 {
 public:
-	using Info = EntityInfo;
+	static constexpr const char* const k_typeName = "entity";
+	static const Util::StringHash k_typeHash;
 
 	Entity() = default;
 

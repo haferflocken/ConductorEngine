@@ -7,9 +7,10 @@
 
 namespace Behave
 {
+const Util::StringHash BlackboardComponent::k_typeHash = Util::CalcHash(k_typeName);
+
 bool BlackboardComponent::TryCreateFromInfo(
 	Asset::AssetManager& assetManager,
-	const BlackboardComponentInfo& componentInfo,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {

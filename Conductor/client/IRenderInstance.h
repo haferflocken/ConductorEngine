@@ -10,7 +10,6 @@ namespace Asset { class AssetManager; }
 
 namespace ECS
 {
-class ComponentInfoFactory;
 class ComponentReflector;
 class EntityManager;
 }

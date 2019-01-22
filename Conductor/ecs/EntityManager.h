@@ -25,11 +25,9 @@ namespace Asset { class AssetManager; }
 namespace ECS
 {
 class Component;
-class ComponentInfo;
 class ComponentReflector;
 class ComponentVector;
 class ECSGroupVector;
-class EntityInfo;
 class System;
 
 /**
@@ -43,7 +41,6 @@ public:
 	~EntityManager();
 
 	Entity& CreateEntity(const EntityInfo& entityInfo, const EntityID requestedID = EntityID());
-	void SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity);
 	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
 
@@ -103,7 +100,8 @@ private:
 	template <typename SystemType> struct SystemTypeFunctions;
 	
 	// Add a component to an entity.
-	void AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity);
+	void AddComponentToEntity(
+		const ComponentType componentType, const uint8_t*& bytes, const uint8_t* bytesEnd, Entity& entity);
 	// Remove a component from this EntityManager. Does not remove it from the entity referencing it.
 	void RemoveComponent(const ComponentID id);
 

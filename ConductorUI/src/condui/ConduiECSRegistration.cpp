@@ -5,13 +5,9 @@
 #include <condui/TextInputComponent.h>
 #include <condui/TextInputSystem.h>
 
-#include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
-#include <ecs/EntityInfoManager.h>
 #include <ecs/EntityManager.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
-
 
 namespace Internal_ConduiEntityInfo
 {
@@ -20,14 +16,10 @@ const Util::StringHash k_textInputInfoNameHash = Util::CalcHash("condui_text_inp
 const Util::StringHash k_panelInfoNameHash = Util::CalcHash("condui_panel");
 }
 
-void Condui::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
-	ECS::ComponentInfoFactory& componentInfoFactory)
+void Condui::RegisterComponentTypes(ECS::ComponentReflector& componentReflector)
 {
 	componentReflector.RegisterComponentType<TextDisplayComponent>();
 	componentReflector.RegisterComponentType<TextInputComponent>();
-
-	componentInfoFactory.RegisterFactoryFunction<TextDisplayComponentInfo>();
-	componentInfoFactory.RegisterFactoryFunction<TextInputComponentInfo>();
 }
 
 void Condui::RegisterSystems(ECS::EntityManager& entityManager,
@@ -37,8 +29,7 @@ void Condui::RegisterSystems(ECS::EntityManager& entityManager,
 	entityManager.RegisterSystem(Mem::MakeUnique<TextInputSystem>(sceneViewFrustum, callbackRegistry));
 }
 
-void Condui::RegisterEntityInfo(ECS::EntityInfoManager& entityInfoManager,
-	const uint16_t characterWidthPixels,
+void Condui::RegisterEntityInfo(const uint16_t characterWidthPixels,
 	const uint16_t characterHeightPixels,
 	const File::Path& codePagePath)
 {

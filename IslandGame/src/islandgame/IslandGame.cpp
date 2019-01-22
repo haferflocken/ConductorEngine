@@ -38,8 +38,6 @@ namespace Internal_IslandGame
 constexpr char* k_dataDirectoryParameter = "-datapath";
 constexpr char* k_userGamePath = "Documents/My Games/IslandGame/";
 
-constexpr char* k_entityInfosPath = "entity_infos";
-
 constexpr char* k_applicationModeClientParameter = "-client";
 constexpr char* k_applicationModeHostParameter = "-host";
 
@@ -74,15 +72,11 @@ Conductor::GameDataFactory MakeGameDataFactory()
 	{
 		auto gameData = Mem::MakeUnique<IslandGame::IslandGameData>(dataDirectory, userDirectory, assetManager);
 
-		Condui::RegisterComponentTypes(gameData->GetComponentReflector(),
-			gameData->GetComponentInfoFactory());
-		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector(),
-			gameData->GetComponentInfoFactory());
+		Condui::RegisterComponentTypes(gameData->GetComponentReflector());
+		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector());
 
-		Condui::RegisterEntityInfo(
-			gameData->GetEntityInfoManager(), 9, 16, File::MakePath("fonts/Codepage-437-monochome.bmp"));
+		Condui::RegisterEntityInfo(9, 16, File::MakePath("fonts/Codepage-437-monochome.bmp"));
 
-		gameData->LoadEntityInfosInDirectory(dataDirectory / k_entityInfosPath);
 		return gameData;
 	};
 }

@@ -12,7 +12,6 @@ namespace ECS
 {
 class Component;
 class ComponentID;
-class ComponentInfo;
 class ComponentVector;
 
 /**
@@ -24,34 +23,41 @@ class ComponentVector;
 class ComponentReflector final
 {
 public:
-	using FactoryFunction = bool(*)(Asset::AssetManager&, const ComponentInfo&, const ComponentID, ComponentVector&);
+	using BasicConstructFunction = void(*)(const ComponentID, ComponentVector&);
+	using TryCreateFromFullSerializationFunction = bool(*)(Asset::AssetManager&, const uint8_t*&, const uint8_t*, const ComponentID, ComponentVector&);
+	using FullSerializationFunction = void(*)(const Component&, Collection::Vector<uint8_t>&);
+	using ApplyFullSerializationFunction = void(*)(Component&, const uint8_t*&, const uint8_t*);
 	using DestructorFunction = void(*)(Component&);
 	using SwapFunction = void(*)(Component&, Component&);
 
+	struct MandatoryComponentFunctions
+	{
+		BasicConstructFunction m_basicConstructFunction;
+		TryCreateFromFullSerializationFunction m_tryCreateFromFullSerializationFunction;
+		FullSerializationFunction m_fullSerializationFunction;
+		ApplyFullSerializationFunction m_applyFullSerializationFunction;
+		DestructorFunction m_destructorFunction;
+		SwapFunction m_swapFunction;
+	};
+
 	struct TransmissionFunctions
 	{
-		using TryCreateFromTransmissionFunction = bool(*)(const uint8_t*&, const uint8_t*, const ComponentID, ComponentVector&);
 		using CopyConstructFunction = void(*)(void*, const Component&);
-
 		using SerializeDeltaTransmissionFunction = void(*)(const Component&, const Component&, Collection::Vector<uint8_t>&);
-		using SerializeFullTransmissionFunction = void(*)(const Component&, Collection::Vector<uint8_t>&);
-
 		using ApplyDeltaTransmissionFunction = void(*)(Component&, const uint8_t*&, const uint8_t*);
-		using ApplyFullTransmissionFunction = void(*)(Component&, const uint8_t*&, const uint8_t*);
 
-		TryCreateFromTransmissionFunction m_tryCreateFromTransmissionFunction;
 		CopyConstructFunction m_copyConstructFunction;
-
 		SerializeDeltaTransmissionFunction m_serializeDeltaTransmissionFunction;
-		SerializeFullTransmissionFunction m_serializeFullTransmissionFunction;
-
 		ApplyDeltaTransmissionFunction m_applyDeltaTransmissionFunction;
-		ApplyFullTransmissionFunction m_applyFullTransmissionFunction;
 	};
 
 	ComponentReflector();
 
-	// Register a component type that doesn't support network transmission.
+	// Register a component type that doesn't support network transmission. The component type must define:
+	//   A unary constructor which takes a ComponentID.
+	//   static bool TryCreateFromFullSerialization(...): creates the component from a serialized representation.
+	//   void FullySerializeTo(...) : serializes a complete representation of the component.
+	//   void ApplyFullSerialization(...) : applies a serialized representation of the component to it.
 	template <typename ComponentType>
 	void RegisterComponentType();
 
@@ -60,41 +66,48 @@ public:
 	template <typename ComponentType>
 	void RegisterTagComponentType();
 
+	// Register a component type that doesn't support network transmission, automatically defining serialization and
+	// deserialization functions using memcpy. The component must define a unary constructor which takes a ComponentID.
+	template <typename ComponentType>
+	void RegisterMemoryImagedComponentType();
+
 	// Register a component type that supports network transmission using static functions defined in ComponentType.
+	// It must meet all of the requirements of RegisterComponentType(...) and must also define:
+	//   A copy constructor.
+	//   void SerializeDeltaTransmission(...): compares the component to its past copy and serializes a delta.
+	//   void ApplyDeltaTransmission(...): applies a delta serialization to update the component.
 	template <typename ComponentType>
 	void RegisterNetworkedComponentType();
-
-	// Register a component type that supports network transmission using memory mirroring. This is fine for
-	// many varieties of components, but only works so long as the client and host have the same endianess.
-	template <typename ComponentType>
-	void RegisterMemoryImagedNetworkedComponentType();
 
 	bool IsRegistered(const ComponentType componentType) const;
 
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
 	Unit::ByteCount64 GetAlignOfComponentInBytes(const ComponentType componentType) const;
 
-	bool TryMakeComponent(Asset::AssetManager& assetManager, const ComponentInfo& componentInfo,
-		const ComponentID reservedID, ComponentVector& destination) const;
+	bool TryMakeComponent(Asset::AssetManager& assetManager,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd,
+		const ComponentID reservedID,
+		ComponentVector& destination) const;
 	void DestroyComponent(Component& component) const;
 	void SwapComponents(Component& a, Component& b) const;
 
 	bool IsNetworkedComponent(const ComponentType componentType) const;
 
-	DestructorFunction FindDestructorFunction(const ComponentType componentType) const;
+	const MandatoryComponentFunctions& FindComponentFunctions(const ComponentType componentType) const;
 	const TransmissionFunctions* FindTransmissionFunctions(const ComponentType componentType) const;
 
 private:
-	void RegisterComponentType(const char* componentTypeName, const Util::StringHash componentTypeHash,
-		const Unit::ByteCount64 sizeOfComponent, const Unit::ByteCount64 alignOfComponent,
-		FactoryFunction factoryFn, DestructorFunction destructorFn, SwapFunction swapFn);
+	void RegisterComponentType(const char* componentTypeName,
+		const Util::StringHash componentTypeHash,
+		const Unit::ByteCount64 sizeOfComponent,
+		const Unit::ByteCount64 alignOfComponent,
+		const MandatoryComponentFunctions& componentFunctions);
 
 	// Maps of component types to functions for those component types.
 	Collection::VectorMap<ComponentType, Unit::ByteCount64> m_componentSizesInBytes;
 	Collection::VectorMap<ComponentType, Unit::ByteCount64> m_componentAlignmentsInBytes;
-	Collection::VectorMap<ComponentType, FactoryFunction> m_factoryFunctions;
-	Collection::VectorMap<ComponentType, DestructorFunction> m_destructorFunctions;
-	Collection::VectorMap<ComponentType, SwapFunction> m_swapFunctions;
+	Collection::VectorMap<ComponentType, MandatoryComponentFunctions> m_mandatoryComponentFunctions;
 	Collection::VectorMap<ComponentType, TransmissionFunctions> m_transmissionFunctions;
 };
 
@@ -104,11 +117,31 @@ inline void ComponentReflector::RegisterComponentType()
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
 	{
-		static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
-			const ComponentInfo& componentInfo, const ComponentID reservedID, ComponentVector& destination)
+		static void BasicConstruct(const ComponentID reservedID, ComponentVector& destination)
 		{
-			return ComponentType::TryCreateFromInfo(assetManager,
-				static_cast<const ComponentType::Info&>(componentInfo), reservedID, destination);
+			destination.Emplace<ComponentType>(reservedID);
+		}
+
+		static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+			const uint8_t*& bytes,
+			const uint8_t* bytesEnd,
+			const ComponentID reservedID,
+			ComponentVector& destination)
+		{
+			return ComponentType::TryCreateFromFullSerialization(
+				assetManager, bytes, bytesEnd, reservedID, destination);
+		}
+
+		static void FullySerializeTo(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
+		{
+			const ComponentType& component = static_cast<const ComponentType&>(rawComponent);
+			lhs.FullySerializeTo(rhs);
+		}
+
+		static void ApplyFullSerialization(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
+		{
+			ComponentType& component = static_cast<ComponentType&>(rawComponent);
+			component.ApplyFullSerialization(bytes, bytesEnd);
 		}
 
 		static void Destroy(Component& rawComponent)
@@ -128,16 +161,106 @@ inline void ComponentReflector::RegisterComponentType()
 		}
 	};
 
-	RegisterComponentType(ComponentType::Info::sk_typeName, ComponentType::Info::sk_typeHash,
-		Unit::ByteCount64(sizeof(ComponentType)), Unit::ByteCount64(alignof(ComponentType)),
-		&ComponentTypeFunctions::TryCreateFromInfo, &ComponentTypeFunctions::Destroy, &ComponentTypeFunctions::Swap);
+	MandatoryComponentFunctions functions{ &ComponentTypeFunctions::BasicConstruct,
+		&ComponentTypeFunctions::TryCreateFromFullSerialization,
+		&ComponentTypeFunctions::FullySerializeTo,
+		&ComponentTypeFunctions::ApplyFullSerialization,
+		&ComponentTypeFunctions::Destroy,
+		&ComponentTypeFunctions::Swap };
+
+	RegisterComponentType(ComponentType::k_typeName,
+		ComponentType::k_typeHash,
+		Unit::ByteCount64(sizeof(ComponentType)),
+		Unit::ByteCount64(alignof(ComponentType)),
+		functions);
 }
 
 template <typename ComponentType>
 inline void ComponentReflector::RegisterTagComponentType()
 {
-	RegisterComponentType(ComponentType::Info::sk_typeName, ComponentType::Info::sk_typeHash, Unit::ByteCount64(0),
-		Unit::ByteCount64(0), nullptr, nullptr, nullptr);
+	MandatoryComponentFunctions functions{ nullptr, nullptr, nullptr, nullptr, nullptr };
+
+	RegisterComponentType(ComponentType::k_typeName,
+		ComponentType::k_typeHash,
+		Unit::ByteCount64(0),
+		Unit::ByteCount64(0),
+		functions);
+}
+
+template <typename ComponentType>
+inline void ComponentReflector::RegisterMemoryImagedComponentType()
+{
+	// Utilize the type to handle as much boilerplate casting and definition as possible.
+	struct ComponentTypeFunctions
+	{
+		static void BasicConstruct(const ComponentID reservedID, ComponentVector& destination)
+		{
+			destination.Emplace<ComponentType>(reservedID);
+		}
+
+		static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+			const uint8_t*& bytes,
+			const uint8_t* bytesEnd,
+			const ComponentID reservedID,
+			ComponentVector& destination)
+		{
+			if ((bytesEnd - bytes) < sizeof(ComponentType))
+			{
+				return false;
+			}
+			ComponentType& component = destination.Emplace<ComponentType>(reservedID);
+			memcpy(&component, bytes, sizeof(ComponentType));
+			component.m_id = reservedID;
+			bytes += sizeof(ComponentType);
+			return true;
+		}
+
+		static void FullySerializeTo(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
+		{
+			const ComponentType& component = static_cast<const ComponentType&>(rawComponent);
+			const uint8_t* const componentBytes = reinterpret_cast<const uint8_t*>(&component);
+			outBytes.AddAll({ componentBytes, sizeof(ComponentType) });
+		}
+
+		static void ApplyFullSerialization(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
+		{
+			if ((bytesEnd - bytes) >= sizeof(ComponentType))
+			{
+				ComponentType& component = static_cast<ComponentType&>(rawComponent);
+				memcpy(&component, bytes, sizeof(ComponentType));
+				bytes += sizeof(ComponentType);
+			}
+		}
+
+		static void Destroy(Component& rawComponent)
+		{
+			ComponentType& component = static_cast<ComponentType&>(rawComponent);
+			component.~ComponentType();
+		}
+
+		static void Swap(Component& rawLHS, Component& rawRHS)
+		{
+			ComponentType& lhs = static_cast<ComponentType&>(rawLHS);
+			ComponentType& rhs = static_cast<ComponentType&>(rawRHS);
+
+			ComponentType buffer = std::move(lhs);
+			lhs = std::move(rhs);
+			rhs = std::move(buffer);
+		}
+	};
+
+	MandatoryComponentFunctions functions{ &ComponentTypeFunctions::BasicConstruct,
+		&ComponentTypeFunctions::TryCreateFromFullSerialization,
+		&ComponentTypeFunctions::FullySerializeTo,
+		&ComponentTypeFunctions::ApplyFullSerialization,
+		&ComponentTypeFunctions::Destroy,
+		&ComponentTypeFunctions::Swap };
+
+	RegisterComponentType(ComponentType::k_typeName,
+		ComponentType::k_typeHash,
+		Unit::ByteCount64(sizeof(ComponentType)),
+		Unit::ByteCount64(alignof(ComponentType)),
+		functions);
 }
 
 template <typename ComponentType>
@@ -148,12 +271,6 @@ inline void ComponentReflector::RegisterNetworkedComponentType()
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
 	{
-		static bool TryCreateFromTransmission(const uint8_t*& bytes, const uint8_t* bytesEnd,
-			const ComponentID reservedID, ComponentVector& destination)
-		{
-			return ComponentType::TryCreateFromTransmission(bytes, bytesEnd, reservedID, destination);
-		}
-
 		static void CopyConstruct(void* place, const Component& rawSource)
 		{
 			const ComponentType& sourceComponent = static_cast<const ComponentType&>(rawSource);
@@ -169,107 +286,16 @@ inline void ComponentReflector::RegisterNetworkedComponentType()
 			lhs.SerializeDeltaTransmission(rhs, outBytes);
 		}
 
-		static void SerializeFullTransmission(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
-		{
-			const ComponentType& component = static_cast<const ComponentType&>(rawComponent);
-
-			lhs.SerializeTransmission(rhs);
-		}
-
 		static void ApplyDeltaTransmission(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
 		{
 			ComponentType& component = static_cast<ComponentType&>(rawComponent);
 			component.ApplyDeltaTransmission(bytes, bytesEnd);
 		}
-
-		static void ApplyFullTransmission(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
-		{
-			ComponentType& component = static_cast<ComponentType&>(rawComponent);
-			component.ApplyFullTransmission(bytes, bytesEnd);
-		}
 	};
 
-	const TransmissionFunctions transmissionFunctions{
-		&ComponentTypeFunctions::TryCreateFromTransmission, &ComponentTypeFunctions::CopyConstruct,
-		&ComponentTypeFunctions::SerializeDeltaTransmission, &ComponentTypeFunctions::SerializeDeltaTransmission,
-		&ComponentTypeFunctions::ApplyDeltaTransmission, &ComponentTypeFunctions::ApplyFullTransmission };
-
-	m_transmissionFunctions[ComponentType::Info::sk_typeHash] = transmissionFunctions;
-}
-
-
-template <typename ComponentType>
-inline void ComponentReflector::RegisterMemoryImagedNetworkedComponentType()
-{
-	RegisterComponentType<ComponentType>();
-
-	// Utilize the type to handle as much boilerplate casting and definition as possible.
-	struct ComponentTypeFunctions
-	{
-		static bool TryCreateFromTransmission(const uint8_t*& bytes, const uint8_t* bytesEnd,
-			const ComponentID reservedID, ComponentVector& destination)
-		{
-			if ((bytes + sizeof(ComponentType) - 9) >= bytesEnd)
-			{
-				bytes = bytesEnd;
-				return false;
-			}
-
-			ComponentType& component = destination.Emplace<ComponentType>(reservedID);
-			ApplyFullTransmission(component, bytes, bytesEnd);
-			return true;
-		}
-
-		static void CopyConstruct(void* place, const Component& rawSource)
-		{
-			const ComponentType& sourceComponent = static_cast<const ComponentType&>(rawSource);
-			new (place) ComponentType(sourceComponent);
-		}
-
-		static void SerializeDeltaTransmission(const Component& rawLHS, const Component& rawRHS,
-			Collection::Vector<uint8_t>& outBytes)
-		{
-			SerializeFullTransmission(rawRHS, outBytes);
-		}
-
-		static void SerializeFullTransmission(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
-		{
-			const ComponentType& component = static_cast<const ComponentType&>(rawComponent);
-			const uint8_t* componentBytes = reinterpret_cast<const uint8_t*>(&component);
-			componentBytes += 8; // Skip the vtable pointer.
-			for (size_t i = 0; i < (sizeof(ComponentType) - 8); ++i)
-			{
-				outBytes.Add(componentBytes);
-			}
-		}
-
-		static void ApplyDeltaTransmission(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
-		{
-			ApplyFullTransmission(rawComponent, bytes, bytesEnd);
-		}
-
-		static void ApplyFullTransmission(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
-		{
-			if ((bytes + sizeof(ComponentType) - 9) >= bytesEnd)
-			{
-				bytes = bytesEnd;
-				return;
-			}
-
-			ComponentType& component = static_cast<ComponentType&>(rawComponent);
-			uint8_t* componentBytes = reinterpret_cast<uint8_t*>(&component);
-			componentBytes += 8; // Skip the vtable pointer.
-			for (size_t i = 0; i < (sizeof(ComponentType) - 8); ++i)
-			{
-				componentBytes[i] = *(bytes++);
-			}
-		}
-	};
-
-	const TransmissionFunctions transmissionFunctions{
-		&ComponentTypeFunctions::TryCreateFromTransmission, &ComponentTypeFunctions::CopyConstruct,
-		&ComponentTypeFunctions::SerializeDeltaTransmission, &ComponentTypeFunctions::SerializeDeltaTransmission,
-		&ComponentTypeFunctions::ApplyDeltaTransmission, &ComponentTypeFunctions::ApplyFullTransmission };
+	const TransmissionFunctions transmissionFunctions{ &ComponentTypeFunctions::CopyConstruct,
+		&ComponentTypeFunctions::SerializeDeltaTransmission,
+		&ComponentTypeFunctions::ApplyDeltaTransmission };
 
 	m_transmissionFunctions[ComponentType::Info::sk_typeHash] = transmissionFunctions;
 }

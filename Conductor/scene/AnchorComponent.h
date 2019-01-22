@@ -4,25 +4,21 @@
 
 namespace Scene
 {
-class AnchorComponentInfo;
-
 /**
  * Entities with an AnchorComponent cause the scene to load around them.
  */
 class AnchorComponent final : public ECS::Component
 {
 public:
-	using Info = AnchorComponentInfo;
-
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const AnchorComponentInfo& componentInfo,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static constexpr const char* k_typeName = "anchor_component";
+	static const Util::StringHash k_typeHash;
 
 	AnchorComponent(const ECS::ComponentID id, int16_t anchoringRadiusInChunks)
 		: ECS::Component(id)
 		, m_anchoringRadiusInChunks(anchoringRadiusInChunks)
 	{}
 
-	virtual ~AnchorComponent() {}
+	~AnchorComponent() {}
 
 	int16_t m_anchoringRadiusInChunks;
 };

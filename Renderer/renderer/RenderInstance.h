@@ -24,8 +24,7 @@ public:
 	~RenderInstance();
 
 	// Register any component types the renderer needs for its ECS::Systems to run.
-	static void RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
-		ECS::ComponentInfoFactory& componentInfoFactory);
+	static void RegisterComponentTypes(ECS::ComponentReflector& componentReflector);
 
 	virtual void InitOnClientThread() override;
 	virtual void ShutdownOnClientThread() override;

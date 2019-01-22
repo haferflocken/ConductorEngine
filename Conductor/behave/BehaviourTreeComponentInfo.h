@@ -2,7 +2,6 @@
 
 #include <asset/AssetManager.h>
 #include <collection/Vector.h>
-#include <ecs/ComponentInfo.h>
 
 namespace Behave
 {

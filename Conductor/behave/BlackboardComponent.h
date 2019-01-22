@@ -6,7 +6,6 @@
 namespace Behave
 {
 namespace AST { class Interpreter; }
-class BlackboardComponentInfo;
 
 /**
  * A BlackboardComponent contains a blackboard: a data-driven key/value store.
@@ -14,9 +13,10 @@ class BlackboardComponentInfo;
 class BlackboardComponent final : public ECS::Component
 {
 public:
-	using Info = BlackboardComponentInfo;
+	static constexpr const char* k_typeName = "blackboard_component";
+	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const BlackboardComponentInfo& componentInfo,
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	static void BindFunctions(AST::Interpreter& interpreter);
@@ -26,7 +26,7 @@ public:
 		, m_blackboard()
 	{}
 
-	virtual ~BlackboardComponent() {}
+	~BlackboardComponent() {}
 
 	Blackboard m_blackboard;
 };

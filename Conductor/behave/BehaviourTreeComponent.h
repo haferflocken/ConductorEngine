@@ -7,17 +7,16 @@
 
 namespace Behave
 {
-class BehaviourTreeComponentInfo;
-
 /**
  * A BehaviourTreeComponent allows an Entity to run behaviour trees.
  */
 class BehaviourTreeComponent final : public ECS::Component
 {
 public:
-	using Info = BehaviourTreeComponentInfo;
+	static constexpr const char* k_typeName = "behaviour_tree_component";
+	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const BehaviourTreeComponentInfo& componentInfo,
+	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
 		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit BehaviourTreeComponent(const ECS::ComponentID id)
@@ -31,7 +30,7 @@ public:
 	BehaviourTreeComponent(BehaviourTreeComponent&&) = default;
 	BehaviourTreeComponent& operator=(BehaviourTreeComponent&&) = default;
 
-	virtual ~BehaviourTreeComponent() {}
+	~BehaviourTreeComponent() {}
 
 	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_referencedForests;
 	Collection::Vector<BehaviourTreeEvaluator> m_treeEvaluators;
