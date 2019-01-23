@@ -13,6 +13,7 @@ namespace AST { class Interpreter; }
 class BlackboardComponent final : public ECS::Component
 {
 public:
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "blackboard_component";
 	static const Util::StringHash k_typeHash;
 

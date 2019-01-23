@@ -10,6 +10,7 @@ namespace Scene
 class AnchorComponent final : public ECS::Component
 {
 public:
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::MemoryImaged;
 	static constexpr const char* k_typeName = "anchor_component";
 	static const Util::StringHash k_typeHash;
 

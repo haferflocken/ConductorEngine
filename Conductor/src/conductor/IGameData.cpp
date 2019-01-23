@@ -39,9 +39,9 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	m_componentReflector->RegisterComponentType<Behave::BlackboardComponent>();
 	m_componentReflector->RegisterComponentType<Input::InputComponent>();
 	m_componentReflector->RegisterComponentType<Mesh::MeshComponent>();
-	m_componentReflector->RegisterTagComponentType<Scene::SceneSaveComponent>();
-	m_componentReflector->RegisterMemoryImagedComponentType<Scene::SceneTransformComponent>();
-	m_componentReflector->RegisterMemoryImagedComponentType<Scene::AnchorComponent>();
+	m_componentReflector->RegisterComponentType<Scene::SceneSaveComponent>();
+	m_componentReflector->RegisterComponentType<Scene::SceneTransformComponent>();
+	m_componentReflector->RegisterComponentType<Scene::AnchorComponent>();
 
 	// Bind functions to the Behave interpreter.
 	Behave::BlackboardComponent::BindFunctions(*m_behaveASTInterpreter);

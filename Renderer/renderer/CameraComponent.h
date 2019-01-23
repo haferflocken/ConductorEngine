@@ -12,11 +12,9 @@ namespace Renderer
 class CameraComponent final : public ECS::Component
 {
 public:
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::MemoryImaged;
 	static constexpr const char* k_typeName = "camera_component";
 	static const Util::StringHash k_typeHash;
-
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
 
 	explicit CameraComponent(const ECS::ComponentID id)
 		: Component(id)

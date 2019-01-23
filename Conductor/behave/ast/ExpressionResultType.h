@@ -60,7 +60,7 @@ private:
 	struct ArgumentTypeString
 	{
 		// Assume it is a component and extracts the type name from it.
-		static constexpr const char* value = T::Info::sk_typeName;
+		static constexpr const char* value = T::k_typeName;
 	};
 
 };

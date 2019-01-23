@@ -11,6 +11,7 @@ namespace Scene
 class SceneSaveComponent final : public ECS::Component
 {
 public:
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Tag;
 	static constexpr const char* k_typeName = "scene_save_component";
 	static const Util::StringHash k_typeHash;
 

@@ -67,7 +67,7 @@ private:
 template <typename TComponent>
 inline ComponentID Entity::FindComponentID() const
 {
-	return FindComponentID(ComponentType(TComponent::Info::sk_typeHash));
+	return FindComponentID(ComponentType(TComponent::k_typeHash));
 }
 
 inline ComponentID Entity::FindComponentID(const ComponentType& componentType) const

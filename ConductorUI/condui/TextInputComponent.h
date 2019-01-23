@@ -21,6 +21,7 @@ class TextInputComponent final : public ECS::Component
 public:
 	using InputHandler = std::function<void(TextInputComponent&, const char*)>;
 
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "text_input_component";
 	static const Util::StringHash k_typeHash;
 

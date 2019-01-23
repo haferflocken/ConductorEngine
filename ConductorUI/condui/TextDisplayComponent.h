@@ -13,6 +13,7 @@ namespace Condui
 class TextDisplayComponent final : public ECS::Component
 {
 public:
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "text_display_component";
 	static const Util::StringHash k_typeHash;
 

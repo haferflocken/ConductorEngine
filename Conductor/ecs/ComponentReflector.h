@@ -53,31 +53,8 @@ public:
 
 	ComponentReflector();
 
-	// Register a component type that doesn't support network transmission. The component type must define:
-	//   A unary constructor which takes a ComponentID.
-	//   static bool TryCreateFromFullSerialization(...): creates the component from a serialized representation.
-	//   void FullySerializeTo(...) : serializes a complete representation of the component.
-	//   void ApplyFullSerialization(...) : applies a serialized representation of the component to it.
 	template <typename ComponentType>
 	void RegisterComponentType();
-
-	// Registers a component type that can't be instantiated and doesn't support network transmission.
-	// These components only exist as "tags" for entities to be matched with in ECS::Systems.
-	template <typename ComponentType>
-	void RegisterTagComponentType();
-
-	// Register a component type that doesn't support network transmission, automatically defining serialization and
-	// deserialization functions using memcpy. The component must define a unary constructor which takes a ComponentID.
-	template <typename ComponentType>
-	void RegisterMemoryImagedComponentType();
-
-	// Register a component type that supports network transmission using static functions defined in ComponentType.
-	// It must meet all of the requirements of RegisterComponentType(...) and must also define:
-	//   A copy constructor.
-	//   void SerializeDeltaTransmission(...): compares the component to its past copy and serializes a delta.
-	//   void ApplyDeltaTransmission(...): applies a delta serialization to update the component.
-	template <typename ComponentType>
-	void RegisterNetworkedComponentType();
 
 	bool IsRegistered(const ComponentType componentType) const;
 
@@ -99,6 +76,32 @@ public:
 	const TransmissionFunctions* FindTransmissionFunctions(const ComponentType componentType) const;
 
 private:
+	// Register a component type that doesn't support network transmission. The component type must define:
+	//   A unary constructor which takes a ComponentID.
+	//   static bool TryCreateFromFullSerialization(...): creates the component from a serialized representation.
+	//   void FullySerializeTo(...) : serializes a complete representation of the component.
+	//   void ApplyFullSerialization(...) : applies a serialized representation of the component to it.
+	template <typename ComponentType>
+	void RegisterNormalComponentType();
+
+	// Registers a component type that can't be instantiated and doesn't support network transmission.
+	// These components only exist as "tags" for entities to be matched with in ECS::Systems.
+	template <typename ComponentType>
+	void RegisterTagComponentType();
+
+	// Register a component type that doesn't support network transmission, automatically defining serialization and
+	// deserialization functions using memcpy. The component must define a unary constructor which takes a ComponentID.
+	template <typename ComponentType>
+	void RegisterMemoryImagedComponentType();
+
+	// Register a component type that supports network transmission using static functions defined in ComponentType.
+	// It must meet all of the requirements of RegisterNormalComponentType(...) and must also define:
+	//   A copy constructor.
+	//   void SerializeDeltaTransmission(...): compares the component to its past copy and serializes a delta.
+	//   void ApplyDeltaTransmission(...): applies a delta serialization to update the component.
+	template <typename ComponentType>
+	void RegisterNetworkedComponentType();
+
 	void RegisterComponentType(const char* componentTypeName,
 		const Util::StringHash componentTypeHash,
 		const Unit::ByteCount64 sizeOfComponent,
@@ -111,9 +114,34 @@ private:
 	Collection::VectorMap<ComponentType, MandatoryComponentFunctions> m_mandatoryComponentFunctions;
 	Collection::VectorMap<ComponentType, TransmissionFunctions> m_transmissionFunctions;
 };
+}
 
+// Inline implementations.
+namespace ECS
+{
 template <typename ComponentType>
 inline void ComponentReflector::RegisterComponentType()
+{
+	if constexpr (ComponentType::k_bindingType == ComponentBindingType::Normal)
+	{
+		RegisterNormalComponentType<ComponentType>();
+	}
+	else if constexpr (ComponentType::k_bindingType == ComponentBindingType::Tag)
+	{
+		RegisterTagComponentType<ComponentType>();
+	}
+	else if constexpr (ComponentType::k_bindingType == ComponentBindingType::MemoryImaged)
+	{
+		RegisterMemoryImagedComponentType<ComponentType>();
+	}
+	else if constexpr (ComponentType::k_bindingType == ComponentBindingType::Networked)
+	{
+		RegisterNetworkedComponentType<ComponentType>();
+	}
+}
+
+template <typename ComponentType>
+inline void ComponentReflector::RegisterNormalComponentType()
 {
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
@@ -298,6 +326,6 @@ inline void ComponentReflector::RegisterNetworkedComponentType()
 		&ComponentTypeFunctions::SerializeDeltaTransmission,
 		&ComponentTypeFunctions::ApplyDeltaTransmission };
 
-	m_transmissionFunctions[ComponentType::Info::sk_typeHash] = transmissionFunctions;
+	m_transmissionFunctions[ComponentType::k_typeHash] = transmissionFunctions;
 }
 }

@@ -117,14 +117,14 @@ struct ExpressionResultToArgument
 		if constexpr(IsComponentReference<ArgType>)
 		{
 			using ComponentValueType = std::remove_reference_t<ArgType>;
-			AMP_FATAL_ASSERT(val.GetTypeHash() == ComponentValueType::Info::sk_typeHash,
+			AMP_FATAL_ASSERT(val.GetTypeHash() == ComponentValueType::k_typeHash,
 				"Mismatch between supported component type [%s] and argument [%s].",
-				ComponentValueType::Info::sk_typeName, Util::ReverseHash(val.GetTypeHash()));
+				ComponentValueType::k_typeName, Util::ReverseHash(val.GetTypeHash()));
 
 			ComponentValueType* const component = entityManager.FindComponent<ComponentValueType>(entity);
 			AMP_FATAL_ASSERT(component != nullptr,
 				"Could not find component [%s] when converting argument for bound function.",
-				ComponentValueType::Info::sk_typeName);
+				ComponentValueType::k_typeName);
 			return static_cast<ArgType>(*component);
 		}
 		else

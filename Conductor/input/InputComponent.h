@@ -14,6 +14,7 @@ namespace Input
 class InputComponent final : public ECS::Component
 {
 public:
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* const k_typeName = "input_component";
 	static const Util::StringHash k_typeHash;
 
