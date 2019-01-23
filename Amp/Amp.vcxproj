@@ -159,6 +159,7 @@
     <ClInclude Include="json\JSONTypes.h" />
     <ClInclude Include="mem\DeserializeLittleEndian.h" />
     <ClInclude Include="mem\Serialize.h" />
+    <ClInclude Include="mem\SerializeLittleEndian.h" />
     <ClInclude Include="mem\UniquePtr.h" />
     <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
     <ClInclude Include="unit\CountUnits.h" />

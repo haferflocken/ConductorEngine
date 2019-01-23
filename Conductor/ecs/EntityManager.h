@@ -28,6 +28,7 @@ class Component;
 class ComponentReflector;
 class ComponentVector;
 class ECSGroupVector;
+struct SerializedEntitiesAndComponents;
 class System;
 
 /**
@@ -42,8 +43,12 @@ public:
 
 	Entity& CreateEntityWithComponents(const Collection::ArrayView<const ComponentType>& componentTypes,
 		const EntityID requestedID = EntityID());
-	Entity& CreateEntityFromFullSerialization(
-		const uint8_t*& entityBytes, const uint8_t* entityBytesEnd, const EntityID requestedID = EntityID());
+	Collection::Vector<Entity*> CreateEntitiesFromFullSerialization(
+		const SerializedEntitiesAndComponents& serialization);
+
+	void FullySerializeEntitiesAndComponents(const Collection::ArrayView<const Entity*>& entities,
+		SerializedEntitiesAndComponents& serialization) const;
+
 	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
 
@@ -115,7 +120,8 @@ private:
 	template <typename SystemType>
 	SystemType& RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system, RegisteredConcurrentSystemGroup& outGroup);
 
-	void AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd);
+	void AddECSPointersToSystems(Entity& entityToAdd);
+	void AddECSPointersToSystems(Collection::ArrayView<Entity* const> entitiesToAdd);
 	void RemoveECSPointersFromSystems(Entity& entity);
 	
 private:

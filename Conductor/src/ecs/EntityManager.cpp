@@ -5,10 +5,12 @@
 #include <ecs/ComponentVector.h>
 #include <ecs/ECSGroupVector.h>
 #include <ecs/Entity.h>
+#include <ecs/SerializedEntitiesAndComponents.h>
 #include <ecs/System.h>
 
 #include <collection/ArrayView.h>
 #include <mem/Serialize.h>
+#include <mem/SerializeLittleEndian.h>
 
 #include <algorithm>
 #include <execution>
@@ -84,7 +86,7 @@ Entity& EntityManager::CreateEntityWithComponents(const Collection::ArrayView<co
 	}
 
 	// Add the entity to the system execution groups.
-	AddECSPointersToSystems(Collection::ArrayView<Entity>(&entity, 1));
+	AddECSPointersToSystems(entity);
 
 	// If we can transmit state, track the newly added entity.
 	if (m_transmissionBuffers != nullptr)
@@ -96,11 +98,158 @@ Entity& EntityManager::CreateEntityWithComponents(const Collection::ArrayView<co
 	return entity;
 }
 
-Entity& EntityManager::CreateEntityFromFullSerialization(
-	const uint8_t*& entityBytes, const uint8_t* entityBytesEnd, const EntityID requestedID)
+Collection::Vector<Entity*> EntityManager::CreateEntitiesFromFullSerialization(
+	const SerializedEntitiesAndComponents& serialization)
 {
-	// TODO(info) actually write this!!
-	return CreateEntityWithComponents({ nullptr, 0 }, requestedID);
+	// Create all serialized components.
+	for (const auto& entry : serialization.m_componentViews)
+	{
+		ComponentVector* const componentVector = GetComponentVector(entry.first);
+		if (componentVector == nullptr)
+		{
+			continue;
+		}
+
+		const auto componentFunctions = m_componentReflector.FindComponentFunctions(entry.first);
+
+		for (const auto& componentView : entry.second)
+		{
+			const uint8_t* const viewBytes = &serialization.m_bytes[componentView.m_beginIndex];
+
+			FullSerializedComponentHeader header;
+			memcpy(&header, viewBytes, FullSerializedComponentHeader::k_unpaddedSize);
+
+			const ComponentID componentID{ entry.first, header.m_uniqueID };
+
+			const uint8_t* componentBegin = viewBytes + FullSerializedComponentHeader::k_unpaddedSize;
+			const uint8_t* const componentEnd = viewBytes + componentView.m_endIndex;
+
+			componentFunctions.m_tryCreateFromFullSerializationFunction(m_assetManager,
+				componentBegin,
+				componentEnd,
+				componentID,
+				*componentVector);
+
+			// If we can transmit state, track the newly added component.
+			if (m_transmissionBuffers != nullptr)
+			{
+				m_transmissionBuffers->m_componentsAddedSinceLastTransmission.Add(componentID);
+			}
+		}
+	}
+
+	// Create all serialized entities.
+	Collection::Vector<Entity*> newEntities;
+	for (const auto& entityView : serialization.m_entityViews)
+	{
+		const uint8_t* const viewBytes = &serialization.m_bytes[entityView.m_beginIndex];
+		const size_t viewSizeInBytes = (entityView.m_endIndex - entityView.m_beginIndex);
+
+		FullSerializedEntityHeader header;
+		memcpy(&header, viewBytes, FullSerializedEntityHeader::k_unpaddedSize);
+
+		const size_t numComponentIDBytes = header.m_numComponents * sizeof(ComponentID);
+		if ((numComponentIDBytes + FullSerializedEntityHeader::k_unpaddedSize) > viewSizeInBytes)
+		{
+			AMP_LOG_WARNING("Serialized entity view isn't large enough for all its component IDs.");
+			continue;
+		}
+
+		Collection::Vector<ComponentID> componentIDs;
+		componentIDs.Resize(header.m_numComponents);
+
+		const uint8_t* const serializedComponentIDs = viewBytes + FullSerializedEntityHeader::k_unpaddedSize;
+		memcpy(&componentIDs.Front(), serializedComponentIDs, numComponentIDBytes);
+
+		// TODO(info) handle entity IDs which are already in use, perhaps with a fixup map
+
+		Entity& entity = m_entities.Emplace(header.m_entityID, header.m_entityID);
+		entity.m_componentIDs = std::move(componentIDs);
+
+		Entity* const parentEntity = FindEntity(header.m_parentEntityID);
+		SetParentEntity(entity, parentEntity);
+
+		newEntities.Add(&entity);
+
+		// If we can transmit state, track the newly added entity.
+		if (m_transmissionBuffers != nullptr)
+		{
+			m_transmissionBuffers->m_entitiesAddedSinceLastTransmission.Add(header.m_entityID);
+		}
+	}
+
+	// Add all new entities to the system execution groups.
+	AddECSPointersToSystems(newEntities.GetConstView());
+
+	return newEntities;
+}
+
+void EntityManager::FullySerializeEntitiesAndComponents(const Collection::ArrayView<const Entity*>& entities,
+	SerializedEntitiesAndComponents& serialization) const
+{
+	// Sort the components to serialize by type.
+	Collection::VectorMap<ComponentType, Collection::Vector<const Component*>> componentsToSerializeByType;
+	for (const auto& entity : entities)
+	{
+		for (const auto& componentID : entity->GetComponentIDs())
+		{
+			componentsToSerializeByType[componentID.GetType()].Add(FindComponent(componentID));
+		}
+	}
+
+	// Serialize the component data.
+	for (const auto& entry : componentsToSerializeByType)
+	{
+		const ComponentType componentType = entry.first;
+		const auto& components = entry.second;
+
+		const auto componentFunctions = m_componentReflector.FindComponentFunctions(componentType);
+
+		auto& componentViews = serialization.m_componentViews[componentType];
+
+		for (const auto& component : components)
+		{
+			const uint32_t componentViewBeginIndex = serialization.m_bytes.Size();
+
+			FullSerializedComponentHeader componentHeader;
+			componentHeader.m_uniqueID = component->m_id.GetUniqueID();
+
+			serialization.m_bytes.Resize(serialization.m_bytes.Size() + FullSerializedComponentHeader::k_unpaddedSize);
+			memcpy(serialization.m_bytes.begin() + componentViewBeginIndex,
+				&componentHeader,
+				FullSerializedEntityHeader::k_unpaddedSize);
+
+			componentFunctions.m_fullSerializationFunction(*component, serialization.m_bytes);
+
+			componentViews.Add({ componentViewBeginIndex, serialization.m_bytes.Size() });
+		}
+	}
+
+	// Serialize the entity data.
+	for (const auto& entity : entities)
+	{
+		const uint32_t entityViewBeginIndex = serialization.m_bytes.Size();
+
+		FullSerializedEntityHeader entityHeader;
+		entityHeader.m_entityID = entity->GetID();
+		if (entity->GetParent() != nullptr)
+		{
+			entityHeader.m_parentEntityID = entity->GetParent()->GetID();
+		}
+		entityHeader.m_numComponents = entity->GetComponentIDs().Size();
+
+		serialization.m_bytes.Resize(serialization.m_bytes.Size() + FullSerializedEntityHeader::k_unpaddedSize);
+		memcpy(serialization.m_bytes.begin() + entityViewBeginIndex,
+			&entityHeader,
+			FullSerializedEntityHeader::k_unpaddedSize);
+
+		for (const auto& componentID : entity->GetComponentIDs())
+		{
+			Mem::LittleEndian::Serialize(componentID.GetUniqueID(), serialization.m_bytes);
+		}
+
+		serialization.m_entityViews.Add({ entityViewBeginIndex, serialization.m_bytes.Size() });
+	}
 }
 
 void EntityManager::SetParentEntity(Entity& entity, Entity* parentEntity)
@@ -843,7 +992,13 @@ bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<Ut
 };
 }
 
-void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd)
+void EntityManager::AddECSPointersToSystems(Entity& entityToAdd)
+{
+	Entity* const entityPtr = &entityToAdd;
+	AddECSPointersToSystems(Collection::ArrayView<Entity* const>{ &entityPtr, 1 });
+}
+
+void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity* const> entitiesToAdd)
 {
 	using namespace Internal_EntityManager;
 
@@ -860,17 +1015,17 @@ void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity>& entit
 			for (auto& entity : entitiesToAdd)
 			{
 				Collection::Vector<void*> pointers;
-				if (!TryGatherPointers(*this, immutableTypes, entity, pointers))
+				if (!TryGatherPointers(*this, immutableTypes, *entity, pointers))
 				{
 					continue;
 				}
-				if (!TryGatherPointers(*this, mutableTypes, entity, pointers))
+				if (!TryGatherPointers(*this, mutableTypes, *entity, pointers))
 				{
 					continue;
 				}
 
 				registeredSystem.m_ecsGroups.Add(pointers);
-				registeredSystem.m_notifyEntityAddedFunction(registeredSystem, entity.GetID(), pointers);
+				registeredSystem.m_notifyEntityAddedFunction(registeredSystem, entity->GetID(), pointers);
 			}
 
 			// Sort the group vector in order to make the memory accesses as fast as possible.

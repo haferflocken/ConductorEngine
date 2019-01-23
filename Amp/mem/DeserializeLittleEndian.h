@@ -83,4 +83,28 @@ inline Collection::Pair<int64_t, bool> DeserializeI64(const uint8_t*& bytes, con
 	Collection::Pair<uint64_t, bool> out = DeserializeUi64(bytes, bytesEnd);
 	return reinterpret_cast<Collection::Pair<int64_t, bool>&>(out);
 }
+
+template <size_t Capacity>
+inline bool DeserializeString(const uint8_t*& bytes, const uint8_t* bytesEnd, char(&outStr)[Capacity])
+{
+	if (bytes + 2 >= bytesEnd)
+	{
+		return false;
+	}
+
+	const uint16_t length = DeserializeUi16(bytes, bytesEnd).first;
+
+	if (bytes + length >= bytesEnd || length > Capacity)
+	{
+		return false;
+	}
+
+	for (size_t i = 0; i < length; ++i)
+	{
+		outStr[i] = *(bytes++);
+	}
+	outStr[length] = '\0';
+
+	return true;
+}
 }

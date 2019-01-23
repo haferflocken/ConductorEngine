@@ -5,6 +5,7 @@
 #include <collection/VectorMap.h>
 
 #include <ecs/Entity.h>
+#include <ecs/SerializedEntitiesAndComponents.h>
 #include <ecs/System.h>
 
 #include <file/Path.h>
@@ -89,7 +90,7 @@ private:
 
 	Collection::Vector<ChunkID> m_chunksInPlay;
 	Collection::Vector<ChunkID> m_chunksPendingRemoval;
-	Collection::Vector<std::future<Chunk>> m_chunkLoadingFutures;
+	Collection::Vector<std::future<ECS::SerializedEntitiesAndComponents>> m_chunkLoadingFutures;
 
 	struct ChunkRefCount : public Unit::UnitTempl<ChunkRefCount, uint8_t>
 	{

@@ -13,7 +13,7 @@ bool MeshComponent::TryCreateFromInfo(
 	ECS::ComponentVector& destination)
 {
 	MeshComponent& meshComponent = destination.Emplace<MeshComponent>(reservedID);
-	// meshComponent.m_meshHandle = assetManager.RequestAsset<StaticMesh>(componentInfo.m_meshFilePath);
+	// TODO(info) meshComponent.m_meshHandle = assetManager.RequestAsset<StaticMesh>(componentInfo.m_meshFilePath);
 	return true;
 }
 }

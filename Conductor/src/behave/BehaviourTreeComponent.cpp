@@ -13,14 +13,15 @@ bool Behave::BehaviourTreeComponent::TryCreateFromInfo(
 {
 	BehaviourTreeComponent& component = destination.Emplace<BehaviourTreeComponent>(reservedID);
 
-	component.m_referencedForests.AddAll(componentInfo.m_behaviourForests.GetConstView());
+	// TODO(info) behaviour trees
+	/*component.m_referencedForests.AddAll(componentInfo.m_behaviourForests.GetConstView());
 	component.m_referencedForests.AddAll(componentInfo.m_importedForests.GetConstView());
 
 	for (const Behave::BehaviourTree* const behaviourTree : componentInfo.m_behaviourTrees)
 	{
 		Behave::BehaviourTreeEvaluator& treeEvaluator = component.m_treeEvaluators.Emplace();
 		behaviourTree->GetRoot()->PushState(treeEvaluator);
-	}
+	}*/
 
 	return true;
 }
