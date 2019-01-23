@@ -154,6 +154,7 @@
     <ClCompile Include="src\behave\nodes\RepeatNode.cpp" />
     <ClCompile Include="src\behave\parse\BehaviourTreeParser.cpp" />
     <ClCompile Include="src\client\IClient.cpp" />
+    <ClCompile Include="src\ecs\SerializedEntitiesAndComponents.cpp" />
     <ClCompile Include="src\input\CallbackRegistry.cpp" />
     <ClCompile Include="src\input\InputComponent.cpp" />
     <ClCompile Include="src\input\InputStateManager.cpp" />

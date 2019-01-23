@@ -1,13 +1,9 @@
 #include <scene/Chunk.h>
 
-#include <ecs/ComponentReflector.h>
 #include <ecs/Entity.h>
 #include <ecs/EntityManager.h>
 #include <ecs/SerializedEntitiesAndComponents.h>
 #include <file/FullFileReader.h>
-#include <mem/SerializeLittleEndian.h>
-
-#include <fstream>
 
 void Scene::SaveInPlayChunk(const ChunkID chunkID,
 	const ECS::EntityManager& entityManager,
@@ -29,49 +25,14 @@ void Scene::SaveInPlayChunk(const ChunkID chunkID,
 	ECS::SerializedEntitiesAndComponents serialization;
 	entityManager.FullySerializeEntitiesAndComponents(entitiesToSerialize.GetView(), serialization);
 
-	// Serialize the entity views and component views.
-	Collection::Vector<uint8_t> viewBytes;
-
-	const uint32_t numComponentTypes = serialization.m_componentViews.Size();
-	Mem::LittleEndian::Serialize(numComponentTypes, viewBytes);
-
-	for (const auto& entry : serialization.m_componentViews)
-	{
-		const char* const componentTypeName = Util::ReverseHash(entry.first.GetTypeHash());
-		Mem::LittleEndian::Serialize(componentTypeName, viewBytes);
-
-		const auto& componentViews = entry.second;
-
-		const uint32_t numComponentViews = componentViews.Size();
-		Mem::LittleEndian::Serialize(numComponentViews, viewBytes);
-
-		const uint32_t componentViewsIndex = viewBytes.Size();
-		const uint32_t sizeOfComponentViews = numComponentViews * sizeof(ECS::SerializedByteView);
-		viewBytes.Resize(viewBytes.Size() + sizeOfComponentViews);
-		memcpy(&viewBytes[componentViewsIndex], &componentViews.Front(), sizeOfComponentViews);
-	}
-
-	const uint32_t numEntityViews = serialization.m_entityViews.Size();
-	Mem::LittleEndian::Serialize(numEntityViews, viewBytes);
-
-	const uint32_t entityViewsIndex = viewBytes.Size();
-	const uint32_t sizeOfEntityViews = numEntityViews * sizeof(ECS::SerializedByteView);
-	viewBytes.Resize(viewBytes.Size() + sizeOfEntityViews);
-	memcpy(&viewBytes[entityViewsIndex], &serialization.m_entityViews.Front(), sizeOfEntityViews);
-
-	// Write the serialized views to the output.
-	fileOutput.write(reinterpret_cast<const char*>(&viewBytes.Front()), viewBytes.Size());
-
-	// Write the serialized entities and components to the output.
-	fileOutput.write(reinterpret_cast<const char*>(&serialization.m_bytes.Front()), serialization.m_bytes.Size());
+	// Write the serialization to the file.
+	ECS::WriteSerializedEntitiesAndComponentsToFile(serialization, fileOutput);
 }
 
 ECS::SerializedEntitiesAndComponents Scene::LoadChunkForPlay(const File::Path& sourcePath,
 	const File::Path& userPath,
 	const std::string& chunkFileName)
 {
-	ECS::SerializedEntitiesAndComponents outChunk;
-
 	// If the chunk exists at the user path, load it. Otherwise load it from the source path.
 	std::string rawChunk = File::ReadFullTextFile(userPath / chunkFileName);
 	if (rawChunk.empty())
@@ -79,16 +40,18 @@ ECS::SerializedEntitiesAndComponents Scene::LoadChunkForPlay(const File::Path& s
 		rawChunk = File::ReadFullTextFile(sourcePath / chunkFileName);
 		if (rawChunk.empty())
 		{
-			return outChunk;
+			return ECS::SerializedEntitiesAndComponents();
 		}
 	}
 
-	const uint8_t* iter = reinterpret_cast<const uint8_t*>(rawChunk.data());
-	const uint8_t* const iterEnd = iter + rawChunk.size();
+	const uint8_t* const bytes = reinterpret_cast<const uint8_t*>(rawChunk.data());
 
-	// TODO(info) load the serialized views, then load the serialized entities and components
-
-	return outChunk;
+	ECS::SerializedEntitiesAndComponents serialization;
+	if (!ECS::TryReadSerializedEntitiesAndComponentsFromFile({ bytes, rawChunk.size() }, serialization))
+	{
+		serialization = ECS::SerializedEntitiesAndComponents();
+	}
+	return serialization;
 }
 
 Math::Vector3 Scene::CalcChunkOrigin(const ChunkID chunkID)

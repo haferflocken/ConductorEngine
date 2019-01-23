@@ -4,6 +4,8 @@
 #include <ecs/ComponentType.h>
 #include <ecs/EntityID.h>
 
+#include <iosfwd>
+
 namespace ECS
 {
 struct FullSerializedComponentHeader final
@@ -40,4 +42,11 @@ struct SerializedEntitiesAndComponents final
 	// Each entity view is a FullSerializedEntityHeader followed by a list of [component type, component unique id].
 	Collection::Vector<SerializedByteView> m_entityViews;
 };
+
+// Read/write SerializedEntitiesAndComponents from/to files.
+void WriteSerializedEntitiesAndComponentsToFile(
+	const SerializedEntitiesAndComponents& serialization, std::ofstream& fileOutput);
+bool TryReadSerializedEntitiesAndComponentsFromFile(
+	Collection::ArrayView<const uint8_t> fileBytes,
+	SerializedEntitiesAndComponents& serialization);
 }
