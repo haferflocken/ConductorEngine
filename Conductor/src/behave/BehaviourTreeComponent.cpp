@@ -4,10 +4,13 @@
 #include <behave/BehaviourTree.h>
 #include <ecs/ComponentVector.h>
 
-const Util::StringHash Behave::BehaviourTreeComponent::k_typeHash = Util::CalcHash(k_typeName);
+namespace Behave
+{
+const Util::StringHash BehaviourTreeComponent::k_typeHash = Util::CalcHash(k_typeName);
 
-bool Behave::BehaviourTreeComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
+bool BehaviourTreeComponent::TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {
@@ -24,4 +27,17 @@ bool Behave::BehaviourTreeComponent::TryCreateFromInfo(
 	}*/
 
 	return true;
+}
+
+void BehaviourTreeComponent::FullySerialize(
+	const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes)
+{
+	// TODO(info) serialize
+}
+
+void BehaviourTreeComponent::ApplyFullSerialization(
+	BehaviourTreeComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd)
+{
+	// TODO(info) apply
+}
 }

@@ -17,11 +17,19 @@ public:
 	static constexpr const char* k_typeName = "blackboard_component";
 	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd,
+		const ECS::ComponentID reservedID,
+		ECS::ComponentVector& destination);
+
+	static void FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes);
+
+	static void ApplyFullSerialization(BlackboardComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
 
 	static void BindFunctions(AST::Interpreter& interpreter);
 
+public:
 	explicit BlackboardComponent(const ECS::ComponentID id)
 		: Component(id)
 		, m_blackboard()

@@ -17,9 +17,18 @@ public:
 	static constexpr const char* k_typeName = "behaviour_tree_component";
 	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd,
+		const ECS::ComponentID reservedID,
+		ECS::ComponentVector& destination);
 
+	static void FullySerialize(const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes);
+
+	static void ApplyFullSerialization(
+		BehaviourTreeComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+
+public:
 	explicit BehaviourTreeComponent(const ECS::ComponentID id)
 		: Component(id)
 		, m_treeEvaluators()

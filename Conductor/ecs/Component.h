@@ -1,6 +1,5 @@
 #pragma once
 
-#include <collection/Vector.h>
 #include <ecs/ComponentID.h>
 
 namespace Asset { class AssetManager; }

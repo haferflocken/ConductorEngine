@@ -79,8 +79,8 @@ private:
 	// Register a component type that doesn't support network transmission. The component type must define:
 	//   A unary constructor which takes a ComponentID.
 	//   static bool TryCreateFromFullSerialization(...): creates the component from a serialized representation.
-	//   void FullySerializeTo(...) : serializes a complete representation of the component.
-	//   void ApplyFullSerialization(...) : applies a serialized representation of the component to it.
+	//   static void FullySerialize(...) : serializes a complete representation of the component.
+	//   static void ApplyFullSerialization(...) : applies a serialized representation of the component to it.
 	template <typename ComponentType>
 	void RegisterNormalComponentType();
 
@@ -161,16 +161,16 @@ inline void ComponentReflector::RegisterNormalComponentType()
 				assetManager, bytes, bytesEnd, reservedID, destination);
 		}
 
-		static void FullySerializeTo(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
+		static void FullySerialize(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
 		{
 			const ComponentType& component = static_cast<const ComponentType&>(rawComponent);
-			lhs.FullySerializeTo(rhs);
+			ComponentType::FullySerialize(component, outBytes);
 		}
 
 		static void ApplyFullSerialization(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
 		{
 			ComponentType& component = static_cast<ComponentType&>(rawComponent);
-			component.ApplyFullSerialization(bytes, bytesEnd);
+			ComponentType::ApplyFullSerialization(component, bytes, bytesEnd);
 		}
 
 		static void Destroy(Component& rawComponent)
@@ -192,7 +192,7 @@ inline void ComponentReflector::RegisterNormalComponentType()
 
 	MandatoryComponentFunctions functions{ &ComponentTypeFunctions::BasicConstruct,
 		&ComponentTypeFunctions::TryCreateFromFullSerialization,
-		&ComponentTypeFunctions::FullySerializeTo,
+		&ComponentTypeFunctions::FullySerialize,
 		&ComponentTypeFunctions::ApplyFullSerialization,
 		&ComponentTypeFunctions::Destroy,
 		&ComponentTypeFunctions::Swap };
@@ -244,7 +244,7 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 			return true;
 		}
 
-		static void FullySerializeTo(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
+		static void FullySerialize(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
 		{
 			const ComponentType& component = static_cast<const ComponentType&>(rawComponent);
 			const uint8_t* const componentBytes = reinterpret_cast<const uint8_t*>(&component);
@@ -280,7 +280,7 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 
 	MandatoryComponentFunctions functions{ &ComponentTypeFunctions::BasicConstruct,
 		&ComponentTypeFunctions::TryCreateFromFullSerialization,
-		&ComponentTypeFunctions::FullySerializeTo,
+		&ComponentTypeFunctions::FullySerialize,
 		&ComponentTypeFunctions::ApplyFullSerialization,
 		&ComponentTypeFunctions::Destroy,
 		&ComponentTypeFunctions::Swap };

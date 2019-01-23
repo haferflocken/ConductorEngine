@@ -18,9 +18,17 @@ public:
 	static constexpr const char* const k_typeName = "input_component";
 	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd,
+		const ECS::ComponentID reservedID,
+		ECS::ComponentVector& destination);
 
+	static void FullySerialize(const InputComponent& component, Collection::Vector<uint8_t>& outBytes);
+
+	static void ApplyFullSerialization(InputComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+
+public:
 	explicit InputComponent(const ECS::ComponentID id)
 		: Component(id)
 	{}

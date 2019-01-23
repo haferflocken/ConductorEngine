@@ -17,9 +17,17 @@ public:
 	static constexpr const char* k_typeName = "mesh_component";
 	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd,
+		const ECS::ComponentID reservedID,
+		ECS::ComponentVector& destination);
 
+	static void FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes);
+
+	static void ApplyFullSerialization(MeshComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+
+public:
 	explicit MeshComponent(const ECS::ComponentID id)
 		: Component(id)
 		, m_meshHandle()

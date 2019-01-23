@@ -14,13 +14,12 @@ public:
 	static constexpr const char* k_typeName = "anchor_component";
 	static const Util::StringHash k_typeHash;
 
-	AnchorComponent(const ECS::ComponentID id, int16_t anchoringRadiusInChunks)
+	AnchorComponent(const ECS::ComponentID id)
 		: ECS::Component(id)
-		, m_anchoringRadiusInChunks(anchoringRadiusInChunks)
 	{}
 
 	~AnchorComponent() {}
 
-	int16_t m_anchoringRadiusInChunks;
+	int16_t m_anchoringRadiusInChunks{ 3 };
 };
 }
