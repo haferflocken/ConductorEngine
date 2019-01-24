@@ -35,8 +35,10 @@ void BehaviourTreeComponent::FullySerialize(
 	// TODO(info) serialize
 }
 
-void BehaviourTreeComponent::ApplyFullSerialization(
-	BehaviourTreeComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd)
+void BehaviourTreeComponent::ApplyFullSerialization(Asset::AssetManager& assetManager,
+	BehaviourTreeComponent& component,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd)
 {
 	// TODO(info) apply
 }

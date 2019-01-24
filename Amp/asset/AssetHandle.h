@@ -5,6 +5,7 @@
 namespace Asset
 {
 using CharType = wchar_t;
+constexpr size_t k_maxPathLength = 64;
 
 /**
  * Allows access to an asset managed by an AssetManager and maintains the asset's reference count.

@@ -25,8 +25,10 @@ public:
 
 	static void FullySerialize(const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes);
 
-	static void ApplyFullSerialization(
-		BehaviourTreeComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+	static void ApplyFullSerialization(Asset::AssetManager& assetManager,
+		BehaviourTreeComponent& component,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd);
 
 public:
 	explicit BehaviourTreeComponent(const ECS::ComponentID id)

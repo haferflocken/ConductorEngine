@@ -62,4 +62,16 @@ inline void Serialize(const char* str, Collection::Vector<uint8_t>& out)
 	Serialize(length, out);
 	out.AddAll({ reinterpret_cast<const uint8_t*>(str), length });
 }
+
+inline void Serialize(const wchar_t* str, Collection::Vector<uint8_t>& out)
+{
+	uint16_t length = 0;
+	while (str[length] != '\0')
+	{
+		++length;
+	}
+
+	Serialize(length, out);
+	out.AddAll({ reinterpret_cast<const uint8_t*>(str), length * sizeof(wchar_t) });
+}
 }

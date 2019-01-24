@@ -24,8 +24,10 @@ void BlackboardComponent::FullySerialize(const BlackboardComponent& component, C
 	// TODO(info) serialize
 }
 
-void BlackboardComponent::ApplyFullSerialization(
-	BlackboardComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd)
+void BlackboardComponent::ApplyFullSerialization(Asset::AssetManager& assetManager,
+	BlackboardComponent& component,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd)
 {
 	// TODO(info) apply
 }

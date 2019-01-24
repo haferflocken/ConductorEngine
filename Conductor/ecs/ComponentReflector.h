@@ -26,7 +26,7 @@ public:
 	using BasicConstructFunction = void(*)(const ComponentID, ComponentVector&);
 	using TryCreateFromFullSerializationFunction = bool(*)(Asset::AssetManager&, const uint8_t*&, const uint8_t*, const ComponentID, ComponentVector&);
 	using FullSerializationFunction = void(*)(const Component&, Collection::Vector<uint8_t>&);
-	using ApplyFullSerializationFunction = void(*)(Component&, const uint8_t*&, const uint8_t*);
+	using ApplyFullSerializationFunction = void(*)(Asset::AssetManager&, Component&, const uint8_t*&, const uint8_t*);
 	using DestructorFunction = void(*)(Component&);
 	using SwapFunction = void(*)(Component&, Component&);
 
@@ -176,10 +176,11 @@ inline void ComponentReflector::RegisterNormalComponentType()
 			ComponentType::FullySerialize(component, outBytes);
 		}
 
-		static void ApplyFullSerialization(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
+		static void ApplyFullSerialization(
+			Asset::AssetManager& assetManager, Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
 		{
 			ComponentType& component = static_cast<ComponentType&>(rawComponent);
-			ComponentType::ApplyFullSerialization(component, bytes, bytesEnd);
+			ComponentType::ApplyFullSerialization(assetManager, component, bytes, bytesEnd);
 		}
 
 		static void Destroy(Component& rawComponent)
@@ -260,7 +261,8 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 			outBytes.AddAll({ componentBytes, sizeof(ComponentType) });
 		}
 
-		static void ApplyFullSerialization(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
+		static void ApplyFullSerialization(
+			Asset::AssetManager& assetManager, Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
 		{
 			if ((bytesEnd - bytes) >= sizeof(ComponentType))
 			{

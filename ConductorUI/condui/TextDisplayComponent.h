@@ -25,7 +25,10 @@ public:
 
 	static void FullySerialize(const TextDisplayComponent& component, Collection::Vector<uint8_t>& outBytes);
 
-	static void ApplyFullSerialization(TextDisplayComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+	static void ApplyFullSerialization(Asset::AssetManager& assetManager,
+		TextDisplayComponent& component,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd);
 
 public:
 	explicit TextDisplayComponent(const ECS::ComponentID id)

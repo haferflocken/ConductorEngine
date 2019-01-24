@@ -33,7 +33,10 @@ public:
 
 	static void FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes);
 
-	static void ApplyFullSerialization(TextInputComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+	static void ApplyFullSerialization(Asset::AssetManager& assetManager,
+		TextInputComponent& component,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd);
 
 	static void DefaultInputHandler(TextInputComponent& component, const char* text);
 

@@ -25,7 +25,10 @@ public:
 
 	static void FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes);
 
-	static void ApplyFullSerialization(BlackboardComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+	static void ApplyFullSerialization(Asset::AssetManager& assetManager,
+		BlackboardComponent& component,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd);
 
 	static void BindFunctions(AST::Interpreter& interpreter);
 

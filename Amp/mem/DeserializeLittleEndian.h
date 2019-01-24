@@ -94,15 +94,33 @@ inline bool DeserializeString(const uint8_t*& bytes, const uint8_t* bytesEnd, ch
 
 	const uint16_t length = DeserializeUi16(bytes, bytesEnd).first;
 
-	if (bytes + length >= bytesEnd || length > Capacity)
+	if (bytes + length >= bytesEnd || length >= Capacity)
 	{
 		return false;
 	}
 
-	for (size_t i = 0; i < length; ++i)
+	memcpy(outStr, bytes, length);
+	outStr[length] = '\0';
+
+	return true;
+}
+
+template <size_t Capacity>
+inline bool DeserializeString(const uint8_t*& bytes, const uint8_t* bytesEnd, wchar_t(&outStr)[Capacity])
+{
+	if (bytes + 2 >= bytesEnd)
 	{
-		outStr[i] = *(bytes++);
+		return false;
 	}
+
+	const uint16_t length = DeserializeUi16(bytes, bytesEnd).first;
+
+	if (bytes + (length * sizeof(wchar_t)) >= bytesEnd || length >= Capacity)
+	{
+		return false;
+	}
+
+	memcpy(outStr, bytes, length * sizeof(wchar_t));
 	outStr[length] = '\0';
 
 	return true;

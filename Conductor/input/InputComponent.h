@@ -26,7 +26,8 @@ public:
 
 	static void FullySerialize(const InputComponent& component, Collection::Vector<uint8_t>& outBytes);
 
-	static void ApplyFullSerialization(InputComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+	static void ApplyFullSerialization(
+		Asset::AssetManager& assetManager, InputComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
 
 public:
 	explicit InputComponent(const ECS::ComponentID id)

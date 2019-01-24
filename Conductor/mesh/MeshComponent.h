@@ -25,7 +25,8 @@ public:
 
 	static void FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes);
 
-	static void ApplyFullSerialization(MeshComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+	static void ApplyFullSerialization(
+		Asset::AssetManager& assetManager, MeshComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
 
 public:
 	explicit MeshComponent(const ECS::ComponentID id)

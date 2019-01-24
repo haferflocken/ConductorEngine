@@ -64,8 +64,6 @@ private:
 	using AssetDestructor = void(*)(void*);
 	using FilePathView = std::basic_string_view<Asset::CharType>;
 
-	static constexpr size_t k_maxPathLength = 64;
-
 	struct AssetContainer
 	{
 		AssetContainer() = default;

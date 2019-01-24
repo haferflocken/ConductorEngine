@@ -12,6 +12,7 @@ namespace FileSystem = std::experimental::filesystem::v1;
 using Path = FileSystem::path;
 
 inline Path MakePath(const char* pathString) { return FileSystem::u8path(pathString); }
+inline Path MakePath(const wchar_t* pathString) { return Path{ pathString }; }
 
 inline bool Exists(const Path& path) { return FileSystem::exists(path); }
 inline bool IsDirectory(const Path& path) { return FileSystem::is_directory(path); }
