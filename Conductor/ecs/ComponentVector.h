@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/ComponentType.h>
+#include <ecs/ComponentID.h>
 
 #include <collection/ArrayView.h>
 #include <collection/HashMap.h>
@@ -11,7 +11,6 @@
 namespace ECS
 {
 class Component;
-class ComponentID;
 class ComponentReflector;
 class EntityManager;
 

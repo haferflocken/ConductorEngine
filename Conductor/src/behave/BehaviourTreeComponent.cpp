@@ -8,27 +8,6 @@ namespace Behave
 {
 const Util::StringHash BehaviourTreeComponent::k_typeHash = Util::CalcHash(k_typeName);
 
-bool BehaviourTreeComponent::TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
-	const uint8_t*& bytes,
-	const uint8_t* bytesEnd,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
-{
-	BehaviourTreeComponent& component = destination.Emplace<BehaviourTreeComponent>(reservedID);
-
-	// TODO(info) behaviour trees
-	/*component.m_referencedForests.AddAll(componentInfo.m_behaviourForests.GetConstView());
-	component.m_referencedForests.AddAll(componentInfo.m_importedForests.GetConstView());
-
-	for (const Behave::BehaviourTree* const behaviourTree : componentInfo.m_behaviourTrees)
-	{
-		Behave::BehaviourTreeEvaluator& treeEvaluator = component.m_treeEvaluators.Emplace();
-		behaviourTree->GetRoot()->PushState(treeEvaluator);
-	}*/
-
-	return true;
-}
-
 void BehaviourTreeComponent::FullySerialize(
 	const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
@@ -40,6 +19,14 @@ void BehaviourTreeComponent::ApplyFullSerialization(Asset::AssetManager& assetMa
 	const uint8_t*& bytes,
 	const uint8_t* bytesEnd)
 {
-	// TODO(info) apply
+	// TODO(info) behaviour trees
+	/*component.m_referencedForests.AddAll(componentInfo.m_behaviourForests.GetConstView());
+	component.m_referencedForests.AddAll(componentInfo.m_importedForests.GetConstView());
+
+	for (const Behave::BehaviourTree* const behaviourTree : componentInfo.m_behaviourTrees)
+	{
+		Behave::BehaviourTreeEvaluator& treeEvaluator = component.m_treeEvaluators.Emplace();
+		behaviourTree->GetRoot()->PushState(treeEvaluator);
+	}*/
 }
 }

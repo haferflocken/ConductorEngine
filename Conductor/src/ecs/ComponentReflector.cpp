@@ -63,21 +63,20 @@ Unit::ByteCount64 ComponentReflector::GetAlignOfComponentInBytes(const Component
 	return alignItr->second;
 }
 
-bool ComponentReflector::TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const
+Component* ComponentReflector::TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const
 {
 	const auto iter = m_mandatoryComponentFunctions.Find(reservedID.GetType());
 	if (iter == m_mandatoryComponentFunctions.end())
 	{
 		AMP_LOG_WARNING("Failed to find a factory function for component type \"%s\".",
 			Util::ReverseHash(reservedID.GetType().GetTypeHash()));
-		return false;
+		return nullptr;
 	}
 
-	iter->second.m_basicConstructFunction(reservedID, destination);
-	return true;
+	return &iter->second.m_basicConstructFunction(reservedID, destination);
 }
 
-bool ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager,
+Component* ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager,
 	const uint8_t*& bytes,
 	const uint8_t* bytesEnd,
 	const ComponentID reservedID,
@@ -88,11 +87,12 @@ bool ComponentReflector::TryMakeComponent(Asset::AssetManager& assetManager,
 	{
 		AMP_LOG_WARNING("Failed to find a factory function for component type \"%s\".",
 			Util::ReverseHash(reservedID.GetType().GetTypeHash()));
-		return false;
+		return nullptr;
 	}
 
-	return iter->second.m_tryCreateFromFullSerializationFunction(
-		assetManager, bytes, bytesEnd, reservedID, destination);
+	Component& component = iter->second.m_basicConstructFunction(reservedID, destination);
+	iter->second.m_applyFullSerializationFunction(assetManager, component, bytes, bytesEnd);
+	return &component;
 }
 
 void ComponentReflector::DestroyComponent(Component& component) const

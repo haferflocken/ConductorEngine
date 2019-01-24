@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ecs/ComponentType.h>
+#include <ecs/ComponentVector.h>
 
 #include <collection/VectorMap.h>
 #include <unit/CountUnits.h>
@@ -12,7 +13,6 @@ namespace ECS
 {
 class Component;
 class ComponentID;
-class ComponentVector;
 
 /**
  * Reflects functions of components using templates and storing function pointers. This is used to provide
@@ -23,8 +23,7 @@ class ComponentVector;
 class ComponentReflector final
 {
 public:
-	using BasicConstructFunction = void(*)(const ComponentID, ComponentVector&);
-	using TryCreateFromFullSerializationFunction = bool(*)(Asset::AssetManager&, const uint8_t*&, const uint8_t*, const ComponentID, ComponentVector&);
+	using BasicConstructFunction = Component&(*)(const ComponentID, ComponentVector&);
 	using FullSerializationFunction = void(*)(const Component&, Collection::Vector<uint8_t>&);
 	using ApplyFullSerializationFunction = void(*)(Asset::AssetManager&, Component&, const uint8_t*&, const uint8_t*);
 	using DestructorFunction = void(*)(Component&);
@@ -33,7 +32,6 @@ public:
 	struct MandatoryComponentFunctions
 	{
 		BasicConstructFunction m_basicConstructFunction;
-		TryCreateFromFullSerializationFunction m_tryCreateFromFullSerializationFunction;
 		FullSerializationFunction m_fullSerializationFunction;
 		ApplyFullSerializationFunction m_applyFullSerializationFunction;
 		DestructorFunction m_destructorFunction;
@@ -61,8 +59,8 @@ public:
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
 	Unit::ByteCount64 GetAlignOfComponentInBytes(const ComponentType componentType) const;
 
-	bool TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const;
-	bool TryMakeComponent(Asset::AssetManager& assetManager,
+	Component* TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const;
+	Component* TryMakeComponent(Asset::AssetManager& assetManager,
 		const uint8_t*& bytes,
 		const uint8_t* bytesEnd,
 		const ComponentID reservedID,
@@ -78,7 +76,6 @@ public:
 private:
 	// Register a component type that doesn't support network transmission. The component type must define:
 	//   A unary constructor which takes a ComponentID.
-	//   static bool TryCreateFromFullSerialization(...): creates the component from a serialized representation.
 	//   static void FullySerialize(...) : serializes a complete representation of the component.
 	//   static void ApplyFullSerialization(...) : applies a serialized representation of the component to it.
 	template <typename ComponentType>
@@ -155,19 +152,10 @@ inline void ComponentReflector::RegisterNormalComponentType()
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
 	{
-		static void BasicConstruct(const ComponentID reservedID, ComponentVector& destination)
+		static Component& BasicConstruct(const ComponentID reservedID, ComponentVector& destination)
 		{
-			destination.Emplace<ComponentType>(reservedID);
-		}
-
-		static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
-			const uint8_t*& bytes,
-			const uint8_t* bytesEnd,
-			const ComponentID reservedID,
-			ComponentVector& destination)
-		{
-			return ComponentType::TryCreateFromFullSerialization(
-				assetManager, bytes, bytesEnd, reservedID, destination);
+			ComponentType& component = destination.Emplace<ComponentType>(reservedID);
+			return component;
 		}
 
 		static void FullySerialize(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
@@ -201,7 +189,6 @@ inline void ComponentReflector::RegisterNormalComponentType()
 	};
 
 	MandatoryComponentFunctions functions{ &ComponentTypeFunctions::BasicConstruct,
-		&ComponentTypeFunctions::TryCreateFromFullSerialization,
 		&ComponentTypeFunctions::FullySerialize,
 		&ComponentTypeFunctions::ApplyFullSerialization,
 		&ComponentTypeFunctions::Destroy,
@@ -232,26 +219,10 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 	// Utilize the type to handle as much boilerplate casting and definition as possible.
 	struct ComponentTypeFunctions
 	{
-		static void BasicConstruct(const ComponentID reservedID, ComponentVector& destination)
+		static Component& BasicConstruct(const ComponentID reservedID, ComponentVector& destination)
 		{
-			destination.Emplace<ComponentType>(reservedID);
-		}
-
-		static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
-			const uint8_t*& bytes,
-			const uint8_t* bytesEnd,
-			const ComponentID reservedID,
-			ComponentVector& destination)
-		{
-			if ((bytesEnd - bytes) < sizeof(ComponentType))
-			{
-				return false;
-			}
 			ComponentType& component = destination.Emplace<ComponentType>(reservedID);
-			memcpy(&component, bytes, sizeof(ComponentType));
-			component.m_id = reservedID;
-			bytes += sizeof(ComponentType);
-			return true;
+			return component;
 		}
 
 		static void FullySerialize(const Component& rawComponent, Collection::Vector<uint8_t>& outBytes)
@@ -290,7 +261,6 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 	};
 
 	MandatoryComponentFunctions functions{ &ComponentTypeFunctions::BasicConstruct,
-		&ComponentTypeFunctions::TryCreateFromFullSerialization,
 		&ComponentTypeFunctions::FullySerialize,
 		&ComponentTypeFunctions::ApplyFullSerialization,
 		&ComponentTypeFunctions::Destroy,

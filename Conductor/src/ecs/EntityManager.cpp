@@ -124,11 +124,9 @@ Collection::Vector<Entity*> EntityManager::CreateEntitiesFromFullSerialization(
 			const uint8_t* componentBegin = viewBytes + FullSerializedComponentHeader::k_unpaddedSize;
 			const uint8_t* const componentEnd = viewBytes + componentView.m_endIndex;
 
-			componentFunctions.m_tryCreateFromFullSerializationFunction(m_assetManager,
-				componentBegin,
-				componentEnd,
-				componentID,
-				*componentVector);
+			Component& component = componentFunctions.m_basicConstructFunction(componentID, *componentVector);
+			componentFunctions.m_applyFullSerializationFunction(
+				m_assetManager, component, componentBegin, componentEnd);
 
 			// If we can transmit state, track the newly added component.
 			if (m_transmissionBuffers != nullptr)
@@ -668,8 +666,9 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				//}
 
 				// TODO(network) what should be done if a component fails to be created?
-				componentFunctions.m_tryCreateFromFullSerializationFunction(assetManager, iter, iterEnd,
+				Component& component = componentFunctions.m_basicConstructFunction(
 					ComponentID(componentType, componentID), components);
+				componentFunctions.m_applyFullSerializationFunction(assetManager, component, iter, iterEnd);
 
 				maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			}

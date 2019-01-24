@@ -9,17 +9,6 @@ namespace Mesh
 {
 const Util::StringHash MeshComponent::k_typeHash = Util::CalcHash(k_typeName);
 
-bool MeshComponent::TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
-	const uint8_t*& bytes,
-	const uint8_t* bytesEnd,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
-{
-	MeshComponent& meshComponent = destination.Emplace<MeshComponent>(reservedID);
-	ApplyFullSerialization(assetManager, meshComponent, bytes, bytesEnd);
-	return true;
-}
-
 void MeshComponent::FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
 	const Asset::CharType* const assetPath = component.m_meshHandle.GetAssetPath();

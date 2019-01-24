@@ -7,17 +7,20 @@ namespace Condui
 {
 const Util::StringHash TextInputComponent::k_typeHash = Util::CalcHash(k_typeName);
 
-bool TextInputComponent::TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
-	const uint8_t*& bytes,
-	const uint8_t* bytesEnd,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
+void TextInputComponent::FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
-	TextInputComponent& component = destination.Emplace<TextInputComponent>(reservedID);
+	// TODO(info) serialize
+}
+
+void TextInputComponent::ApplyFullSerialization(Asset::AssetManager& assetManager,
+	TextInputComponent& component,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd)
+{
+	// TODO(info) apply
 	//component.m_characterWidthPixels = componentInfo.m_characterWidthPixels;
 	//component.m_characterHeightPixels = componentInfo.m_characterHeightPixels;
 	//component.m_codePage = assetManager.RequestAsset<Image::Pixel1Image>(componentInfo.m_codePagePath);
-	return true;
 }
 
 void TextInputComponent::DefaultInputHandler(TextInputComponent& component, const char* text)

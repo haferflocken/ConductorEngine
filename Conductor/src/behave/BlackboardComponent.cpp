@@ -9,16 +9,6 @@ namespace Behave
 {
 const Util::StringHash BlackboardComponent::k_typeHash = Util::CalcHash(k_typeName);
 
-bool BlackboardComponent::TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
-	const uint8_t*& bytes,
-	const uint8_t* bytesEnd,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
-{
-	destination.Emplace<BlackboardComponent>(reservedID);
-	return true;
-}
-
 void BlackboardComponent::FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
 	// TODO(info) serialize

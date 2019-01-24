@@ -17,12 +17,6 @@ public:
 	static constexpr const char* k_typeName = "blackboard_component";
 	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
-		const uint8_t*& bytes,
-		const uint8_t* bytesEnd,
-		const ECS::ComponentID reservedID,
-		ECS::ComponentVector& destination);
-
 	static void FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes);
 
 	static void ApplyFullSerialization(Asset::AssetManager& assetManager,
