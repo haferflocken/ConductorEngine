@@ -100,7 +100,12 @@ private:
 	//   void SerializeDeltaTransmission(...): compares the component to its past copy and serializes a delta.
 	//   void ApplyDeltaTransmission(...): applies a delta serialization to update the component.
 	template <typename ComponentType>
-	void RegisterNetworkedComponentType();
+	void RegisterNetworkedNormalComponentType();
+
+	// Register a component type that support network transmissions using automatically defined serialization and
+	// deserialization functions using memcpy. The component must define a unary constructor which takes a ComponentID.
+	template <typename ComponentType>
+	void RegisterNetworkedMemoryImagedComponentType();
 
 	void RegisterComponentType(const char* componentTypeName,
 		const Util::StringHash componentTypeHash,
@@ -134,9 +139,13 @@ inline void ComponentReflector::RegisterComponentType()
 	{
 		RegisterMemoryImagedComponentType<ComponentType>();
 	}
-	else if constexpr (ComponentType::k_bindingType == ComponentBindingType::Networked)
+	else if constexpr (ComponentType::k_bindingType == ComponentBindingType::NetworkedNormal)
 	{
-		RegisterNetworkedComponentType<ComponentType>();
+		RegisterNetworkedNormalComponentType<ComponentType>();
+	}
+	else if constexpr (ComponentType::k_bindingType == ComponentBindingType::NetworkedMemoryImaged)
+	{
+		RegisterNetworkedMemoryImagedComponentType<ComponentType>();
 	}
 }
 
@@ -293,7 +302,7 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 }
 
 template <typename ComponentType>
-inline void ComponentReflector::RegisterNetworkedComponentType()
+inline void ComponentReflector::RegisterNetworkedNormalComponentType()
 {
 	RegisterComponentType<ComponentType>();
 
@@ -319,6 +328,46 @@ inline void ComponentReflector::RegisterNetworkedComponentType()
 		{
 			ComponentType& component = static_cast<ComponentType&>(rawComponent);
 			component.ApplyDeltaTransmission(bytes, bytesEnd);
+		}
+	};
+
+	const TransmissionFunctions transmissionFunctions{ &ComponentTypeFunctions::CopyConstruct,
+		&ComponentTypeFunctions::SerializeDeltaTransmission,
+		&ComponentTypeFunctions::ApplyDeltaTransmission };
+
+	m_transmissionFunctions[ComponentType::k_typeHash] = transmissionFunctions;
+}
+
+template <typename ComponentType>
+inline void ComponentReflector::RegisterNetworkedMemoryImagedComponentType()
+{
+	RegisterMemoryImagedComponentType<ComponentType>();
+
+	// Utilize the type to handle as much boilerplate casting and definition as possible.
+	struct ComponentTypeFunctions
+	{
+		static void CopyConstruct(void* place, const Component& rawSource)
+		{
+			const ComponentType& sourceComponent = static_cast<const ComponentType&>(rawSource);
+			new (place) ComponentType(sourceComponent);
+		}
+
+		static void SerializeDeltaTransmission(const Component& rawLHS, const Component& rawRHS,
+			Collection::Vector<uint8_t>& outBytes)
+		{
+			const ComponentType& component = static_cast<const ComponentType&>(rawRHS);
+			const uint8_t* const componentBytes = reinterpret_cast<const uint8_t*>(&component);
+			outBytes.AddAll({ componentBytes, sizeof(ComponentType) });
+		}
+
+		static void ApplyDeltaTransmission(Component& rawComponent, const uint8_t*& bytes, const uint8_t* bytesEnd)
+		{
+			if ((bytesEnd - bytes) >= sizeof(ComponentType))
+			{
+				ComponentType& component = static_cast<ComponentType&>(rawComponent);
+				memcpy(&component, bytes, sizeof(ComponentType));
+				bytes += sizeof(ComponentType);
+			}
 		}
 	};
 

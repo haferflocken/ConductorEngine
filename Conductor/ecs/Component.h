@@ -10,10 +10,11 @@ class ComponentVector;
 
 enum class ComponentBindingType
 {
-	Normal,
-	Tag,
-	MemoryImaged,
-	Networked
+	Normal,          // The component implements full serialization and deserialization.
+	Tag,             // The component cannot be instantiated, and therefore doesn't serialize or deserialize.
+	MemoryImaged,    // The component's serialization is performed automatically using memcpy.
+	NetworkedNormal, // The component is network synchronized. It implements full and delta serialization and deserialization.
+	NetworkedMemoryImaged // The component is network synchronized. Its serialization is performed automatically using memcpy.
 };
 
 /**
@@ -21,6 +22,9 @@ enum class ComponentBindingType
  * a static const Util::StringHash k_typeHash that are unique for their component type.
  * Components must also define a static constexpr ComponentBindingType k_bindingType.
  * Dependening on how they are registered with the ComponentReflector, Components may have additional requirements.
+ *
+ * NETWORKING NOTE: The presence of components is always synchronized between client and server, even when the component
+ *                  data isn't.
  */
 class Component
 {
