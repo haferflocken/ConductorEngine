@@ -14,7 +14,7 @@ public:
 	static constexpr const char* k_typeName = "anchor_component";
 	static const Util::StringHash k_typeHash;
 
-	AnchorComponent(const ECS::ComponentID id)
+	explicit AnchorComponent(const ECS::ComponentID id)
 		: ECS::Component(id)
 	{}
 
