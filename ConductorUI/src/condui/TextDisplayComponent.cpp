@@ -7,8 +7,9 @@ namespace Condui
 {
 const Util::StringHash TextDisplayComponent::k_typeHash = Util::CalcHash(k_typeName);
 
-bool TextDisplayComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
+bool TextDisplayComponent::TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {

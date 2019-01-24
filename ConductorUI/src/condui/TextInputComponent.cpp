@@ -7,8 +7,9 @@ namespace Condui
 {
 const Util::StringHash TextInputComponent::k_typeHash = Util::CalcHash(k_typeName);
 
-bool TextInputComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
+bool TextInputComponent::TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd,
 	const ECS::ComponentID reservedID,
 	ECS::ComponentVector& destination)
 {

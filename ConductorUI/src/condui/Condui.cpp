@@ -1,6 +1,5 @@
 #include <condui/Condui.h>
 
-#include <condui/ConduiECSRegistration.h>
 #include <condui/TextDisplayComponent.h>
 #include <condui/TextInputComponent.h>
 #include <ecs/EntityManager.h>
@@ -75,20 +74,25 @@ Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
 
 ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, ConduiElement&& element)
 {
-	const Util::StringHash infoNameHash = GetEntityInfoNameHashFor(element);
-	const ECS::EntityInfo& entityInfo = *entityInfoManager.FindEntityInfo(infoNameHash);
-
-	ECS::Entity& entity = entityManager.CreateEntity(entityInfo);
+	ECS::Entity* entity = nullptr;
 	element.Match(
 		[&](TextDisplayElement& textDisplayElement)
 		{
-			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(entity);
+			const auto componentTypes = { ECS::ComponentType(TextDisplayComponent::k_typeHash),
+				ECS::ComponentType(Scene::SceneTransformComponent::k_typeHash) };
+			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+
+			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(*entity);
 			textDisplayComponent.m_string = std::move(textDisplayElement.m_string);
 			textDisplayComponent.m_fontScale = textDisplayElement.m_fontScale;
 		},
 		[&](TextInputElement& textInputElement)
 		{
-			auto& textInputComponent = *entityManager.FindComponent<TextInputComponent>(entity);
+			const auto componentTypes = { ECS::ComponentType(TextInputComponent::k_typeHash),
+				ECS::ComponentType(Scene::SceneTransformComponent::k_typeHash) };
+			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+
+			auto& textInputComponent = *entityManager.FindComponent<TextInputComponent>(*entity);
 
 			if (textInputElement.m_inputHandler)
 			{
@@ -99,7 +103,7 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 			textInputComponent.m_yScale = textInputElement.m_yScale;
 			textInputComponent.m_fontScale = textInputElement.m_fontScale;
 
-			auto& sceneTransformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
+			auto& sceneTransformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(*entity);
 			sceneTransformComponent.m_childToParentMatrix.SetScale(
 				Math::Vector3(textInputElement.m_xScale, textInputElement.m_yScale, 1.0f));
 		},
@@ -107,6 +111,10 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 		{
 			AMP_FATAL_ASSERT(panelElement.m_children.Size() == panelElement.m_childRelativeTransforms.Size(),
 				"There is an expected 1-to-1 relationship between elements in a panel and their relative transforms.");
+
+			const auto componentTypes = { ECS::ComponentType(Scene::SceneTransformComponent::k_typeHash) };
+			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+
 			for (size_t i = 0, iEnd = panelElement.m_children.Size(); i < iEnd; ++i)
 			{
 				const Math::Matrix4x4& transformFromParent = panelElement.m_childRelativeTransforms[i];
@@ -118,10 +126,10 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 				childTransformComponent.m_childToParentMatrix =
 					transformFromParent * childTransformComponent.m_childToParentMatrix;
 
-				entityManager.SetParentEntity(childEntity, &entity);
+				entityManager.SetParentEntity(childEntity, entity);
 			}
 		});
-	return entity;
+	return *entity;
 }
 
 ECS::Entity& Condui::CreateConduiRootEntity(ECS::EntityManager& entityManager, ElementRoot&& elementRoot)

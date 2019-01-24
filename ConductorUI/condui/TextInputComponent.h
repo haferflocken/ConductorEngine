@@ -25,11 +25,19 @@ public:
 	static constexpr const char* k_typeName = "text_input_component";
 	static const Util::StringHash k_typeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static bool TryCreateFromFullSerialization(Asset::AssetManager& assetManager,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd,
+		const ECS::ComponentID reservedID,
+		ECS::ComponentVector& destination);
+
+	static void FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes);
+
+	static void ApplyFullSerialization(TextInputComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
 
 	static void DefaultInputHandler(TextInputComponent& component, const char* text);
 
+public:
 	explicit TextInputComponent(const ECS::ComponentID id)
 		: ECS::Component(id)
 	{}
