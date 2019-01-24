@@ -15,6 +15,7 @@ enum class AssetStatus : uint8_t
 struct ManagedAssetHeader
 {
 	AssetStatus m_status;
+	uint8_t m_padding[3];
 	std::atomic_uint32_t m_refCount;
 };
 
