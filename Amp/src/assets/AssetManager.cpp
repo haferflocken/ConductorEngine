@@ -39,7 +39,8 @@ AssetManager::AssetContainer::AssetContainer(AssetContainer&& other)
 
 	m_loadingFunction = std::move(other.m_loadingFunction);
 	m_destructorFunction = std::move(other.m_destructorFunction);
-	m_allocator = std::move(other.m_allocator);
+	m_pathAllocator = std::move(other.m_pathAllocator);
+	m_assetAllocator = std::move(other.m_assetAllocator);
 	m_managedAssets = std::move(other.m_managedAssets);
 	m_loadingFutures = std::move(other.m_loadingFutures);
 }
@@ -52,7 +53,8 @@ AssetManager::AssetContainer& AssetManager::AssetContainer::operator=(AssetConta
 
 	m_loadingFunction = std::move(rhs.m_loadingFunction);
 	m_destructorFunction = std::move(rhs.m_destructorFunction);
-	m_allocator = std::move(rhs.m_allocator);
+	m_pathAllocator = std::move(rhs.m_pathAllocator);
+	m_assetAllocator = std::move(rhs.m_assetAllocator);
 	m_managedAssets = std::move(rhs.m_managedAssets);
 	m_loadingFutures = std::move(rhs.m_loadingFutures);
 
@@ -93,6 +95,10 @@ void AssetManager::DestroyUnreferencedAssets(AssetContainer& assetContainer)
 
 			if (managedAssetHeader.m_refCount == 0 && managedAssetHeader.m_status != AssetStatus::Loading)
 			{
+				// Destroy the asset's path.
+				assetContainer.m_pathAllocator.Free(const_cast<CharType*>(managedAssetEntry.first.data()));
+
+				// Destroy the asset.
 				if (managedAssetHeader.m_status == AssetStatus::Loaded)
 				{
 					assetContainer.m_destructorFunction(managedAssetEntry.second);
@@ -103,7 +109,7 @@ void AssetManager::DestroyUnreferencedAssets(AssetContainer& assetContainer)
 						"Encountered unhandled AssetStatus type [%d].",
 						static_cast<int32_t>(managedAssetHeader.m_status));
 				}
-				assetContainer.m_allocator.Free(managedAssetEntry.second);
+				assetContainer.m_assetAllocator.Free(managedAssetEntry.second);
 				return true;
 			}
 			return false;
