@@ -6,7 +6,7 @@
 
 namespace Behave
 {
-const Util::StringHash BehaviourTreeComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType BehaviourTreeComponent::k_type{ Util::CalcHash(k_typeName) };
 
 void BehaviourTreeComponent::FullySerialize(
 	const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes)

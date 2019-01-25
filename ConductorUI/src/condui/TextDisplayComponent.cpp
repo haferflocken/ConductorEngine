@@ -5,7 +5,7 @@
 
 namespace Condui
 {
-const Util::StringHash TextDisplayComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType TextDisplayComponent::k_type{ Util::CalcHash(k_typeName) };
 
 void TextDisplayComponent::FullySerialize(const TextDisplayComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

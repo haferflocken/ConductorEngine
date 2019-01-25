@@ -105,7 +105,7 @@ private:
 	void RegisterNetworkedMemoryImagedComponentType();
 
 	void RegisterComponentType(const char* componentTypeName,
-		const Util::StringHash componentTypeHash,
+		const ComponentType componentType,
 		const Unit::ByteCount64 sizeOfComponent,
 		const Unit::ByteCount64 alignOfComponent,
 		const MandatoryComponentFunctions& componentFunctions);
@@ -195,7 +195,7 @@ inline void ComponentReflector::RegisterNormalComponentType()
 		&ComponentTypeFunctions::Swap };
 
 	RegisterComponentType(ComponentType::k_typeName,
-		ComponentType::k_typeHash,
+		ComponentType::k_type,
 		Unit::ByteCount64(sizeof(ComponentType)),
 		Unit::ByteCount64(alignof(ComponentType)),
 		functions);
@@ -207,7 +207,7 @@ inline void ComponentReflector::RegisterTagComponentType()
 	MandatoryComponentFunctions functions{ nullptr, nullptr, nullptr, nullptr, nullptr };
 
 	RegisterComponentType(ComponentType::k_typeName,
-		ComponentType::k_typeHash,
+		ComponentType::k_type,
 		Unit::ByteCount64(0),
 		Unit::ByteCount64(0),
 		functions);
@@ -267,7 +267,7 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 		&ComponentTypeFunctions::Swap };
 
 	RegisterComponentType(ComponentType::k_typeName,
-		ComponentType::k_typeHash,
+		ComponentType::k_type,
 		Unit::ByteCount64(sizeof(ComponentType)),
 		Unit::ByteCount64(alignof(ComponentType)),
 		functions);
@@ -307,7 +307,7 @@ inline void ComponentReflector::RegisterNetworkedNormalComponentType()
 		&ComponentTypeFunctions::SerializeDeltaTransmission,
 		&ComponentTypeFunctions::ApplyDeltaTransmission };
 
-	m_transmissionFunctions[ComponentType::k_typeHash] = transmissionFunctions;
+	m_transmissionFunctions[ComponentType::k_type] = transmissionFunctions;
 }
 
 template <typename ComponentType>
@@ -347,6 +347,6 @@ inline void ComponentReflector::RegisterNetworkedMemoryImagedComponentType()
 		&ComponentTypeFunctions::SerializeDeltaTransmission,
 		&ComponentTypeFunctions::ApplyDeltaTransmission };
 
-	m_transmissionFunctions[ComponentType::k_typeHash] = transmissionFunctions;
+	m_transmissionFunctions[ComponentType::k_type] = transmissionFunctions;
 }
 }

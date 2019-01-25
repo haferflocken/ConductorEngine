@@ -17,7 +17,7 @@ class IslanderComponent final : public ECS::Component
 public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::MemoryImaged;
 	static constexpr char* k_typeName = "islander_component";
-	static const Util::StringHash k_typeHash;
+	static const ECS::ComponentType k_type;
 
 	explicit IslanderComponent(const ECS::ComponentID id)
 		: Component(id)

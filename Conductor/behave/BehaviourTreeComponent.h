@@ -15,7 +15,7 @@ class BehaviourTreeComponent final : public ECS::Component
 public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "behaviour_tree_component";
-	static const Util::StringHash k_typeHash;
+	static const ECS::ComponentType k_type;
 
 	static void FullySerialize(const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes);
 

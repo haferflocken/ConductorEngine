@@ -19,7 +19,7 @@ enum class ComponentBindingType
 
 /**
  * A Component holds data for an entity. Components must define a static const char* k_typeName and
- * a static const Util::StringHash k_typeHash that are unique for their component type.
+ * a static const ECS::ComponentType k_type that are unique for their component type.
  * Components must also define a static constexpr ComponentBindingType k_bindingType.
  * Dependening on how they are registered with the ComponentReflector, Components may have additional requirements.
  *

@@ -5,7 +5,7 @@
 
 namespace Condui
 {
-const Util::StringHash TextInputComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType TextInputComponent::k_type{ Util::CalcHash(k_typeName) };
 
 void TextInputComponent::FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

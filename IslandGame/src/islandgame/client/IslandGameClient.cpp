@@ -6,6 +6,10 @@
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <condui/Condui.h>
 #include <condui/TextInputComponent.h>
+#include <input/InputComponent.h>
+#include <mesh/MeshComponent.h>
+#include <renderer/CameraComponent.h>
+#include <scene/AnchorComponent.h>
 #include <scene/RelativeTransformSystem.h>
 #include <scene/SceneTransformComponent.h>
 
@@ -35,12 +39,18 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 	{
 		isCameraCreated = true;
 
-		m_entityManager.CreateEntity(
-			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("player.json")));
+		const auto playerComponents = { Scene::SceneTransformComponent::k_type,
+			Scene::AnchorComponent::k_type,
+			Mesh::MeshComponent::k_type,
+			Input::InputComponent::k_type };
+
+		m_entityManager.CreateEntityWithComponents({ playerComponents.begin(), playerComponents.size() });
 
 		// Create a camera looking at the center of the scene.
-		ECS::Entity& cameraEntity = m_entityManager.CreateEntity(
-			*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("camera.json")));
+		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };
+
+		ECS::Entity& cameraEntity = m_entityManager.CreateEntityWithComponents(
+			{ cameraComponents.begin(), cameraComponents.size() });
 
 		auto& cameraTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
 
@@ -63,8 +73,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		Condui::ConduiElement consoleElement =
 			Condui::MakeTextInputCommandElement(0.5f, 0.025f, std::move(commandMap), 1.0f);
 
-		ECS::Entity& consoleEntity =
-			Condui::CreateConduiEntity(m_gameData.GetEntityInfoManager(), m_entityManager, std::move(consoleElement));
+		ECS::Entity& consoleEntity = Condui::CreateConduiEntity(m_entityManager, std::move(consoleElement));
 		m_entityManager.SetParentEntity(consoleEntity, &cameraEntity);
 
 		auto& consoleTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(consoleEntity);

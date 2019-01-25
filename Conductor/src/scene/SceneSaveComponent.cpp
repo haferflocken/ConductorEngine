@@ -1,3 +1,3 @@
 #include <scene/SceneSaveComponent.h>
 
-const Util::StringHash Scene::SceneSaveComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType Scene::SceneSaveComponent::k_type{ Util::CalcHash(k_typeName) };

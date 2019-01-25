@@ -20,7 +20,6 @@
 
 namespace ECS
 {
-class EntityInfoManager;
 class EntityManager;
 }
 
@@ -48,8 +47,7 @@ class UnboundedScene final : public ECS::SystemTempl<
 	Util::TypeList<ECS::Entity>>
 {
 public:
-	UnboundedScene(const ECS::EntityInfoManager& entityInfoManager,
-		const File::Path& sourcePath, const File::Path& userPath);
+	UnboundedScene(const File::Path& sourcePath, const File::Path& userPath);
 	virtual ~UnboundedScene() {}
 
 	virtual void NotifyOfShutdown(ECS::EntityManager& entityManager) override;
@@ -65,8 +63,6 @@ private:
 	void FlushPendingChunks(ECS::EntityManager& entityManager);
 	void SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& entityManager, const ChunkID chunkID);
 
-	// The EntityInfoManager is needed for chunk loading.
-	const ECS::EntityInfoManager& m_entityInfoManager;
 	// The directory the scene's chunks will be loaded from the first time they are loaded.
 	File::Path m_sourcePath;
 	// The directory the scene's chunks will be stored in.

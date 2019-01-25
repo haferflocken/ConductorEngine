@@ -75,7 +75,7 @@ Conductor::GameDataFactory MakeGameDataFactory()
 		Condui::RegisterComponentTypes(gameData->GetComponentReflector());
 		Renderer::RenderInstance::RegisterComponentTypes(gameData->GetComponentReflector());
 
-		Condui::RegisterEntityInfo(9, 16, File::MakePath("fonts/Codepage-437-monochome.bmp"));
+		// TODO(info) Condui::RegisterEntityInfo(9, 16, File::MakePath("fonts/Codepage-437-monochome.bmp"));
 
 		return gameData;
 	};

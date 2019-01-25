@@ -2,5 +2,5 @@
 
 namespace Scene
 {
-const Util::StringHash AnchorComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType AnchorComponent::k_type{ Util::CalcHash(k_typeName) };
 }

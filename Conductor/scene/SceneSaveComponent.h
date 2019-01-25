@@ -13,7 +13,7 @@ class SceneSaveComponent final : public ECS::Component
 public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Tag;
 	static constexpr const char* k_typeName = "scene_save_component";
-	static const Util::StringHash k_typeHash;
+	static const ECS::ComponentType k_type;
 
 	SceneSaveComponent() = delete;
 };

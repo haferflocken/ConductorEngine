@@ -14,7 +14,7 @@ class CameraComponent final : public ECS::Component
 public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::MemoryImaged;
 	static constexpr const char* k_typeName = "camera_component";
-	static const Util::StringHash k_typeHash;
+	static const ECS::ComponentType k_type;
 
 	explicit CameraComponent(const ECS::ComponentID id)
 		: Component(id)

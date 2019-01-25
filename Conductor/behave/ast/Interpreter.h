@@ -117,7 +117,7 @@ struct ExpressionResultToArgument
 		if constexpr(IsComponentReference<ArgType>)
 		{
 			using ComponentValueType = std::remove_reference_t<ArgType>;
-			AMP_FATAL_ASSERT(val.GetTypeHash() == ComponentValueType::k_typeHash,
+			AMP_FATAL_ASSERT(val.GetTypeHash() == ComponentValueType::k_type.GetTypeHash(),
 				"Mismatch between supported component type [%s] and argument [%s].",
 				ComponentValueType::k_typeName, Util::ReverseHash(val.GetTypeHash()));
 

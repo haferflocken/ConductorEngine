@@ -2,5 +2,5 @@
 
 namespace Renderer
 {
-const Util::StringHash CameraComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType CameraComponent::k_type{ Util::CalcHash(k_typeName) };
 }

@@ -20,7 +20,7 @@ class Entity final
 {
 public:
 	static constexpr const char* const k_typeName = "entity";
-	static const Util::StringHash k_typeHash;
+	static const ECS::ComponentType k_type;
 
 	Entity() = default;
 
@@ -67,7 +67,7 @@ private:
 template <typename TComponent>
 inline ComponentID Entity::FindComponentID() const
 {
-	return FindComponentID(ComponentType(TComponent::k_typeHash));
+	return FindComponentID(TComponent::k_type);
 }
 
 inline ComponentID Entity::FindComponentID(const ComponentType& componentType) const

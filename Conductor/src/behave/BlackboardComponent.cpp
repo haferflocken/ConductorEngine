@@ -7,7 +7,7 @@
 
 namespace Behave
 {
-const Util::StringHash BlackboardComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType BlackboardComponent::k_type{ Util::CalcHash(k_typeName) };
 
 void BlackboardComponent::FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

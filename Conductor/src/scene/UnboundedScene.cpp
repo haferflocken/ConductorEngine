@@ -16,10 +16,8 @@ std::string MakeChunkFileName(const Scene::ChunkID& chunkID)
 
 namespace Scene
 {
-UnboundedScene::UnboundedScene(const ECS::EntityInfoManager& entityInfoManager,
-	const File::Path& sourcePath, const File::Path& userPath)
-	: m_entityInfoManager(entityInfoManager)
-	, m_sourcePath(sourcePath)
+UnboundedScene::UnboundedScene(const File::Path& sourcePath, const File::Path& userPath)
+	: m_sourcePath(sourcePath)
 	, m_userPath(userPath)
 	, m_spatialHashMap(ChunkHashFunctor(), 12)
 	, m_chunksInPlay()

@@ -78,8 +78,7 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 	element.Match(
 		[&](TextDisplayElement& textDisplayElement)
 		{
-			const auto componentTypes = { ECS::ComponentType(TextDisplayComponent::k_typeHash),
-				ECS::ComponentType(Scene::SceneTransformComponent::k_typeHash) };
+			const auto componentTypes = { TextDisplayComponent::k_type, Scene::SceneTransformComponent::k_type };
 			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
 
 			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(*entity);
@@ -88,8 +87,7 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 		},
 		[&](TextInputElement& textInputElement)
 		{
-			const auto componentTypes = { ECS::ComponentType(TextInputComponent::k_typeHash),
-				ECS::ComponentType(Scene::SceneTransformComponent::k_typeHash) };
+			const auto componentTypes = { TextInputComponent::k_type, Scene::SceneTransformComponent::k_type };
 			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
 
 			auto& textInputComponent = *entityManager.FindComponent<TextInputComponent>(*entity);
@@ -112,7 +110,7 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 			AMP_FATAL_ASSERT(panelElement.m_children.Size() == panelElement.m_childRelativeTransforms.Size(),
 				"There is an expected 1-to-1 relationship between elements in a panel and their relative transforms.");
 
-			const auto componentTypes = { ECS::ComponentType(Scene::SceneTransformComponent::k_typeHash) };
+			const auto componentTypes = { Scene::SceneTransformComponent::k_type };
 			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
 
 			for (size_t i = 0, iEnd = panelElement.m_children.Size(); i < iEnd; ++i)

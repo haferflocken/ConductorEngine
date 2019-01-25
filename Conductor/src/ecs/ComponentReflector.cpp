@@ -10,14 +10,12 @@ ComponentReflector::ComponentReflector()
 {}
 
 void ComponentReflector::RegisterComponentType(const char* const componentTypeName,
-	const Util::StringHash componentTypeHash,
+	const ComponentType componentType,
 	const Unit::ByteCount64 sizeOfComponent,
 	const Unit::ByteCount64 alignOfComponent,
 	const MandatoryComponentFunctions& mandatoryFunctions)
 {
-	const ComponentType componentType{ componentTypeHash };
-
-	AMP_FATAL_ASSERT(componentTypeHash == Util::CalcHash(componentTypeName),
+	AMP_FATAL_ASSERT(componentType.GetTypeHash() == Util::CalcHash(componentTypeName),
 		"Mismatch between component type hash and component type name for component with type name \"%s\".",
 		componentTypeName);
 

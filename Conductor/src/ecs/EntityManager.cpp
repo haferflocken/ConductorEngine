@@ -967,19 +967,19 @@ EntityManager::RegisteredSystem::RegisteredSystem(
 
 namespace Internal_EntityManager
 {
-bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<Util::StringHash>& componentTypes,
+bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<ECS::ComponentType>& componentTypes,
 	Entity& entity, Collection::Vector<void*>& pointers)
 {
 	bool foundAll = true;
-	for (const auto& typeHash : componentTypes)
+	for (const auto& ecsType : componentTypes)
 	{
-		if (typeHash == Entity::k_typeHash)
+		if (ecsType == Entity::k_type)
 		{
 			pointers.Add(&entity);
 			continue;
 		}
 
-		const ComponentID id = entity.FindComponentID(ComponentType(typeHash));
+		const ComponentID id = entity.FindComponentID(ecsType);
 		if (id == ComponentID())
 		{
 			foundAll = false;
@@ -1006,9 +1006,9 @@ void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity* const>
 		// Gather the entity pointers and component pointers each member of the execution group needs.
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
-			const Collection::Vector<Util::StringHash>& immutableTypes =
+			const Collection::Vector<ECS::ComponentType>& immutableTypes =
 				registeredSystem.m_system->GetImmutableTypes();
-			const Collection::Vector<Util::StringHash>& mutableTypes =
+			const Collection::Vector<ECS::ComponentType>& mutableTypes =
 				registeredSystem.m_system->GetMutableTypes();
 
 			for (auto& entity : entitiesToAdd)
@@ -1041,9 +1041,9 @@ void EntityManager::RemoveECSPointersFromSystems(Entity& entity)
 	{
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
-			const Collection::Vector<Util::StringHash>& immutableTypes =
+			const Collection::Vector<ECS::ComponentType>& immutableTypes =
 				registeredSystem.m_system->GetImmutableTypes();
-			const Collection::Vector<Util::StringHash>& mutableTypes =
+			const Collection::Vector<ECS::ComponentType>& mutableTypes =
 				registeredSystem.m_system->GetMutableTypes();
 
 			Collection::Vector<void*> pointers;

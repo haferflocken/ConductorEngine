@@ -5,7 +5,7 @@
 
 namespace Input
 {
-const Util::StringHash InputComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType InputComponent::k_type{ Util::CalcHash(k_typeName) };
 
 void InputComponent::FullySerialize(const InputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

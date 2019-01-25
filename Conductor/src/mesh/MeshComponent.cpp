@@ -7,7 +7,7 @@
 
 namespace Mesh
 {
-const Util::StringHash MeshComponent::k_typeHash = Util::CalcHash(k_typeName);
+const ECS::ComponentType MeshComponent::k_type{ Util::CalcHash(k_typeName) };
 
 void MeshComponent::FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
