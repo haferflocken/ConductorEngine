@@ -4,10 +4,12 @@
 
 #include <ecs/ComponentVector.h>
 #include <ecs/EntityManager.h>
+#include <mem/InspectorInfo.h>
 
 namespace Behave
 {
 const ECS::ComponentType BlackboardComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfo BlackboardComponent::k_inspectorInfo = MakeInspectorInfo(Behave::BlackboardComponent, 0);
 
 void BlackboardComponent::FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

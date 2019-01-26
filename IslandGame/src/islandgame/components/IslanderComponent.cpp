@@ -1,3 +1,9 @@
 #include <islandgame/components/IslanderComponent.h>
 
-const ECS::ComponentType IslandGame::Components::IslanderComponent::k_type{ Util::CalcHash(k_typeName) };
+#include <mem/InspectorInfo.h>
+
+namespace IslandGame::Components
+{
+const ECS::ComponentType IslanderComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfo IslanderComponent::k_inspectorInfo = MakeInspectorInfo(IslandGame::Components::IslanderComponent, 0);
+}

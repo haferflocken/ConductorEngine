@@ -1,11 +1,12 @@
 #include <input/InputComponent.h>
 
 #include <ecs/ComponentVector.h>
-#include <json/JSONTypes.h>
+#include <mem/InspectorInfo.h>
 
 namespace Input
 {
 const ECS::ComponentType InputComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfo InputComponent::k_inspectorInfo = MakeInspectorInfo(Input::InputComponent, 0);
 
 void InputComponent::FullySerialize(const InputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

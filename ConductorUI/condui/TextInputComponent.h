@@ -24,6 +24,7 @@ public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "text_input_component";
 	static const ECS::ComponentType k_type;
+	static const Mem::InspectorInfo k_inspectorInfo;
 
 	static void FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes);
 

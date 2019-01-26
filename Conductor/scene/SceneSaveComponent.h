@@ -14,6 +14,7 @@ public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Tag;
 	static constexpr const char* k_typeName = "scene_save_component";
 	static const ECS::ComponentType k_type;
+	static const Mem::InspectorInfo k_inspectorInfo;
 
 	SceneSaveComponent() = delete;
 };

@@ -4,6 +4,7 @@
 #include <ecs/ComponentVector.h>
 
 #include <collection/VectorMap.h>
+#include <mem/InspectorInfo.h>
 #include <unit/CountUnits.h>
 #include <util/StringHash.h>
 
@@ -108,13 +109,15 @@ private:
 		const ComponentType componentType,
 		const Unit::ByteCount64 sizeOfComponent,
 		const Unit::ByteCount64 alignOfComponent,
-		const MandatoryComponentFunctions& componentFunctions);
+		const MandatoryComponentFunctions& componentFunctions,
+		const Mem::InspectorInfo& inspectorInfo);
 
 	// Maps of component types to functions for those component types.
 	Collection::VectorMap<ComponentType, Unit::ByteCount64> m_componentSizesInBytes;
 	Collection::VectorMap<ComponentType, Unit::ByteCount64> m_componentAlignmentsInBytes;
 	Collection::VectorMap<ComponentType, MandatoryComponentFunctions> m_mandatoryComponentFunctions;
 	Collection::VectorMap<ComponentType, TransmissionFunctions> m_transmissionFunctions;
+	Collection::VectorMap<ComponentType, const Mem::InspectorInfo*> m_componentInspectorInfo;
 };
 }
 
@@ -198,7 +201,8 @@ inline void ComponentReflector::RegisterNormalComponentType()
 		ComponentType::k_type,
 		Unit::ByteCount64(sizeof(ComponentType)),
 		Unit::ByteCount64(alignof(ComponentType)),
-		functions);
+		functions,
+		ComponentType::k_inspectorInfo);
 }
 
 template <typename ComponentType>
@@ -210,7 +214,8 @@ inline void ComponentReflector::RegisterTagComponentType()
 		ComponentType::k_type,
 		Unit::ByteCount64(0),
 		Unit::ByteCount64(0),
-		functions);
+		functions,
+		ComponentType::k_inspectorInfo);
 }
 
 template <typename ComponentType>
@@ -270,7 +275,8 @@ inline void ComponentReflector::RegisterMemoryImagedComponentType()
 		ComponentType::k_type,
 		Unit::ByteCount64(sizeof(ComponentType)),
 		Unit::ByteCount64(alignof(ComponentType)),
-		functions);
+		functions,
+		ComponentType::k_inspectorInfo);
 }
 
 template <typename ComponentType>

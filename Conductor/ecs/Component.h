@@ -3,6 +3,7 @@
 #include <ecs/ComponentID.h>
 
 namespace Asset { class AssetManager; }
+namespace Mem { struct InspectorInfo; }
 
 namespace ECS
 {

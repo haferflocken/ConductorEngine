@@ -2,10 +2,12 @@
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>
+#include <mem/InspectorInfo.h>
 
 namespace Condui
 {
 const ECS::ComponentType TextInputComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfo TextInputComponent::k_inspectorInfo = MakeInspectorInfo(Condui::TextInputComponent, 0);
 
 void TextInputComponent::FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

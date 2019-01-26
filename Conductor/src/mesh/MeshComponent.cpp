@@ -5,9 +5,12 @@
 #include <mem/DeserializeLittleEndian.h>
 #include <mem/SerializeLittleEndian.h>
 
+#include <mem/InspectorInfo.h>
+
 namespace Mesh
 {
 const ECS::ComponentType MeshComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfo MeshComponent::k_inspectorInfo = MakeInspectorInfo(Mesh::MeshComponent, 1, m_meshHandle);
 
 void MeshComponent::FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
