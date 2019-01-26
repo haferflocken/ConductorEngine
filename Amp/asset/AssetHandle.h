@@ -87,7 +87,10 @@ inline AssetHandle<TAsset>::AssetHandle(const AssetHandle& other)
 	: m_managedAsset(other.m_managedAsset)
 	, m_assetPath(other.m_assetPath)
 {
-	++m_managedAsset->m_header.m_refCount;
+	if (m_managedAsset != nullptr)
+	{
+		++m_managedAsset->m_header.m_refCount;
+	}
 }
 
 template <typename TAsset>
