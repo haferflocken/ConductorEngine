@@ -33,8 +33,6 @@ public:
 		, m_blackboard()
 	{}
 
-	~BlackboardComponent() {}
-
 	Blackboard m_blackboard;
 };
 }

@@ -19,8 +19,6 @@ public:
 		: ECS::Component(id)
 	{}
 
-	~AnchorComponent() {}
-
 	int16_t m_anchoringRadiusInChunks{ 3 };
 };
 }

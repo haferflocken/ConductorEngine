@@ -2,6 +2,7 @@
 
 #include <islandgame/IslandGameData.h>
 
+#include <asset/AssetManager.h>
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <condui/Condui.h>
@@ -44,7 +45,12 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 			Mesh::MeshComponent::k_type,
 			Input::InputComponent::k_type };
 
-		m_entityManager.CreateEntityWithComponents({ playerComponents.begin(), playerComponents.size() });
+		ECS::Entity& player = m_entityManager.CreateEntityWithComponents(
+			{ playerComponents.begin(), playerComponents.size() });
+
+		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
+		meshComponent.m_meshHandle = m_gameData.GetAssetManager().RequestAsset<Mesh::StaticMesh>(
+			File::MakePath("meshes/simple_quad.cms"));
 
 		// Create a camera looking at the center of the scene.
 		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };

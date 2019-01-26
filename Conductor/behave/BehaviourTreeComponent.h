@@ -37,8 +37,6 @@ public:
 	BehaviourTreeComponent(BehaviourTreeComponent&&) = default;
 	BehaviourTreeComponent& operator=(BehaviourTreeComponent&&) = default;
 
-	~BehaviourTreeComponent() {}
-
 	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_referencedForests;
 	Collection::Vector<BehaviourTreeEvaluator> m_treeEvaluators;
 };

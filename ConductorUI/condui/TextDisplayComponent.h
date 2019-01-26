@@ -30,8 +30,6 @@ public:
 		: ECS::Component(id)
 	{}
 
-	virtual ~TextDisplayComponent() {}
-
 	std::string m_string{};
 
 	Asset::AssetHandle<Image::Pixel1Image> m_codePage{};

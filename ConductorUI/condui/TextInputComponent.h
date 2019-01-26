@@ -40,8 +40,6 @@ public:
 		: ECS::Component(id)
 	{}
 
-	virtual ~TextInputComponent() {}
-
 	std::string m_text{};
 
 	InputHandler m_inputHandler{ &DefaultInputHandler };

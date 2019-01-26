@@ -21,8 +21,6 @@ public:
 		: ECS::Component(id)
 	{}
 
-	~SceneTransformComponent() {}
-
 	// A 4x4 transform matrix in scene space.
 	Math::Matrix4x4 m_modelToWorldMatrix{};
 	// A relative transform from the parent's transform.

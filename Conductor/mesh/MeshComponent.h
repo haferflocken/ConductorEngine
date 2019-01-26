@@ -37,8 +37,6 @@ public:
 	MeshComponent(MeshComponent&&) = default;
 	MeshComponent& operator=(MeshComponent&&) = default;
 
-	~MeshComponent() {}
-
 	Asset::AssetHandle<Mesh::StaticMesh> m_meshHandle;
 };
 }
