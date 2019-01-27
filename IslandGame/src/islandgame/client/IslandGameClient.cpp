@@ -6,8 +6,10 @@
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <condui/Condui.h>
+#include <condui/ConduiInspector.h>
 #include <condui/TextInputComponent.h>
 #include <input/InputComponent.h>
+#include <mem/InspectorInfo.h>
 #include <mesh/MeshComponent.h>
 #include <renderer/CameraComponent.h>
 #include <scene/AnchorComponent.h>
@@ -39,6 +41,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 	if (!isCameraCreated)
 	{
 		isCameraCreated = true;
+		Asset::AssetManager& assetManager = m_gameData.GetAssetManager();
 
 		const auto playerComponents = { Scene::SceneTransformComponent::k_type,
 			Scene::AnchorComponent::k_type,
@@ -49,8 +52,8 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 			{ playerComponents.begin(), playerComponents.size() });
 
 		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
-		meshComponent.m_meshHandle = m_gameData.GetAssetManager().RequestAsset<Mesh::StaticMesh>(
-			File::MakePath("meshes/simple_quad.cms"));
+		meshComponent.m_meshHandle =
+			assetManager.RequestAsset<Mesh::StaticMesh>(File::MakePath("meshes/simple_quad.cms"));
 
 		// Create a camera looking at the center of the scene.
 		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };
@@ -79,11 +82,29 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		Condui::ConduiElement consoleElement =
 			Condui::MakeTextInputCommandElement(0.5f, 0.025f, std::move(commandMap), 1.0f);
 
-		ECS::Entity& consoleEntity = Condui::CreateConduiEntity(m_entityManager, std::move(consoleElement));
+		const Condui::FontInfo fontInfo{
+			assetManager.RequestAsset<Image::Pixel1Image>(File::MakePath("fonts/Codepage-437-monochome.bmp")),
+			9,
+			16,
+			Image::ColoursARBG::k_black };
+
+		ECS::Entity& consoleEntity = Condui::CreateConduiEntity(m_entityManager, std::move(consoleElement), &fontInfo);
 		m_entityManager.SetParentEntity(consoleEntity, &cameraEntity);
 
 		auto& consoleTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(consoleEntity);
 		consoleTransformComponent.m_childToParentMatrix.SetTranslation(Math::Vector3(-0.25f, -0.25f, 0.5f));
+
+		// Create an inspector and attach it to the camera.
+		Condui::ConduiElement inspectorElement = Condui::MakeInspectorElement(
+			Mem::InspectorInfo::Find({ typeid(Scene::SceneTransformComponent).hash_code() }),
+			&consoleTransformComponent);
+
+		ECS::Entity& inspectorEntity =
+			Condui::CreateConduiEntity(m_entityManager, std::move(inspectorElement), &fontInfo);
+		m_entityManager.SetParentEntity(inspectorEntity, &cameraEntity);
+
+		auto& inspectorTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(inspectorEntity);
+		inspectorTransformComponent.m_childToParentMatrix.SetTranslation(Math::Vector3(-0.25f, 0.25f, 0.5f));
 	}
 
 	m_entityManager.Update(delta);

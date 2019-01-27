@@ -3,6 +3,7 @@
 #include <asset/AssetHandle.h>
 #include <ecs/Component.h>
 #include <file/Path.h>
+#include <image/Colour.h>
 #include <image/Pixel1Image.h>
 
 namespace Condui
@@ -37,5 +38,7 @@ public:
 	uint16_t m_characterHeightPixels{ 0 };
 
 	float m_fontScale{ 1.0f };
+
+	Image::ColourARGB m_textColour{ Image::ColoursARBG::k_black };
 };
 }

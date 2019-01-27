@@ -72,7 +72,8 @@ Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
 	return MakeTextInputElement(xScale, yScale, std::move(commandHandler), fontScale);
 }
 
-ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, ConduiElement&& element)
+ECS::Entity& Condui::CreateConduiEntity(
+	ECS::EntityManager& entityManager, ConduiElement&& element, const FontInfo* font)
 {
 	ECS::Entity* entity = nullptr;
 	element.Match(
@@ -82,7 +83,17 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
 
 			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(*entity);
+
 			textDisplayComponent.m_string = std::move(textDisplayElement.m_string);
+
+			if (font != nullptr)
+			{
+				textDisplayComponent.m_codePage = font->m_codePage;
+				textDisplayComponent.m_characterWidthPixels = font->m_characterWidthPixels;
+				textDisplayComponent.m_characterHeightPixels = font->m_characterHeightPixels;
+				textDisplayComponent.m_textColour = font->m_textColour;
+			}
+
 			textDisplayComponent.m_fontScale = textDisplayElement.m_fontScale;
 		},
 		[&](TextInputElement& textInputElement)
@@ -97,6 +108,14 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 				textInputComponent.m_inputHandler = std::move(textInputElement.m_inputHandler);
 			}
 
+			if (font != nullptr)
+			{
+				textInputComponent.m_codePage = font->m_codePage;
+				textInputComponent.m_characterWidthPixels = font->m_characterWidthPixels;
+				textInputComponent.m_characterHeightPixels = font->m_characterHeightPixels;
+				textInputComponent.m_textColour = font->m_textColour;
+			}
+
 			textInputComponent.m_xScale = textInputElement.m_xScale;
 			textInputComponent.m_yScale = textInputElement.m_yScale;
 			textInputComponent.m_fontScale = textInputElement.m_fontScale;
@@ -105,7 +124,7 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 			sceneTransformComponent.m_childToParentMatrix.SetScale(
 				Math::Vector3(textInputElement.m_xScale, textInputElement.m_yScale, 1.0f));
 		},
-		[&](PanelElement& panelElement)
+			[&](PanelElement& panelElement)
 		{
 			AMP_FATAL_ASSERT(panelElement.m_children.Size() == panelElement.m_childRelativeTransforms.Size(),
 				"There is an expected 1-to-1 relationship between elements in a panel and their relative transforms.");
@@ -118,7 +137,7 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 				const Math::Matrix4x4& transformFromParent = panelElement.m_childRelativeTransforms[i];
 				ConduiElement& childElement = panelElement.m_children[i];
 
-				ECS::Entity& childEntity = CreateConduiEntity(entityManager, std::move(childElement));
+				ECS::Entity& childEntity = CreateConduiEntity(entityManager, std::move(childElement), font);
 				auto& childTransformComponent =
 					*entityManager.FindComponent<Scene::SceneTransformComponent>(childEntity);
 				childTransformComponent.m_childToParentMatrix =
@@ -130,9 +149,10 @@ ECS::Entity& Condui::CreateConduiEntity(ECS::EntityManager& entityManager, Condu
 	return *entity;
 }
 
-ECS::Entity& Condui::CreateConduiRootEntity(ECS::EntityManager& entityManager, ElementRoot&& elementRoot)
+ECS::Entity& Condui::CreateConduiRootEntity(
+	ECS::EntityManager& entityManager, ElementRoot&& elementRoot, const FontInfo* font)
 {
-	ECS::Entity& entity = CreateConduiEntity(entityManager, std::move(elementRoot.m_element));
+	ECS::Entity& entity = CreateConduiEntity(entityManager, std::move(elementRoot.m_element), font);
 	auto& transformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
 	transformComponent.m_modelToWorldMatrix = elementRoot.m_uiTransform;
 	return entity;
