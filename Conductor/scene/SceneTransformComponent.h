@@ -15,7 +15,7 @@ public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::MemoryImaged;
 	static constexpr const char* k_typeName = "scene_transform_component";
 	static const ECS::ComponentType k_type;
-	static const Mem::InspectorInfo k_inspectorInfo;
+	static const Mem::InspectorInfoTypeHash k_inspectorInfoTypeHash;
 
 	explicit SceneTransformComponent(const ECS::ComponentID id)
 		: ECS::Component(id)

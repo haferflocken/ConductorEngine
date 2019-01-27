@@ -5,5 +5,5 @@
 namespace Scene
 {
 const ECS::ComponentType SceneSaveComponent::k_type{ Util::CalcHash(k_typeName) };
-const Mem::InspectorInfo SceneSaveComponent::k_inspectorInfo = MakeInspectorInfo(Scene::SceneSaveComponent, 0);
+const Mem::InspectorInfoTypeHash SceneSaveComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Scene::SceneSaveComponent, 0);
 }

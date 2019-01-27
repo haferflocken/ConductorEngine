@@ -18,7 +18,7 @@ public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "mesh_component";
 	static const ECS::ComponentType k_type;
-	static const Mem::InspectorInfo k_inspectorInfo;
+	static const Mem::InspectorInfoTypeHash k_inspectorInfoTypeHash;
 
 	static void FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes);
 

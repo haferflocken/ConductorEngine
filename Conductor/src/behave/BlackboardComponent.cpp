@@ -9,7 +9,7 @@
 namespace Behave
 {
 const ECS::ComponentType BlackboardComponent::k_type{ Util::CalcHash(k_typeName) };
-const Mem::InspectorInfo BlackboardComponent::k_inspectorInfo = MakeInspectorInfo(Behave::BlackboardComponent, 0);
+const Mem::InspectorInfoTypeHash BlackboardComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Behave::BlackboardComponent, 0);
 
 void BlackboardComponent::FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes)
 {

@@ -8,7 +8,7 @@
 namespace Behave
 {
 const ECS::ComponentType BehaviourTreeComponent::k_type{ Util::CalcHash(k_typeName) };
-const Mem::InspectorInfo BehaviourTreeComponent::k_inspectorInfo = MakeInspectorInfo(Behave::BehaviourTreeComponent, 0);
+const Mem::InspectorInfoTypeHash BehaviourTreeComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Behave::BehaviourTreeComponent, 0);
 
 void BehaviourTreeComponent::FullySerialize(
 	const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes)

@@ -16,7 +16,7 @@ public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "blackboard_component";
 	static const ECS::ComponentType k_type;
-	static const Mem::InspectorInfo k_inspectorInfo;
+	static const Mem::InspectorInfoTypeHash k_inspectorInfoTypeHash;
 
 	static void FullySerialize(const BlackboardComponent& component, Collection::Vector<uint8_t>& outBytes);
 

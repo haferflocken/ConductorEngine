@@ -18,7 +18,7 @@ public:
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::MemoryImaged;
 	static constexpr char* k_typeName = "islander_component";
 	static const ECS::ComponentType k_type;
-	static const Mem::InspectorInfo k_inspectorInfo;
+	static const Mem::InspectorInfoTypeHash k_inspectorInfoTypeHash;
 
 	explicit IslanderComponent(const ECS::ComponentID id)
 		: Component(id)

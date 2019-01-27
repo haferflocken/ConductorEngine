@@ -5,5 +5,5 @@
 namespace Scene
 {
 const ECS::ComponentType AnchorComponent::k_type{ Util::CalcHash(k_typeName) };
-const Mem::InspectorInfo AnchorComponent::k_inspectorInfo = MakeInspectorInfo(Scene::AnchorComponent, 1, m_anchoringRadiusInChunks);
+const Mem::InspectorInfoTypeHash AnchorComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Scene::AnchorComponent, 1, m_anchoringRadiusInChunks);
 }

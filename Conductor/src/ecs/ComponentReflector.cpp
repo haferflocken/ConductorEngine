@@ -14,7 +14,7 @@ void ComponentReflector::RegisterComponentType(const char* const componentTypeNa
 	const Unit::ByteCount64 sizeOfComponent,
 	const Unit::ByteCount64 alignOfComponent,
 	const MandatoryComponentFunctions& mandatoryFunctions,
-	const Mem::InspectorInfo& inspectorInfo)
+	const Mem::InspectorInfoTypeHash inspectorInfoTypeHash)
 {
 	AMP_FATAL_ASSERT(componentType.GetTypeHash() == Util::CalcHash(componentTypeName),
 		"Mismatch between component type hash and component type name for component with type name \"%s\".",
@@ -24,13 +24,13 @@ void ComponentReflector::RegisterComponentType(const char* const componentTypeNa
 		&& m_componentAlignmentsInBytes.Find(componentType) == m_componentAlignmentsInBytes.end()
 		&& m_mandatoryComponentFunctions.Find(componentType) == m_mandatoryComponentFunctions.end()
 		&& m_transmissionFunctions.Find(componentType) == m_transmissionFunctions.end()
-		&& m_componentInspectorInfo.Find(componentType) == m_componentInspectorInfo.end(),
+		&& m_componentInspectorInfoTypeHashes.Find(componentType) == m_componentInspectorInfoTypeHashes.end(),
 		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
 
 	m_componentSizesInBytes[componentType] = sizeOfComponent;
 	m_componentAlignmentsInBytes[componentType] = alignOfComponent;
 	m_mandatoryComponentFunctions[componentType] = mandatoryFunctions;
-	m_componentInspectorInfo[componentType] = &inspectorInfo;
+	m_componentInspectorInfoTypeHashes[componentType] = inspectorInfoTypeHash;
 }
 
 bool ComponentReflector::IsRegistered(const ComponentType componentType) const

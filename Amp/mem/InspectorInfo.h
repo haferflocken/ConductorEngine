@@ -8,34 +8,44 @@
 
 namespace Mem
 {
-struct InspectorInfo
+struct InspectorInfoTypeHash final
+{
+	size_t m_value;
+
+	bool operator==(const InspectorInfoTypeHash& rhs) const;
+	bool operator!=(const InspectorInfoTypeHash& rhs) const;
+	bool operator<(const InspectorInfoTypeHash& rhs) const;
+};
+
+struct InspectorInfo final
 {
 	static void Register(const InspectorInfo& info);
-	static const InspectorInfo* Find(size_t typeHash);
+	static const InspectorInfo* Find(InspectorInfoTypeHash typeHash);
 
 	struct MemberInfo
 	{
 		const char* m_name;
-		size_t m_typeHash;
+		InspectorInfoTypeHash m_typeHash;
 		size_t m_offset;
 	};
+
+	InspectorInfo();
 
 	InspectorInfo(const std::type_info& typeInfo);
 
 	InspectorInfo(const std::type_info& typeInfo,
-		std::initializer_list<size_t> templateParameterTypeHashes);
+		std::initializer_list<InspectorInfoTypeHash> templateParameterTypeHashes);
 
 	InspectorInfo(const std::type_info& typeInfo,
 		std::initializer_list<const char*> memberNames,
-		std::initializer_list<size_t> memberTypeHashes,
+		std::initializer_list<InspectorInfoTypeHash> memberTypeHashes,
 		std::initializer_list<size_t> memberOffsets);
 
 	// m_typeName and m_typeHash are always defined for inspectable types.
 	const char* m_typeName;
-	size_t m_typeHash;
-	// m_templateTypeHash and m_templateParameterTypeHashes are only defined for templated inspectable types.
-	size_t m_templateTypeHash;
-	Collection::Vector<size_t> m_templateParameterTypeHashes;
+	InspectorInfoTypeHash m_typeHash;
+	// m_templateParameterTypeHashes is only defined for templated inspectable types.
+	Collection::Vector<InspectorInfoTypeHash> m_templateParameterTypeHashes;
 	// m_memberInfo is only defined for struct types.
 	Collection::Vector<MemberInfo> m_memberInfo;
 };
@@ -45,7 +55,7 @@ struct InspectorInfo_Helper
 {
 	static InspectorInfo Info()
 	{
-		return InspectorInfo(typeid(T));
+		return InspectorInfo{ typeid(T) };
 	}
 };
 
@@ -56,7 +66,7 @@ struct InspectorInfo_Helper<T<Args...>>
 
 	static InspectorInfo Info()
 	{
-		return InspectorInfo(typeid(Type), { (InspectorInfo_Helper<Args>::Info().m_typeHash)... });
+		return InspectorInfo{ typeid(Type), { (InspectorInfo_Helper<Args>::Info().m_typeHash)... } };
 	}
 };
 }
@@ -89,4 +99,4 @@ struct InspectorInfo_Helper<T<Args...>>
 #define OFFSET_OF_ARGS_6(TYPE, A0, A1, A2, A3, A4, A5) offsetof(TYPE, A0) , offsetof(TYPE, A1) , offsetof(TYPE, A2) , offsetof(TYPE, A3) , offsetof(TYPE, A4) , offsetof(TYPE, A5)
 
 #define MakeInspectorInfo(TYPE, NUM_MEMBERS, ...) Mem::InspectorInfo(typeid(TYPE), { DEFER(STRINGIFY_ARGS_##NUM_MEMBERS( __VA_ARGS__ )) },\
-	{ DEFER(TYPEHASH_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) }, { DEFER(OFFSET_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) });
+	{ DEFER(TYPEHASH_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) }, { DEFER(OFFSET_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) }).m_typeHash

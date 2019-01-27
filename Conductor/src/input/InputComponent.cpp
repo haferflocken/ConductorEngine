@@ -6,7 +6,7 @@
 namespace Input
 {
 const ECS::ComponentType InputComponent::k_type{ Util::CalcHash(k_typeName) };
-const Mem::InspectorInfo InputComponent::k_inspectorInfo = MakeInspectorInfo(Input::InputComponent, 0);
+const Mem::InspectorInfoTypeHash InputComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Input::InputComponent, 0);
 
 void InputComponent::FullySerialize(const InputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
