@@ -4,33 +4,61 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include <typeinfo>
 
 namespace Mem
 {
 struct InspectorInfo
 {
+	static void Register(const InspectorInfo& info);
+	static const InspectorInfo* Find(size_t typeHash);
+
 	struct MemberInfo
 	{
 		const char* m_name;
-		uint32_t m_typeCode;
-		uint32_t m_offset;
+		size_t m_typeHash;
+		size_t m_offset;
 	};
 
-	const char* m_name;
+	InspectorInfo(const std::type_info& typeInfo);
+
+	InspectorInfo(const std::type_info& typeInfo,
+		std::initializer_list<size_t> templateParameterTypeHashes);
+
+	InspectorInfo(const std::type_info& typeInfo,
+		std::initializer_list<const char*> memberNames,
+		std::initializer_list<size_t> memberTypeHashes,
+		std::initializer_list<size_t> memberOffsets);
+
+	// m_typeName and m_typeHash are always defined for inspectable types.
+	const char* m_typeName;
+	size_t m_typeHash;
+	// m_templateTypeHash and m_templateParameterTypeHashes are only defined for templated inspectable types.
+	size_t m_templateTypeHash;
+	Collection::Vector<size_t> m_templateParameterTypeHashes;
+	// m_memberInfo is only defined for struct types.
 	Collection::Vector<MemberInfo> m_memberInfo;
 };
 
 template <typename T>
-uint32_t InspectorTypeCode()
+struct InspectorInfo_Helper
 {
-	// TODO(info) inspector type codes
-	return 0;
-}
+	static InspectorInfo Info()
+	{
+		return InspectorInfo(typeid(T));
+	}
+};
 
-InspectorInfo MakeInspectorInfo_Internal(const char* name,
-	std::initializer_list<const char*> memberNames,
-	std::initializer_list<uint32_t> memberTypeCodes,
-	std::initializer_list<size_t> memberOffsets);
+template <template<typename...> class T, typename... Args>
+struct InspectorInfo_Helper<T<Args...>>
+{
+	using Type = T<Args...>;
+
+	static InspectorInfo Info()
+	{
+		return InspectorInfo(typeid(Type), { (InspectorInfo_Helper<Args>::Info().m_typeHash)... });
+	}
+};
 }
 
 #define EMPTY()
@@ -44,13 +72,13 @@ InspectorInfo MakeInspectorInfo_Internal(const char* name,
 #define STRINGIFY_ARGS_5(A0, A1, A2, A3, A4) #A0 , #A1 , #A2 , #A3 , #A4
 #define STRINGIFY_ARGS_6(A0, A1, A2, A3, A4, A5) #A0 , #A1 , #A2 , #A3 , #A4 , #A5
 
-#define TYPECODE_OF_ARGS_0(...)
-#define TYPECODE_OF_ARGS_1(TYPE, A0) Mem::InspectorTypeCode<decltype(TYPE :: A0)>()
-#define TYPECODE_OF_ARGS_2(TYPE, A0, A1) TYPECODE_OF_ARGS_1(TYPE, A0) , Mem::InspectorTypeCode<decltype(TYPE :: A1)>()
-#define TYPECODE_OF_ARGS_3(TYPE, A0, A1, A2) TYPECODE_OF_ARGS_2(TYPE, A0, A1) , Mem::InspectorTypeCode<decltype(TYPE :: A2)>()
-#define TYPECODE_OF_ARGS_4(TYPE, A0, A1, A2, A3) TYPECODE_OF_ARGS_3(TYPE, A0, A1, A2) , Mem::InspectorTypeCode<decltype(TYPE :: A3)>()
-#define TYPECODE_OF_ARGS_5(TYPE, A0, A1, A2, A3, A4) TYPECODE_OF_ARGS_4(TYPE, A0, A1, A2, A3) , Mem::InspectorTypeCode<decltype(TYPE :: A4)>()
-#define TYPECODE_OF_ARGS_6(TYPE, A0, A1, A2, A3, A4, A5) TYPECODE_OF_ARGS_5(TYPE, A0, A1, A2, A3, A4) , Mem::InspectorTypeCode<decltype(TYPE :: A5)>()
+#define TYPEHASH_OF_ARGS_0(...)
+#define TYPEHASH_OF_ARGS_1(TYPE, A0) Mem::InspectorInfo_Helper<decltype(TYPE :: A0)>::Info().m_typeHash
+#define TYPEHASH_OF_ARGS_2(TYPE, A0, A1) TYPEHASH_OF_ARGS_1(TYPE, A0) , Mem::InspectorInfo_Helper<decltype(TYPE :: A1)>::Info().m_typeHash
+#define TYPEHASH_OF_ARGS_3(TYPE, A0, A1, A2) TYPEHASH_OF_ARGS_2(TYPE, A0, A1) , Mem::InspectorInfo_Helper<decltype(TYPE :: A2)>::Info().m_typeHash
+#define TYPEHASH_OF_ARGS_4(TYPE, A0, A1, A2, A3) TYPEHASH_OF_ARGS_3(TYPE, A0, A1, A2) , Mem::InspectorInfo_Helper<decltype(TYPE :: A3)>::Info().m_typeHash
+#define TYPEHASH_OF_ARGS_5(TYPE, A0, A1, A2, A3, A4) TYPEHASH_OF_ARGS_4(TYPE, A0, A1, A2, A3) , Mem::InspectorInfo_Helper<decltype(TYPE :: A4)>::Info().m_typeHash
+#define TYPEHASH_OF_ARGS_6(TYPE, A0, A1, A2, A3, A4, A5) TYPEHASH_OF_ARGS_5(TYPE, A0, A1, A2, A3, A4) , Mem::InspectorInfo_Helper<decltype(TYPE :: A5)>::Info().m_typeHash
 
 #define OFFSET_OF_ARGS_0(...)
 #define OFFSET_OF_ARGS_1(TYPE, A0) offsetof(TYPE, A0)
@@ -60,5 +88,5 @@ InspectorInfo MakeInspectorInfo_Internal(const char* name,
 #define OFFSET_OF_ARGS_5(TYPE, A0, A1, A2, A3, A4) offsetof(TYPE, A0) , offsetof(TYPE, A1) , offsetof(TYPE, A2) , offsetof(TYPE, A3) , offsetof(TYPE, A4)
 #define OFFSET_OF_ARGS_6(TYPE, A0, A1, A2, A3, A4, A5) offsetof(TYPE, A0) , offsetof(TYPE, A1) , offsetof(TYPE, A2) , offsetof(TYPE, A3) , offsetof(TYPE, A4) , offsetof(TYPE, A5)
 
-#define MakeInspectorInfo(TYPE, NUM_MEMBERS, ...) Mem::MakeInspectorInfo_Internal(#TYPE , { DEFER(STRINGIFY_ARGS_##NUM_MEMBERS ( __VA_ARGS__ )) },\
-	{ DEFER(TYPECODE_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) }, { DEFER(OFFSET_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) })
+#define MakeInspectorInfo(TYPE, NUM_MEMBERS, ...) Mem::InspectorInfo(typeid(TYPE), { DEFER(STRINGIFY_ARGS_##NUM_MEMBERS( __VA_ARGS__ )) },\
+	{ DEFER(TYPEHASH_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) }, { DEFER(OFFSET_OF_ARGS_##NUM_MEMBERS(TYPE, __VA_ARGS__)) });
