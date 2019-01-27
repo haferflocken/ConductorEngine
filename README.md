@@ -1,5 +1,5 @@
 # ConductorEngine
 
-A game engine which makes it easy to write highly parallel games. Very much a work in progress.
+A game engine that provides sturdy infrastructure that keeps game code maintainable.
 
 This code is _not_ licensed for public use.
