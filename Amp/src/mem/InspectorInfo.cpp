@@ -37,6 +37,15 @@ void InspectorInfo::Register(const InspectorInfo& info)
 	{
 		typeInfoMap[info.m_typeHash] = info;
 	}
+	else
+	{
+		// Only member info is ever updated when registering InspectorInfo.
+		InspectorInfo& existingInfo = iter->second;
+		if (existingInfo.m_memberInfo.IsEmpty() && !info.m_memberInfo.IsEmpty())
+		{
+			existingInfo.m_memberInfo = info.m_memberInfo;
+		}
+	}
 }
 
 const InspectorInfo* InspectorInfo::Find(InspectorInfoTypeHash typeHash)
