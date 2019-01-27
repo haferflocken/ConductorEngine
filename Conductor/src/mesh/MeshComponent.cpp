@@ -12,11 +12,6 @@ namespace Mesh
 const ECS::ComponentType MeshComponent::k_type{ Util::CalcHash(k_typeName) };
 const Mem::InspectorInfoTypeHash MeshComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Mesh::MeshComponent, 1, m_meshHandle);
 
-void Foo()
-{
-
-}
-
 void MeshComponent::FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
 	const Asset::CharType* const assetPath = component.m_meshHandle.GetAssetPath();
