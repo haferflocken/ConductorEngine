@@ -9,5 +9,10 @@ struct InspectorInfo;
 
 namespace Condui
 {
-ConduiElement MakeInspectorElement(const Mem::InspectorInfo* const inspectorInfo, void* const subject);
+ConduiElement MakeInspectorElement(
+	const Mem::InspectorInfo* const inspectorInfo,
+	void* const subject,
+	const float xScale,
+	const float yScale,
+	const float textVerticalScale);
 }

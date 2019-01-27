@@ -53,7 +53,9 @@ Condui::TextInputElement::InputHandler MakeFloatParsingHandler(void* const rawSu
 bool TryMakeInspectorOverrideElement(
 	const Mem::InspectorInfo& inspectorInfo,
 	void* const rawSubject,
-	Condui::ConduiElement& outElement)
+	const float xScale,
+	const float yScale,
+	Condui::ConduiElement& outResult)
 {
 	using namespace Condui;
 
@@ -75,56 +77,56 @@ bool TryMakeInspectorOverrideElement(
 	// Signed integer types.
 	if (inspectorInfo.m_typeHash == i8TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int8_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<int8_t>(rawSubject));
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i16TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int16_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<int16_t>(rawSubject));
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i32TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int32_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<int32_t>(rawSubject));
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i64TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int64_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<int64_t>(rawSubject));
 		return true;
 	}
 
 	// Unsigned integer types.
 	if (inspectorInfo.m_typeHash == u8TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint8_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<uint8_t>(rawSubject));
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u16TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint16_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<uint16_t>(rawSubject));
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u32TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint32_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<uint32_t>(rawSubject));
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u64TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint64_t>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeIntegerParsingHandler<uint64_t>(rawSubject));
 		return true;
 	}
 
 	// Floating point types.
 	if (inspectorInfo.m_typeHash == f32TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeFloatParsingHandler<float>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeFloatParsingHandler<float>(rawSubject));
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == f64TypeHash)
 	{
-		outElement = MakeTextInputElement(1.0f, 1.0f, MakeFloatParsingHandler<double>(rawSubject));
+		outResult = MakeTextInputElement(xScale, yScale, MakeFloatParsingHandler<double>(rawSubject));
 		return true;
 	}
 
@@ -141,7 +143,10 @@ bool TryMakeInspectorOverrideElement(
 Condui::ConduiElement MakeInspectorElement(
 	const Mem::InspectorInfo* const inspectorInfo,
 	char* const subject,
-	const char* const nameOverride)
+	const char* const nameOverride,
+	const float xScale,
+	const float yScale,
+	const float textVerticalScale)
 {
 	using namespace Condui;
 
@@ -152,33 +157,43 @@ Condui::ConduiElement MakeInspectorElement(
 		char buffer[128];
 		sprintf_s(buffer, "%s has no inspector type info!", name);
 
-		return MakeTextDisplayElement(buffer, 1.0f);
+		return MakeTextDisplayElement(buffer, textVerticalScale);
 	}
 
 	const char* const name = (nameOverride != nullptr) ? nameOverride : inspectorInfo->m_typeName;
 
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>> childrenWithChildToParentTransforms;
-	childrenWithChildToParentTransforms.Emplace(Math::Matrix4x4(), MakeTextDisplayElement(name, 1.0f));
+	childrenWithChildToParentTransforms.Emplace(Math::Matrix4x4(), MakeTextDisplayElement(name, textVerticalScale));
 
 	// Certain types have special overrides for their inspector.
 	ConduiElement overrideElement;
-	if (TryMakeInspectorOverrideElement(*inspectorInfo, subject, overrideElement))
+	if (TryMakeInspectorOverrideElement(*inspectorInfo, subject, xScale, yScale, overrideElement))
 	{
 		Math::Matrix4x4 transform;
-		// TODO(info)
+		transform.SetScale(Math::Vector3(xScale, yScale - textVerticalScale, 1.0f));
+		transform.SetTranslation(Math::Vector3(0.0f, -textVerticalScale, 0.0f));
 		childrenWithChildToParentTransforms.Emplace(transform, std::move(overrideElement));
 	}
 	// If there's no override, recursively build the inspector with the inspectors of the type's members.
-	else
+	else if (!inspectorInfo->m_memberInfo.IsEmpty())
 	{
-		for (const auto& memberInfo : inspectorInfo->m_memberInfo)
+		const float memberYScale = (yScale - textVerticalScale) / inspectorInfo->m_memberInfo.Size();
+		for (size_t i = 0, iEnd = inspectorInfo->m_memberInfo.Size(); i < iEnd; ++i)
 		{
+			const auto& memberInfo = inspectorInfo->m_memberInfo[i];
+
 			const Mem::InspectorInfo* const memberInspectorInfo = Mem::InspectorInfo::Find(memberInfo.m_typeHash);
 			ConduiElement memberInspectorElement = MakeInspectorElement(
-				memberInspectorInfo, subject + memberInfo.m_offset, memberInfo.m_name);
+				memberInspectorInfo,
+				subject + memberInfo.m_offset,
+				memberInfo.m_name,
+				xScale,
+				memberYScale,
+				textVerticalScale / yScale);
 
 			Math::Matrix4x4 memberTransform;
-			// TODO(info)
+			memberTransform.SetScale(Math::Vector3(xScale, yScale, 1.0f));
+			memberTransform.SetTranslation(Math::Vector3(0.0f, (-textVerticalScale) - (memberYScale * i), 0.0f));
 			childrenWithChildToParentTransforms.Emplace(memberTransform, std::move(memberInspectorElement));
 		}
 	}
@@ -187,7 +202,13 @@ Condui::ConduiElement MakeInspectorElement(
 }
 }
 
-Condui::ConduiElement Condui::MakeInspectorElement(const Mem::InspectorInfo* const inspectorInfo, void* const subject)
+Condui::ConduiElement Condui::MakeInspectorElement(
+	const Mem::InspectorInfo* const inspectorInfo,
+	void* const subject,
+	const float xScale,
+	const float yScale,
+	const float textVerticalScale)
 {
-	return Internal_ConduiInspector::MakeInspectorElement(inspectorInfo, static_cast<char*>(subject), nullptr);
+	return Internal_ConduiInspector::MakeInspectorElement(
+		inspectorInfo, static_cast<char*>(subject), nullptr, xScale, yScale, textVerticalScale);
 }

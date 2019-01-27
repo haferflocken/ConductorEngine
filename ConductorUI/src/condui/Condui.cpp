@@ -47,8 +47,7 @@ Condui::ConduiElement Condui::MakePanelElement(
 
 Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
 	const float yScale,
-	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap,
-	const float fontScale)
+	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap)
 {
 	TextInputElement::InputHandler commandHandler =
 		[commandsAndHandlers = std::move(commandMap)](TextInputComponent& component, const char* text) mutable
@@ -69,7 +68,7 @@ Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
 		}
 		component.m_text.clear();
 	};
-	return MakeTextInputElement(xScale, yScale, std::move(commandHandler), fontScale);
+	return MakeTextInputElement(xScale, yScale, std::move(commandHandler), yScale);
 }
 
 ECS::Entity& Condui::CreateConduiEntity(

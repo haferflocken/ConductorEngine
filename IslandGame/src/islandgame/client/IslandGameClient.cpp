@@ -79,8 +79,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 			component.m_backgroundColour = Image::ColoursARBG::k_cyan;
 		};
 
-		Condui::ConduiElement consoleElement =
-			Condui::MakeTextInputCommandElement(0.5f, 0.025f, std::move(commandMap), 1.0f);
+		Condui::ConduiElement consoleElement = Condui::MakeTextInputCommandElement(0.5f, 0.025f, std::move(commandMap));
 
 		const Condui::FontInfo fontInfo{
 			assetManager.RequestAsset<Image::Pixel1Image>(File::MakePath("fonts/Codepage-437-monochome.bmp")),
@@ -97,7 +96,10 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		// Create an inspector and attach it to the camera.
 		Condui::ConduiElement inspectorElement = Condui::MakeInspectorElement(
 			Mem::InspectorInfo::Find({ typeid(Scene::SceneTransformComponent).hash_code() }),
-			&consoleTransformComponent);
+			&consoleTransformComponent,
+			0.5f,
+			0.5f,
+			0.025f);
 
 		ECS::Entity& inspectorEntity =
 			Condui::CreateConduiEntity(m_entityManager, std::move(inspectorElement), &fontInfo);

@@ -121,8 +121,7 @@ ConduiElement MakePanelElement(
  */
 ConduiElement MakeTextInputCommandElement(const float xScale,
 	const float yScale,
-	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap,
-	const float fontScale = 1.0f);
+	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap);
 
 /**
  * Functions to actualize a ConduiElement as an ECS::Entity. These consume the ConduiElement.
