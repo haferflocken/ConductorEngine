@@ -1,6 +1,0 @@
-{
-	"components": [
-		{ "type": "scene_transform_component" },
-		{ "type": "camera_component" }
-	]
-}
