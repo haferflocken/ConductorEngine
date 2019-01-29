@@ -12,6 +12,16 @@ Collection::VectorMap<InspectorInfoTypeHash, InspectorInfo>& GetTypeInfoMap()
 	static Collection::VectorMap<InspectorInfoTypeHash, InspectorInfo> typeInfoMap;
 	return typeInfoMap;
 }
+
+size_t IndexOfChar(const char c, const char* str, size_t resultIfNotPresent)
+{
+	const char* const cPtr = strchr(str, c);
+	if (cPtr == nullptr)
+	{
+		return resultIfNotPresent;
+	}
+	return static_cast<size_t>(cPtr - str);
+}
 }
 
 bool InspectorInfoTypeHash::operator==(const InspectorInfoTypeHash& rhs) const
@@ -62,6 +72,7 @@ const InspectorInfo* InspectorInfo::Find(InspectorInfoTypeHash typeHash)
 InspectorInfo::InspectorInfo()
 	: m_typeName(nullptr)
 	, m_typeHash{ 0 }
+	, m_templateTypeNameLength(0)
 	, m_templateParameterTypeHashes()
 	, m_memberInfo()
 {}
@@ -69,6 +80,7 @@ InspectorInfo::InspectorInfo()
 InspectorInfo::InspectorInfo(const std::type_info& typeInfo)
 	: m_typeName(typeInfo.name())
 	, m_typeHash{ typeInfo.hash_code() }
+	, m_templateTypeNameLength(0)
 	, m_templateParameterTypeHashes()
 	, m_memberInfo()
 {
@@ -79,6 +91,7 @@ InspectorInfo::InspectorInfo(const std::type_info& typeInfo,
 	std::initializer_list<InspectorInfoTypeHash> templateParameterTypeHashes)
 	: m_typeName(typeInfo.name())
 	, m_typeHash{ typeInfo.hash_code() }
+	, m_templateTypeNameLength(Internal_InspectorInfo::IndexOfChar('<', m_typeName, 0))
 	, m_templateParameterTypeHashes()
 	, m_memberInfo()
 {
@@ -99,6 +112,7 @@ InspectorInfo::InspectorInfo(const std::type_info& typeInfo,
 	std::initializer_list<size_t> memberOffsets)
 	: m_typeName(typeInfo.name())
 	, m_typeHash{ typeInfo.hash_code() }
+	, m_templateTypeNameLength(0)
 	, m_templateParameterTypeHashes()
 	, m_memberInfo()
 {

@@ -31,11 +31,14 @@ struct InspectorInfo final
 
 	InspectorInfo();
 
+	// Constructor for non-templated types with no additional information.
 	InspectorInfo(const std::type_info& typeInfo);
 
+	// Constructor for templated types.
 	InspectorInfo(const std::type_info& typeInfo,
 		std::initializer_list<InspectorInfoTypeHash> templateParameterTypeHashes);
-
+	
+	// Constructor for composite types with member information.
 	InspectorInfo(const std::type_info& typeInfo,
 		std::initializer_list<const char*> memberNames,
 		std::initializer_list<InspectorInfoTypeHash> memberTypeHashes,
@@ -44,6 +47,9 @@ struct InspectorInfo final
 	// m_typeName and m_typeHash are always defined for inspectable types.
 	const char* m_typeName;
 	InspectorInfoTypeHash m_typeHash;
+	// m_templateTypeNameLength is the index in m_typeName after the template name ends; in other words it's the index
+	// of the first '>' in the type name. For non-templated types, it's zero.
+	size_t m_templateTypeNameLength;
 	// m_templateParameterTypeHashes is only defined for templated inspectable types.
 	Collection::Vector<InspectorInfoTypeHash> m_templateParameterTypeHashes;
 	// m_memberInfo is only defined for struct types.
