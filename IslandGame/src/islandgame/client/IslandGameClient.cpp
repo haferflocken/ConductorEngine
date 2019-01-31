@@ -79,7 +79,8 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 			component.m_backgroundColour = Image::ColoursARBG::k_cyan;
 		};
 
-		Condui::ConduiElement consoleElement = Condui::MakeTextInputCommandElement(0.5f, 0.025f, std::move(commandMap));
+		Condui::ConduiElement consoleElement =
+			Condui::MakeTextInputCommandElement(0.5f, 0.025f, std::move(commandMap), Image::ColoursARBG::k_cyan);
 
 		const Condui::FontInfo fontInfo{
 			assetManager.RequestAsset<Image::Pixel1Image>(File::MakePath("fonts/Codepage-437-monochome.bmp")),

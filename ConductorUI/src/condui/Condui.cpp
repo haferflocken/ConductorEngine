@@ -20,7 +20,11 @@ Condui::ConduiElement Condui::MakeTextDisplayElement(
 }
 
 Condui::ConduiElement Condui::MakeTextInputElement(
-	const float width, const float height, TextInputElement::InputHandler&& inputHandler, const float textHeight)
+	const float width,
+	const float height,
+	TextInputElement::InputHandler&& inputHandler,
+	const float textHeight,
+	const Image::ColourARGB backgroundColour)
 {
 	auto element = ConduiElement::Make<TextInputElement>();
 	TextInputElement& textInputElement = element.Get<TextInputElement>();
@@ -29,6 +33,7 @@ Condui::ConduiElement Condui::MakeTextInputElement(
 	textInputElement.m_width = width;
 	textInputElement.m_height = height;
 	textInputElement.m_textHeight = textHeight;
+	textInputElement.m_backgroundColour = backgroundColour;
 
 	return element;
 }
@@ -52,9 +57,11 @@ Condui::ConduiElement Condui::MakePanelElement(
 	return element;
 }
 
-Condui::ConduiElement Condui::MakeTextInputCommandElement(const float width,
+Condui::ConduiElement Condui::MakeTextInputCommandElement(
+	const float width,
 	const float height,
-	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap)
+	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap,
+	const Image::ColourARGB backgroundColour)
 {
 	TextInputElement::InputHandler commandHandler =
 		[commandsAndHandlers = std::move(commandMap)](TextInputComponent& component, const char* text) mutable
@@ -75,7 +82,7 @@ Condui::ConduiElement Condui::MakeTextInputCommandElement(const float width,
 		}
 		component.m_text.clear();
 	};
-	return MakeTextInputElement(width, height, std::move(commandHandler), height);
+	return MakeTextInputElement(width, height, std::move(commandHandler), height, backgroundColour);
 }
 
 ECS::Entity& Condui::CreateConduiEntity(
@@ -127,6 +134,7 @@ ECS::Entity& Condui::CreateConduiEntity(
 			textInputComponent.m_width = textInputElement.m_width;
 			textInputComponent.m_height = textInputElement.m_height;
 			textInputComponent.m_textHeight = textInputElement.m_textHeight;
+			textInputComponent.m_backgroundColour = textInputElement.m_backgroundColour;
 		},
 		[&](PanelElement& panelElement)
 		{

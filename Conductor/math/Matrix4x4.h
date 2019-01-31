@@ -5,8 +5,6 @@
 
 namespace Math
 {
-class Vector4;
-
 /**
  * A 4x4 column-major matrix.
  */

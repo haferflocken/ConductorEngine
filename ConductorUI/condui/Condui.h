@@ -52,6 +52,9 @@ struct TextInputElement final
 	float m_width{ 1.0f };
 	float m_height{ 1.0f };
 	float m_textHeight{ 1.0f };
+
+	// The colours of the input rectangle.
+	Image::ColourARGB m_backgroundColour{ Image::ColoursARBG::k_cyan };
 };
 
 /**
@@ -121,7 +124,8 @@ ConduiElement MakeTextInputElement(
 	const float width,
 	const float height,
 	TextInputElement::InputHandler&& inputHandler,
-	const float textHeight);
+	const float textHeight,
+	const Image::ColourARGB backgroundColour);
 ConduiElement MakePanelElement(
 	const float width,
 	const float height,
@@ -133,7 +137,8 @@ ConduiElement MakePanelElement(
 ConduiElement MakeTextInputCommandElement(
 	const float width,
 	const float height,
-	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap);
+	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap,
+	const Image::ColourARGB backgroundColour);
 
 /**
  * Functions to actualize a ConduiElement as an ECS::Entity. These consume the ConduiElement.

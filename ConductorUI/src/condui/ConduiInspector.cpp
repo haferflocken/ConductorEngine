@@ -1,6 +1,7 @@
 #include <condui/ConduiInspector.h>
 
 #include <condui/TextInputComponent.h>
+#include <math/Matrix4x4.h>
 #include <mem/InspectorInfo.h>
 
 #include <array>
@@ -24,8 +25,16 @@ Condui::TextInputElement::InputHandler MakeIntegerParsingHandler(void* const raw
 		}
 
 		Condui::TextInputComponent::DefaultInputHandler(component, text);
-		char* const componentTextBegin = &component.m_text.front();
-		std::from_chars(componentTextBegin, componentTextBegin + component.m_text.size(), *subject);
+
+		if (component.m_text.empty())
+		{
+			*subject = 0;
+		}
+		else
+		{
+			char* const componentTextBegin = &component.m_text.front();
+			std::from_chars(componentTextBegin, componentTextBegin + component.m_text.size(), *subject);
+		}
 	};
 }
 
@@ -45,8 +54,16 @@ Condui::TextInputElement::InputHandler MakeFloatParsingHandler(void* const rawSu
 		}
 
 		Condui::TextInputComponent::DefaultInputHandler(component, text);
-		char* const componentTextBegin = &component.m_text.front();
-		std::from_chars(componentTextBegin, componentTextBegin + component.m_text.size(), *subject);
+
+		if (component.m_text.empty())
+		{
+			*subject = 0;
+		}
+		else
+		{
+			char* const componentTextBegin = &component.m_text.front();
+			std::from_chars(componentTextBegin, componentTextBegin + component.m_text.size(), *subject);
+		}
 	};
 }
 
@@ -75,28 +92,34 @@ bool TryMakeInspectorOverrideElement(
 
 	const Mem::InspectorInfoTypeHash boolTypeHash{ typeid(bool).hash_code() };
 
+	const Mem::InspectorInfoTypeHash matrix4x4TypeHash{ typeid(Math::Matrix4x4).hash_code() };
+
 	// Signed integer types.
 	if (inspectorInfo.m_typeHash == i8TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int8_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<int8_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i16TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int16_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<int16_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i32TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int32_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<int32_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i64TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int64_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<int64_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
@@ -104,25 +127,29 @@ bool TryMakeInspectorOverrideElement(
 	// Unsigned integer types.
 	if (inspectorInfo.m_typeHash == u8TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint8_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<uint8_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u16TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint16_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<uint16_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u32TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint32_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<uint32_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u64TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint64_t>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeIntegerParsingHandler<uint64_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
@@ -130,13 +157,15 @@ bool TryMakeInspectorOverrideElement(
 	// Floating point types.
 	if (inspectorInfo.m_typeHash == f32TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeFloatParsingHandler<float>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeFloatParsingHandler<float>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == f64TypeHash)
 	{
-		outResult = MakeTextInputElement(width, textHeight, MakeFloatParsingHandler<double>(rawSubject), textHeight);
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeFloatParsingHandler<double>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
 		outHeight = textHeight;
 		return true;
 	}
@@ -146,6 +175,51 @@ bool TryMakeInspectorOverrideElement(
 	{
 		// TODO(info)
 		return false;
+	}
+
+	// Math classes.
+	if (inspectorInfo.m_typeHash == matrix4x4TypeHash)
+	{
+		Math::Matrix4x4& subject = *static_cast<Math::Matrix4x4*>(rawSubject);
+
+		Collection::Vector<Collection::Pair<Math::Matrix4x4, Condui::ConduiElement>> matrixSubelements;
+
+		const float subWidth = width * 0.25f;
+		const float subHeight = textHeight;
+		const Image::ColourARGB primaryColour{ 255, 192, 192, 192 };
+		const Image::ColourARGB secondaryColour{ 255, 170, 170, 170 };
+
+		for (size_t i = 0; i < 4; ++i)
+		{
+			Math::Vector4& column = subject.GetColumn(i);
+			
+			const float x = i * subWidth;
+			const Image::ColourARGB colourA = ((i & 1) == 0) ? primaryColour : secondaryColour;
+			const Image::ColourARGB colourB = ((i & 1) == 0) ? secondaryColour : primaryColour;
+			
+			auto t0 = Math::Matrix4x4::MakeTranslation(x, subHeight * -0.0f, 0.0f);
+			auto t1 = Math::Matrix4x4::MakeTranslation(x, subHeight * -1.0f, 0.0f);
+			auto t2 = Math::Matrix4x4::MakeTranslation(x, subHeight * -2.0f, 0.0f);
+			auto t3 = Math::Matrix4x4::MakeTranslation(x, subHeight * -3.0f, 0.0f);
+
+			auto e0 = MakeTextInputElement(
+				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.x), subHeight, colourA);
+			auto e1 = MakeTextInputElement(
+				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.y), subHeight, colourB);
+			auto e2 = MakeTextInputElement(
+				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.z), subHeight, colourA);
+			auto e3 = MakeTextInputElement(
+				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.w), subHeight, colourB);
+
+			matrixSubelements.Emplace(t0, std::move(e0));
+			matrixSubelements.Emplace(t1, std::move(e1));
+			matrixSubelements.Emplace(t2, std::move(e2));
+			matrixSubelements.Emplace(t3, std::move(e3));
+		}
+
+		outResult = MakePanelElement(width, textHeight * 4, std::move(matrixSubelements));
+		outHeight = textHeight * 4;
+		return true;
 	}
 
 	return false;

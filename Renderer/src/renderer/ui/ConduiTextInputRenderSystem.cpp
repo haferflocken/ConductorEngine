@@ -37,7 +37,6 @@ void TextInputRenderSystem::Update(const Unit::Time::Millisecond delta,
 
 		const Math::Matrix4x4& transform = transformComponent.m_modelToWorldMatrix;
 
-		// Text rendering shouldn't be affected by other transform scaling.
 		const Math::Matrix4x4 textToTopTransform = Math::Matrix4x4::MakeTranslation(0.0f, textComponent.m_height, 0.0f);
 		const Math::Matrix4x4 textTransform = transform * textToTopTransform;
 
