@@ -67,6 +67,38 @@ Condui::TextInputElement::InputHandler MakeFloatParsingHandler(void* const rawSu
 	};
 }
 
+Condui::TextInputElement::InputHandler MakeBooleanParsingHandler(void* const rawSubject)
+{
+	bool* const subject = static_cast<bool*>(rawSubject);
+	return [subject](Condui::TextInputComponent& component, const char* text)
+	{
+		if (strcmp(text, "\r") == 0)
+		{
+			component.m_text = (*subject) ? "true" : "false";
+			return;
+		}
+
+		Condui::TextInputComponent::DefaultInputHandler(component, text);
+
+		if (component.m_text.empty())
+		{
+			*subject = false;
+		}
+		else
+		{
+			char* const componentTextBegin = &component.m_text.front();
+			if (strncmp(componentTextBegin, "true", 4) == 0)
+			{
+				*subject = true;
+			}
+			else
+			{
+				*subject = false;
+			}
+		}
+	};
+}
+
 bool TryMakeInspectorOverrideElement(
 	const Mem::InspectorInfo& inspectorInfo,
 	void* const rawSubject,
@@ -173,8 +205,10 @@ bool TryMakeInspectorOverrideElement(
 	// Booleans.
 	if (inspectorInfo.m_typeHash == boolTypeHash)
 	{
-		// TODO(info)
-		return false;
+		outResult = MakeTextInputElement(
+			width, textHeight, MakeBooleanParsingHandler(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
+		outHeight = textHeight;
+		return true;
 	}
 
 	// Math classes.
