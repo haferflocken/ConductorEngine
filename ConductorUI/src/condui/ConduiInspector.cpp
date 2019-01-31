@@ -53,7 +53,10 @@ Condui::TextInputElement::InputHandler MakeFloatParsingHandler(void* const rawSu
 bool TryMakeInspectorOverrideElement(
 	const Mem::InspectorInfo& inspectorInfo,
 	void* const rawSubject,
-	Condui::ConduiElement& outResult)
+	const float width,
+	const float textHeight,
+	Condui::ConduiElement& outResult,
+	float& outHeight)
 {
 	using namespace Condui;
 
@@ -75,56 +78,66 @@ bool TryMakeInspectorOverrideElement(
 	// Signed integer types.
 	if (inspectorInfo.m_typeHash == i8TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int8_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int8_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i16TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int16_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int16_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i32TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int32_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int32_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i64TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<int64_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<int64_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 
 	// Unsigned integer types.
 	if (inspectorInfo.m_typeHash == u8TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint8_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint8_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u16TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint16_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint16_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u32TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint32_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint32_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u64TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeIntegerParsingHandler<uint64_t>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeIntegerParsingHandler<uint64_t>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 
 	// Floating point types.
 	if (inspectorInfo.m_typeHash == f32TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeFloatParsingHandler<float>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeFloatParsingHandler<float>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == f64TypeHash)
 	{
-		outResult = MakeTextInputElement(1.0f, 1.0f, MakeFloatParsingHandler<double>(rawSubject));
+		outResult = MakeTextInputElement(width, textHeight, MakeFloatParsingHandler<double>(rawSubject), textHeight);
+		outHeight = textHeight;
 		return true;
 	}
 
@@ -142,7 +155,8 @@ void MakeInspectorSubelements(
 	const Mem::InspectorInfo* const inspectorInfo,
 	char* const subject,
 	const char* const nameOverride,
-	const float textVerticalScale,
+	const float width,
+	const float textHeight,
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, Condui::ConduiElement>>& subelements,
 	float& verticalOffset)
 {
@@ -156,28 +170,29 @@ void MakeInspectorSubelements(
 		sprintf_s(buffer, "%s has no inspector type info!", name);
 
 		Math::Matrix4x4 titleTransform;
-		titleTransform.SetTranslation(Math::Vector3(0.0f, verticalOffset, 0.0f));
-		verticalOffset -= textVerticalScale;
+		titleTransform.SetTranslation(0.0f, verticalOffset, 0.0f);
+		verticalOffset -= textHeight;
 
-		subelements.Emplace(titleTransform, MakeTextDisplayElement(buffer, textVerticalScale));
+		subelements.Emplace(titleTransform, MakeTextDisplayElement(width, textHeight, buffer, textHeight));
 		return;
 	}
 
 	const char* const name = (nameOverride != nullptr) ? nameOverride : inspectorInfo->m_typeName;
 
 	Math::Matrix4x4 titleTransform;
-	titleTransform.SetScale(Math::Vector3(textVerticalScale, textVerticalScale, 1.0f));
-	titleTransform.SetTranslation(Math::Vector3(0.0f, verticalOffset, 0.0f));
-	verticalOffset -= textVerticalScale;
-	subelements.Emplace(titleTransform, MakeTextDisplayElement(name, 1.0f));
+	titleTransform.SetTranslation(0.0f, verticalOffset, 0.0f);
+	verticalOffset -= textHeight;
+	subelements.Emplace(titleTransform, MakeTextDisplayElement(width, textHeight, name, textHeight));
 
 	// Certain types have special overrides for their inspector.
 	ConduiElement overrideElement;
-	if (TryMakeInspectorOverrideElement(*inspectorInfo, subject, overrideElement))
+	float overrideElementHeight;
+	if (TryMakeInspectorOverrideElement(
+		*inspectorInfo, subject, width, textHeight, overrideElement, overrideElementHeight))
 	{
 		Math::Matrix4x4 transform;
-		transform.SetTranslation(Math::Vector3(0.0f, verticalOffset, 0.0f));
-		verticalOffset -= textVerticalScale;
+		transform.SetTranslation(0.0f, verticalOffset, 0.0f);
+		verticalOffset -= overrideElementHeight;
 		subelements.Emplace(transform, std::move(overrideElement));
 	}
 	// If there's no override, recursively build the inspector with the inspectors of the type's members.
@@ -192,7 +207,8 @@ void MakeInspectorSubelements(
 				memberInspectorInfo,
 				subject + memberInfo.m_offset,
 				memberInfo.m_name,
-				textVerticalScale,
+				width,
+				textHeight,
 				subelements,
 				verticalOffset);
 		}
@@ -203,9 +219,9 @@ void MakeInspectorSubelements(
 Condui::ConduiElement Condui::MakeInspectorElement(
 	const Mem::InspectorInfo* const inspectorInfo,
 	void* const subject,
-	const float xScale,
-	const float yScale,
-	const float textVerticalScale)
+	const float width,
+	const float height,
+	const float textHeight)
 {
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>> subelements;
 	float verticalOffset = 0.0f;
@@ -213,9 +229,10 @@ Condui::ConduiElement Condui::MakeInspectorElement(
 		inspectorInfo,
 		static_cast<char*>(subject),
 		nullptr,
-		textVerticalScale,
+		width,
+		textHeight,
 		subelements,
 		verticalOffset);
 
-	return Condui::MakePanelElement(std::move(subelements));
+	return Condui::MakePanelElement(width, height, std::move(subelements));
 }

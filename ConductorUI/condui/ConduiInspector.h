@@ -12,7 +12,7 @@ namespace Condui
 ConduiElement MakeInspectorElement(
 	const Mem::InspectorInfo* const inspectorInfo,
 	void* const subject,
-	const float xScale,
-	const float yScale,
-	const float textVerticalScale);
+	const float width,
+	const float height,
+	const float textHeight);
 }

@@ -31,7 +31,11 @@ class TextInputComponent;
 struct TextDisplayElement final
 {
 	std::string m_string{};
-	float m_fontScale{ 1.0f };
+
+	// The bounds of the text display rectangle.
+	float m_width{ 1.0f };
+	float m_height{ 1.0f };
+	float m_textHeight{ 1.0f };
 };
 
 /**
@@ -44,10 +48,10 @@ struct TextInputElement final
 	// The function called to process this element's input.
 	InputHandler m_inputHandler{};
 
-	// The bounds of the text input rectangle as scales of the parent space.
-	float m_xScale{ 1.0f };
-	float m_yScale{ 1.0f };
-	float m_fontScale{ 1.0f };
+	// The bounds of the text input rectangle.
+	float m_width{ 1.0f };
+	float m_height{ 1.0f };
+	float m_textHeight{ 1.0f };
 };
 
 /**
@@ -55,6 +59,9 @@ struct TextInputElement final
  */
 struct PanelElement final
 {
+	float m_width{ 1.0f };
+	float m_height{ 1.0f };
+
 	Collection::Vector<Math::Matrix4x4> m_childRelativeTransforms;
 	Collection::Vector<ConduiElement> m_children;
 };
@@ -108,19 +115,24 @@ struct ElementRoot final
 /**
  * Functions to create Condui elements in a declarative style.
  */
-ConduiElement MakeTextDisplayElement(const char* const str, const float fontScale = 1.0f);
-ConduiElement MakeTextInputElement(const float xScale,
-	const float yScale,
+ConduiElement MakeTextDisplayElement(
+	const float width, const float height, const char* const str, const float textHeight);
+ConduiElement MakeTextInputElement(
+	const float width,
+	const float height,
 	TextInputElement::InputHandler&& inputHandler,
-	const float fontScale = 1.0f);
+	const float textHeight);
 ConduiElement MakePanelElement(
+	const float width,
+	const float height,
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms);
 
 /**
  * Functions to make Condui elements for specific purposes.
  */
-ConduiElement MakeTextInputCommandElement(const float xScale,
-	const float yScale,
+ConduiElement MakeTextInputCommandElement(
+	const float width,
+	const float height,
 	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap);
 
 /**

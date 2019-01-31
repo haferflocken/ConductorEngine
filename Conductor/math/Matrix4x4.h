@@ -13,8 +13,8 @@ class Vector4;
 class Matrix4x4
 {
 public:
-	static Matrix4x4 MakeTranslation(const Vector3& translation);
-	static Matrix4x4 MakeScale(const Vector3& scale);
+	static Matrix4x4 MakeTranslation(const float x, const float y, const float z);
+	static Matrix4x4 MakeScale(const float xScale, const float yScale, const float zScale);
 	static Matrix4x4 MakeRotateX(const float radians);
 	static Matrix4x4 MakeRotateY(const float radians);
 	static Matrix4x4 MakeRotateZ(const float radians);
@@ -28,10 +28,10 @@ public:
 	const float* GetData() const { return m_matrix; }
 
 	const Vector3& GetTranslation() const { return reinterpret_cast<const Vector3&>(m_matrix[12]); }
-	void SetTranslation(const Vector3& v) { reinterpret_cast<Vector3&>(m_matrix[12]) = v; }
+	void SetTranslation(const float x, const float y, const float z);
 
 	Vector3 GetScale() const { return Vector3(m_matrix[0], m_matrix[5], m_matrix[10]); }
-	void SetScale(const Vector3& v);
+	void SetScale(const float xScale, const float yScale, const float zScale);
 
 	Vector4& GetColumn(const size_t i) { return reinterpret_cast<Vector4&>(m_matrix[i * 4]); }
 	const Vector4& GetColumn(const size_t i) const { return reinterpret_cast<const Vector4&>(m_matrix[i * 4]); }
@@ -49,17 +49,17 @@ private:
 	float m_matrix[16];
 };
 
-inline Matrix4x4 Matrix4x4::MakeTranslation(const Vector3& translation)
+inline Matrix4x4 Matrix4x4::MakeTranslation(const float x, const float y, const float z)
 {
 	Matrix4x4 result;
-	result.SetTranslation(translation);
+	result.SetTranslation(x, y, z);
 	return result;
 }
 
-inline Matrix4x4 Matrix4x4::MakeScale(const Vector3& scale)
+inline Matrix4x4 Matrix4x4::MakeScale(const float xScale, const float yScale, const float zScale)
 {
 	Matrix4x4 result;
-	result.SetScale(scale);
+	result.SetScale(xScale, yScale, zScale);
 	return result;
 }
 
@@ -105,11 +105,18 @@ inline Matrix4x4::Matrix4x4()
 	m_matrix[15] = 1.0f;
 }
 
-inline void Matrix4x4::SetScale(const Vector3& v)
+inline void Matrix4x4::SetTranslation(const float x, const float y, const float z)
 {
-	m_matrix[0] = v.x;
-	m_matrix[5] = v.y;
-	m_matrix[10] = v.z;
+	m_matrix[12] = x;
+	m_matrix[13] = y;
+	m_matrix[14] = z;
+}
+
+inline void Matrix4x4::SetScale(const float xScale, const float yScale, const float zScale)
+{
+	m_matrix[0] = xScale;
+	m_matrix[5] = yScale;
+	m_matrix[10] = zScale;
 }
 
 inline Matrix4x4 Matrix4x4::Transpose() const

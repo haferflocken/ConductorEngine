@@ -81,13 +81,17 @@ void PrimitiveRenderer::Shutdown()
 void PrimitiveRenderer::DrawQuad(bgfx::Encoder& encoder,
 	const bgfx::ViewId viewID,
 	const Math::Matrix4x4& transform,
+	const float width,
+	const float height,
 	const Image::ColourARGB colour)
 {
 	using namespace Internal_PrimitiveRenderer;
 
 	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
+	
+	const Math::Matrix4x4 m = transform * Math::Matrix4x4::MakeScale(width, height, 1.0f);
 
-	encoder.setTransform(transform.GetData());
+	encoder.setTransform(m.GetData());
 	encoder.setVertexBuffer(0, g_quadVertexBufferHandle);
 	encoder.setIndexBuffer(g_quadIndexBufferHandle);
 	encoder.setUniform(g_colourUniform, &floatColour);

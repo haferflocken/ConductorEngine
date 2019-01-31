@@ -5,36 +5,43 @@
 #include <ecs/EntityManager.h>
 #include <scene/SceneTransformComponent.h>
 
-Condui::ConduiElement Condui::MakeTextDisplayElement(const char* const str, const float fontScale)
+Condui::ConduiElement Condui::MakeTextDisplayElement(
+	const float width, const float height, const char* const str, const float textHeight)
 {
 	auto element = ConduiElement::Make<TextDisplayElement>();
 	TextDisplayElement& textDisplayElement = element.Get<TextDisplayElement>();
 
 	textDisplayElement.m_string = str;
-	textDisplayElement.m_fontScale = fontScale;
+	textDisplayElement.m_width = width;
+	textDisplayElement.m_height = height;
+	textDisplayElement.m_textHeight = textHeight;
 
 	return element;
 }
 
 Condui::ConduiElement Condui::MakeTextInputElement(
-	const float xScale, const float yScale, TextInputElement::InputHandler&& inputHandler, const float fontScale)
+	const float width, const float height, TextInputElement::InputHandler&& inputHandler, const float textHeight)
 {
 	auto element = ConduiElement::Make<TextInputElement>();
 	TextInputElement& textInputElement = element.Get<TextInputElement>();
 
 	textInputElement.m_inputHandler = std::move(inputHandler);
-	textInputElement.m_xScale = xScale;
-	textInputElement.m_yScale = yScale;
-	textInputElement.m_fontScale = fontScale;
+	textInputElement.m_width = width;
+	textInputElement.m_height = height;
+	textInputElement.m_textHeight = textHeight;
 
 	return element;
 }
 
 Condui::ConduiElement Condui::MakePanelElement(
+	const float width,
+	const float height,
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms)
 {
 	auto element = ConduiElement::Make<PanelElement>();
 	PanelElement& panelElement = element.Get<PanelElement>();
+	panelElement.m_width = width;
+	panelElement.m_height = height;
 
 	for (const auto& pair : childrenWithRelativeTransforms)
 	{
@@ -45,8 +52,8 @@ Condui::ConduiElement Condui::MakePanelElement(
 	return element;
 }
 
-Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
-	const float yScale,
+Condui::ConduiElement Condui::MakeTextInputCommandElement(const float width,
+	const float height,
 	Collection::VectorMap<const char*, std::function<void(TextInputComponent&)>>&& commandMap)
 {
 	TextInputElement::InputHandler commandHandler =
@@ -68,7 +75,7 @@ Condui::ConduiElement Condui::MakeTextInputCommandElement(const float xScale,
 		}
 		component.m_text.clear();
 	};
-	return MakeTextInputElement(xScale, yScale, std::move(commandHandler), yScale);
+	return MakeTextInputElement(width, height, std::move(commandHandler), height);
 }
 
 ECS::Entity& Condui::CreateConduiEntity(
@@ -93,7 +100,9 @@ ECS::Entity& Condui::CreateConduiEntity(
 				textDisplayComponent.m_textColour = font->m_textColour;
 			}
 
-			textDisplayComponent.m_fontScale = textDisplayElement.m_fontScale;
+			textDisplayComponent.m_width = textDisplayElement.m_width;
+			textDisplayComponent.m_height = textDisplayElement.m_height;
+			textDisplayComponent.m_textHeight = textDisplayElement.m_textHeight;
 		},
 		[&](TextInputElement& textInputElement)
 		{
@@ -115,15 +124,11 @@ ECS::Entity& Condui::CreateConduiEntity(
 				textInputComponent.m_textColour = font->m_textColour;
 			}
 
-			textInputComponent.m_xScale = textInputElement.m_xScale;
-			textInputComponent.m_yScale = textInputElement.m_yScale;
-			textInputComponent.m_fontScale = textInputElement.m_fontScale;
-
-			auto& sceneTransformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(*entity);
-			sceneTransformComponent.m_childToParentMatrix.SetScale(
-				Math::Vector3(textInputElement.m_xScale, textInputElement.m_yScale, 1.0f));
+			textInputComponent.m_width = textInputElement.m_width;
+			textInputComponent.m_height = textInputElement.m_height;
+			textInputComponent.m_textHeight = textInputElement.m_textHeight;
 		},
-			[&](PanelElement& panelElement)
+		[&](PanelElement& panelElement)
 		{
 			AMP_FATAL_ASSERT(panelElement.m_children.Size() == panelElement.m_childRelativeTransforms.Size(),
 				"There is an expected 1-to-1 relationship between elements in a panel and their relative transforms.");

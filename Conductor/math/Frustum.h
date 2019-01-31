@@ -50,7 +50,7 @@ inline Ray3 Frustum::ProjectThroughNearPlane(const float screenX, const float sc
 	const float yOnNearPlane = ((1.0f - screenY) * halfNearPlaneHeight * 2.0f) - halfNearPlaneHeight;
 
 	const Math::Matrix4x4 nearToFrustumMatrix = Math::Matrix4x4::MakeTranslation(
-		Math::Vector3(xOnNearPlane, yOnNearPlane, m_nearDistance));
+		xOnNearPlane, yOnNearPlane, m_nearDistance);
 
 	const Math::Matrix4x4 rayMatrix = m_frustumToWorldMatrix * nearToFrustumMatrix;
 	const Math::Vector3 rayOrigin = rayMatrix.GetTranslation();

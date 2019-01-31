@@ -40,7 +40,7 @@ void TextDisplayRenderSystem::Update(const Unit::Time::Millisecond delta,
 			textComponent.m_textColour,
 			textComponent.m_codePage,
 			textComponent.m_string.c_str(),
-			textComponent.m_fontScale);
+			textComponent.m_textHeight);
 	}
 
 	bgfx::end(encoder);

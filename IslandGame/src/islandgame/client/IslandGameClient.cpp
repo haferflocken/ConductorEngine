@@ -63,7 +63,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 
 		auto& cameraTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
 
-		const Math::Matrix4x4 cameraTranslation = Math::Matrix4x4::MakeTranslation(Math::Vector3(0.0f, 0.0f, -5.0f));
+		const Math::Matrix4x4 cameraTranslation = Math::Matrix4x4::MakeTranslation(0.0f, 0.0f, -5.0f);
 		const Math::Matrix4x4 cameraRotation = Math::Matrix4x4::MakeRotateX(0.5f);
 
 		cameraTransformComponent.m_modelToWorldMatrix = cameraRotation * cameraTranslation;
@@ -91,7 +91,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		m_entityManager.SetParentEntity(consoleEntity, &cameraEntity);
 
 		auto& consoleTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(consoleEntity);
-		consoleTransformComponent.m_childToParentMatrix.SetTranslation(Math::Vector3(-0.25f, -0.25f, 0.5f));
+		consoleTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, -0.25f, 0.5f);
 
 		// Create an inspector and attach it to the camera.
 		Condui::ConduiElement inspectorElement = Condui::MakeInspectorElement(
@@ -106,7 +106,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		m_entityManager.SetParentEntity(inspectorEntity, &cameraEntity);
 
 		auto& inspectorTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(inspectorEntity);
-		inspectorTransformComponent.m_childToParentMatrix.SetTranslation(Math::Vector3(-0.25f, 0.25f, 0.5f));
+		inspectorTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, 0.25f, 0.5f);
 	}
 
 	m_entityManager.Update(delta);

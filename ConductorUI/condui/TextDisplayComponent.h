@@ -37,7 +37,9 @@ public:
 	uint16_t m_characterWidthPixels{ 0 };
 	uint16_t m_characterHeightPixels{ 0 };
 
-	float m_fontScale{ 1.0f };
+	float m_width{ 1.0f };
+	float m_height{ 1.0f };
+	float m_textHeight{ 1.0f };
 
 	Image::ColourARGB m_textColour{ Image::ColoursARBG::k_black };
 };

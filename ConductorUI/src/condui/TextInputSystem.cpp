@@ -81,13 +81,13 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 	{
 		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
 		auto& textInputComponent = ecsGroup.Get<TextInputComponent>();
-		
+
 		const Math::Matrix4x4& modelToWorldMatrix = transformComponent.m_modelToWorldMatrix;
 
 		const Math::Vector3& a = modelToWorldMatrix.GetTranslation();
-		const Math::Vector3 b = modelToWorldMatrix * Math::Vector3(1.0f, 0.0f, 0.0f);
-		const Math::Vector3 c = modelToWorldMatrix * Math::Vector3(1.0f, 1.0f, 0.0f);
-		const Math::Vector3 d = modelToWorldMatrix * Math::Vector3(0.0f, 1.0f, 0.0f);
+		const Math::Vector3 b = modelToWorldMatrix * Math::Vector3(textInputComponent.m_width, 0.0f, 0.0f);
+		const Math::Vector3 c = modelToWorldMatrix * Math::Vector3(textInputComponent.m_width, textInputComponent.m_height, 0.0f);
+		const Math::Vector3 d = modelToWorldMatrix * Math::Vector3(0.0f, textInputComponent.m_height, 0.0f);
 
 		const Math::Vector3 unscaledNormal = (b - a).Cross(c - a);
 		const Math::Vector3 normal = unscaledNormal / unscaledNormal.Length();
@@ -97,7 +97,7 @@ void TextInputSystem::Update(const Unit::Time::Millisecond delta,
 		{
 			continue;
 		}
-		
+
 		// If the mouse is down within the entity, it gets focus.
 		if (IsPointWithinRectangle(a, b, c, d, p))
 		{
