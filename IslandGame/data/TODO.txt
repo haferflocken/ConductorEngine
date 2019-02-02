@@ -6,17 +6,34 @@ Amp/Conductor TODO:
 	[ ] Buttons
 	[ ] Scroll panes
 	[x] Keyboard input support
-	[ ] Text boxes
+	[x] Text boxes
+	[ ] Style sheets
 	
 [ ] Use UnboundedScene as a level format.
 	[x] New component & system that loads chunks around it: Scene::AnchorComponent
 	[x] Test scene of a camera and a mesh
 	[x] Binary chunk format
-	[ ] Remove ComponentInfo; it's redundant with Component
-		[x] Make behaviour trees load using the asset system
-		[ ] Remove ComponentInfo
-	[ ] Remove EntityInfo; it's redundant with Chunk serialization
-	[ ] Basic level editor
+	[ ] Rudimentary scene editor
+		[ ] Replace the "info" pattern with direct component editing
+			[ ] Remove ComponentInfo; it's redundant with Component
+				[x] Make behaviour trees load using the asset system
+				[x] Remove ComponentInfo
+				[ ] Serialize & deserialize all component data
+			[x] Remove EntityInfo; it's redundant with Chunk serialization
+			[ ] Rudimentary UI for entity/component editing
+				[x] Mechanism to represent the memory layout and type information of classes
+				[ ] Ability to manipulate primitive data types (bool, int, float)
+				[ ] Ability to manipulate math types (Vector3, Matrix4x4, etc.)
+				[ ] Ability to manipulate collections (Vector, VectorMap, etc.)
+				[ ] Ability to add and remove components from an entity
+				[ ] Ability to select an entity in the scene for editing
+				[ ] Ability to set the parent of an entity
+		[ ] Improved UI for entity/component editing
+			[ ] In-scene translation, rotation, and scale controls
+			[ ] Display of the ECS::Systems which match and don't match an entity (and why)
+	[ ] Nested scene support
+		[ ] Allow scenes to be included in other scenes in a read-only way
+		[ ] Allow overrides on entities of nested scenes
 
 [ ] Input
 	[ ] Set InputComponent ClientID so that transmission works
@@ -24,8 +41,11 @@ Amp/Conductor TODO:
 	[ ] Mouse wheel input
 
 [ ] Meshes
-	[ ] Decide on a mesh format. Needs to support triangles, UVs, rigs, vertex weights
 	[x] Load static meshes
+	[ ] Define mesh formats
+		There are two types of meshes: static meshes and rigged meshes.
+		Static meshes don't require 
+	[ ] Decide on a mesh format. Needs to support triangles, UVs, rigs, vertex weights
 	[ ] Rigged meshes
 		[ ] Load meshes with rigging
 		[ ] Animate meshes with rigging. Bones are entities so that other entities can easily attach to them.
@@ -34,6 +54,7 @@ Renderer TODO:
 [x] Monospace text rendering
 [x] Shader program loading and rendering
 [ ] Texture loading and rendering
+[ ] Improved text rendering using textured quads
 [ ] Render rigged meshes
 
 IslandGame TODO:
