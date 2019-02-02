@@ -28,6 +28,10 @@ public:
 public:
 	explicit BehaviourTreeComponent(const ECS::ComponentID id)
 		: Component(id)
+		, m_importedForests()
+		, m_behaviourForests()
+		, m_treeNameHashes()
+		, m_referencedForests()
 		, m_treeEvaluators()
 	{}
 
@@ -36,6 +40,10 @@ public:
 
 	BehaviourTreeComponent(BehaviourTreeComponent&&) = default;
 	BehaviourTreeComponent& operator=(BehaviourTreeComponent&&) = default;
+
+	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_importedForests;
+	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_behaviourForests;
+	Collection::Vector<Util::StringHash> m_treeNameHashes;
 
 	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_referencedForests;
 	Collection::Vector<BehaviourTreeEvaluator> m_treeEvaluators;
