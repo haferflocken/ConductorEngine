@@ -44,13 +44,13 @@ Network::Socket::~Socket()
 	}
 }
 
-Network::Socket::Socket(Socket&& other)
+Network::Socket::Socket(Socket&& other) noexcept
 	: m_impl(std::move(other.m_impl))
 {
 	other.m_impl = Mem::MakeUnique<SocketImpl>();
 }
 
-Network::Socket& Network::Socket::operator=(Socket&& rhs)
+Network::Socket& Network::Socket::operator=(Socket&& rhs) noexcept
 {
 	m_impl = std::move(rhs.m_impl);
 	rhs.m_impl = Mem::MakeUnique<SocketImpl>();

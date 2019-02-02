@@ -33,8 +33,8 @@ public:
 	ComponentVector(const ComponentVector&) = delete;
 	ComponentVector& operator=(const ComponentVector&) = delete;
 
-	ComponentVector(ComponentVector&& other);
-	ComponentVector& operator=(ComponentVector&& rhs);
+	ComponentVector(ComponentVector&& other) noexcept;
+	ComponentVector& operator=(ComponentVector&& rhs) noexcept;
 
 	void Clear();
 

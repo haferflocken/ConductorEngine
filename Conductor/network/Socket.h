@@ -15,8 +15,8 @@ public:
 	Socket();
 	~Socket();
 
-	Socket(Socket&& other);
-	Socket& operator=(Socket&& rhs);
+	Socket(Socket&& other) noexcept;
+	Socket& operator=(Socket&& rhs) noexcept;
 
 	SocketImpl& GetImpl() { return *m_impl; }
 	

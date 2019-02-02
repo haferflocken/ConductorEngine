@@ -27,7 +27,7 @@ ECS::ComponentVector::ComponentVector(
 {
 }
 
-ECS::ComponentVector::ComponentVector(ComponentVector&& other)
+ECS::ComponentVector::ComponentVector(ComponentVector&& other) noexcept
 	: m_componentReflector(other.m_componentReflector)
 	, m_componentType(other.m_componentType)
 	, m_allocator(std::move(other.m_allocator))
@@ -35,7 +35,7 @@ ECS::ComponentVector::ComponentVector(ComponentVector&& other)
 {
 }
 
-ECS::ComponentVector& ECS::ComponentVector::operator=(ComponentVector&& rhs)
+ECS::ComponentVector& ECS::ComponentVector::operator=(ComponentVector&& rhs) noexcept
 {
 	Clear();
 

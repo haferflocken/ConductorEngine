@@ -7,13 +7,13 @@ namespace Navigation
 static_assert(sizeof(NavMeshConnections) == 64,
 	"Please ensure that NavMeshConnections align well to cache boundaries.");
 
-NavMesh::NavMesh(NavMesh&& o)
+NavMesh::NavMesh(NavMesh&& o) noexcept
 	: m_triangleIDs(std::move(o.m_triangleIDs))
 	, m_trianglesByIDIndex(std::move(o.m_trianglesByIDIndex))
 	, m_connectionsByIDIndex(std::move(o.m_connectionsByIDIndex))
 {}
 
-void NavMesh::operator=(NavMesh&& rhs)
+void NavMesh::operator=(NavMesh&& rhs) noexcept
 {
 	m_triangleIDs = std::move(rhs.m_triangleIDs);
 	m_trianglesByIDIndex = std::move(rhs.m_trianglesByIDIndex);

@@ -7,11 +7,11 @@ Behave::BehaviourTree::BehaviourTree()
 	: m_root()
 {}
 
-Behave::BehaviourTree::BehaviourTree(BehaviourTree&& o)
+Behave::BehaviourTree::BehaviourTree(BehaviourTree&& o) noexcept
 	: m_root(std::move(o.m_root))
 {}
 
-void Behave::BehaviourTree::operator=(BehaviourTree&& rhs)
+void Behave::BehaviourTree::operator=(BehaviourTree&& rhs) noexcept
 {
 	m_root = std::move(rhs.m_root);
 }

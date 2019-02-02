@@ -32,8 +32,8 @@ class NavMesh
 public:
 	NavMesh() = default;
 
-	NavMesh(NavMesh&& o);
-	void NavMesh::operator=(NavMesh&& rhs);
+	NavMesh(NavMesh&& o) noexcept;
+	void NavMesh::operator=(NavMesh&& rhs) noexcept;
 
 	uint32_t FindIndexOfID(const NavMeshTriangleID id) const;
 

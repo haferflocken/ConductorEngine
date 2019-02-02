@@ -6,6 +6,12 @@
 
 #include <iosfwd>
 
+namespace Collection
+{
+template <typename T>
+class Vector;
+}
+
 namespace ECS
 {
 class Entity;
@@ -23,19 +29,19 @@ namespace Scene
  */
 
  // The dimensions of a Chunk must always be a power of two.
-static constexpr float k_chunkSideLengthMeters = 64.0f;
-static constexpr uint32_t k_lgChunkSideLength = 6;
+constexpr float k_chunkSideLengthMeters = 64.0f;
+constexpr uint32_t k_lgChunkSideLength = 6;
 
-static void SaveInPlayChunk(const ChunkID chunkID,
+void SaveInPlayChunk(const ChunkID chunkID,
 	const ECS::EntityManager& entityManager,
 	const Collection::Vector<const ECS::Entity*>& rootEntitiesInChunk,
 	std::ofstream& fileOutput);
-static ECS::SerializedEntitiesAndComponents LoadChunkForPlay(const File::Path& sourcePath,
+ECS::SerializedEntitiesAndComponents LoadChunkForPlay(const File::Path& sourcePath,
 	const File::Path& userPath,
 	const std::string& chunkFileName);
 
-static Math::Vector3 CalcChunkOrigin(const ChunkID chunkID);
+Math::Vector3 CalcChunkOrigin(const ChunkID chunkID);
 
-static void CalcChunkCoords(const ChunkID chunkID,
+void CalcChunkCoords(const ChunkID chunkID,
 	Math::Vector3& outOrigin, Math::Vector3& outCenter, Math::Vector3& outMax);
 }
