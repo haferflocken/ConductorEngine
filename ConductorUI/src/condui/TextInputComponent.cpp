@@ -11,7 +11,7 @@ const Mem::InspectorInfoTypeHash TextInputComponent::k_inspectorInfoTypeHash = M
 
 void TextInputComponent::FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
-	// TODO(info) serialize
+	AMP_LOG_ERROR("UI components shouldn't be serialized!");
 }
 
 void TextInputComponent::ApplyFullSerialization(Asset::AssetManager& assetManager,
@@ -19,10 +19,7 @@ void TextInputComponent::ApplyFullSerialization(Asset::AssetManager& assetManage
 	const uint8_t*& bytes,
 	const uint8_t* bytesEnd)
 {
-	// TODO(info) apply
-	//component.m_characterWidthPixels = componentInfo.m_characterWidthPixels;
-	//component.m_characterHeightPixels = componentInfo.m_characterHeightPixels;
-	//component.m_codePage = assetManager.RequestAsset<Image::Pixel1Image>(componentInfo.m_codePagePath);
+	AMP_LOG_ERROR("UI components shouldn't be deserialized!");
 }
 
 void TextInputComponent::DefaultInputHandler(TextInputComponent& component, const char* text)
