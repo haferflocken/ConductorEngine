@@ -1,11 +1,14 @@
 #include <condui/ConduiInspector.h>
 
+#include <dev/Dev.h>
 #include <condui/TextInputComponent.h>
 #include <math/Matrix4x4.h>
+#include <math/Vector2.h>
 #include <mem/InspectorInfo.h>
 
 #include <array>
 #include <charconv>
+#include <string_view>
 
 namespace Internal_ConduiInspector
 {
@@ -99,6 +102,76 @@ Condui::TextInputElement::InputHandler MakeBooleanParsingHandler(void* const raw
 	};
 }
 
+Condui::ConduiElement MakeMatrix4x4Element(
+	void* const rawSubject, const float width, const float textHeight, float& outHeight)
+{
+	Math::Matrix4x4& subject = *static_cast<Math::Matrix4x4*>(rawSubject);
+
+	Collection::Vector<Collection::Pair<Math::Matrix4x4, Condui::ConduiElement>> matrixSubelements;
+
+	const float subWidth = width * 0.25f;
+	const float subHeight = textHeight;
+	const Image::ColourARGB primaryColour{ 255, 192, 192, 192 };
+	const Image::ColourARGB secondaryColour{ 255, 170, 170, 170 };
+
+	for (size_t i = 0; i < 4; ++i)
+	{
+		Math::Vector4& column = subject.GetColumn(i);
+
+		const float x = i * subWidth;
+		const Image::ColourARGB colourA = ((i & 1) == 0) ? primaryColour : secondaryColour;
+		const Image::ColourARGB colourB = ((i & 1) == 0) ? secondaryColour : primaryColour;
+
+		auto t0 = Math::Matrix4x4::MakeTranslation(x, subHeight * -0.0f, 0.0f);
+		auto t1 = Math::Matrix4x4::MakeTranslation(x, subHeight * -1.0f, 0.0f);
+		auto t2 = Math::Matrix4x4::MakeTranslation(x, subHeight * -2.0f, 0.0f);
+		auto t3 = Math::Matrix4x4::MakeTranslation(x, subHeight * -3.0f, 0.0f);
+
+		auto e0 = MakeTextInputElement(
+			subWidth, subHeight, MakeFloatParsingHandler<float>(&column.x), subHeight, colourA);
+		auto e1 = MakeTextInputElement(
+			subWidth, subHeight, MakeFloatParsingHandler<float>(&column.y), subHeight, colourB);
+		auto e2 = MakeTextInputElement(
+			subWidth, subHeight, MakeFloatParsingHandler<float>(&column.z), subHeight, colourA);
+		auto e3 = MakeTextInputElement(
+			subWidth, subHeight, MakeFloatParsingHandler<float>(&column.w), subHeight, colourB);
+
+		matrixSubelements.Emplace(t0, std::move(e0));
+		matrixSubelements.Emplace(t1, std::move(e1));
+		matrixSubelements.Emplace(t2, std::move(e2));
+		matrixSubelements.Emplace(t3, std::move(e3));
+	}
+
+	outHeight = textHeight * 4;
+	return MakePanelElement(width, textHeight * 4, std::move(matrixSubelements));
+}
+
+Condui::ConduiElement MakeCollectionVectorElement(
+	const Mem::InspectorInfo& inspectorInfo,
+	void* const rawSubject,
+	const float width,
+	const float textHeight,
+	float& outHeight)
+{
+	AMP_FATAL_ASSERT(inspectorInfo.m_templateParameterTypeHashes.Size() == 1,
+		"Collection::Vector is expected to have only one template parameter!");
+
+	struct UntypedVector
+	{
+		void* m_data;
+		uint32_t m_capacity;
+		uint32_t m_count;
+	};
+	UntypedVector& subject = *static_cast<UntypedVector*>(rawSubject);
+
+	const auto& valueTypeInfo = *Mem::InspectorInfo::Find(inspectorInfo.m_templateParameterTypeHashes.Front());
+	// TODO(info) a stacking panel that dynamically positions elements vertically
+	// TODO(info) a scrolling panel
+	// TODO(info) buttons to add and remove elements
+
+	return Condui::ConduiElement();
+}
+
 bool TryMakeInspectorOverrideElement(
 	const Mem::InspectorInfo& inspectorInfo,
 	void* const rawSubject,
@@ -124,7 +197,12 @@ bool TryMakeInspectorOverrideElement(
 
 	const Mem::InspectorInfoTypeHash boolTypeHash{ typeid(bool).hash_code() };
 
+	const Mem::InspectorInfoTypeHash vector2TypeHash{ typeid(Math::Vector2).hash_code() };
+	const Mem::InspectorInfoTypeHash vector3TypeHash{ typeid(Math::Vector3).hash_code() };
+	const Mem::InspectorInfoTypeHash vector4TypeHash{ typeid(Math::Vector4).hash_code() };
 	const Mem::InspectorInfoTypeHash matrix4x4TypeHash{ typeid(Math::Matrix4x4).hash_code() };
+
+	constexpr const char* k_collectionVectorTemplateName = "class Collection::Vector";
 
 	// Signed integer types.
 	if (inspectorInfo.m_typeHash == i8TypeHash)
@@ -212,48 +290,36 @@ bool TryMakeInspectorOverrideElement(
 	}
 
 	// Math classes.
+	if (inspectorInfo.m_typeHash == vector2TypeHash)
+	{
+		// TODO(info) inspector for Math::Vector2
+		return false;
+	}
+	if (inspectorInfo.m_typeHash == vector3TypeHash)
+	{
+		// TODO(info) inspector for Math::Vector3
+		return false;
+	}
+	if (inspectorInfo.m_typeHash == vector4TypeHash)
+	{
+		// TODO(info) inspector for Math::Vector4
+		return false;
+	}
 	if (inspectorInfo.m_typeHash == matrix4x4TypeHash)
 	{
-		Math::Matrix4x4& subject = *static_cast<Math::Matrix4x4*>(rawSubject);
-
-		Collection::Vector<Collection::Pair<Math::Matrix4x4, Condui::ConduiElement>> matrixSubelements;
-
-		const float subWidth = width * 0.25f;
-		const float subHeight = textHeight;
-		const Image::ColourARGB primaryColour{ 255, 192, 192, 192 };
-		const Image::ColourARGB secondaryColour{ 255, 170, 170, 170 };
-
-		for (size_t i = 0; i < 4; ++i)
-		{
-			Math::Vector4& column = subject.GetColumn(i);
-			
-			const float x = i * subWidth;
-			const Image::ColourARGB colourA = ((i & 1) == 0) ? primaryColour : secondaryColour;
-			const Image::ColourARGB colourB = ((i & 1) == 0) ? secondaryColour : primaryColour;
-			
-			auto t0 = Math::Matrix4x4::MakeTranslation(x, subHeight * -0.0f, 0.0f);
-			auto t1 = Math::Matrix4x4::MakeTranslation(x, subHeight * -1.0f, 0.0f);
-			auto t2 = Math::Matrix4x4::MakeTranslation(x, subHeight * -2.0f, 0.0f);
-			auto t3 = Math::Matrix4x4::MakeTranslation(x, subHeight * -3.0f, 0.0f);
-
-			auto e0 = MakeTextInputElement(
-				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.x), subHeight, colourA);
-			auto e1 = MakeTextInputElement(
-				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.y), subHeight, colourB);
-			auto e2 = MakeTextInputElement(
-				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.z), subHeight, colourA);
-			auto e3 = MakeTextInputElement(
-				subWidth, subHeight, MakeFloatParsingHandler<float>(&column.w), subHeight, colourB);
-
-			matrixSubelements.Emplace(t0, std::move(e0));
-			matrixSubelements.Emplace(t1, std::move(e1));
-			matrixSubelements.Emplace(t2, std::move(e2));
-			matrixSubelements.Emplace(t3, std::move(e3));
-		}
-
-		outResult = MakePanelElement(width, textHeight * 4, std::move(matrixSubelements));
-		outHeight = textHeight * 4;
+		outResult = MakeMatrix4x4Element(rawSubject, width, textHeight, outHeight);
 		return true;
+	}
+
+	// Templated types.
+	if (inspectorInfo.m_templateTypeNameLength > 0)
+	{
+		const std::string_view templateTypeName{ inspectorInfo.m_typeName, inspectorInfo.m_templateTypeNameLength };
+		if (templateTypeName == k_collectionVectorTemplateName)
+		{
+			outResult = MakeCollectionVectorElement(inspectorInfo, rawSubject, width, textHeight, outHeight);
+			return true;
+		}
 	}
 
 	return false;
