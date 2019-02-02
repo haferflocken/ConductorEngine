@@ -28,8 +28,8 @@ public:
 	Vector(const Vector<T>& o);
 	void operator=(const Vector<T>& rhs);
 
-	Vector(Vector<T>&& o);
-	void operator=(Vector<T>&& rhs);
+	Vector(Vector<T>&& o) noexcept;
+	void operator=(Vector<T>&& rhs) noexcept;
 
 	~Vector();
 
@@ -163,7 +163,7 @@ inline void Vector<T>::operator=(const Vector<T>& rhs)
 }
 
 template <typename T>
-inline Vector<T>::Vector(Vector<T>&& o)
+inline Vector<T>::Vector(Vector<T>&& o) noexcept
 	: m_data(o.m_data)
 	, m_capacity(o.m_capacity)
 	, m_count(o.m_count)
@@ -174,7 +174,7 @@ inline Vector<T>::Vector(Vector<T>&& o)
 }
 
 template <typename T>
-inline void Vector<T>::operator=(Vector<T>&& rhs)
+inline void Vector<T>::operator=(Vector<T>&& rhs) noexcept
 {
 	m_data = rhs.m_data;
 	m_capacity = rhs.m_capacity;

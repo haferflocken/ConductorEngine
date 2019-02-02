@@ -14,6 +14,7 @@ class EntityManager;
 namespace Behave
 {
 class BehaveContext;
+class BehaviourForest;
 class BehaviourNode;
 class BehaviourTreeEvaluator;
 

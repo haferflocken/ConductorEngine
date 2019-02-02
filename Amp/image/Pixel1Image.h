@@ -19,8 +19,8 @@ public:
 
 	Pixel1Image(uint32_t width, uint32_t height);
 
-	Pixel1Image(Pixel1Image&& other);
-	Pixel1Image& operator=(Pixel1Image&& rhs);
+	Pixel1Image(Pixel1Image&& other) noexcept;
+	Pixel1Image& operator=(Pixel1Image&& rhs) noexcept;
 
 	~Pixel1Image() = default;
 
@@ -48,13 +48,13 @@ inline Pixel1Image::Pixel1Image(uint32_t width, uint32_t height)
 	m_pixels.Resize(m_width * m_height, false);
 }
 
-inline Pixel1Image::Pixel1Image(Pixel1Image&& other)
+inline Pixel1Image::Pixel1Image(Pixel1Image&& other) noexcept
 	: m_width(other.m_width)
 	, m_height(other.m_height)
 	, m_pixels(std::move(other.m_pixels))
 {}
 
-inline Pixel1Image& Pixel1Image::operator=(Pixel1Image&& rhs)
+inline Pixel1Image& Pixel1Image::operator=(Pixel1Image&& rhs) noexcept
 {
 	m_width = rhs.m_width;
 	m_height = rhs.m_height;

@@ -23,8 +23,8 @@ public:
 	Variant(const Variant& other);
 	Variant& operator=(const Variant& rhs);
 
-	Variant(Variant&& other);
-	Variant& operator=(Variant&& rhs);
+	Variant(Variant&& other) noexcept;
+	Variant& operator=(Variant&& rhs) noexcept;
 
 	template <size_t Tag>
 	Util::TypeAtIndex<Tag, Types...>& Get();
@@ -119,14 +119,14 @@ inline Variant<Types...>& Variant<Types...>::operator=(const Variant& rhs)
 }
 
 template <typename... Types>
-inline Variant<Types...>::Variant(Variant&& other)
+inline Variant<Types...>::Variant(Variant&& other) noexcept
 	: m_tagBytes{ other.m_tagBytes[0] }
 {
 	Match([&](Types& data) { new (&data) Types(std::move(reinterpret_cast<Types&>(other.m_data))); }...);
 }
 
 template <typename... Types>
-inline Variant<Types...>& Variant<Types...>::operator=(Variant&& rhs)
+inline Variant<Types...>& Variant<Types...>::operator=(Variant&& rhs) noexcept
 {
 	Match([](Types& data) { Destroy<Types>(data); }...);
 

@@ -74,7 +74,7 @@ private:
 		std::mutex m_assetTypeMutex;
 
 		std::function<bool(const File::Path&, void*)> m_loadingFunction;
-		AssetDestructor m_destructorFunction;
+		AssetDestructor m_destructorFunction{ nullptr };
 
 		// Allocates fixed-size buffers for the paths of assets in this container.
 		Collection::LinearBlockAllocator m_pathAllocator;

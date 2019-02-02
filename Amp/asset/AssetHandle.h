@@ -20,8 +20,8 @@ public:
 	AssetHandle(const AssetHandle&);
 	AssetHandle& operator=(const AssetHandle&);
 
-	AssetHandle(AssetHandle&&);
-	AssetHandle& operator=(AssetHandle&&);
+	AssetHandle(AssetHandle&&) noexcept;
+	AssetHandle& operator=(AssetHandle&&) noexcept;
 
 	~AssetHandle();
 
@@ -108,7 +108,7 @@ inline AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(const AssetHandle& rh
 }
 
 template <typename TAsset>
-inline AssetHandle<TAsset>::AssetHandle(AssetHandle&& other)
+inline AssetHandle<TAsset>::AssetHandle(AssetHandle&& other) noexcept
 	: m_managedAsset(other.m_managedAsset)
 	, m_assetPath(other.m_assetPath)
 {
@@ -117,7 +117,7 @@ inline AssetHandle<TAsset>::AssetHandle(AssetHandle&& other)
 }
 
 template <typename TAsset>
-inline AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(AssetHandle&& rhs)
+inline AssetHandle<TAsset>& AssetHandle<TAsset>::operator=(AssetHandle&& rhs) noexcept
 {
 	if (m_managedAsset != nullptr)
 	{
