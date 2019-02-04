@@ -51,6 +51,20 @@ inline void Serialize(int64_t v, Collection::Vector<uint8_t>& out)
 	Serialize(static_cast<uint64_t>(v), out);
 }
 
+inline void Serialize(float v, Collection::Vector<uint8_t>& out)
+{
+	const size_t i = out.Size();
+	out.Resize(out.Size() + sizeof(v));
+	memcpy(out.begin() + i, &v, sizeof(v));
+}
+
+inline void Serialize(double v, Collection::Vector<uint8_t>& out)
+{
+	const size_t i = out.Size();
+	out.Resize(out.Size() + sizeof(v));
+	memcpy(out.begin() + i, &v, sizeof(v));
+}
+
 inline void Serialize(const char* str, Collection::Vector<uint8_t>& out)
 {
 	uint16_t length = 0;

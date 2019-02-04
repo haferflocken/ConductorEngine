@@ -21,8 +21,19 @@ public:
 
 	void Set(const Util::StringHash& key, const AST::ExpressionResult& value);
 
+	const Collection::VectorMap<Util::StringHash, AST::ExpressionResult>& GetMap() const;
+
 private:
 	// A lookup of keys to values in the blackboard.
 	Collection::VectorMap<Util::StringHash, AST::ExpressionResult> m_map;
 };
+}
+
+// Inline implementations.
+namespace Behave
+{
+inline const Collection::VectorMap<Util::StringHash, AST::ExpressionResult>& Blackboard::GetMap() const
+{
+	return m_map;
+}
 }
