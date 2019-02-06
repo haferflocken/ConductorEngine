@@ -15,10 +15,10 @@ Amp/Conductor TODO:
 	[x] Binary chunk format
 	[ ] Rudimentary scene editor
 		[ ] Replace the "info" pattern with direct component editing
-			[ ] Remove ComponentInfo; it's redundant with Component
+			[x] Remove ComponentInfo; it's redundant with Component
 				[x] Make behaviour trees load using the asset system
 				[x] Remove ComponentInfo
-				[ ] Serialize & deserialize all component data
+				[x] Serialize & deserialize all component data
 			[x] Remove EntityInfo; it's redundant with Chunk serialization
 			[ ] Rudimentary UI for entity/component editing
 				[x] Mechanism to represent the memory layout and type information of classes
@@ -42,13 +42,18 @@ Amp/Conductor TODO:
 
 [ ] Meshes
 	[x] Load static meshes
-	[ ] Define mesh formats
-		There are two types of meshes: static meshes and rigged meshes.
-		Static meshes don't require 
-	[ ] Decide on a mesh format. Needs to support triangles, UVs, rigs, vertex weights
-	[ ] Rigged meshes
-		[ ] Load meshes with rigging
-		[ ] Animate meshes with rigging. Bones are entities so that other entities can easily attach to them.
+	[ ] Implement the following mesh format
+		A mesh begins with the list of properties its vertices have, such as position, UVs, normals, etc.
+		This is followed by its vertices in SoA format, where all data for each property is grouped together.
+		This is followed by a list of triangles (triples of vertex indices).
+		This is followed by a skeleton.
+		Users of a mesh must verify it has all the properties they need.
+		[ ] Load this file format
+		[ ] The skeleton exists in the scene as an entity hierarchy, which means an entity with a skeleton mesh
+			has implicit children
+
+[ ] Animation
+	[ ] Investigate open-source animation systems
 
 Renderer TODO:
 [x] Monospace text rendering
