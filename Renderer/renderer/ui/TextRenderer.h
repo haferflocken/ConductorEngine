@@ -17,7 +17,7 @@ class Pixel1Image;
 }
 
 namespace Math { class Matrix4x4; }
-namespace Mesh { struct Vertex; }
+namespace Mesh { struct PosColourVertex; }
 namespace Renderer { class Shader; }
 
 namespace Renderer::UI
@@ -60,7 +60,7 @@ private:
 		std::array<bgfx::IndexBufferHandle, 256> m_glyphIndexBufferHandles;
 
 		// A grid of vertices where each vertex is the corner of a pixel.
-		Collection::Vector<Mesh::Vertex> m_vertexGrid;
+		Collection::Vector<Mesh::PosColourVertex> m_vertexGrid;
 
 		// Index buffers for each glyph that create triangles for pixels.
 		std::array<Collection::Vector<uint16_t>, 256> m_glyphIndexBuffers;

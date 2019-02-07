@@ -12,7 +12,7 @@ namespace Renderer
 namespace Internal_PrimitiveRenderer
 {
 const Mesh::StaticMesh k_quadMesh{
-	Collection::Vector<Mesh::Vertex>({
+	Collection::Vector<Mesh::PosColourVertex>({
 		{ 0.0f, 0.0f, 0.0f, 0xffffffff },
 		{ 1.0f, 0.0f, 0.0f, 0xffffffff },
 		{ 0.0f, 1.0f, 0.0f, 0xffffffff },
@@ -34,7 +34,7 @@ bool PrimitiveRenderer::Initialize(Asset::AssetManager& assetManager)
 
 	// Initialize the vertex and index buffers.
 	g_quadVertexBufferHandle = bgfx::createVertexBuffer(
-		bgfx::makeRef(&k_quadMesh.GetVertices().Front(), k_quadMesh.GetVertices().Size() * sizeof(Mesh::Vertex)),
+		bgfx::makeRef(&k_quadMesh.GetVertices().Front(), k_quadMesh.GetVertices().Size() * sizeof(Mesh::PosColourVertex)),
 		k_staticMeshVertexDecl);
 	g_quadIndexBufferHandle = bgfx::createIndexBuffer(
 		bgfx::makeRef(&k_quadMesh.GetTriangleIndices().Front(),

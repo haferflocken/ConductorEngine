@@ -22,7 +22,7 @@ struct FileHeader final
 }
 
 const StaticMesh StaticMesh::k_simpleQuad{
-	Collection::Vector<Vertex>({
+	Collection::Vector<PosColourVertex>({
 		{ -1.0f, -1.0f, 0.0f, 0xff0000ff },
 		{ 1.0f, -1.0f, 0.0f, 0xffff0000 },
 		{ -1.0f, 1.0f, 0.0f, 0xff00ff00 },
@@ -57,7 +57,7 @@ bool StaticMesh::TryLoad(const File::Path& filePath, StaticMesh* destination)
 
 	// Validate the file's size.
 	const size_t expectedSizeInBytes = sizeof(FileHeader)
-		+ (header.m_numVertices * sizeof(Vertex))
+		+ (header.m_numVertices * sizeof(PosColourVertex))
 		+ (header.m_numTriangleIndices * sizeof(uint16_t));
 	if (rawFileLengthInBytes != expectedSizeInBytes)
 	{
@@ -66,14 +66,14 @@ bool StaticMesh::TryLoad(const File::Path& filePath, StaticMesh* destination)
 
 	// Read in the data.
 	const char* const rawVertices = rawFile.data() + sizeof(FileHeader);
-	const char* const rawIndices = rawVertices + (header.m_numVertices * sizeof(Vertex));
+	const char* const rawIndices = rawVertices + (header.m_numVertices * sizeof(PosColourVertex));
 
-	const Collection::ArrayView<const Vertex> vertices{
-		reinterpret_cast<const Vertex*>(rawVertices), header.m_numVertices };
+	const Collection::ArrayView<const PosColourVertex> vertices{
+		reinterpret_cast<const PosColourVertex*>(rawVertices), header.m_numVertices };
 	const Collection::ArrayView<const uint16_t> indices{
 		reinterpret_cast<const uint16_t*>(rawIndices), header.m_numTriangleIndices };
 
-	new(destination) StaticMesh(Collection::Vector<Vertex>(vertices), Collection::Vector<uint16_t>(indices));
+	new(destination) StaticMesh(Collection::Vector<PosColourVertex>(vertices), Collection::Vector<uint16_t>(indices));
 
 	return true;
 }
@@ -95,13 +95,13 @@ void StaticMesh::SaveToFile(const File::Path& filePath, const StaticMesh& mesh)
 	const char* const rawTriangleIndices = reinterpret_cast<const char*>(&mesh.GetTriangleIndices().Front());
 
 	output.write(rawHeader, sizeof(FileHeader));
-	output.write(rawVertices, header.m_numVertices * sizeof(Vertex));
+	output.write(rawVertices, header.m_numVertices * sizeof(PosColourVertex));
 	output.write(rawTriangleIndices, header.m_numTriangleIndices * sizeof(uint16_t));
 
 	output.flush();
 }
 
-StaticMesh::StaticMesh(Collection::Vector<Vertex>&& vertices, Collection::Vector<uint16_t>&& triangleIndices)
+StaticMesh::StaticMesh(Collection::Vector<PosColourVertex>&& vertices, Collection::Vector<uint16_t>&& triangleIndices)
 	: m_vertices(vertices)
 	, m_triangleIndices(triangleIndices)
 {}

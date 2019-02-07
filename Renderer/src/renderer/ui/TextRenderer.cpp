@@ -195,7 +195,7 @@ void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 		{
 			const float fX = static_cast<float>(x);
 
-			Mesh::Vertex& vertex = font.m_vertexGrid.Emplace();
+			Mesh::PosColourVertex& vertex = font.m_vertexGrid.Emplace();
 			vertex.m_x = fX / characterWidthPixels;
 			vertex.m_y = fY / characterHeightPixels;
 			vertex.m_z = 0.0f;
@@ -204,7 +204,7 @@ void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 	}
 
 	font.m_glyphVertexBufferHandle = bgfx::createVertexBuffer(
-		bgfx::makeRef(&font.m_vertexGrid.Front(), font.m_vertexGrid.Size() * sizeof(Mesh::Vertex)),
+		bgfx::makeRef(&font.m_vertexGrid.Front(), font.m_vertexGrid.Size() * sizeof(Mesh::PosColourVertex)),
 		k_staticMeshVertexDecl);
 
 	// Create index buffers for each character.

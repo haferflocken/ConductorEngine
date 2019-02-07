@@ -4,7 +4,7 @@
 
 namespace Mesh
 {
-struct Vertex
+struct PosColourVertex
 {
 	float m_x;
 	float m_y;
