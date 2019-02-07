@@ -1,46 +1,51 @@
 #include <input/InputComponent.h>
 
 #include <ecs/ComponentVector.h>
-#include <json/JSONTypes.h>
+#include <mem/DeserializeLittleEndian.h>
+#include <mem/InspectorInfo.h>
+#include <mem/SerializeLittleEndian.h>
 
 namespace Input
 {
-namespace Internal_InputComponent
+const ECS::ComponentType InputComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash InputComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Input::InputComponent, 0);
+
+void InputComponent::FullySerialize(const InputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
-const Util::StringHash k_inputNamesHash = Util::CalcHash("input_names");
+	// Only the client ID and desired inputs are saved.
+	Mem::LittleEndian::Serialize(component.m_clientID.GetN(), outBytes);
+
+	Mem::LittleEndian::Serialize(component.m_inputMap.Size(), outBytes);
+	for (const auto& entry : component.m_inputMap)
+	{
+		const char* const inputName = Util::ReverseHash(entry.first);
+		Mem::LittleEndian::Serialize(inputName, outBytes);
+	}
 }
 
-const Util::StringHash InputComponentInfo::sk_typeHash = Util::CalcHash(sk_typeName);
-
-Mem::UniquePtr<ECS::ComponentInfo> InputComponentInfo::LoadFromJSON(
-	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
+void InputComponent::ApplyFullSerialization(
+	Asset::AssetManager& assetManager, InputComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd)
 {
-	auto outComponentInfo = Mem::MakeUnique<InputComponentInfo>();
-	
-	const JSON::JSONArray* const maybeInputNames = jsonObject.FindArray(Internal_InputComponent::k_inputNamesHash);
-	if (maybeInputNames != nullptr)
+	const auto maybeClientID = Mem::LittleEndian::DeserializeUi16(bytes, bytesEnd);
+	if (!maybeClientID.second)
 	{
-		for (const auto& jsonValue : *maybeInputNames)
+		return;
+	}
+
+	const auto maybeNumInputs = Mem::LittleEndian::DeserializeUi32(bytes, bytesEnd);
+	if (!maybeNumInputs.second)
+	{
+		return;
+	}
+	for (size_t i = 0; i < maybeNumInputs.first; ++i)
+	{
+		char inputNameBuffer[64];
+		if (!Mem::LittleEndian::DeserializeString(bytes, bytesEnd, inputNameBuffer))
 		{
-			if (jsonValue->GetType() == JSON::ValueType::String)
-			{
-				const JSON::JSONString& inputName = static_cast<const JSON::JSONString&>(*jsonValue);
-				outComponentInfo->m_inputNameHashes.Add(inputName.m_hash);
-			}
+			return;
 		}
+		const Util::StringHash inputNameHash = Util::CalcHash(inputNameBuffer);
+		component.m_inputMap[inputNameHash];
 	}
-
-	return outComponentInfo;
-}
-
-bool InputComponent::TryCreateFromInfo(Asset::AssetManager& assetManager, const InputComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID, ECS::ComponentVector& destination)
-{
-	InputComponent& inputComponent = destination.Emplace<InputComponent>(reservedID);
-	for (const auto& nameHash : componentInfo.m_inputNameHashes)
-	{
-		inputComponent.m_inputMap[nameHash];
-	}
-	return true;
 }
 }

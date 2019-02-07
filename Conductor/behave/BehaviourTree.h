@@ -17,8 +17,8 @@ public:
 	BehaviourTree(const BehaviourTree&) = delete;
 	BehaviourTree& operator=(const BehaviourTree&) = delete;
 
-	BehaviourTree(BehaviourTree&&);
-	void operator=(BehaviourTree&&);
+	BehaviourTree(BehaviourTree&&) noexcept;
+	void operator=(BehaviourTree&&) noexcept;
 
 	~BehaviourTree();
 

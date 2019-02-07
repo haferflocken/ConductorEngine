@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/ComponentType.h>
+#include <ecs/ComponentID.h>
 
 #include <collection/ArrayView.h>
 #include <collection/HashMap.h>
@@ -11,7 +11,6 @@
 namespace ECS
 {
 class Component;
-class ComponentID;
 class ComponentReflector;
 class EntityManager;
 
@@ -34,8 +33,8 @@ public:
 	ComponentVector(const ComponentVector&) = delete;
 	ComponentVector& operator=(const ComponentVector&) = delete;
 
-	ComponentVector(ComponentVector&& other);
-	ComponentVector& operator=(ComponentVector&& rhs);
+	ComponentVector(ComponentVector&& other) noexcept;
+	ComponentVector& operator=(ComponentVector&& rhs) noexcept;
 
 	void Clear();
 

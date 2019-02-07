@@ -1,13 +1,9 @@
 #include <islandgame/components/IslanderComponent.h>
 
-#include <ecs/ComponentVector.h>
+#include <mem/InspectorInfo.h>
 
-bool IslandGame::Components::IslanderComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
-	const IslanderComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
+namespace IslandGame::Components
 {
-	destination.Emplace<IslanderComponent>(reservedID);
-	return true;
+const ECS::ComponentType IslanderComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash IslanderComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(IslandGame::Components::IslanderComponent, 0);
 }

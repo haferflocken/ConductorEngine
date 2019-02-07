@@ -16,10 +16,8 @@ std::string MakeChunkFileName(const Scene::ChunkID& chunkID)
 
 namespace Scene
 {
-UnboundedScene::UnboundedScene(const ECS::EntityInfoManager& entityInfoManager,
-	const File::Path& sourcePath, const File::Path& userPath)
-	: m_entityInfoManager(entityInfoManager)
-	, m_sourcePath(sourcePath)
+UnboundedScene::UnboundedScene(const File::Path& sourcePath, const File::Path& userPath)
+	: m_sourcePath(sourcePath)
 	, m_userPath(userPath)
 	, m_spatialHashMap(ChunkHashFunctor(), 12)
 	, m_chunksInPlay()
@@ -70,7 +68,7 @@ void UnboundedScene::BringChunkIntoPlay(const ChunkID chunkID)
 	m_chunksInPlay.Add(chunkID);
 
 	// Begin asynchronously loading the chunk.
-	m_chunkLoadingFutures.Add(std::async(std::launch::async, Chunk::LoadChunkForPlay,
+	m_chunkLoadingFutures.Add(std::async(std::launch::async, LoadChunkForPlay,
 		m_sourcePath, m_userPath, Internal_UnboundedScene::MakeChunkFileName(chunkID)));
 
 	// If the chunk is in the transition zone, remove it.
@@ -189,8 +187,8 @@ void UnboundedScene::FlushPendingChunks(ECS::EntityManager& entityManager)
 
 		if (status == std::future_status::ready)
 		{
-			Scene::Chunk chunk = future.get();
-			chunk.PutChunkEntitiesIntoPlay(m_entityInfoManager, entityManager);
+			ECS::SerializedEntitiesAndComponents chunk = future.get();
+			entityManager.CreateEntitiesFromFullSerialization(chunk);
 
 			m_chunkLoadingFutures.SwapWithAndRemoveLast(i);
 		}
@@ -205,7 +203,7 @@ void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& enti
 {
 	// Determine the entities that are in the chunk.
 	Math::Vector3 chunkOrigin, chunkCenter, chunkBound;
-	Chunk::CalcChunkCoords(chunkID, chunkOrigin, chunkCenter, chunkBound);
+	CalcChunkCoords(chunkID, chunkOrigin, chunkCenter, chunkBound);
 
 	const auto chunkBucketView = m_spatialHashMap.GetBucketView(chunkCenter);
 
@@ -223,15 +221,13 @@ void UnboundedScene::SaveChunkAndQueueEntitiesForUnload(ECS::EntityManager& enti
 	}
 
 	// Save the chunk to its file.
-	const Collection::Vector<uint8_t> serializedChunk = Chunk::SaveInPlayChunk(chunkID, entityManager, entitiesInChunk);
-
 	std::ofstream fileOutput;
 	fileOutput.open(m_userPath / Internal_UnboundedScene::MakeChunkFileName(chunkID),
 		std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
 
 	AMP_ASSERT(fileOutput.good(), "Failed to open a chunk file for writing!");
 
-	fileOutput.write(reinterpret_cast<const char*>(&serializedChunk.Front()), serializedChunk.Size());
+	SaveInPlayChunk(chunkID, entityManager, entitiesInChunk, fileOutput);
 
 	fileOutput.flush();
 	fileOutput.close();
@@ -255,7 +251,7 @@ UnboundedScene::ChunkHashFunctor::ChunkHashFunctor()
 
 uint64_t UnboundedScene::ChunkHashFunctor::Hash(const Math::Vector3& position) const
 {
-	constexpr int64_t k_bucketSideLengthMetersShift = Chunk::k_lgSideLength;
+	constexpr int64_t k_bucketSideLengthMetersShift = k_lgChunkSideLength;
 	const int64_t bucketX = static_cast<int64_t>(position.x) >> k_bucketSideLengthMetersShift;
 	const int64_t bucketY = static_cast<int64_t>(position.y) >> k_bucketSideLengthMetersShift;
 	const int64_t bucketZ = static_cast<int64_t>(position.z) >> k_bucketSideLengthMetersShift;

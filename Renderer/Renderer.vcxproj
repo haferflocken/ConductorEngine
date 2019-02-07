@@ -156,7 +156,6 @@ $(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command
   <ItemGroup>
     <ClInclude Include="renderer\AssetTypes.h" />
     <ClInclude Include="renderer\CameraComponent.h" />
-    <ClInclude Include="renderer\CameraComponentInfo.h" />
     <ClInclude Include="renderer\CameraSystem.h" />
     <ClInclude Include="renderer\PrimitiveRenderer.h" />
     <ClInclude Include="renderer\Shader.h" />
@@ -171,7 +170,6 @@ $(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\renderer\CameraComponent.cpp" />
-    <ClCompile Include="src\renderer\CameraComponentInfo.cpp" />
     <ClCompile Include="src\renderer\CameraSystem.cpp" />
     <ClCompile Include="src\renderer\FrameSignalSystem.cpp" />
     <ClCompile Include="src\renderer\MeshSystem.cpp" />

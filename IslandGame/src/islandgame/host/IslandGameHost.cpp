@@ -4,7 +4,6 @@
 
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
-#include <ecs/EntityInfoManager.h>
 #include <input/InputSystem.h>
 #include <scene/RelativeTransformSystem.h>
 #include <scene/SceneAnchorSystem.h>
@@ -27,7 +26,6 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 		m_entityManager}));
 
 	Scene::UnboundedScene& scene = m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::UnboundedScene>(
-		m_gameData.GetEntityInfoManager(),
 		gameData.GetDataDirectory() / k_chunkSourceDirectory,
 		gameData.GetUserDirectory() / k_chunkUserDirectory));
 

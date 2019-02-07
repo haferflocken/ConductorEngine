@@ -46,7 +46,7 @@ public:
 		const Image::ColourARGB colour,
 		const Asset::AssetHandle<Image::Pixel1Image>& codePage,
 		const char* const text,
-		const float fontScale) const;
+		const float fontVerticalScale) const;
 
 private:
 	struct FontMeshDatum
@@ -54,8 +54,7 @@ private:
 		FontMeshDatum();
 		~FontMeshDatum();
 
-		uint16_t m_characterWidthPixels{ 0 };
-		uint16_t m_characterHeightPixels{ 0 };
+		float m_characterWidthOverHeight{ 1.0f };
 
 		bgfx::VertexBufferHandle m_glyphVertexBufferHandle{ BGFX_INVALID_HANDLE };
 		std::array<bgfx::IndexBufferHandle, 256> m_glyphIndexBufferHandles;
@@ -68,6 +67,8 @@ private:
 	};
 
 	void CreateFontMeshFromImage(const Image::Pixel1Image& image,
+		const uint16_t characterWidthPixels,
+		const uint16_t characterHeightPixels,
 		FontMeshDatum& font) const;
 
 	void SubmitCharacterQuad(bgfx::Encoder& encoder,

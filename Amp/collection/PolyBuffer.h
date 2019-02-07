@@ -26,7 +26,7 @@ public:
 	PolyBuffer(const PolyBuffer&) = delete;
 	PolyBuffer& operator=(const PolyBuffer&) = delete;
 
-	PolyBuffer(PolyBuffer&& o)
+	PolyBuffer(PolyBuffer&& o) noexcept
 		: m_start(o.m_start)
 		, m_maximum(o.m_maximum)
 		, m_top(o.m_top)
@@ -36,7 +36,7 @@ public:
 		o.m_top = nullptr;
 	}
 
-	void operator=(PolyBuffer&& rhs)
+	void operator=(PolyBuffer&& rhs) noexcept
 	{
 		deleteOwned();
 		m_start = rhs.m_start;

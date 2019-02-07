@@ -7,21 +7,31 @@
 
 namespace Behave
 {
-class BehaviourTreeComponentInfo;
-
 /**
  * A BehaviourTreeComponent allows an Entity to run behaviour trees.
  */
 class BehaviourTreeComponent final : public ECS::Component
 {
 public:
-	using Info = BehaviourTreeComponentInfo;
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
+	static constexpr const char* k_typeName = "behaviour_tree_component";
+	static const ECS::ComponentType k_type;
+	static const Mem::InspectorInfoTypeHash k_inspectorInfoTypeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const BehaviourTreeComponentInfo& componentInfo,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static void FullySerialize(const BehaviourTreeComponent& component, Collection::Vector<uint8_t>& outBytes);
 
+	static void ApplyFullSerialization(Asset::AssetManager& assetManager,
+		BehaviourTreeComponent& component,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd);
+
+public:
 	explicit BehaviourTreeComponent(const ECS::ComponentID id)
 		: Component(id)
+		, m_importedForests()
+		, m_behaviourForests()
+		, m_treeNameHashes()
+		, m_referencedForests()
 		, m_treeEvaluators()
 	{}
 
@@ -31,7 +41,9 @@ public:
 	BehaviourTreeComponent(BehaviourTreeComponent&&) = default;
 	BehaviourTreeComponent& operator=(BehaviourTreeComponent&&) = default;
 
-	virtual ~BehaviourTreeComponent() {}
+	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_importedForests;
+	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_behaviourForests;
+	Collection::Vector<Util::StringHash> m_treeNameHashes;
 
 	Collection::Vector<Asset::AssetHandle<BehaviourForest>> m_referencedForests;
 	Collection::Vector<BehaviourTreeEvaluator> m_treeEvaluators;

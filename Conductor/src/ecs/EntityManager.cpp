@@ -5,11 +5,12 @@
 #include <ecs/ComponentVector.h>
 #include <ecs/ECSGroupVector.h>
 #include <ecs/Entity.h>
-#include <ecs/EntityInfo.h>
+#include <ecs/SerializedEntitiesAndComponents.h>
 #include <ecs/System.h>
 
 #include <collection/ArrayView.h>
 #include <mem/Serialize.h>
+#include <mem/SerializeLittleEndian.h>
 
 #include <algorithm>
 #include <execution>
@@ -55,7 +56,9 @@ EntityManager::~EntityManager()
 	m_concurrentSystemGroups.Clear();
 }
 
-Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID requestedID)
+
+Entity& EntityManager::CreateEntityWithComponents(const Collection::ArrayView<const ComponentType>& componentTypes,
+	const EntityID requestedID)
 {
 	// Determine the entity's ID.
 	EntityID entityID;
@@ -74,16 +77,16 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID
 	}
 
 	// Create the entity.
-	Entity& entity = m_entities.Emplace(entityID, entityID, entityInfo.m_nameHash);
+	Entity& entity = m_entities.Emplace(entityID, entityID);
 
-	// Create the entity's components using our component reflector.
-	for (const auto& componentInfo : entityInfo.m_componentInfos)
+	// Create the entity's components.
+	for (const auto& componentType : componentTypes)
 	{
-		AddComponentToEntity(*componentInfo, entity);
+		AddComponentToEntity(componentType, entity);
 	}
 
 	// Add the entity to the system execution groups.
-	AddECSPointersToSystems(Collection::ArrayView<Entity>(&entity, 1));
+	AddECSPointersToSystems(entity);
 
 	// If we can transmit state, track the newly added entity.
 	if (m_transmissionBuffers != nullptr)
@@ -95,57 +98,155 @@ Entity& EntityManager::CreateEntity(const EntityInfo& entityInfo, const EntityID
 	return entity;
 }
 
-void EntityManager::SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity)
+Collection::Vector<Entity*> EntityManager::CreateEntitiesFromFullSerialization(
+	const SerializedEntitiesAndComponents& serialization)
 {
-	// Early out if the entity is already using the given info.
-	if (entity.GetInfoNameHash() == entityInfo.m_nameHash)
+	// Create all serialized components.
+	for (const auto& entry : serialization.m_componentViews)
 	{
-		return;
-	}
-
-	// Remove the entity from all ECS groups.
-	RemoveECSPointersFromSystems(entity);
-
-	// Remove any components the entity no longer needs.
-	for (size_t i = 0; i < entity.m_componentIDs.Size();)
-	{
-		const ComponentID& componentID = entity.m_componentIDs[i];
-
-		const auto* const matchingComponentInfo = entityInfo.m_componentInfos.Find(
-			[&](const Mem::UniquePtr<ComponentInfo>& componentInfo)
-		{
-			return componentInfo->GetTypeHash() == componentID.GetType().GetTypeHash();
-		});
-
-		if (matchingComponentInfo == nullptr)
-		{
-			RemoveComponent(componentID);
-			entity.m_componentIDs.SwapWithAndRemoveLast(i);
-		}
-		else
-		{
-			++i;
-		}
-	}
-
-	// Add any components the entity is missing.
-	for (const auto& componentInfo : entityInfo.m_componentInfos)
-	{
-		const ComponentID componentID = entity.FindComponentID(ComponentType(componentInfo->GetTypeHash()));
-		if (componentID != ComponentID())
+		ComponentVector* const componentVector = GetComponentVector(entry.first);
+		if (componentVector == nullptr)
 		{
 			continue;
 		}
-		AddComponentToEntity(*componentInfo, entity);
+
+		const auto componentFunctions = m_componentReflector.FindComponentFunctions(entry.first);
+
+		for (const auto& componentView : entry.second)
+		{
+			const uint8_t* const viewBytes = &serialization.m_bytes[componentView.m_beginIndex];
+
+			FullSerializedComponentHeader header;
+			memcpy(&header, viewBytes, FullSerializedComponentHeader::k_unpaddedSize);
+
+			const ComponentID componentID{ entry.first, header.m_uniqueID };
+
+			const uint8_t* componentBegin = viewBytes + FullSerializedComponentHeader::k_unpaddedSize;
+			const uint8_t* const componentEnd = viewBytes + componentView.m_endIndex;
+
+			Component& component = componentFunctions.m_basicConstructFunction(componentID, *componentVector);
+			componentFunctions.m_applyFullSerializationFunction(
+				m_assetManager, component, componentBegin, componentEnd);
+
+			// If we can transmit state, track the newly added component.
+			if (m_transmissionBuffers != nullptr)
+			{
+				m_transmissionBuffers->m_componentsAddedSinceLastTransmission.Add(componentID);
+			}
+		}
 	}
 
-	// Add the entity to the ECS group vectors.
-	AddECSPointersToSystems(Collection::ArrayView<Entity>(&entity, 1));
-
-	// If we can transmit state, track the changed entity.
-	if (m_transmissionBuffers != nullptr)
+	// Create all serialized entities.
+	Collection::Vector<Entity*> newEntities;
+	for (const auto& entityView : serialization.m_entityViews)
 	{
-		m_transmissionBuffers->m_entitiesChangedSinceLastTransmission.Add(entity.GetID());
+		const uint8_t* const viewBytes = &serialization.m_bytes[entityView.m_beginIndex];
+		const size_t viewSizeInBytes = (entityView.m_endIndex - entityView.m_beginIndex);
+
+		FullSerializedEntityHeader header;
+		memcpy(&header, viewBytes, FullSerializedEntityHeader::k_unpaddedSize);
+
+		const size_t numComponentIDBytes = header.m_numComponents * sizeof(ComponentID);
+		if ((numComponentIDBytes + FullSerializedEntityHeader::k_unpaddedSize) > viewSizeInBytes)
+		{
+			AMP_LOG_WARNING("Serialized entity view isn't large enough for all its component IDs.");
+			continue;
+		}
+
+		Collection::Vector<ComponentID> componentIDs;
+		componentIDs.Resize(header.m_numComponents);
+
+		const uint8_t* const serializedComponentIDs = viewBytes + FullSerializedEntityHeader::k_unpaddedSize;
+		memcpy(&componentIDs.Front(), serializedComponentIDs, numComponentIDBytes);
+
+		// TODO(info) handle entity IDs which are already in use, perhaps with a fixup map
+
+		Entity& entity = m_entities.Emplace(header.m_entityID, header.m_entityID);
+		entity.m_componentIDs = std::move(componentIDs);
+
+		Entity* const parentEntity = FindEntity(header.m_parentEntityID);
+		SetParentEntity(entity, parentEntity);
+
+		newEntities.Add(&entity);
+
+		// If we can transmit state, track the newly added entity.
+		if (m_transmissionBuffers != nullptr)
+		{
+			m_transmissionBuffers->m_entitiesAddedSinceLastTransmission.Add(header.m_entityID);
+		}
+	}
+
+	// Add all new entities to the system execution groups.
+	AddECSPointersToSystems(newEntities.GetConstView());
+
+	return newEntities;
+}
+
+void EntityManager::FullySerializeEntitiesAndComponents(const Collection::ArrayView<const Entity*>& entities,
+	SerializedEntitiesAndComponents& serialization) const
+{
+	// Sort the components to serialize by type.
+	Collection::VectorMap<ComponentType, Collection::Vector<const Component*>> componentsToSerializeByType;
+	for (const auto& entity : entities)
+	{
+		for (const auto& componentID : entity->GetComponentIDs())
+		{
+			componentsToSerializeByType[componentID.GetType()].Add(FindComponent(componentID));
+		}
+	}
+
+	// Serialize the component data.
+	for (const auto& entry : componentsToSerializeByType)
+	{
+		const ComponentType componentType = entry.first;
+		const auto& components = entry.second;
+
+		const auto componentFunctions = m_componentReflector.FindComponentFunctions(componentType);
+
+		auto& componentViews = serialization.m_componentViews[componentType];
+
+		for (const auto& component : components)
+		{
+			const uint32_t componentViewBeginIndex = serialization.m_bytes.Size();
+
+			FullSerializedComponentHeader componentHeader;
+			componentHeader.m_uniqueID = component->m_id.GetUniqueID();
+
+			serialization.m_bytes.Resize(serialization.m_bytes.Size() + FullSerializedComponentHeader::k_unpaddedSize);
+			memcpy(serialization.m_bytes.begin() + componentViewBeginIndex,
+				&componentHeader,
+				FullSerializedEntityHeader::k_unpaddedSize);
+
+			componentFunctions.m_fullSerializationFunction(*component, serialization.m_bytes);
+
+			componentViews.Add({ componentViewBeginIndex, serialization.m_bytes.Size() });
+		}
+	}
+
+	// Serialize the entity data.
+	for (const auto& entity : entities)
+	{
+		const uint32_t entityViewBeginIndex = serialization.m_bytes.Size();
+
+		FullSerializedEntityHeader entityHeader;
+		entityHeader.m_entityID = entity->GetID();
+		if (entity->GetParent() != nullptr)
+		{
+			entityHeader.m_parentEntityID = entity->GetParent()->GetID();
+		}
+		entityHeader.m_numComponents = entity->GetComponentIDs().Size();
+
+		serialization.m_bytes.Resize(serialization.m_bytes.Size() + FullSerializedEntityHeader::k_unpaddedSize);
+		memcpy(serialization.m_bytes.begin() + entityViewBeginIndex,
+			&entityHeader,
+			FullSerializedEntityHeader::k_unpaddedSize);
+
+		for (const auto& componentID : entity->GetComponentIDs())
+		{
+			Mem::LittleEndian::Serialize(componentID.GetUniqueID(), serialization.m_bytes);
+		}
+
+		serialization.m_entityViews.Add({ entityViewBeginIndex, serialization.m_bytes.Size() });
 	}
 }
 
@@ -278,7 +379,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		// Serialize the IDs within each type.
 		auto iter = m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.begin();
 		const auto iterEnd = m_transmissionBuffers->m_componentsRemovedSinceLastTransmission.end();
-		
+
 		while (iter < iterEnd)
 		{
 			const ComponentType componentType = iter->GetType();
@@ -325,10 +426,10 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 			Mem::Serialize(bufferedComponent->m_id.GetUniqueID(), transmissionBytes);
 			serializer.m_serializeDeltaTransmissionFunction(*bufferedComponent, component, transmissionBytes);
 		}
-		
+
 		// Serialize the invalid component ID to indicate the end of the component type.
 		Mem::Serialize(ComponentID::sk_invalidUniqueID, transmissionBytes);
-		
+
 		// Copy the current component data into the buffered component data.
 		bufferedComponents.Copy(currentComponents);
 	}
@@ -347,7 +448,8 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		while (iter < iterEnd)
 		{
 			const ComponentType componentType = iter->GetType();
-			const auto* const serializer = m_componentReflector.FindTransmissionFunctions(componentType);
+			const auto& componentFunctions = m_componentReflector.FindComponentFunctions(componentType);
+			const auto* const transmissionFunctions = m_componentReflector.FindTransmissionFunctions(componentType);
 
 			Mem::Serialize(static_cast<uint8_t>(TransmissionSectionType::ComponentsAdded), transmissionBytes);
 			Mem::Serialize(Util::ReverseHash(componentType.GetTypeHash()), transmissionBytes);
@@ -362,10 +464,7 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 				if (component != nullptr)
 				{
 					Mem::Serialize(iter->GetUniqueID(), transmissionBytes);
-					if (serializer != nullptr)
-					{
-						serializer->m_serializeFullTransmissionFunction(*component, transmissionBytes);
-					}
+					componentFunctions.m_fullSerializationFunction(*component, transmissionBytes);
 				}
 				++iter;
 			}
@@ -398,10 +497,10 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 			}
 
 			Mem::Serialize(entityID.GetUniqueID(), transmissionBytes);
-			Mem::Serialize(Util::ReverseHash(entity->GetInfoNameHash()), transmissionBytes);
 			Mem::Serialize(entity->GetComponentIDs().Size(), transmissionBytes);
 			for (const auto& componentID : entity->GetComponentIDs())
 			{
+				Mem::Serialize(Util::ReverseHash(componentID.GetType().GetTypeHash()), transmissionBytes);
 				Mem::Serialize(componentID.GetUniqueID(), transmissionBytes);
 			}
 		}
@@ -470,7 +569,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			ComponentVector& components = componenVectorIter->second;
 
 			const ApplyDeltaTransmissionResult result = work(
-				m_componentReflector, ComponentType(componentTypeHash), components, iter, iterEnd);
+				m_assetManager, m_componentReflector, ComponentType(componentTypeHash), components, iter, iterEnd);
 			if (result.IsAny())
 			{
 				return result;
@@ -488,8 +587,12 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	};
 
 	auto result = ComponentSectionHelper(TransmissionSectionType::ComponentsRemoved,
-		[](const ComponentReflector& componentReflector, const ComponentType componentType,
-			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
+		[](Asset::AssetManager& assetManager,
+			const ComponentReflector& componentReflector,
+			const ComponentType componentType,
+			ComponentVector& components,
+			const uint8_t*& iter,
+			const uint8_t* iterEnd)
 		{
 			Collection::Vector<uint64_t> componentIDsToRemove;
 			auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
@@ -510,8 +613,12 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	}
 
 	result = ComponentSectionHelper(TransmissionSectionType::ComponentsDeltaUpdate,
-		[](const ComponentReflector& componentReflector, const ComponentType componentType,
-			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
+		[](Asset::AssetManager& assetManager,
+			const ComponentReflector& componentReflector,
+			const ComponentType componentType,
+			ComponentVector& components,
+			const uint8_t*& iter,
+			const uint8_t* iterEnd)
 		{
 			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentType);
 			if (deserializer == nullptr)
@@ -539,11 +646,15 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		return result;
 	}
 
-	result = ComponentSectionHelper(TransmissionSectionType::ComponentsAdded, 
-		[](const ComponentReflector& componentReflector, const ComponentType componentType,
-			ComponentVector& components, const uint8_t*& iter, const uint8_t* iterEnd)
+	result = ComponentSectionHelper(TransmissionSectionType::ComponentsAdded,
+		[](Asset::AssetManager& assetManager,
+			const ComponentReflector& componentReflector,
+			const ComponentType componentType,
+			ComponentVector& components,
+			const uint8_t*& iter,
+			const uint8_t* iterEnd)
 		{
-			const auto* const deserializer = componentReflector.FindTransmissionFunctions(componentType);
+			const auto& componentFunctions = componentReflector.FindComponentFunctions(componentType);
 
 			auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			while (maybeComponentID.second && maybeComponentID.first != ComponentID::sk_invalidUniqueID)
@@ -555,15 +666,9 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				//}
 
 				// TODO(network) what should be done if a component fails to be created?
-				if (deserializer != nullptr)
-				{
-					deserializer->m_tryCreateFromTransmissionFunction(iter, iterEnd,
-						ComponentID(componentType, componentID), components);
-				}
-				else
-				{
-					// TODO(network) make the component even though it wasn't serialized
-				}
+				Component& component = componentFunctions.m_basicConstructFunction(
+					ComponentID(componentType, componentID), components);
+				componentFunctions.m_applyFullSerializationFunction(assetManager, component, iter, iterEnd);
 
 				maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 			}
@@ -590,7 +695,7 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		}
 
 		DeleteEntities(entitiesToRemove.GetConstView());
-		
+
 		// Read the next section marker.
 		maybeSectionMarker = Mem::DeserializeUi8(iter, iterEnd);
 		if (!maybeSectionMarker.second)
@@ -608,13 +713,6 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		{
 			const EntityID entityID{ maybeEntityID.first };
 
-			char infoNameBuffer[64];
-			if (!Mem::DeserializeString(iter, iterEnd, infoNameBuffer))
-			{
-				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
-			}
-			const Util::StringHash infoNameHash = Util::CalcHash(infoNameBuffer);
-
 			const auto maybeNumComponents = Mem::DeserializeUi32(iter, iterEnd);
 			if (!maybeNumComponents.second)
 			{
@@ -630,6 +728,14 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 
 			for (size_t i = 0; i < numComponents; ++i)
 			{
+				char componentTypeNameBuffer[64];
+				if (!Mem::DeserializeString(iter, iterEnd, componentTypeNameBuffer))
+				{
+					return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+				}
+				const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeNameBuffer);
+				// TODO(network) what should happen if the components on an entity change?
+
 				const auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 				if (!maybeComponentID.second)
 				{
@@ -687,13 +793,6 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			//	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_EntityAddedOutOfOrder>();
 			//}
 
-			char infoNameBuffer[64];
-			if (!Mem::DeserializeString(iter, iterEnd, infoNameBuffer))
-			{
-				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
-			}
-			const Util::StringHash infoNameHash = Util::CalcHash(infoNameBuffer);
-
 			const auto maybeNumComponents = Mem::DeserializeUi32(iter, iterEnd);
 			if (!maybeNumComponents.second)
 			{
@@ -701,10 +800,18 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 			}
 			const uint32_t numComponents = maybeNumComponents.first;
 
-			Entity& entity = m_entities.Emplace(entityID, entityID, infoNameHash);
+			Entity& entity = m_entities.Emplace(entityID, entityID);
 
 			for (size_t i = 0; i < numComponents; ++i)
 			{
+				char componentTypeNameBuffer[64];
+				if (!Mem::DeserializeString(iter, iterEnd, componentTypeNameBuffer))
+				{
+					return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+				}
+				const Util::StringHash componentTypeHash = Util::CalcHash(componentTypeNameBuffer);
+				// TODO(network) what should happen if the components on an entity change?
+
 				const auto maybeComponentID = Mem::DeserializeUi64(iter, iterEnd);
 				if (!maybeComponentID.second)
 				{
@@ -741,39 +848,73 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 	return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_Success>();
 }
 
-void EntityManager::AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity)
+ComponentVector* EntityManager::GetComponentVector(const ComponentType componentType)
 {
-	const ComponentType componentType{ componentInfo.GetTypeHash() };
+	// Components with size 0 are tag components and are never instantiated.
+	const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
+	if (componentSize.GetN() == 0)
+	{
+		return nullptr;
+	}
+
+	ComponentVector& componentVector = m_components[componentType];
+	if (componentVector.GetComponentType() == ComponentType())
+	{
+		// This is a type that has not yet been encountered and therefore must be initialized.
+		const Unit::ByteCount64 componentAlignment = m_componentReflector.GetAlignOfComponentInBytes(componentType);
+
+		componentVector = ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
+
+		if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
+		{
+			ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
+			AMP_FATAL_ASSERT(bufferedComponentVector.GetComponentType() == ComponentType(),
+				"A buffered component vector was created too early.");
+			bufferedComponentVector =
+				ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
+		}
+	}
+	AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
+		"Mismatch between component vector type and the key it is stored at.");
+
+	return &componentVector;
+}
+
+void EntityManager::AddComponentToEntity(const ComponentType componentType, Entity& entity)
+{
 	const ComponentID componentID{ componentType, m_nextComponentID };
 
-	const Unit::ByteCount64 componentSize = m_componentReflector.GetSizeOfComponentInBytes(componentType);
-
-	// Components with size 0 are tag components and are not instantiated.
-	if (componentSize.GetN() > 0)
+	ComponentVector* const componentVector = GetComponentVector(componentType);
+	if (componentVector != nullptr)
 	{
-		ComponentVector& componentVector = m_components[componentType];
-		if (componentVector.GetComponentType() == ComponentType())
+		if (!m_componentReflector.TryBasicConstructComponent(componentID, *componentVector))
 		{
-			// This is a type that has not yet been encountered and therefore must be initialized.
-			const Unit::ByteCount64 componentAlignment = m_componentReflector.GetAlignOfComponentInBytes(componentType);
-
-			componentVector = ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
-
-			if (m_transmissionBuffers != nullptr && m_componentReflector.IsNetworkedComponent(componentType))
-			{
-				ComponentVector& bufferedComponentVector = m_transmissionBuffers->m_bufferedComponents[componentType];
-				AMP_FATAL_ASSERT(bufferedComponentVector.GetComponentType() == ComponentType(),
-					"A buffered component vector was created too early.");
-				bufferedComponentVector =
-					ComponentVector(m_componentReflector, componentType, componentSize, componentAlignment);
-			}
+			AMP_LOG_WARNING("Failed to create component of type [%s].", Util::ReverseHash(componentType.GetTypeHash()));
+			return;
 		}
-		AMP_FATAL_ASSERT(componentVector.GetComponentType() == componentType,
-			"Mismatch between component vector type and the key it is stored at.");
+	}
 
-		if (!m_componentReflector.TryMakeComponent(m_assetManager, componentInfo, componentID, componentVector))
+	++m_nextComponentID;
+	entity.m_componentIDs.Add(componentID);
+
+	// If we can transmit state, track the newly added component.
+	if (m_transmissionBuffers != nullptr)
+	{
+		m_transmissionBuffers->m_componentsAddedSinceLastTransmission.Add(componentID);
+	}
+}
+
+void EntityManager::AddComponentToEntity(
+	const ComponentType componentType, const uint8_t*& bytes, const uint8_t* bytesEnd, Entity& entity)
+{
+	const ComponentID componentID{ componentType, m_nextComponentID };
+
+	ComponentVector* const componentVector = GetComponentVector(componentType);
+	if (componentVector != nullptr)
+	{
+		if (!m_componentReflector.TryMakeComponent(m_assetManager, bytes, bytesEnd, componentID, *componentVector))
 		{
-			AMP_LOG_WARNING("Failed to create component of type [%s].", componentInfo.GetTypeName());
+			AMP_LOG_WARNING("Failed to create component of type [%s].", Util::ReverseHash(componentType.GetTypeHash()));
 			return;
 		}
 	}
@@ -826,19 +967,19 @@ EntityManager::RegisteredSystem::RegisteredSystem(
 
 namespace Internal_EntityManager
 {
-bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<Util::StringHash>& componentTypes,
+bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<ECS::ComponentType>& componentTypes,
 	Entity& entity, Collection::Vector<void*>& pointers)
 {
 	bool foundAll = true;
-	for (const auto& typeHash : componentTypes)
+	for (const auto& ecsType : componentTypes)
 	{
-		if (typeHash == EntityInfo::sk_typeHash)
+		if (ecsType == Entity::k_type)
 		{
 			pointers.Add(&entity);
 			continue;
 		}
 
-		const ComponentID id = entity.FindComponentID(ComponentType(typeHash));
+		const ComponentID id = entity.FindComponentID(ecsType);
 		if (id == ComponentID())
 		{
 			foundAll = false;
@@ -850,7 +991,13 @@ bool TryGatherPointers(EntityManager& entityManager, const Collection::Vector<Ut
 };
 }
 
-void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd)
+void EntityManager::AddECSPointersToSystems(Entity& entityToAdd)
+{
+	Entity* const entityPtr = &entityToAdd;
+	AddECSPointersToSystems(Collection::ArrayView<Entity* const>{ &entityPtr, 1 });
+}
+
+void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity* const> entitiesToAdd)
 {
 	using namespace Internal_EntityManager;
 
@@ -859,25 +1006,25 @@ void EntityManager::AddECSPointersToSystems(Collection::ArrayView<Entity>& entit
 		// Gather the entity pointers and component pointers each member of the execution group needs.
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
-			const Collection::Vector<Util::StringHash>& immutableTypes =
+			const Collection::Vector<ECS::ComponentType>& immutableTypes =
 				registeredSystem.m_system->GetImmutableTypes();
-			const Collection::Vector<Util::StringHash>& mutableTypes =
+			const Collection::Vector<ECS::ComponentType>& mutableTypes =
 				registeredSystem.m_system->GetMutableTypes();
 
 			for (auto& entity : entitiesToAdd)
 			{
 				Collection::Vector<void*> pointers;
-				if (!TryGatherPointers(*this, immutableTypes, entity, pointers))
+				if (!TryGatherPointers(*this, immutableTypes, *entity, pointers))
 				{
 					continue;
 				}
-				if (!TryGatherPointers(*this, mutableTypes, entity, pointers))
+				if (!TryGatherPointers(*this, mutableTypes, *entity, pointers))
 				{
 					continue;
 				}
 
 				registeredSystem.m_ecsGroups.Add(pointers);
-				registeredSystem.m_notifyEntityAddedFunction(registeredSystem, entity.GetID(), pointers);
+				registeredSystem.m_notifyEntityAddedFunction(registeredSystem, entity->GetID(), pointers);
 			}
 
 			// Sort the group vector in order to make the memory accesses as fast as possible.
@@ -894,9 +1041,9 @@ void EntityManager::RemoveECSPointersFromSystems(Entity& entity)
 	{
 		for (auto& registeredSystem : executionGroup.m_systems)
 		{
-			const Collection::Vector<Util::StringHash>& immutableTypes =
+			const Collection::Vector<ECS::ComponentType>& immutableTypes =
 				registeredSystem.m_system->GetImmutableTypes();
-			const Collection::Vector<Util::StringHash>& mutableTypes =
+			const Collection::Vector<ECS::ComponentType>& mutableTypes =
 				registeredSystem.m_system->GetMutableTypes();
 
 			Collection::Vector<void*> pointers;

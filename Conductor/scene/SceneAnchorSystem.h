@@ -3,10 +3,8 @@
 #include <ecs/System.h>
 
 #include <scene/AnchorComponent.h>
-#include <scene/AnchorComponentInfo.h>
 #include <scene/ChunkID.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 namespace Scene
 {

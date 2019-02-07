@@ -29,8 +29,8 @@ class EntityManager;
 class System
 {
 public:
-	System(Collection::Vector<Util::StringHash>&& immutableTypes,
-		Collection::Vector<Util::StringHash>&& mutableTypes)
+	System(Collection::Vector<ECS::ComponentType>&& immutableTypes,
+		Collection::Vector<ECS::ComponentType>&& mutableTypes)
 		: m_immutableTypes(std::move(immutableTypes))
 		, m_mutableTypes(std::move(mutableTypes))
 	{}
@@ -39,12 +39,12 @@ public:
 
 	virtual void NotifyOfShutdown(ECS::EntityManager&) {}
 
-	const Collection::Vector<Util::StringHash>& GetImmutableTypes() const { return m_immutableTypes; }
-	const Collection::Vector<Util::StringHash>& GetMutableTypes() const { return m_mutableTypes; }
+	const Collection::Vector<ECS::ComponentType>& GetImmutableTypes() const { return m_immutableTypes; }
+	const Collection::Vector<ECS::ComponentType>& GetMutableTypes() const { return m_mutableTypes; }
 
 private:
-	Collection::Vector<Util::StringHash> m_immutableTypes;
-	Collection::Vector<Util::StringHash> m_mutableTypes;
+	Collection::Vector<ECS::ComponentType> m_immutableTypes;
+	Collection::Vector<ECS::ComponentType> m_mutableTypes;
 };
 
 /**
@@ -59,15 +59,15 @@ enum class SystemBindingType
 namespace SystemDetail
 {
 template <typename TypeList, size_t... Indices>
-Collection::Vector<Util::StringHash> MapTupleTypeHashesToVector(std::index_sequence<Indices...>)
+Collection::Vector<ECS::ComponentType> MapTupleTypesToVector(std::index_sequence<Indices...>)
 {
-	return Collection::Vector<Util::StringHash>({ TypeList::Get<Indices>::Info::sk_typeHash... });
+	return Collection::Vector<ECS::ComponentType>({ TypeList::Get<Indices>::k_type... });
 }
 
 template <typename TypeList>
-Collection::Vector<Util::StringHash> MapTupleTypeHashesToVector()
+Collection::Vector<ECS::ComponentType> MapTupleTypesToVector()
 {
-	return MapTupleTypeHashesToVector<TypeList>(std::make_index_sequence<TypeList::Size>());
+	return MapTupleTypesToVector<TypeList>(std::make_index_sequence<TypeList::Size>());
 }
 
 template <typename... ComponentTypes>
@@ -112,8 +112,8 @@ public:
 	static constexpr bool IsWriteCompatibleWithAll(Util::TypeList<OtherSystemTypes...>) { return IsWriteCompatibleWithAll<OtherSystemTypes...>(); }
 
 	SystemTempl()
-		: System(SystemDetail::MapTupleTypeHashesToVector<ImmutableTypesList>(),
-			SystemDetail::MapTupleTypeHashesToVector<MutableTypesList>())
+		: System(SystemDetail::MapTupleTypesToVector<ImmutableTypesList>(),
+			SystemDetail::MapTupleTypesToVector<MutableTypesList>())
 	{}
 };
 }

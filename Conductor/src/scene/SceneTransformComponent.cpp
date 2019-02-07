@@ -1,13 +1,7 @@
 #include <scene/SceneTransformComponent.h>
 
-#include <ecs/ComponentVector.h>
+#include <mem/InspectorInfo.h>
 
-bool Scene::SceneTransformComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
-	const Scene::SceneTransformComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
-{
-	destination.Emplace<SceneTransformComponent>(reservedID);
-	return true;
-}
+const ECS::ComponentType Scene::SceneTransformComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash Scene::SceneTransformComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(
+	Scene::SceneTransformComponent, 2, m_modelToWorldMatrix, m_childToParentMatrix);

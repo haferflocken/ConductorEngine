@@ -15,9 +15,11 @@ namespace Renderer::PrimitiveRenderer
 bool Initialize(Asset::AssetManager& assetManager);
 void Shutdown();
 
-// Draws a quad from (0, 0) to (1, 1) at the transform.
+// Draws a quad from (0, 0) to (width, height) at the transform.
 void DrawQuad(bgfx::Encoder& encoder,
 	const bgfx::ViewId viewID,
 	const Math::Matrix4x4& transform,
+	const float width,
+	const float height,
 	const Image::ColourARGB colour);
 }

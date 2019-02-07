@@ -25,11 +25,10 @@ namespace Asset { class AssetManager; }
 namespace ECS
 {
 class Component;
-class ComponentInfo;
 class ComponentReflector;
 class ComponentVector;
 class ECSGroupVector;
-class EntityInfo;
+struct SerializedEntitiesAndComponents;
 class System;
 
 /**
@@ -42,8 +41,14 @@ public:
 	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector, bool transmitsState);
 	~EntityManager();
 
-	Entity& CreateEntity(const EntityInfo& entityInfo, const EntityID requestedID = EntityID());
-	void SetInfoForEntity(const EntityInfo& entityInfo, Entity& entity);
+	Entity& CreateEntityWithComponents(const Collection::ArrayView<const ComponentType>& componentTypes,
+		const EntityID requestedID = EntityID());
+	Collection::Vector<Entity*> CreateEntitiesFromFullSerialization(
+		const SerializedEntitiesAndComponents& serialization);
+
+	void FullySerializeEntitiesAndComponents(const Collection::ArrayView<const Entity*>& entities,
+		SerializedEntitiesAndComponents& serialization) const;
+
 	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
 
@@ -101,18 +106,25 @@ private:
 	};
 
 	template <typename SystemType> struct SystemTypeFunctions;
+
+	// Access a ComponentVector, initializing it if necessary. Returns null for tag components.
+	ComponentVector* GetComponentVector(const ComponentType componentType);
 	
 	// Add a component to an entity.
-	void AddComponentToEntity(const ComponentInfo& componentInfo, Entity& entity);
+	void AddComponentToEntity(const ComponentType componentType, Entity& entity);
+	void AddComponentToEntity(
+		const ComponentType componentType, const uint8_t*& bytes, const uint8_t* bytesEnd, Entity& entity);
 	// Remove a component from this EntityManager. Does not remove it from the entity referencing it.
 	void RemoveComponent(const ComponentID id);
 
 	template <typename SystemType>
 	SystemType& RegisterSystemInGroup(Mem::UniquePtr<SystemType>&& system, RegisteredConcurrentSystemGroup& outGroup);
 
-	void AddECSPointersToSystems(Collection::ArrayView<Entity>& entitiesToAdd);
+	void AddECSPointersToSystems(Entity& entityToAdd);
+	void AddECSPointersToSystems(Collection::ArrayView<Entity* const> entitiesToAdd);
 	void RemoveECSPointersFromSystems(Entity& entity);
 	
+private:
 	// Components that load resources from disk use the AssetManager to do so efficiently.
 	Asset::AssetManager& m_assetManager;
 

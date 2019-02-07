@@ -5,21 +5,27 @@
 #include <asset/AssetHandle.h>
 #include <ecs/Component.h>
 
+#include <collection/Vector.h>
+
 namespace Mesh
 {
-class MeshComponentInfo;
-
 /**
  * Entities with a MeshComponent have a mesh drawn at their scene transform.
  */
 class MeshComponent final : public ECS::Component
 {
 public:
-	using Info = MeshComponentInfo;
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
+	static constexpr const char* k_typeName = "mesh_component";
+	static const ECS::ComponentType k_type;
+	static const Mem::InspectorInfoTypeHash k_inspectorInfoTypeHash;
 
-	static bool TryCreateFromInfo(Asset::AssetManager& assetManager, const MeshComponentInfo& componentInfo,
-		const ECS::ComponentID reservedID, ECS::ComponentVector& destination);
+	static void FullySerialize(const MeshComponent& component, Collection::Vector<uint8_t>& outBytes);
 
+	static void ApplyFullSerialization(
+		Asset::AssetManager& assetManager, MeshComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd);
+
+public:
 	explicit MeshComponent(const ECS::ComponentID id)
 		: Component(id)
 		, m_meshHandle()
@@ -30,8 +36,6 @@ public:
 
 	MeshComponent(MeshComponent&&) = default;
 	MeshComponent& operator=(MeshComponent&&) = default;
-
-	virtual ~MeshComponent() {}
 
 	Asset::AssetHandle<Mesh::StaticMesh> m_meshHandle;
 };

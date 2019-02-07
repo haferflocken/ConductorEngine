@@ -1,16 +1,9 @@
 #include <renderer/CameraComponent.h>
 
-#include <ecs/ComponentVector.h>
+#include <mem/InspectorInfo.h>
 
 namespace Renderer
 {
-bool CameraComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
-	const CameraComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
-{
-	destination.Emplace<CameraComponent>(reservedID);
-	return true;
-}
+const ECS::ComponentType CameraComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash CameraComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Renderer::CameraComponent, 0);
 }

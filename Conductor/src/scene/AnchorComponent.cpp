@@ -1,14 +1,9 @@
 #include <scene/AnchorComponent.h>
 
-#include <ecs/ComponentVector.h>
-#include <scene/AnchorComponentInfo.h>
+#include <mem/InspectorInfo.h>
 
 namespace Scene
 {
-bool AnchorComponent::TryCreateFromInfo(Asset::AssetManager& assetManager, const AnchorComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID, ECS::ComponentVector& destination)
-{
-	destination.Emplace<AnchorComponent>(reservedID, componentInfo.m_anchoringRadiusInChunks);
-	return true;
-}
+const ECS::ComponentType AnchorComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash AnchorComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Scene::AnchorComponent, 1, m_anchoringRadiusInChunks);
 }

@@ -67,14 +67,11 @@ void TextRenderer::RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& cod
 	FontMeshDatum& font = m_fontMeshData[codePageHandle];
 	if (bgfx::isValid(font.m_glyphVertexBufferHandle))
 	{
-		AMP_ASSERT(characterWidthPixels == font.m_characterWidthPixels
-			&& characterHeightPixels == font.m_characterHeightPixels,
-			"Dimensions of a font can't be changed after it's created!");
 		return;
 	}
-	font.m_characterWidthPixels = characterWidthPixels;
-	font.m_characterHeightPixels = characterHeightPixels;
-	CreateFontMeshFromImage(*codePage, font);
+	font.m_characterWidthOverHeight =
+		static_cast<float>(characterWidthPixels) / static_cast<float>(characterHeightPixels);
+	CreateFontMeshFromImage(*codePage, characterWidthPixels, characterHeightPixels, font);
 }
 
 void TextRenderer::SubmitText(bgfx::Encoder& encoder,
@@ -83,7 +80,7 @@ void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 	const Image::ColourARGB colour,
 	const Asset::AssetHandle<Image::Pixel1Image>& codePage,
 	const char* const text,
-	const float fontScale) const
+	const float fontVerticalScale) const
 {
 	const auto datumIter = m_fontMeshData.Find(codePage);
 	if (datumIter == m_fontMeshData.end())
@@ -97,8 +94,8 @@ void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 		return;
 	}
 
-	const float characterWidth = (fontScale * font.m_characterWidthPixels) / m_widthPixels;
-	const float characterHeight = (fontScale * font.m_characterHeightPixels) / m_heightPixels;
+	const float characterWidth = fontVerticalScale * font.m_characterWidthOverHeight;
+	const float characterHeight = fontVerticalScale;
 
 	int x = 0;
 	int y = -1; // We begin at -1 because characters render from the bottom up.
@@ -177,11 +174,10 @@ TextRenderer::FontMeshDatum::~FontMeshDatum()
 }
 
 void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
+	const uint16_t characterWidthPixels,
+	const uint16_t characterHeightPixels,
 	FontMeshDatum& font) const
 {
-	const uint32_t characterWidthPixels = font.m_characterWidthPixels;
-	const uint32_t characterHeightPixels = font.m_characterHeightPixels;
-
 	const uint32_t numColumns = image.GetWidth() / characterWidthPixels;
 	const uint32_t numRows = image.GetHeight() / characterHeightPixels;
 	if ((numColumns * numRows) != font.m_glyphIndexBufferHandles.size())
@@ -281,8 +277,8 @@ void TextRenderer::SubmitCharacterQuad(bgfx::Encoder& encoder,
 	offset.y = y * characterHeight;
 
 	Math::Matrix4x4 characterTransform;
-	characterTransform.SetTranslation(offset);
-	characterTransform.SetScale(Math::Vector3(characterWidth, characterHeight, 1.0f));
+	characterTransform.SetTranslation(offset.x, offset.y, offset.z);
+	characterTransform.SetScale(characterWidth, characterHeight, 1.0f);
 
 	const Math::Matrix4x4 m = (uiTransform * characterTransform);
 	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;

@@ -18,8 +18,8 @@ public:
 	BitVector(const BitVector& o);
 	void operator=(const BitVector& rhs);
 
-	BitVector(BitVector&& o);
-	void operator=(BitVector&& rhs);
+	BitVector(BitVector&& o) noexcept;
+	void operator=(BitVector&& rhs) noexcept;
 
 	~BitVector();
 
@@ -137,7 +137,7 @@ inline void BitVector::operator=(const BitVector& rhs)
 	m_count = rhs.m_count;
 }
 
-inline BitVector::BitVector(BitVector&& o)
+inline BitVector::BitVector(BitVector&& o) noexcept
 	: m_data(o.m_data)
 	, m_capacity(o.m_capacity)
 	, m_count(o.m_count)
@@ -147,7 +147,7 @@ inline BitVector::BitVector(BitVector&& o)
 	o.m_count = 0;
 }
 
-inline void BitVector::operator=(BitVector&& rhs)
+inline void BitVector::operator=(BitVector&& rhs) noexcept
 {
 	delete[] m_data;
 	m_data = rhs.m_data;

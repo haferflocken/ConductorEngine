@@ -11,6 +11,7 @@
 #include <future>
 #include <mutex>
 #include <shared_mutex>
+#include <string_view>
 
 namespace Asset
 {
@@ -61,6 +62,7 @@ public:
 
 private:
 	using AssetDestructor = void(*)(void*);
+	using FilePathView = std::basic_string_view<Asset::CharType>;
 
 	struct AssetContainer
 	{
@@ -72,15 +74,24 @@ private:
 		std::mutex m_assetTypeMutex;
 
 		std::function<bool(const File::Path&, void*)> m_loadingFunction;
-		AssetDestructor m_destructorFunction;
-		Collection::LinearBlockAllocator m_allocator;
-		Collection::VectorMap<File::Path, void*> m_managedAssets;
+		AssetDestructor m_destructorFunction{ nullptr };
+
+		// Allocates fixed-size buffers for the paths of assets in this container.
+		Collection::LinearBlockAllocator m_pathAllocator;
+		// Allocates ManagedAssets of the container's type.
+		Collection::LinearBlockAllocator m_assetAllocator;
+		// Maps asset paths to managed assets.
+		// Keys are pointers into m_pathAllocator; values are pointers into m_assetAllocator.
+		Collection::VectorMap<FilePathView, void*> m_managedAssets;
+
+		// Futures used to synchronize asynchronous loading.
 		Collection::Vector<std::future<void>> m_loadingFutures;
 	};
 
 	void UnregisterAssetTypeInternal(const char* const fileType);
 	void DestroyUnreferencedAssets(AssetContainer& assetContainer);
 
+private:
 	// The directory within which assets are assumed to be located.
 	File::Path m_assetDirectory;
 
@@ -113,7 +124,8 @@ inline void AssetManager::RegisterAssetType(AssetLoadingFunction<TAsset>&& loadF
 	{
 		reinterpret_cast<ManagedAsset<TAsset>*>(managedAsset)->m_asset.~TAsset();
 	};
-	assetContainer.m_allocator = Collection::LinearBlockAllocator::MakeFor<ManagedAsset<TAsset>>();
+	assetContainer.m_pathAllocator = Collection::LinearBlockAllocator::MakeFor<Asset::CharType[k_maxPathLength]>();
+	assetContainer.m_assetAllocator = Collection::LinearBlockAllocator::MakeFor<ManagedAsset<TAsset>>();
 }
 
 template <typename TAsset>
@@ -132,26 +144,37 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 	AMP_FATAL_ASSERT(m_assetsByFileType.Find(k_fileType) != m_assetsByFileType.end(),
 		"Cannot load an asset of an unregistered type.");
 
+	const FilePathView filePathView{ filePath.native() };
+	if (filePathView.length() >= k_maxPathLength)
+	{
+		AMP_LOG_WARNING("Cannot load an asset whose path exceeds the maximum path length!");
+		return AssetHandle<TAsset>();
+	}
+
 	// Obtain a lock on this asset type.
 	AssetContainer& assetContainer = m_assetsByFileType[k_fileType];
 	std::lock_guard guard{ assetContainer.m_assetTypeMutex };
 
 	// If the asset has already been requested, just return it.
-	auto managedAssetIter = assetContainer.m_managedAssets.Find(filePath);
+	auto managedAssetIter = assetContainer.m_managedAssets.Find(filePathView);
 	if (managedAssetIter != assetContainer.m_managedAssets.end())
 	{
 		auto* const managedAsset = reinterpret_cast<ManagedAsset<TAsset>*>(managedAssetIter->second);
 		++managedAsset->m_header.m_refCount;
-		return AssetHandle<TAsset>(*managedAsset);
+		return AssetHandle<TAsset>(*managedAsset, managedAssetIter->first.data());
 	}
 
 	// The asset hasn't been requested before, so allocate memory for it and then load it asynchronously.
-	auto* const managedAsset = reinterpret_cast<ManagedAsset<TAsset>*>(assetContainer.m_allocator.Alloc());
+	auto* const assetPath = reinterpret_cast<FilePathView::value_type*>(assetContainer.m_pathAllocator.Alloc());
+	memcpy(assetPath, filePathView.data(), filePathView.length() * sizeof(Asset::CharType));
+	assetPath[filePathView.length()] = '\0';
+
+	auto* const managedAsset = reinterpret_cast<ManagedAsset<TAsset>*>(assetContainer.m_assetAllocator.Alloc());
 
 	managedAsset->m_header.m_status = AssetStatus::Loading;
 	managedAsset->m_header.m_refCount = 1;
 
-	assetContainer.m_managedAssets[filePath] = managedAsset;
+	assetContainer.m_managedAssets[FilePathView{ assetPath }] = managedAsset;
 
 	if (loadingMode == LoadingMode::Async)
 	{
@@ -182,6 +205,6 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 		}
 	}
 
-	return AssetHandle<TAsset>(*managedAsset);
+	return AssetHandle<TAsset>(*managedAsset, assetPath);
 }
 }

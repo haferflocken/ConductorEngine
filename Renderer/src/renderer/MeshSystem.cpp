@@ -78,6 +78,9 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 		const auto datumIter = m_staticMeshData.Find(meshComponent.m_meshHandle);
 		if (datumIter == m_staticMeshData.end())
 		{
+			// If the mesh isn't in m_staticMeshData, it may have changed since the entity was added.
+			// Add it to m_staticMeshData so it gets picked up for the next update.
+			m_staticMeshData[meshComponent.m_meshHandle];
 			continue;
 		}
 		

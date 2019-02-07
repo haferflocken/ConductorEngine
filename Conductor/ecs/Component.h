@@ -1,18 +1,31 @@
 #pragma once
 
-#include <collection/Vector.h>
 #include <ecs/ComponentID.h>
 
 namespace Asset { class AssetManager; }
+namespace Mem { struct InspectorInfoTypeHash; }
 
 namespace ECS
 {
 class ComponentVector;
 
+enum class ComponentBindingType
+{
+	Normal,          // The component implements full serialization and deserialization.
+	Tag,             // The component cannot be instantiated, and therefore doesn't serialize or deserialize.
+	MemoryImaged,    // The component's serialization is performed automatically using memcpy.
+	NetworkedNormal, // The component is network synchronized. It implements full and delta serialization and deserialization.
+	NetworkedMemoryImaged // The component is network synchronized. Its serialization is performed automatically using memcpy.
+};
+
 /**
- * A Component holds data for an entity. A component is always instantiated using a ComponentInfo.
- * Components must define an Info type which they are instantiated from, and must define a TryCreateFromInfo
- * static function which creates them from their info.
+ * A Component holds data for an entity. Components must define a static const char* k_typeName and
+ * a static const ECS::ComponentType k_type that are unique for their component type.
+ * Components must also define a static constexpr ComponentBindingType k_bindingType.
+ * Dependening on how they are registered with the ComponentReflector, Components may have additional requirements.
+ *
+ * NETWORKING NOTE: The presence of components is always synchronized between client and server, even when the component
+ *                  data isn't.
  */
 class Component
 {
@@ -20,13 +33,6 @@ public:
 	explicit Component(const ComponentID id)
 		: m_id(id)
 	{}
-
-	virtual ~Component() {}
-
-	// Save() must generate a list of bytes which can be used to restore the state of the component using Load(...).
-	// Save() and Load(...) don't need to serialize the type of the component.
-	virtual void Save(Collection::Vector<uint8_t>& outBytes) const {}
-	virtual void Load(const Collection::Vector<uint8_t>& bytes) {}
 
 	ComponentID m_id;
 };

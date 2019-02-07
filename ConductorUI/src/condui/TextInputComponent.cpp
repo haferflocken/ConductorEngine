@@ -2,28 +2,24 @@
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>
+#include <mem/InspectorInfo.h>
 
 namespace Condui
 {
-const Util::StringHash TextInputComponentInfo::sk_typeHash = Util::CalcHash(TextInputComponentInfo::sk_typeName);
+const ECS::ComponentType TextInputComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash TextInputComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Condui::TextInputComponent, 0);
 
-Mem::UniquePtr<ECS::ComponentInfo> TextInputComponentInfo::LoadFromJSON(
-	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
+void TextInputComponent::FullySerialize(const TextInputComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
-	return Mem::MakeUnique<TextInputComponentInfo>();
+	AMP_LOG_ERROR("UI components shouldn't be serialized!");
 }
 
-bool TextInputComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
-	const TextInputComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
+void TextInputComponent::ApplyFullSerialization(Asset::AssetManager& assetManager,
+	TextInputComponent& component,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd)
 {
-	TextInputComponent& component = destination.Emplace<TextInputComponent>(reservedID);
-	component.m_characterWidthPixels = componentInfo.m_characterWidthPixels;
-	component.m_characterHeightPixels = componentInfo.m_characterHeightPixels;
-	component.m_codePage = assetManager.RequestAsset<Image::Pixel1Image>(componentInfo.m_codePagePath);
-	return true;
+	AMP_LOG_ERROR("UI components shouldn't be deserialized!");
 }
 
 void TextInputComponent::DefaultInputHandler(TextInputComponent& component, const char* text)

@@ -19,9 +19,7 @@ class Interpreter;
 
 namespace ECS
 {
-class ComponentInfoFactory;
 class ComponentReflector;
-class EntityInfoManager;
 }
 
 namespace Conductor
@@ -52,14 +50,6 @@ public:
 	const Behave::AST::Interpreter& GetBehaveASTInterpreter() const { return *m_behaveASTInterpreter; }
 	const Behave::BehaviourNodeFactory& GetBehaviourNodeFactory() const { return *m_behaviourNodeFactory; }
 
-	ECS::ComponentInfoFactory& GetComponentInfoFactory() { return *m_componentInfoFactory; }
-	const ECS::ComponentInfoFactory& GetComponentInfoFactory() const { return *m_componentInfoFactory; }
-
-	ECS::EntityInfoManager& GetEntityInfoManager() { return *m_entityInfoManager; }
-	const ECS::EntityInfoManager& GetEntityInfoManager() const { return *m_entityInfoManager; }
-
-	void LoadEntityInfosInDirectory(const File::Path& directory);
-
 protected:
 	File::Path m_dataDirectory;
 	File::Path m_userDirectory;
@@ -70,9 +60,6 @@ protected:
 
 	Mem::UniquePtr<Behave::AST::Interpreter> m_behaveASTInterpreter;
 	Mem::UniquePtr<Behave::BehaviourNodeFactory> m_behaviourNodeFactory;
-
-	Mem::UniquePtr<ECS::ComponentInfoFactory> m_componentInfoFactory;
-	Mem::UniquePtr<ECS::EntityInfoManager> m_entityInfoManager;
 };
 
 using GameDataFactory = std::function<Mem::UniquePtr<IGameData>(Asset::AssetManager&, const File::Path&, const File::Path&)>;

@@ -29,15 +29,15 @@ void SceneAnchorSystem::Update(const Unit::Time::Millisecond delta,
 
 		const int16_t anchoringRadiusInChunks = anchorComponent.m_anchoringRadiusInChunks;
 
-		const float fAnchoringRadiusInChunks = static_cast<float>(anchoringRadiusInChunks) * Chunk::k_sideLengthMeters;
+		const float fAnchoringRadiusInChunks = static_cast<float>(anchoringRadiusInChunks) * k_chunkSideLengthMeters;
 		const float anchoringRadiusSquared = fAnchoringRadiusInChunks * fAnchoringRadiusInChunks;
 
-		const int16_t entityChunkX = static_cast<int16_t>(static_cast<int32_t>(position.x) >> Chunk::k_lgSideLength);
-		const int16_t entityChunkY = static_cast<int16_t>(static_cast<int32_t>(position.y) >> Chunk::k_lgSideLength);
-		const int16_t entityChunkZ = static_cast<int16_t>(static_cast<int32_t>(position.z) >> Chunk::k_lgSideLength);
+		const int16_t entityChunkX = static_cast<int16_t>(static_cast<int32_t>(position.x) >> k_lgChunkSideLength);
+		const int16_t entityChunkY = static_cast<int16_t>(static_cast<int32_t>(position.y) >> k_lgChunkSideLength);
+		const int16_t entityChunkZ = static_cast<int16_t>(static_cast<int32_t>(position.z) >> k_lgChunkSideLength);
 		const ChunkID entityChunkID{ entityChunkX, entityChunkY, entityChunkZ };
 
-		const Math::Vector3 entityChunkOrigin = Chunk::CalcChunkOrigin(entityChunkID);
+		const Math::Vector3 entityChunkOrigin = CalcChunkOrigin(entityChunkID);
 
 		const int16_t xMin = entityChunkX - anchoringRadiusInChunks;
 		const int16_t yMin = entityChunkY - anchoringRadiusInChunks;
@@ -53,7 +53,7 @@ void SceneAnchorSystem::Update(const Unit::Time::Millisecond delta,
 				for (int16_t x = xMin; x <= xMax; ++x)
 				{
 					const ChunkID chunkID{ x, y, z };
-					const Math::Vector3 chunkOrigin = Chunk::CalcChunkOrigin(chunkID);
+					const Math::Vector3 chunkOrigin = CalcChunkOrigin(chunkID);
 
 					const float distanceSquared = (chunkOrigin - entityChunkOrigin).LengthSquared();
 					if (distanceSquared > anchoringRadiusSquared)

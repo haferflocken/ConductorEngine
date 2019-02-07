@@ -2,27 +2,23 @@
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>
+#include <mem/InspectorInfo.h>
 
 namespace Condui
 {
-const Util::StringHash TextDisplayComponentInfo::sk_typeHash = Util::CalcHash(TextDisplayComponentInfo::sk_typeName);
+const ECS::ComponentType TextDisplayComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash TextDisplayComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Condui::TextDisplayComponent, 0);
 
-Mem::UniquePtr<ECS::ComponentInfo> TextDisplayComponentInfo::LoadFromJSON(
-	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
+void TextDisplayComponent::FullySerialize(const TextDisplayComponent& component, Collection::Vector<uint8_t>& outBytes)
 {
-	return Mem::MakeUnique<TextDisplayComponentInfo>();
+	AMP_LOG_ERROR("UI components shouldn't be serialized!");
 }
 
-bool TextDisplayComponent::TryCreateFromInfo(
-	Asset::AssetManager& assetManager,
-	const TextDisplayComponentInfo& componentInfo,
-	const ECS::ComponentID reservedID,
-	ECS::ComponentVector& destination)
+void TextDisplayComponent::ApplyFullSerialization(Asset::AssetManager& assetManager,
+	TextDisplayComponent& component,
+	const uint8_t*& bytes,
+	const uint8_t* bytesEnd)
 {
-	TextDisplayComponent& component = destination.Emplace<TextDisplayComponent>(reservedID);
-	component.m_codePage = assetManager.RequestAsset<Image::Pixel1Image>(componentInfo.m_codePagePath);
-	component.m_characterWidthPixels = componentInfo.m_characterWidthPixels;
-	component.m_characterHeightPixels = componentInfo.m_characterHeightPixels;
-	return true;
+	AMP_LOG_ERROR("UI components shouldn't be deserialized!");
 }
 }

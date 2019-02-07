@@ -3,7 +3,6 @@
 #include <condui/TextDisplayComponent.h>
 #include <ecs/System.h>
 #include <scene/SceneTransformComponent.h>
-#include <scene/SceneTransformComponentInfo.h>
 
 namespace Renderer::UI
 {

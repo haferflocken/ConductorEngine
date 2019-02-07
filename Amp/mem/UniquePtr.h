@@ -17,11 +17,11 @@ public:
 	UniquePtr(const UniquePtr<T>&) = delete;
 	UniquePtr& operator=(const UniquePtr<T>&) = delete;
 
-	UniquePtr(UniquePtr<T>&& other)
+	UniquePtr(UniquePtr<T>&& other) noexcept
 		: m_value(other.Release())
 	{}
 
-	UniquePtr& operator=(UniquePtr<T>&& rhs)
+	UniquePtr& operator=(UniquePtr<T>&& rhs) noexcept
 	{
 		Reset();
 		m_value = rhs.Release();

@@ -34,13 +34,18 @@ void TextDisplayRenderSystem::Update(const Unit::Time::Millisecond delta,
 		m_textRenderer.RequestFont(
 			textComponent.m_codePage, textComponent.m_characterWidthPixels, textComponent.m_characterHeightPixels);
 
+		const Math::Matrix4x4& transform = transformComponent.m_modelToWorldMatrix;
+
+		const Math::Matrix4x4 textToTopTransform = Math::Matrix4x4::MakeTranslation(0.0f, textComponent.m_height, 0.0f);
+		const Math::Matrix4x4 textTransform = transform * textToTopTransform;
+
 		m_textRenderer.SubmitText(*encoder,
 			k_sceneViewID,
-			transformComponent.m_modelToWorldMatrix,
-			Image::ColoursARBG::k_white,
+			textTransform,
+			textComponent.m_textColour,
 			textComponent.m_codePage,
 			textComponent.m_string.c_str(),
-			textComponent.m_fontScale);
+			textComponent.m_textHeight);
 	}
 
 	bgfx::end(encoder);

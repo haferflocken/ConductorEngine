@@ -6,7 +6,6 @@
 
 #include <collection/LocklessQueue.h>
 
-#include <ecs/ComponentInfoFactory.h>
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityManager.h>
 
@@ -310,11 +309,9 @@ void RenderInstance::ShutdownOnClientThread()
 	m_status = Status::SafeTerminated;
 }
 
-void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentReflector,
-	ECS::ComponentInfoFactory& componentInfoFactory)
+void RenderInstance::RegisterComponentTypes(ECS::ComponentReflector& componentReflector)
 {
 	componentReflector.RegisterComponentType<CameraComponent>();
-	componentInfoFactory.RegisterFactoryFunction<CameraComponentInfo>();
 }
 
 void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)

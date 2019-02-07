@@ -1,11 +1,9 @@
 #include <scene/SceneSaveComponent.h>
 
-#include <mem/UniquePtr.h>
+#include <mem/InspectorInfo.h>
 
-const Util::StringHash Scene::SceneSaveComponentInfo::sk_typeHash = Util::CalcHash(SceneSaveComponentInfo::sk_typeName);
-
-Mem::UniquePtr<ECS::ComponentInfo> Scene::SceneSaveComponentInfo::LoadFromJSON(
-	Asset::AssetManager& assetManager, const JSON::JSONObject& jsonObject)
+namespace Scene
 {
-	return Mem::MakeUnique<SceneSaveComponentInfo>();
+const ECS::ComponentType SceneSaveComponent::k_type{ Util::CalcHash(k_typeName) };
+const Mem::InspectorInfoTypeHash SceneSaveComponent::k_inspectorInfoTypeHash = MakeInspectorInfo(Scene::SceneSaveComponent, 0);
 }
