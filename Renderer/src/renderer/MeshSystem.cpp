@@ -58,8 +58,8 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 		if (!bgfx::isValid(datum.m_vertexBuffer))
 		{
 			datum.m_vertexBuffer = bgfx::createVertexBuffer(
-				bgfx::makeRef(&mesh->GetVertices().Front(), mesh->GetVertices().Size() * sizeof(Mesh::PosColourVertex)),
-				k_staticMeshVertexDecl);
+				bgfx::makeRef(&mesh->GetVertexData().Front(), mesh->GetVertexData().Size()),
+				k_posColourVertexDecl);
 		}
 
 		if (!bgfx::isValid(datum.m_indexBuffer))

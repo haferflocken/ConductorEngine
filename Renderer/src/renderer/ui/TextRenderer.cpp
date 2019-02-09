@@ -205,7 +205,7 @@ void TextRenderer::CreateFontMeshFromImage(const Image::Pixel1Image& image,
 
 	font.m_glyphVertexBufferHandle = bgfx::createVertexBuffer(
 		bgfx::makeRef(&font.m_vertexGrid.Front(), font.m_vertexGrid.Size() * sizeof(Mesh::PosColourVertex)),
-		k_staticMeshVertexDecl);
+		k_posColourVertexDecl);
 
 	// Create index buffers for each character.
 	for (uint32_t y = 0; y < numRows; ++y)

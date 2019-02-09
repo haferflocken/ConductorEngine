@@ -4,7 +4,7 @@
 
 namespace Renderer
 {
-const bgfx::VertexDecl k_staticMeshVertexDecl = []()
+const bgfx::VertexDecl k_posColourVertexDecl = []()
 {
 	bgfx::VertexDecl staticMeshVertexDecl;
 	staticMeshVertexDecl.begin()

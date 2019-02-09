@@ -34,8 +34,8 @@ bool PrimitiveRenderer::Initialize(Asset::AssetManager& assetManager)
 
 	// Initialize the vertex and index buffers.
 	g_quadVertexBufferHandle = bgfx::createVertexBuffer(
-		bgfx::makeRef(&k_quadMesh.GetVertices().Front(), k_quadMesh.GetVertices().Size() * sizeof(Mesh::PosColourVertex)),
-		k_staticMeshVertexDecl);
+		bgfx::makeRef(&k_quadMesh.GetVertexData().Front(), k_quadMesh.GetVertexData().Size()),
+		k_posColourVertexDecl);
 	g_quadIndexBufferHandle = bgfx::createIndexBuffer(
 		bgfx::makeRef(&k_quadMesh.GetTriangleIndices().Front(),
 			k_quadMesh.GetTriangleIndices().Size() * sizeof(uint16_t)));
