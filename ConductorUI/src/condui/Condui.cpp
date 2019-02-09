@@ -5,6 +5,26 @@
 #include <ecs/EntityManager.h>
 #include <scene/SceneTransformComponent.h>
 
+float Condui::ConduiElement::GetWidth() const
+{
+	float result = 0.0f;
+	Match([&](const TextDisplayElement& element) { result = element.m_width; },
+		[&](const TextInputElement& element) { result = element.m_width; },
+		[&](const PanelElement& element) { result = element.m_width; },
+		[&](const StackingPanelElement& element) { result = element.m_width; });
+	return result;
+}
+
+float Condui::ConduiElement::GetHeight() const
+{
+	float result = 0.0f;
+	Match([&](const TextDisplayElement& element) { result = element.m_height; },
+		[&](const TextInputElement& element) { result = element.m_height; },
+		[&](const PanelElement& element) { result = element.m_height; },
+		[&](const StackingPanelElement& element) { result = element.m_height; });
+	return result;
+}
+
 Condui::ConduiElement Condui::MakeTextDisplayElement(
 	const float width, const float height, const char* const str, const float textHeight)
 {
@@ -52,6 +72,24 @@ Condui::ConduiElement Condui::MakePanelElement(
 	{
 		panelElement.m_childRelativeTransforms.Add(pair.first);
 		panelElement.m_children.Add(std::move(pair.second));
+	}
+
+	return element;
+}
+
+Condui::ConduiElement Condui::MakeStackingPanelElement(
+	const float width,
+	Collection::Vector<ConduiElement>&& children)
+{
+	auto element = ConduiElement::Make<StackingPanelElement>();
+	StackingPanelElement& stackingPanelElement = element.Get<StackingPanelElement>();
+	stackingPanelElement.m_width = width;
+	stackingPanelElement.m_height = 0.0f;
+	stackingPanelElement.m_children = std::move(children);
+
+	for (const auto& childElement : stackingPanelElement.m_children)
+	{
+		stackingPanelElement.m_height += childElement.GetHeight();
 	}
 
 	return element;
@@ -148,6 +186,27 @@ ECS::Entity& Condui::CreateConduiEntity(
 			{
 				const Math::Matrix4x4& transformFromParent = panelElement.m_childRelativeTransforms[i];
 				ConduiElement& childElement = panelElement.m_children[i];
+
+				ECS::Entity& childEntity = CreateConduiEntity(entityManager, std::move(childElement), font);
+				auto& childTransformComponent =
+					*entityManager.FindComponent<Scene::SceneTransformComponent>(childEntity);
+				childTransformComponent.m_childToParentMatrix =
+					transformFromParent * childTransformComponent.m_childToParentMatrix;
+
+				entityManager.SetParentEntity(childEntity, entity);
+			}
+		},
+		[&](StackingPanelElement& stackingPanelElement)
+		{
+			// TODO(condui) a component & system that stack
+			const auto componentTypes = { Scene::SceneTransformComponent::k_type };
+			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+
+			float verticalOffset = 0.0f;
+			for (auto& childElement : stackingPanelElement.m_children)
+			{
+				const auto transformFromParent = Math::Matrix4x4::MakeTranslation(0.0f, verticalOffset, 0.0f);
+				verticalOffset -= childElement.GetHeight();
 
 				ECS::Entity& childEntity = CreateConduiEntity(entityManager, std::move(childElement), font);
 				auto& childTransformComponent =

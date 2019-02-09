@@ -70,6 +70,17 @@ struct PanelElement final
 };
 
 /**
+ * An element that contains other elements which it stacks vertically. Adjusts to changes in element height.
+ */
+struct StackingPanelElement final
+{
+	float m_width{ 1.0f };
+	float m_height{ 0.0f };
+
+	Collection::Vector<ConduiElement> m_children;
+};
+
+/**
  * An element with one child that is enabled/disabled by an input.
  */
 struct InputToggledElement final
@@ -89,21 +100,27 @@ struct InputToggledElement final
 struct ConduiElement final : public Collection::Variant<
 	TextDisplayElement,
 	TextInputElement,
-	PanelElement>
+	PanelElement,
+	StackingPanelElement>
 {
+public:
 	using Variant::Variant;
-
-	ConduiElement() = default;
-
-	ConduiElement(Variant&& v)
-		: Variant(std::move(v))
-	{}
 
 	template <typename T, typename... Args>
 	static ConduiElement Make(Args&&... args)
 	{
 		return ConduiElement(Variant::Make<T, Args...>(std::forward<Args>(args)...));
 	}
+
+public:
+	ConduiElement() = default;
+
+	ConduiElement(Variant&& v)
+		: Variant(std::move(v))
+	{}
+
+	float GetWidth() const;
+	float GetHeight() const;
 };
 
 /**
@@ -121,6 +138,9 @@ ConduiElement MakePanelElement(
 	const float width,
 	const float height,
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>>&& childrenWithRelativeTransforms);
+ConduiElement MakeStackingPanelElement(
+	const float width,
+	Collection::Vector<ConduiElement>&& children);
 
 /**
  * Functions to make Condui elements for specific purposes.

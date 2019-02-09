@@ -102,8 +102,7 @@ Condui::TextInputElement::InputHandler MakeBooleanParsingHandler(void* const raw
 	};
 }
 
-Condui::ConduiElement MakeMatrix4x4Element(
-	void* const rawSubject, const float width, const float textHeight, float& outHeight)
+Condui::ConduiElement MakeMatrix4x4Element(void* const rawSubject, const float width, const float textHeight)
 {
 	Math::Matrix4x4& subject = *static_cast<Math::Matrix4x4*>(rawSubject);
 
@@ -142,7 +141,6 @@ Condui::ConduiElement MakeMatrix4x4Element(
 		matrixSubelements.Emplace(t3, std::move(e3));
 	}
 
-	outHeight = textHeight * 4;
 	return MakePanelElement(width, textHeight * 4, std::move(matrixSubelements));
 }
 
@@ -150,8 +148,7 @@ Condui::ConduiElement MakeCollectionVectorElement(
 	const Mem::InspectorInfo& inspectorInfo,
 	void* const rawSubject,
 	const float width,
-	const float textHeight,
-	float& outHeight)
+	const float textHeight)
 {
 	AMP_FATAL_ASSERT(inspectorInfo.m_templateParameterTypeHashes.Size() == 1,
 		"Collection::Vector is expected to have only one template parameter!");
@@ -165,7 +162,6 @@ Condui::ConduiElement MakeCollectionVectorElement(
 	UntypedVector& subject = *static_cast<UntypedVector*>(rawSubject);
 
 	const auto& valueTypeInfo = *Mem::InspectorInfo::Find(inspectorInfo.m_templateParameterTypeHashes.Front());
-	// TODO(inspector) a stacking panel that dynamically positions elements vertically
 	// TODO(inspector) a scrolling panel
 	// TODO(inspector) buttons to add and remove elements
 
@@ -177,8 +173,7 @@ bool TryMakeInspectorOverrideElement(
 	void* const rawSubject,
 	const float width,
 	const float textHeight,
-	Condui::ConduiElement& outResult,
-	float& outHeight)
+	Condui::ConduiElement& outResult)
 {
 	using namespace Condui;
 
@@ -209,28 +204,24 @@ bool TryMakeInspectorOverrideElement(
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<int8_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i16TypeHash)
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<int16_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i32TypeHash)
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<int32_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == i64TypeHash)
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<int64_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 
@@ -239,28 +230,24 @@ bool TryMakeInspectorOverrideElement(
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<uint8_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u16TypeHash)
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<uint16_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u32TypeHash)
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<uint32_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == u64TypeHash)
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeIntegerParsingHandler<uint64_t>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 
@@ -269,14 +256,12 @@ bool TryMakeInspectorOverrideElement(
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeFloatParsingHandler<float>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 	if (inspectorInfo.m_typeHash == f64TypeHash)
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeFloatParsingHandler<double>(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 
@@ -285,7 +270,6 @@ bool TryMakeInspectorOverrideElement(
 	{
 		outResult = MakeTextInputElement(
 			width, textHeight, MakeBooleanParsingHandler(rawSubject), textHeight, Image::ColoursARBG::k_cyan);
-		outHeight = textHeight;
 		return true;
 	}
 
@@ -307,7 +291,7 @@ bool TryMakeInspectorOverrideElement(
 	}
 	if (inspectorInfo.m_typeHash == matrix4x4TypeHash)
 	{
-		outResult = MakeMatrix4x4Element(rawSubject, width, textHeight, outHeight);
+		outResult = MakeMatrix4x4Element(rawSubject, width, textHeight);
 		return true;
 	}
 
@@ -317,7 +301,7 @@ bool TryMakeInspectorOverrideElement(
 		const std::string_view templateTypeName{ inspectorInfo.m_typeName, inspectorInfo.m_templateTypeNameLength };
 		if (templateTypeName == k_collectionVectorTemplateName)
 		{
-			outResult = MakeCollectionVectorElement(inspectorInfo, rawSubject, width, textHeight, outHeight);
+			outResult = MakeCollectionVectorElement(inspectorInfo, rawSubject, width, textHeight);
 			return true;
 		}
 	}
@@ -331,8 +315,7 @@ void MakeInspectorSubelements(
 	const char* const nameOverride,
 	const float width,
 	const float textHeight,
-	Collection::Vector<Collection::Pair<Math::Matrix4x4, Condui::ConduiElement>>& subelements,
-	float& verticalOffset)
+	Collection::Vector<Condui::ConduiElement>& subelements)
 {
 	using namespace Condui;
 
@@ -343,31 +326,19 @@ void MakeInspectorSubelements(
 		char buffer[128];
 		sprintf_s(buffer, "%s has no inspector type info!", name);
 
-		Math::Matrix4x4 titleTransform;
-		titleTransform.SetTranslation(0.0f, verticalOffset, 0.0f);
-		verticalOffset -= textHeight;
-
-		subelements.Emplace(titleTransform, MakeTextDisplayElement(width, textHeight, buffer, textHeight));
+		subelements.Add(MakeTextDisplayElement(width, textHeight, buffer, textHeight));
 		return;
 	}
 
 	const char* const name = (nameOverride != nullptr) ? nameOverride : inspectorInfo->m_typeName;
 
-	Math::Matrix4x4 titleTransform;
-	titleTransform.SetTranslation(0.0f, verticalOffset, 0.0f);
-	verticalOffset -= textHeight;
-	subelements.Emplace(titleTransform, MakeTextDisplayElement(width, textHeight, name, textHeight));
+	subelements.Add(MakeTextDisplayElement(width, textHeight, name, textHeight));
 
 	// Certain types have special overrides for their inspector.
 	ConduiElement overrideElement;
-	float overrideElementHeight;
-	if (TryMakeInspectorOverrideElement(
-		*inspectorInfo, subject, width, textHeight, overrideElement, overrideElementHeight))
+	if (TryMakeInspectorOverrideElement(*inspectorInfo, subject, width, textHeight, overrideElement))
 	{
-		Math::Matrix4x4 transform;
-		transform.SetTranslation(0.0f, verticalOffset, 0.0f);
-		verticalOffset -= overrideElementHeight;
-		subelements.Emplace(transform, std::move(overrideElement));
+		subelements.Add(std::move(overrideElement));
 	}
 	// If there's no override, recursively build the inspector with the inspectors of the type's members.
 	else if (!inspectorInfo->m_memberInfo.IsEmpty())
@@ -383,8 +354,7 @@ void MakeInspectorSubelements(
 				memberInfo.m_name,
 				width,
 				textHeight,
-				subelements,
-				verticalOffset);
+				subelements);
 		}
 	}
 }
@@ -396,16 +366,14 @@ Condui::ConduiElement Condui::MakeInspectorElement(
 	const float width,
 	const float textHeight)
 {
-	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>> subelements;
-	float verticalOffset = 0.0f;
+	Collection::Vector<ConduiElement> subelements;
 	Internal_ConduiInspector::MakeInspectorSubelements(
 		inspectorInfo,
 		static_cast<char*>(subject),
 		nullptr,
 		width,
 		textHeight,
-		subelements,
-		verticalOffset);
+		subelements);
 
-	return Condui::MakePanelElement(width, -verticalOffset, std::move(subelements));
+	return Condui::MakeStackingPanelElement(width, std::move(subelements));
 }
