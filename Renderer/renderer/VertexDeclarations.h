@@ -2,6 +2,11 @@
 
 #include <bgfx/bgfx.h>
 
+namespace Mesh
+{
+struct ExpandedVertexDeclaration;
+}
+
 namespace Renderer
 {
 const bgfx::VertexDecl k_posColourVertexDecl = []()
@@ -13,4 +18,6 @@ const bgfx::VertexDecl k_posColourVertexDecl = []()
 		.end();
 	return staticMeshVertexDecl;
 }();
+
+bgfx::VertexDecl MakeBGFXVertexDecl(const Mesh::ExpandedVertexDeclaration& vertexDeclaration);
 }

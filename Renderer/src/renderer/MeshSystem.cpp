@@ -57,9 +57,13 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 
 		if (!bgfx::isValid(datum.m_vertexBuffer))
 		{
+			const Mesh::CompactVertexDeclaration& vertexDeclaration = mesh->GetVertexDeclaration();
+			const Mesh::ExpandedVertexDeclaration expandedDeclaration = vertexDeclaration.Expand();
+			const bgfx::VertexDecl bgfxVertexDecl = MakeBGFXVertexDecl(expandedDeclaration);
+
 			datum.m_vertexBuffer = bgfx::createVertexBuffer(
 				bgfx::makeRef(&mesh->GetVertexData().Front(), mesh->GetVertexData().Size()),
-				k_posColourVertexDecl);
+				bgfxVertexDecl);
 		}
 
 		if (!bgfx::isValid(datum.m_indexBuffer))

@@ -179,6 +179,7 @@ $(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command
     <ClCompile Include="src\renderer\ui\ConduiTextDisplayRenderSystem.cpp" />
     <ClCompile Include="src\renderer\ui\ConduiTextInputRenderSystem.cpp" />
     <ClCompile Include="src\renderer\ui\TextRenderer.cpp" />
+    <ClCompile Include="src\renderer\VertexDeclarations.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="data\shaders\fs_static_mesh.sc">
