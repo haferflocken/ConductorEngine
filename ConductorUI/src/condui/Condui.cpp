@@ -160,12 +160,3 @@ ECS::Entity& Condui::CreateConduiEntity(
 		});
 	return *entity;
 }
-
-ECS::Entity& Condui::CreateConduiRootEntity(
-	ECS::EntityManager& entityManager, ElementRoot&& elementRoot, const FontInfo* font)
-{
-	ECS::Entity& entity = CreateConduiEntity(entityManager, std::move(elementRoot.m_element), font);
-	auto& transformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(entity);
-	transformComponent.m_modelToWorldMatrix = elementRoot.m_uiTransform;
-	return entity;
-}

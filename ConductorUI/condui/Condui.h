@@ -107,15 +107,6 @@ struct ConduiElement final : public Collection::Variant<
 };
 
 /**
- * The root of a tree of ConduiElements, providing them a root transform to orient from.
- */
-struct ElementRoot final
-{
-	Math::Matrix4x4 m_uiTransform;
-	ConduiElement m_element;
-};
-
-/**
  * Functions to create Condui elements in a declarative style.
  */
 ConduiElement MakeTextDisplayElement(
@@ -151,5 +142,4 @@ struct FontInfo
 	Image::ColourARGB m_textColour;
 };
 ECS::Entity& CreateConduiEntity(ECS::EntityManager& entityManager, ConduiElement&& element, const FontInfo* font);
-ECS::Entity& CreateConduiRootEntity(ECS::EntityManager& entityManager, ElementRoot&& elementRoot, const FontInfo* font);
 }
