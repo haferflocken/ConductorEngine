@@ -13,6 +13,5 @@ ConduiElement MakeInspectorElement(
 	const Mem::InspectorInfo* const inspectorInfo,
 	void* const subject,
 	const float width,
-	const float height,
 	const float textHeight);
 }

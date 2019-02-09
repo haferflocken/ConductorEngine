@@ -59,6 +59,7 @@ public:
 
 	Unit::ByteCount64 GetSizeOfComponentInBytes(const ComponentType componentType) const;
 	Unit::ByteCount64 GetAlignOfComponentInBytes(const ComponentType componentType) const;
+	Mem::InspectorInfoTypeHash GetTypeHashOfComponent(const ComponentType componentType) const;
 
 	Component* TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const;
 	Component* TryMakeComponent(Asset::AssetManager& assetManager,

@@ -159,7 +159,7 @@ Collection::Vector<Entity*> EntityManager::CreateEntitiesFromFullSerialization(
 		const uint8_t* const serializedComponentIDs = viewBytes + FullSerializedEntityHeader::k_unpaddedSize;
 		memcpy(&componentIDs.Front(), serializedComponentIDs, numComponentIDBytes);
 
-		// TODO(info) handle entity IDs which are already in use, perhaps with a fixup map
+		// TODO(ecs) handle entity IDs which are already in use, perhaps with a fixup map
 
 		Entity& entity = m_entities.Emplace(header.m_entityID, header.m_entityID);
 		entity.m_componentIDs = std::move(componentIDs);

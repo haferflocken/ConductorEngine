@@ -6,7 +6,7 @@
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <condui/Condui.h>
-#include <condui/ConduiInspector.h>
+#include <condui/EntityInspector.h>
 #include <condui/TextInputComponent.h>
 #include <input/InputComponent.h>
 #include <mem/InspectorInfo.h>
@@ -95,10 +95,10 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		consoleTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, -0.25f, 0.5f);
 
 		// Create an inspector and attach it to the camera.
-		Condui::ConduiElement inspectorElement = Condui::MakeInspectorElement(
-			Mem::InspectorInfo::Find({ typeid(Scene::SceneTransformComponent).hash_code() }),
-			&consoleTransformComponent,
-			0.5f,
+		Condui::ConduiElement inspectorElement = Condui::MakeEntityInspector(
+			m_gameData.GetComponentReflector(),
+			m_entityManager,
+			player,
 			0.5f,
 			0.025f);
 

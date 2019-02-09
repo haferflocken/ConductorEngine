@@ -165,9 +165,9 @@ Condui::ConduiElement MakeCollectionVectorElement(
 	UntypedVector& subject = *static_cast<UntypedVector*>(rawSubject);
 
 	const auto& valueTypeInfo = *Mem::InspectorInfo::Find(inspectorInfo.m_templateParameterTypeHashes.Front());
-	// TODO(info) a stacking panel that dynamically positions elements vertically
-	// TODO(info) a scrolling panel
-	// TODO(info) buttons to add and remove elements
+	// TODO(inspector) a stacking panel that dynamically positions elements vertically
+	// TODO(inspector) a scrolling panel
+	// TODO(inspector) buttons to add and remove elements
 
 	return Condui::ConduiElement();
 }
@@ -394,7 +394,6 @@ Condui::ConduiElement Condui::MakeInspectorElement(
 	const Mem::InspectorInfo* const inspectorInfo,
 	void* const subject,
 	const float width,
-	const float height,
 	const float textHeight)
 {
 	Collection::Vector<Collection::Pair<Math::Matrix4x4, ConduiElement>> subelements;
@@ -408,5 +407,5 @@ Condui::ConduiElement Condui::MakeInspectorElement(
 		subelements,
 		verticalOffset);
 
-	return Condui::MakePanelElement(width, height, std::move(subelements));
+	return Condui::MakePanelElement(width, -verticalOffset, std::move(subelements));
 }

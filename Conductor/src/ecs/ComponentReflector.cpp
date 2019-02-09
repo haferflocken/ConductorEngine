@@ -64,6 +64,18 @@ Unit::ByteCount64 ComponentReflector::GetAlignOfComponentInBytes(const Component
 	return alignItr->second;
 }
 
+Mem::InspectorInfoTypeHash ComponentReflector::GetTypeHashOfComponent(const ComponentType componentType) const
+{
+	const auto typeHashIter = m_componentInspectorInfoTypeHashes.Find(componentType);
+	if (typeHashIter == m_componentInspectorInfoTypeHashes.end())
+	{
+		AMP_LOG_WARNING("Failed to find the type hash of component type \"%s\".",
+			Util::ReverseHash(componentType.GetTypeHash()));
+		return { 0 };
+	}
+	return typeHashIter->second;
+}
+
 Component* ComponentReflector::TryBasicConstructComponent(const ComponentID reservedID, ComponentVector& destination) const
 {
 	const auto iter = m_mandatoryComponentFunctions.Find(reservedID.GetType());

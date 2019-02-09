@@ -127,6 +127,7 @@
     <ClInclude Include="condui\Condui.h" />
     <ClInclude Include="condui\ConduiECSRegistration.h" />
     <ClInclude Include="condui\ConduiInspector.h" />
+    <ClInclude Include="condui\EntityInspector.h" />
     <ClInclude Include="condui\TextDisplayComponent.h" />
     <ClInclude Include="condui\TextInputComponent.h" />
     <ClInclude Include="condui\TextInputSystem.h" />
@@ -135,6 +136,7 @@
     <ClCompile Include="src\condui\Condui.cpp" />
     <ClCompile Include="src\condui\ConduiECSRegistration.cpp" />
     <ClCompile Include="src\condui\ConduiInspector.cpp" />
+    <ClCompile Include="src\condui\EntityInspector.cpp" />
     <ClCompile Include="src\condui\TextDisplayComponent.cpp" />
     <ClCompile Include="src\condui\TextInputComponent.cpp" />
     <ClCompile Include="src\condui\TextInputSystem.cpp" />
