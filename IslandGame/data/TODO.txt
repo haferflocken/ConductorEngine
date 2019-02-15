@@ -8,6 +8,8 @@ Amp/Conductor TODO:
 	[x] Keyboard input support
 	[x] Text boxes
 	[ ] Style sheets
+
+[ ] Entities should be updated in hierarchy order.
 	
 [ ] Use UnboundedScene as a level format.
 	[x] New component & system that loads chunks around it: Scene::AnchorComponent
