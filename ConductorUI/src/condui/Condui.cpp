@@ -1,5 +1,6 @@
 #include <condui/Condui.h>
 
+#include <condui/StackingPanelComponent.h>
 #include <condui/TextDisplayComponent.h>
 #include <condui/TextInputComponent.h>
 #include <ecs/EntityManager.h>
@@ -198,8 +199,7 @@ ECS::Entity& Condui::CreateConduiEntity(
 		},
 		[&](StackingPanelElement& stackingPanelElement)
 		{
-			// TODO(condui) a component & system that stack
-			const auto componentTypes = { Scene::SceneTransformComponent::k_type };
+			const auto componentTypes = { Scene::SceneTransformComponent::k_type, StackingPanelComponent::k_type };
 			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
 
 			float verticalOffset = 0.0f;
