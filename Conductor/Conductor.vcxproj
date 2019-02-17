@@ -173,7 +173,7 @@
     <ClCompile Include="src\behave\BlackboardComponent.cpp" />
     <ClCompile Include="src\host\IHost.cpp" />
     <ClCompile Include="src\mesh\MeshComponent.cpp" />
-    <ClCompile Include="src\mesh\StaticMesh.cpp" />
+    <ClCompile Include="src\mesh\TriangleMesh.cpp" />
     <ClCompile Include="src\mesh\Vertex.cpp" />
     <ClCompile Include="src\scene\AnchorComponent.cpp" />
     <ClCompile Include="src\scene\RelativeTransformSystem.cpp" />
@@ -246,7 +246,7 @@
     <ClInclude Include="math\Frustum.h" />
     <ClInclude Include="math\Ray3.h" />
     <ClInclude Include="mesh\MeshComponent.h" />
-    <ClInclude Include="mesh\StaticMesh.h" />
+    <ClInclude Include="mesh\TriangleMesh.h" />
     <ClInclude Include="mesh\Vertex.h" />
     <ClInclude Include="scene\AnchorComponent.h" />
     <ClInclude Include="scene\RelativeTransformSystem.h" />

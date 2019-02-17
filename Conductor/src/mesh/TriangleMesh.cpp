@@ -1,4 +1,4 @@
-#include <mesh/StaticMesh.h>
+#include <mesh/TriangleMesh.h>
 
 #include <file/FullFileReader.h>
 
@@ -6,7 +6,7 @@
 
 namespace Mesh
 {
-namespace Internal_StaticMesh
+namespace Internal_TriangleMesh
 {
 static constexpr const char k_magic[] = "!!!!!!!!!CONDUCTOR MESH";
 static constexpr const char k_channelSeparator[] = "!!!!";
@@ -25,7 +25,7 @@ static_assert(sizeof(FileHeader) == (sizeof(k_magic) + (sizeof(uint32_t) * 4)),
 	"The mesh file header must not contain padding!");
 }
 
-const StaticMesh StaticMesh::k_simpleQuad{
+const TriangleMesh TriangleMesh::k_simpleQuad{
 	Collection::Vector<PosColourVertex>({
 		{ -1.0f, -1.0f, 0.0f, 0xff0000ff },
 		{ 1.0f, -1.0f, 0.0f, 0xffff0000 },
@@ -33,9 +33,9 @@ const StaticMesh StaticMesh::k_simpleQuad{
 		{ 1.0f, 1.0f, 0.0f, 0xffffff00 }}),
 	Collection::Vector<uint16_t>({ 0, 1, 2, 2, 1, 3 }) };
 
-bool StaticMesh::TryLoad(const File::Path& filePath, StaticMesh* destination)
+bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination)
 {
-	using namespace Internal_StaticMesh;
+	using namespace Internal_TriangleMesh;
 
 	const std::string rawFile = File::ReadFullTextFile(filePath);
 	const size_t rawFileLengthInBytes = rawFile.length();
@@ -138,14 +138,14 @@ bool StaticMesh::TryLoad(const File::Path& filePath, StaticMesh* destination)
 		reinterpret_cast<const uint16_t*>(rawIndices), header.m_numTriangleIndices };
 
 	// Create the mesh.
-	new(destination) StaticMesh(vertexDeclaration, std::move(vertexData), Collection::Vector<uint16_t>(indices));
+	new(destination) TriangleMesh(vertexDeclaration, std::move(vertexData), Collection::Vector<uint16_t>(indices));
 
 	return true;
 }
 
-void StaticMesh::SaveToFile(const File::Path& filePath, const StaticMesh& mesh)
+void TriangleMesh::SaveToFile(const File::Path& filePath, const TriangleMesh& mesh)
 {
-	using namespace Internal_StaticMesh;
+	using namespace Internal_TriangleMesh;
 
 	const ExpandedVertexDeclaration expandedVertexDeclaration = mesh.GetVertexDeclaration().Expand();
 
@@ -195,7 +195,7 @@ void StaticMesh::SaveToFile(const File::Path& filePath, const StaticMesh& mesh)
 	output.flush();
 }
 
-StaticMesh::StaticMesh(const Collection::Vector<PosColourVertex>& vertices,
+TriangleMesh::TriangleMesh(const Collection::Vector<PosColourVertex>& vertices,
 	Collection::Vector<uint16_t>&& triangleIndices)
 	: m_vertexDeclaration({ VertexAttribute::Position, VertexAttribute::Colour0 })
 	, m_vertexData()
@@ -206,7 +206,7 @@ StaticMesh::StaticMesh(const Collection::Vector<PosColourVertex>& vertices,
 	memcpy(m_vertexData.begin(), vertices.begin(), m_vertexData.Size());
 }
 
-StaticMesh::StaticMesh(const CompactVertexDeclaration& vertexDeclaration,
+TriangleMesh::TriangleMesh(const CompactVertexDeclaration& vertexDeclaration,
 	Collection::Vector<uint8_t>&& vertexData,
 	Collection::Vector<uint16_t>&& triangleIndices)
 	: m_vertexDeclaration(vertexDeclaration)

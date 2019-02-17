@@ -44,12 +44,12 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 	// Create vertex buffers and index buffers for any meshes that finished loading.
 	for (auto& entry : m_staticMeshData)
 	{
-		const Asset::AssetHandle<Mesh::StaticMesh>& handle = entry.first;
+		const Asset::AssetHandle<Mesh::TriangleMesh>& handle = entry.first;
 		MeshDatum& datum = entry.second;
 
 		datum.m_timeSinceLastAccess += delta;
 
-		const Mesh::StaticMesh* const mesh = handle.TryGetAsset();
+		const Mesh::TriangleMesh* const mesh = handle.TryGetAsset();
 		if (mesh == nullptr)
 		{
 			continue;

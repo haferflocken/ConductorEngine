@@ -1,6 +1,5 @@
 #include <renderer/ui/ConduiTextInputRenderSystem.h>
 
-#include <mesh/StaticMesh.h>
 #include <renderer/PrimitiveRenderer.h>
 #include <renderer/ui/TextRenderer.h>
 #include <renderer/ViewIDs.h>

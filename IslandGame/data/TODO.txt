@@ -1,7 +1,7 @@
 Amp/Conductor TODO:
 [ ] Code-driven declarative UI creation functions for debug UI
 	[ ] Formatted text display
-	[ ] Hierarchical panes
+	[x] Hierarchical panes
 	[ ] Mouse input support
 	[ ] Buttons
 	[ ] Scroll panes

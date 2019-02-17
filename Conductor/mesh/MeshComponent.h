@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mesh/StaticMesh.h>
+#include <mesh/TriangleMesh.h>
 
 #include <asset/AssetHandle.h>
 #include <ecs/Component.h>
@@ -37,6 +37,6 @@ public:
 	MeshComponent(MeshComponent&&) = default;
 	MeshComponent& operator=(MeshComponent&&) = default;
 
-	Asset::AssetHandle<Mesh::StaticMesh> m_meshHandle;
+	Asset::AssetHandle<Mesh::TriangleMesh> m_meshHandle;
 };
 }

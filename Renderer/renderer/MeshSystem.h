@@ -50,6 +50,6 @@ private:
 	Asset::AssetHandle<Shader> m_vertexShader;
 	Asset::AssetHandle<Shader> m_fragmentShader;
 	bgfx::ProgramHandle m_program;
-	Collection::VectorMap<Asset::AssetHandle<Mesh::StaticMesh>, MeshDatum> m_staticMeshData;
+	Collection::VectorMap<Asset::AssetHandle<Mesh::TriangleMesh>, MeshDatum> m_staticMeshData;
 };
 }

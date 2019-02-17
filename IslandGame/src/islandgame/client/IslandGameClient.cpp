@@ -53,7 +53,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 
 		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
 		meshComponent.m_meshHandle =
-			assetManager.RequestAsset<Mesh::StaticMesh>(File::MakePath("meshes/quad_v2.cms"));
+			assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/quad_v2.cms"));
 
 		// Create a camera looking at the center of the scene.
 		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };

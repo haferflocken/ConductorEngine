@@ -3,7 +3,7 @@
 #include <asset/AssetHandle.h>
 #include <asset/AssetManager.h>
 #include <image/Colour.h>
-#include <mesh/StaticMesh.h>
+#include <mesh/TriangleMesh.h>
 #include <renderer/Shader.h>
 #include <renderer/VertexDeclarations.h>
 
@@ -11,7 +11,7 @@ namespace Renderer
 {
 namespace Internal_PrimitiveRenderer
 {
-const Mesh::StaticMesh k_quadMesh{
+const Mesh::TriangleMesh k_quadMesh{
 	Collection::Vector<Mesh::PosColourVertex>({
 		{ 0.0f, 0.0f, 0.0f, 0xffffffff },
 		{ 1.0f, 0.0f, 0.0f, 0xffffffff },

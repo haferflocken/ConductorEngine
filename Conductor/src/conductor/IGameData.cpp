@@ -27,7 +27,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 {
 	// Register asset types.
 	m_assetManager.RegisterAssetType<Image::Pixel1Image>(&Image::Pixel1Image::TryLoad);
-	m_assetManager.RegisterAssetType<Mesh::StaticMesh>(&Mesh::StaticMesh::TryLoad);
+	m_assetManager.RegisterAssetType<Mesh::TriangleMesh>(&Mesh::TriangleMesh::TryLoad);
 	m_assetManager.RegisterAssetType<Behave::BehaviourForest>(
 		[&](const File::Path& filePath, Behave::BehaviourForest* destination)
 		{
@@ -51,7 +51,7 @@ IGameData::~IGameData()
 {
 	// Unregister asset types in the opposite order in which they where registered.
 	m_assetManager.UnregisterAssetType<Behave::BehaviourForest>();
-	m_assetManager.UnregisterAssetType<Mesh::StaticMesh>();
+	m_assetManager.UnregisterAssetType<Mesh::TriangleMesh>();
 	m_assetManager.UnregisterAssetType<Image::Pixel1Image>();
 }
 }

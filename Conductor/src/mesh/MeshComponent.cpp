@@ -27,11 +27,11 @@ void MeshComponent::ApplyFullSerialization(
 	wchar_t assetPathBuffer[Asset::k_maxPathLength];
 	if (Mem::LittleEndian::DeserializeString(bytes, bytesEnd, assetPathBuffer))
 	{
-		component.m_meshHandle = assetManager.RequestAsset<StaticMesh>(File::MakePath(assetPathBuffer));
+		component.m_meshHandle = assetManager.RequestAsset<TriangleMesh>(File::MakePath(assetPathBuffer));
 	}
 	else
 	{
-		component.m_meshHandle = Asset::AssetHandle<StaticMesh>();
+		component.m_meshHandle = Asset::AssetHandle<TriangleMesh>();
 	}
 }
 }

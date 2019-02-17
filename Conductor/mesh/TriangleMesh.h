@@ -7,19 +7,19 @@
 
 namespace Mesh
 {
-class StaticMesh
+class TriangleMesh
 {
 public:
 	static constexpr const char* k_fileType = ".cms";
 
-	static const StaticMesh k_simpleQuad;
+	static const TriangleMesh k_simpleQuad;
 
-	static bool TryLoad(const File::Path& filePath, StaticMesh* destination);
-	static void SaveToFile(const File::Path& filePath, const StaticMesh& mesh);
+	static bool TryLoad(const File::Path& filePath, TriangleMesh* destination);
+	static void SaveToFile(const File::Path& filePath, const TriangleMesh& mesh);
 
-	StaticMesh(const Collection::Vector<PosColourVertex>& vertices, Collection::Vector<uint16_t>&& triangleIndices);
+	TriangleMesh(const Collection::Vector<PosColourVertex>& vertices, Collection::Vector<uint16_t>&& triangleIndices);
 
-	StaticMesh(const CompactVertexDeclaration& vertexDeclaration,
+	TriangleMesh(const CompactVertexDeclaration& vertexDeclaration,
 		Collection::Vector<uint8_t>&& vertexData,
 		Collection::Vector<uint16_t>&& triangleIndices);
 
