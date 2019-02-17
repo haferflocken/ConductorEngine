@@ -22,6 +22,9 @@ void CreateBoneEntities(
 	// Create the bone entities and set their relative transforms.
 	Collection::Vector<ECS::Entity*> boneEntities;
 	boneEntities.Resize(numBones, nullptr);
+
+	skeletonRootComponent.m_boneTransformComponentIDs.Resize(numBones);
+
 	for (size_t boneIndex = 0; boneIndex < numBones; ++boneIndex)
 	{
 		const Math::Matrix4x4& boneToParentTransform = boneToParentTransforms[boneIndex];
@@ -34,6 +37,7 @@ void CreateBoneEntities(
 		boneTransformComponent.m_childToParentMatrix = boneToParentTransform;
 
 		boneEntities[boneIndex] = &boneEntity;
+		skeletonRootComponent.m_boneTransformComponentIDs[boneIndex] = boneTransformComponent.m_id;
 	}
 
 	// Set the parent/child relationships of the bone entities.
