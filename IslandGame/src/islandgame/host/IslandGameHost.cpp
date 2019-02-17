@@ -5,6 +5,7 @@
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <input/InputSystem.h>
+#include <mesh/SkeletonSystem.h>
 #include <scene/RelativeTransformSystem.h>
 #include <scene/SceneAnchorSystem.h>
 #include <scene/UnboundedScene.h>
@@ -31,9 +32,8 @@ IslandGame::Host::IslandGameHost::IslandGameHost(const IslandGameData& gameData)
 
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::SceneAnchorSystem>(scene));
 
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Mesh::SkeletonSystem>());
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::RelativeTransformSystem>());
-
-	//m_entityManager.CreateEntity(*m_gameData.GetEntityInfoManager().FindEntityInfo(Util::CalcHash("player.json")));
 }
 
 IslandGame::Host::IslandGameHost::~IslandGameHost()

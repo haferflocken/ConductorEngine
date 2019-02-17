@@ -10,6 +10,7 @@
 #include <image/Pixel1Image.h>
 #include <input/InputComponent.h>
 #include <mesh/MeshComponent.h>
+#include <mesh/SkeletonRootComponent.h>
 #include <scene/AnchorComponent.h>
 #include <scene/SceneSaveComponent.h>
 #include <scene/SceneTransformComponent.h>
@@ -39,6 +40,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	m_componentReflector->RegisterComponentType<Behave::BlackboardComponent>();
 	m_componentReflector->RegisterComponentType<Input::InputComponent>();
 	m_componentReflector->RegisterComponentType<Mesh::MeshComponent>();
+	m_componentReflector->RegisterComponentType<Mesh::SkeletonRootComponent>();
 	m_componentReflector->RegisterComponentType<Scene::SceneSaveComponent>();
 	m_componentReflector->RegisterComponentType<Scene::SceneTransformComponent>();
 	m_componentReflector->RegisterComponentType<Scene::AnchorComponent>();
