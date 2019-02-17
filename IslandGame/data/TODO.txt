@@ -50,7 +50,7 @@ Amp/Conductor TODO:
 		This is followed by a list of triangles (triples of vertex indices).
 		This is followed by a skeleton.
 		Users of a mesh must verify it has all the properties they need.
-		[ ] Load this file format
+		[x] Load this file format
 		[ ] The skeleton exists in the scene as an entity hierarchy, which means an entity with a skeleton mesh
 			has implicit children
 

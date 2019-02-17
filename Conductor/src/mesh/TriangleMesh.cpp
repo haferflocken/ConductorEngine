@@ -10,7 +10,7 @@ namespace Internal_TriangleMesh
 {
 static constexpr const char k_magic[] = "!!!!!!!!!CONDUCTOR MESH";
 static constexpr const char k_channelSeparator[] = "!!!!";
-static constexpr const uint32_t k_version = 2;
+static constexpr const uint32_t k_version = 3;
 
 // The file header of mesh files. This must not contain any padding.
 struct FileHeader final
@@ -20,8 +20,9 @@ struct FileHeader final
 	uint32_t m_numVertexAttributes;
 	uint32_t m_numVertices;
 	uint32_t m_numTriangleIndices;
+	uint32_t m_numBones;
 };
-static_assert(sizeof(FileHeader) == (sizeof(k_magic) + (sizeof(uint32_t) * 4)),
+static_assert(sizeof(FileHeader) == (sizeof(k_magic) + (sizeof(uint32_t) * 5)),
 	"The mesh file header must not contain padding!");
 }
 
@@ -59,7 +60,7 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 	{
 		return false;
 	}
-	
+
 	// Read the vertex attributes.
 	Collection::Vector<VertexAttribute> attributes;
 	const char* fileIter = rawFile.data() + sizeof(FileHeader);
@@ -99,10 +100,13 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 	const uint32_t expectedSizeOfVertexData =
 		(header.m_numVertices * vertexDeclaration.GetVertexSizeInBytes())
 		+ (header.m_numVertexAttributes * sizeof(k_channelSeparator));
-	const uint32_t expectedSizeOfIndexData = (header.m_numTriangleIndices * sizeof(uint16_t));
+	const uint32_t expectedSizeOfTriangleIndexData = (header.m_numTriangleIndices * sizeof(uint16_t));
+	const uint32_t expectedSizeOfBoneTransforms = (header.m_numBones * sizeof(Math::Matrix4x4));
+	const uint32_t expectedSizeOfBoneParentIndices = (header.m_numBones * sizeof(uint16_t));
 
-	const int64_t expectedSizeOfVertexAndIndexData = expectedSizeOfVertexData + expectedSizeOfIndexData;
-	if (numBytesLeftInFile != expectedSizeOfVertexAndIndexData)
+	const int64_t expectedSizeOfPostHeaderData = expectedSizeOfVertexData + expectedSizeOfTriangleIndexData +
+		expectedSizeOfBoneTransforms + expectedSizeOfBoneParentIndices;
+	if (numBytesLeftInFile != expectedSizeOfPostHeaderData)
 	{
 		return false;
 	}
@@ -112,7 +116,7 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 	vertexData.Resize(expectedSizeOfVertexData);
 
 	const char* fileVertexChannelIter = fileVertexDataBegin;
-	for (size_t attributeIndex = 0; attributeIndex  < header.m_numVertexAttributes; ++attributeIndex)
+	for (size_t attributeIndex = 0; attributeIndex < header.m_numVertexAttributes; ++attributeIndex)
 	{
 		const uint32_t attributeSize = expandedVertexDeclaration.m_attributeSizesInBytes[attributeIndex];
 		const uint32_t attributeOffset = expandedVertexDeclaration.m_attributeOffsets[attributeIndex];
@@ -130,15 +134,34 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 		fileVertexChannelIter += sizeof(k_channelSeparator);
 	}
 
-	// Read in the index data.
-	const char* const rawIndices = fileVertexDataBegin + expectedSizeOfVertexData;
-	AMP_FATAL_ASSERT(rawIndices == fileVertexChannelIter, "The indices should be directly after the vertices.");
+	// Read in the triangle index data.
+	const char* const rawTriangleIndices = fileVertexDataBegin + expectedSizeOfVertexData;
+	AMP_FATAL_ASSERT(rawTriangleIndices == fileVertexChannelIter,
+		"The triangle indices should be directly after the vertices.");
 
-	const Collection::ArrayView<const uint16_t> indices{
-		reinterpret_cast<const uint16_t*>(rawIndices), header.m_numTriangleIndices };
+	Collection::Vector<uint16_t> triangleIndices;
+	triangleIndices.Resize(header.m_numTriangleIndices);
+	memcpy(triangleIndices.begin(), rawTriangleIndices, expectedSizeOfTriangleIndexData);
+
+	// Read in the bone data.
+	const char* const rawBoneTransforms = rawTriangleIndices + expectedSizeOfTriangleIndexData;
+	const char* const rawBoneParentIndices = rawBoneTransforms + expectedSizeOfBoneTransforms;
+
+	Collection::Vector<Math::Matrix4x4> boneTransforms;
+	boneTransforms.Resize(header.m_numBones);
+	memcpy(boneTransforms.begin(), rawBoneTransforms, expectedSizeOfBoneTransforms);
+
+	Collection::Vector<uint16_t> boneParentIndices;
+	boneParentIndices.Resize(header.m_numBones);
+	memcpy(boneParentIndices.begin(), rawBoneParentIndices, expectedSizeOfBoneParentIndices);
 
 	// Create the mesh.
-	new(destination) TriangleMesh(vertexDeclaration, std::move(vertexData), Collection::Vector<uint16_t>(indices));
+	destination = new(destination) TriangleMesh(
+		vertexDeclaration,
+		std::move(vertexData),
+		std::move(triangleIndices),
+		std::move(boneTransforms),
+		std::move(boneParentIndices));
 
 	return true;
 }
@@ -158,6 +181,7 @@ void TriangleMesh::SaveToFile(const File::Path& filePath, const TriangleMesh& me
 	header.m_numVertexAttributes = expandedVertexDeclaration.m_numAttributes;
 	header.m_numVertices = mesh.GetVertexData().Size() / expandedVertexDeclaration.m_vertexSizeInBytes;
 	header.m_numTriangleIndices = mesh.GetTriangleIndices().Size();
+	header.m_numBones = mesh.GetBoneToParentTransforms().Size();
 
 	const char* const rawHeader = reinterpret_cast<const char*>(&header);
 	output.write(rawHeader, sizeof(FileHeader));
@@ -188,9 +212,16 @@ void TriangleMesh::SaveToFile(const File::Path& filePath, const TriangleMesh& me
 		output.write(k_channelSeparator, sizeof(k_channelSeparator));
 	}
 
-	// Write the triangle indices and flush the output.
+	// Write the triangle indices.
 	const char* const rawTriangleIndices = reinterpret_cast<const char*>(&mesh.GetTriangleIndices().Front());
 	output.write(rawTriangleIndices, header.m_numTriangleIndices * sizeof(uint16_t));
+
+	// Write the bone data and flush the output.
+	const char* const rawBoneTransforms = reinterpret_cast<const char*>(&mesh.GetBoneToParentTransforms().Front());
+	output.write(rawBoneTransforms, header.m_numBones * sizeof(Math::Matrix4x4));
+
+	const char* const rawBoneParentIndices = reinterpret_cast<const char*>(&mesh.GetBoneParentIndices().Front());
+	output.write(rawBoneParentIndices, header.m_numBones * sizeof(uint16_t));
 
 	output.flush();
 }
@@ -208,10 +239,14 @@ TriangleMesh::TriangleMesh(const Collection::Vector<PosColourVertex>& vertices,
 
 TriangleMesh::TriangleMesh(const CompactVertexDeclaration& vertexDeclaration,
 	Collection::Vector<uint8_t>&& vertexData,
-	Collection::Vector<uint16_t>&& triangleIndices)
+	Collection::Vector<uint16_t>&& triangleIndices,
+	Collection::Vector<Math::Matrix4x4>&& boneToParentTransforms,
+	Collection::Vector<uint16_t>&& boneParentIndices)
 	: m_vertexDeclaration(vertexDeclaration)
 	, m_vertexData(std::move(vertexData))
 	, m_triangleIndices(std::move(triangleIndices))
+	, m_boneToParentTransforms(std::move(boneToParentTransforms))
+	, m_boneParentIndices(std::move(boneParentIndices))
 {
 }
 }
