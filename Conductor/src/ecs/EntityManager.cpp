@@ -741,6 +741,13 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		{
 			const EntityID entityID{ maybeEntityID.first };
 
+			const auto maybeParentID = Mem::DeserializeUi32(iter, iterEnd);
+			if (!maybeParentID.second)
+			{
+				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+			}
+			const EntityID parentEntityID{ maybeParentID.first };
+
 			const auto maybeNumComponents = Mem::DeserializeUi32(iter, iterEnd);
 			if (!maybeNumComponents.second)
 			{
@@ -796,6 +803,12 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 				}
 			}
 
+			if (entity != nullptr)
+			{
+				Entity* const parentEntity = FindEntity(parentEntityID);
+				SetParentEntity(*entity, parentEntity);
+			}
+
 			maybeEntityID = Mem::DeserializeUi32(iter, iterEnd);
 		}
 
@@ -815,6 +828,13 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 		while (maybeEntityID.second && maybeEntityID.first != EntityID::sk_invalidValue)
 		{
 			const EntityID entityID{ maybeEntityID.first };
+
+			const auto maybeParentID = Mem::DeserializeUi32(iter, iterEnd);
+			if (!maybeParentID.second)
+			{
+				return ApplyDeltaTransmissionResult::Make<ApplyDeltaTransmission_DataTooShort>();
+			}
+			const EntityID parentEntityID{ maybeParentID.first };
 
 			//if ((!m_entities.IsEmpty()) && m_entities.Back().GetID() >= entityID)
 			//{
@@ -866,6 +886,9 @@ ECS::ApplyDeltaTransmissionResult EntityManager::ApplyDeltaTransmission(
 					}
 				}
 			}
+
+			Entity* const parentEntity = FindEntity(parentEntityID);
+			SetParentEntity(entity, parentEntity);
 
 			maybeEntityID = Mem::DeserializeUi32(iter, iterEnd);
 		}
