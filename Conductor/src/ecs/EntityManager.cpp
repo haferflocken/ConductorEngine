@@ -266,6 +266,12 @@ void EntityManager::SetParentEntity(Entity& entity, Entity* parentEntity)
 	{
 		parentEntity->m_children.Add(&entity);
 	}
+
+	// If we can transmit state, track the entity as a changed entity.
+	if (m_transmissionBuffers != nullptr)
+	{
+		m_transmissionBuffers->m_entitiesChangedSinceLastTransmission.Add(entity.GetID());
+	}
 }
 
 void EntityManager::DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete)
@@ -497,6 +503,16 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 			}
 
 			Mem::Serialize(entityID.GetUniqueID(), transmissionBytes);
+			
+			if (entity->GetParent() != nullptr)
+			{
+				Mem::Serialize(entity->GetParent()->GetID().GetUniqueID(), transmissionBytes);
+			}
+			else
+			{
+				Mem::Serialize(EntityID::sk_invalidValue, transmissionBytes);
+			}
+
 			Mem::Serialize(entity->GetComponentIDs().Size(), transmissionBytes);
 			for (const auto& componentID : entity->GetComponentIDs())
 			{
@@ -506,6 +522,18 @@ Collection::Vector<uint8_t> EntityManager::SerializeDeltaTransmission()
 		}
 		Mem::Serialize(EntityID::sk_invalidValue, transmissionBytes);
 	};
+
+	// Remove duplicates from the list of entities that changed since it's entirely possible for an entity to change
+	// multiple times between transmissions.
+	// TODO(network) There's no need to transmit an entity as both added and changed in the same transmission.
+	auto& entitiesChangedSinceLastTransmission = m_transmissionBuffers->m_entitiesChangedSinceLastTransmission;
+	{
+		std::sort(entitiesChangedSinceLastTransmission.begin(), entitiesChangedSinceLastTransmission.end());
+		const auto removeIter = std::unique(
+			entitiesChangedSinceLastTransmission.begin(), entitiesChangedSinceLastTransmission.end());
+		const size_t removeIndex = std::distance(entitiesChangedSinceLastTransmission.begin(), removeIter);
+		entitiesChangedSinceLastTransmission.Remove(removeIndex, entitiesChangedSinceLastTransmission.Size());
+	}
 
 	SerializeEntitySection(TransmissionSectionType::EntitiesChanged,
 		m_transmissionBuffers->m_entitiesChangedSinceLastTransmission, transmissionBytes);
