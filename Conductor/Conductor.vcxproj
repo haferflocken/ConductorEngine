@@ -173,6 +173,7 @@
     <ClCompile Include="src\behave\BlackboardComponent.cpp" />
     <ClCompile Include="src\host\IHost.cpp" />
     <ClCompile Include="src\mesh\MeshComponent.cpp" />
+    <ClCompile Include="src\mesh\SkeletonMatrixCollectionSystem.cpp" />
     <ClCompile Include="src\mesh\SkeletonRootComponent.cpp" />
     <ClCompile Include="src\mesh\SkeletonSystem.cpp" />
     <ClCompile Include="src\mesh\TriangleMesh.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="math\Frustum.h" />
     <ClInclude Include="math\Ray3.h" />
     <ClInclude Include="mesh\MeshComponent.h" />
+    <ClInclude Include="mesh\SkeletonMatrixCollectionSystem.h" />
     <ClInclude Include="mesh\SkeletonRootComponent.h" />
     <ClInclude Include="mesh\SkeletonSystem.h" />
     <ClInclude Include="mesh\TriangleMesh.h" />

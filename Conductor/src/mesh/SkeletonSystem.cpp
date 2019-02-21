@@ -47,7 +47,7 @@ void CreateBoneEntities(
 		ECS::Entity& boneEntity = *boneEntities[boneIndex];
 
 		ECS::Entity* const parentEntity =
-			(boneParentIndex == TriangleMesh::k_invalidBoneParentIndex) ? &rootEntity : boneEntities[boneParentIndex];
+			(boneParentIndex == TriangleMesh::k_invalidBoneIndex) ? &rootEntity : boneEntities[boneParentIndex];
 
 		entityManager.SetParentEntity(boneEntity, parentEntity);
 	}

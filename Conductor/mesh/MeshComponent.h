@@ -3,6 +3,7 @@
 #include <mesh/TriangleMesh.h>
 
 #include <asset/AssetHandle.h>
+#include <collection/Vector.h>
 #include <ecs/Component.h>
 
 #include <collection/Vector.h>
@@ -29,6 +30,7 @@ public:
 	explicit MeshComponent(const ECS::ComponentID id)
 		: Component(id)
 		, m_meshHandle()
+		, m_boneToWorldMatrices()
 	{}
 
 	MeshComponent(const MeshComponent&) = delete;
@@ -37,6 +39,9 @@ public:
 	MeshComponent(MeshComponent&&) = default;
 	MeshComponent& operator=(MeshComponent&&) = default;
 
+	// The mesh in use by this component.
 	Asset::AssetHandle<Mesh::TriangleMesh> m_meshHandle;
+	// The world matricies of each bone in the mesh's skeleton.
+	Collection::Vector<Math::Matrix4x4> m_boneToWorldMatrices;
 };
 }

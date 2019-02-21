@@ -47,9 +47,14 @@ bgfx::VertexDecl Renderer::MakeBGFXVertexDecl(const Mesh::ExpandedVertexDeclarat
 			result.add(bgfx::Attrib::Color1, 4, bgfx::AttribType::Uint8, true);
 			break;
 		}
+		case Mesh::VertexAttribute::WeightGroup:
+		{
+			result.add(bgfx::Attrib::Weight, 1, bgfx::AttribType::Uint8, false, true);
+			break;
+		}
 		default:
 		{
-			static_assert(static_cast<size_t>(Mesh::VertexAttribute::Count) == 7,
+			static_assert(static_cast<size_t>(Mesh::VertexAttribute::Count) == 8,
 				"All vertex attribute types must be handled here!");
 			AMP_LOG_ERROR("Encountered an unknown vertex attribute when creating a bgfx::VertexDecl.");
 			result.end();

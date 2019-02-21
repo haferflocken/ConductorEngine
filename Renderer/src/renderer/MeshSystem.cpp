@@ -8,26 +8,45 @@ namespace Renderer
 {
 MeshSystem::MeshSystem(Asset::AssetManager& assetManager)
 	: SystemTempl()
-	, m_vertexShader(assetManager.RequestAsset<Shader>(
+	, m_staticMeshVertexShader(assetManager.RequestAsset<Shader>(
 		File::MakePath("shaders\\vs_static_mesh.bin"), Asset::LoadingMode::Immediate))
+	, m_riggedMeshVertexShader(assetManager.RequestAsset<Shader>(
+		File::MakePath("shaders\\vs_rigged_mesh.bin"), Asset::LoadingMode::Immediate))
 	, m_fragmentShader(assetManager.RequestAsset<Shader>(
 		File::MakePath("shaders\\fs_static_mesh.bin"), Asset::LoadingMode::Immediate))
-	, m_program(BGFX_INVALID_HANDLE)
-	, m_staticMeshData()
+	, m_staticMeshProgram(BGFX_INVALID_HANDLE)
+	, m_riggedMeshProgram(BGFX_INVALID_HANDLE)
+	, m_boneMatricesUniform(bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, k_maxBones))
+	, m_weightGroupsUniform(bgfx::createUniform("u_weightGroups", bgfx::UniformType::Vec4, (k_maxBones * k_maxWeightGroups) / 4))
+	, m_meshMetadata()
 {
-	const Shader* const vertexShader = m_vertexShader.TryGetAsset();
 	const Shader* const fragmentShader = m_fragmentShader.TryGetAsset();
-	if (vertexShader != nullptr && fragmentShader != nullptr)
+	if (fragmentShader != nullptr)
 	{
-		m_program = bgfx::createProgram(vertexShader->GetShaderHandle(), fragmentShader->GetShaderHandle(), false);
+		const Shader* const staticMeshVertexShader = m_staticMeshVertexShader.TryGetAsset();
+		if (staticMeshVertexShader != nullptr)
+		{
+			m_staticMeshProgram = bgfx::createProgram(
+				staticMeshVertexShader->GetShaderHandle(), fragmentShader->GetShaderHandle(), false);
+		}
+		const Shader* const riggedMeshVertexShader = m_riggedMeshVertexShader.TryGetAsset();
+		if (riggedMeshVertexShader != nullptr)
+		{
+			m_riggedMeshProgram = bgfx::createProgram(
+				riggedMeshVertexShader->GetShaderHandle(), fragmentShader->GetShaderHandle(), false);
+		}
 	}
 }
 
 MeshSystem::~MeshSystem()
 {
-	if (bgfx::isValid(m_program))
+	if (bgfx::isValid(m_riggedMeshProgram))
 	{
-		bgfx::destroy(m_program);
+		bgfx::destroy(m_riggedMeshProgram);
+	}
+	if (bgfx::isValid(m_staticMeshProgram))
+	{
+		bgfx::destroy(m_staticMeshProgram);
 	}
 }
 
@@ -42,7 +61,7 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 	}
 
 	// Create vertex buffers and index buffers for any meshes that finished loading.
-	for (auto& entry : m_staticMeshData)
+	for (auto& entry : m_meshMetadata)
 	{
 		const Asset::AssetHandle<Mesh::TriangleMesh>& handle = entry.first;
 		MeshDatum& datum = entry.second;
@@ -71,6 +90,13 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 			datum.m_indexBuffer = bgfx::createIndexBuffer(
 				bgfx::makeRef(&mesh->GetTriangleIndices().Front(), mesh->GetTriangleIndices().Size() * sizeof(uint16_t)));
 		}
+
+		if (!bgfx::isValid(datum.m_program))
+		{
+			const Mesh::CompactVertexDeclaration& vertexDeclaration = mesh->GetVertexDeclaration();
+			datum.m_program = (vertexDeclaration.HasAttribute(Mesh::VertexAttribute::WeightGroup))
+				? m_riggedMeshProgram : m_staticMeshProgram;
+		}
 	}
 
 	// Render all the meshes.
@@ -79,36 +105,59 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 		const auto& transformComponent = ecsGroup.Get<const Scene::SceneTransformComponent>();
 		auto& meshComponent = ecsGroup.Get<Mesh::MeshComponent>();
 
-		const auto datumIter = m_staticMeshData.Find(meshComponent.m_meshHandle);
-		if (datumIter == m_staticMeshData.end())
+		const auto datumIter = m_meshMetadata.Find(meshComponent.m_meshHandle);
+		if (datumIter == m_meshMetadata.end())
 		{
-			// If the mesh isn't in m_staticMeshData, it may have changed since the entity was added.
-			// Add it to m_staticMeshData so it gets picked up for the next update.
-			m_staticMeshData[meshComponent.m_meshHandle];
+			// If the mesh isn't in m_meshMetadata, it may have changed since the entity was added.
+			// Add it to m_meshMetadata so it gets picked up for the next update.
+			m_meshMetadata[meshComponent.m_meshHandle];
 			continue;
 		}
-		
+
 		MeshDatum& datum = datumIter->second;
+		const Mesh::TriangleMesh* const mesh = meshComponent.m_meshHandle.TryGetAsset();
 		datum.m_timeSinceLastAccess = Unit::Time::Millisecond(0);
 
-		if ((!bgfx::isValid(datum.m_vertexBuffer)) || (!bgfx::isValid(datum.m_indexBuffer)))
+		if ((!bgfx::isValid(datum.m_vertexBuffer)) || (!bgfx::isValid(datum.m_indexBuffer)) ||
+			(!bgfx::isValid(datum.m_program)) || mesh == nullptr)
 		{
 			continue;
 		}
 
-		const Math::Matrix4x4& m = transformComponent.m_modelToWorldMatrix;
+		// Rigged meshes need their bones and weight groups as uniforms.
+		if (datum.m_program.idx == m_riggedMeshProgram.idx)
+		{
+			// Memcpy to the stack so we don't over/underfill the uniform data.
+			Math::Matrix4x4 boneMatrices[k_maxBones];
 
-		encoder->setTransform(m.GetData());
+			const size_t numBoneMatrixBytes = meshComponent.m_boneToWorldMatrices.Size() * sizeof(Math::Matrix4x4);
+			memcpy(boneMatrices, meshComponent.m_boneToWorldMatrices.begin(),
+				std::min<size_t>(sizeof(boneMatrices), numBoneMatrixBytes));
+
+			float weightGroups[k_maxBones * k_maxWeightGroups];
+			memset(weightGroups, 0, sizeof(weightGroups));
+			
+			const size_t numWeightGroupBytes = mesh->GetWeightGroups().Size() * sizeof(float);
+			memcpy(weightGroups, mesh->GetWeightGroups().begin(),
+				std::min<size_t>(sizeof(weightGroups), numWeightGroupBytes));
+
+			encoder->setUniform(m_boneMatricesUniform, boneMatrices, k_maxBones);
+			// Divide by 4 because the weight groups are passed in as an array of Vector4.
+			static_assert((k_maxBones * k_maxWeightGroups) % 4 == 0);
+			encoder->setUniform(m_weightGroupsUniform, weightGroups, (k_maxBones * k_maxWeightGroups) / 4);
+		}
+
+		encoder->setTransform(transformComponent.m_modelToWorldMatrix.GetData());
 		encoder->setVertexBuffer(0, datum.m_vertexBuffer);
 		encoder->setIndexBuffer(datum.m_indexBuffer);
 		encoder->setState(BGFX_STATE_DEFAULT);
-		encoder->submit(k_sceneViewID, m_program);
+		encoder->submit(k_sceneViewID, datum.m_program);
 	}
 
 	// Discard any data for meshes that haven't been accessed recently.
 	static constexpr Unit::Time::Millisecond k_discardAfterDuration{ 120000 };
 
-	m_staticMeshData.RemoveAllMatching([](const auto& entry)
+	m_meshMetadata.RemoveAllMatching([](const auto& entry)
 		{
 			const MeshDatum& datum = entry.second;
 			return (datum.m_timeSinceLastAccess > k_discardAfterDuration);
@@ -121,7 +170,7 @@ void MeshSystem::NotifyOfEntityAdded(const ECS::EntityID id, const ECSGroupType&
 {
 	// Create an entry in the mesh data for the entity's mesh handle.
 	auto& meshComponent = group.Get<Mesh::MeshComponent>();
-	m_staticMeshData[meshComponent.m_meshHandle];
+	m_meshMetadata[meshComponent.m_meshHandle];
 }
 
 void MeshSystem::NotifyOfEntityRemoved(const ECS::EntityID id, const ECSGroupType& group)

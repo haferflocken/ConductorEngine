@@ -11,6 +11,7 @@
 #include <input/InputComponent.h>
 #include <mem/InspectorInfo.h>
 #include <mesh/MeshComponent.h>
+#include <mesh/SkeletonMatrixCollectionSystem.h>
 #include <renderer/CameraComponent.h>
 #include <scene/AnchorComponent.h>
 #include <scene/RelativeTransformSystem.h>
@@ -32,6 +33,8 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::RelativeTransformSystem>());
+	// SkeletonMatrixCollectionSystem depends on the output of RelativeTransformSystem.
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Mesh::SkeletonMatrixCollectionSystem>());
 }
 
 void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond delta)
