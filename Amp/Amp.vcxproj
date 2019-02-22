@@ -157,6 +157,12 @@
     <ClInclude Include="image\Pixel1Image.h" />
     <ClInclude Include="json\JSONPrintVisitor.h" />
     <ClInclude Include="json\JSONTypes.h" />
+    <ClInclude Include="math\Frustum.h" />
+    <ClInclude Include="math\Matrix4x4.h" />
+    <ClInclude Include="math\Ray3.h" />
+    <ClInclude Include="math\Vector2.h" />
+    <ClInclude Include="math\Vector3.h" />
+    <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="mem\DeserializeLittleEndian.h" />
     <ClInclude Include="mem\InspectorInfo.h" />
     <ClInclude Include="mem\Serialize.h" />

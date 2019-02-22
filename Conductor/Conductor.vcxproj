@@ -246,8 +246,6 @@
     <ClInclude Include="behave\Blackboard.h" />
     <ClInclude Include="behave\BehaviourTreeComponent.h" />
     <ClInclude Include="behave\BlackboardComponent.h" />
-    <ClInclude Include="math\Frustum.h" />
-    <ClInclude Include="math\Ray3.h" />
     <ClInclude Include="mesh\MeshComponent.h" />
     <ClInclude Include="mesh\SkeletonMatrixCollectionSystem.h" />
     <ClInclude Include="mesh\SkeletonRootComponent.h" />
@@ -284,10 +282,6 @@
     <ClInclude Include="client\IClient.h" />
     <ClInclude Include="host\IHost.h" />
     <ClInclude Include="host\MessageToClient.h" />
-    <ClInclude Include="math\Matrix4x4.h" />
-    <ClInclude Include="math\Vector2.h" />
-    <ClInclude Include="math\Vector3.h" />
-    <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="input\InputMessage.h" />
     <ClInclude Include="navigation\AStar.h" />
     <ClInclude Include="navigation\NavigationManager.h" />
