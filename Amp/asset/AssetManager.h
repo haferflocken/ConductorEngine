@@ -116,9 +116,6 @@ inline void AssetManager::RegisterAssetType(const char* const fileType, AssetLoa
 	const size_t typeHash = typeid(TAsset).hash_code();
 	std::unique_lock<std::shared_mutex> writeLock{ m_sharedMutex };
 
-	AMP_FATAL_ASSERT(m_assetsByTypeHash.Find(typeHash) == m_assetsByTypeHash.end(),
-		"An asset type may not be registered multiple times.");
-
 	AssetContainer& assetContainer = m_assetsByTypeHash[typeHash];
 	AMP_FATAL_ASSERT(assetContainer.m_numLoadingFunctions < assetContainer.m_loadingFunctions.size(),
 		"An asset may not be assosciated with more than %zu file tpes.", assetContainer.m_loadingFunctions.size());
