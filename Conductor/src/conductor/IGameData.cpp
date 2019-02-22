@@ -9,6 +9,7 @@
 #include <ecs/ComponentReflector.h>
 #include <image/Pixel1Image.h>
 #include <input/InputComponent.h>
+#include <mesh/FBXImporter.h>
 #include <mesh/MeshComponent.h>
 #include <mesh/SkeletonRootComponent.h>
 #include <scene/AnchorComponent.h>
@@ -29,6 +30,7 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	// Register asset types.
 	m_assetManager.RegisterAssetType<Image::Pixel1Image>(".bmp", &Image::Pixel1Image::TryLoad);
 	m_assetManager.RegisterAssetType<Mesh::TriangleMesh>(".cms", &Mesh::TriangleMesh::TryLoad);
+	m_assetManager.RegisterAssetType<Mesh::TriangleMesh>(".fbx", &Mesh::TryImportFBX);
 	m_assetManager.RegisterAssetType<Behave::BehaviourForest>(".behave",
 		[&](const File::Path& filePath, Behave::BehaviourForest* destination)
 		{

@@ -16,28 +16,28 @@
 #define AMP_LOG(FORMAT, ...) \
 	do {\
 		char buffer[AMP_LOG_BUFFER_SIZE]; \
-		std::snprintf(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
+		_snprintf_s(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
 		Dev::PrintMessage(Dev::MessageType::Info, buffer); \
 	} while(false)
 
 #define AMP_LOG_WARNING(FORMAT, ...) \
 	do {\
 		char buffer[AMP_LOG_BUFFER_SIZE]; \
-		std::snprintf(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
+		_snprintf_s(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
 		Dev::PrintMessage(Dev::MessageType::Warning, buffer); \
 	} while(false)
 
 #define AMP_LOG_ERROR(FORMAT, ...) \
 	do {\
 		char buffer[AMP_LOG_BUFFER_SIZE]; \
-		std::snprintf(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
+		_snprintf_s(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
 		Dev::PrintMessage(Dev::MessageType::Error, buffer); \
 	} while(false)
 
 #define AMP_FATAL_ERROR(FORMAT, ...) \
 	do {\
 		char buffer[AMP_LOG_BUFFER_SIZE]; \
-		std::snprintf(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
+		_snprintf_s(buffer, AMP_LOG_BUFFER_SIZE, FORMAT, __VA_ARGS__); \
 		Dev::PrintMessage(Dev::MessageType::FatalError, buffer); \
 		__debugbreak(); \
 		std::terminate(); \
