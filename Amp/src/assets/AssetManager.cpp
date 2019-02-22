@@ -6,7 +6,7 @@ void AssetManager::Update()
 {
 	std::shared_lock<std::shared_mutex> readLock{ m_sharedMutex };
 
-	for (auto& entry : m_assetsByFileType)
+	for (auto& entry : m_assetsByTypeHash)
 	{
 		AssetContainer& assetContainer = entry.second;
 		std::lock_guard guard{ assetContainer.m_assetTypeMutex };
@@ -37,7 +37,15 @@ AssetManager::AssetContainer::AssetContainer(AssetContainer&& other)
 {
 	std::unique_lock lock{ other.m_assetTypeMutex };
 
-	m_loadingFunction = std::move(other.m_loadingFunction);
+	m_numLoadingFunctions = other.m_numLoadingFunctions;
+	other.m_numLoadingFunctions = 0;
+
+	for (size_t i = 0; i < m_numLoadingFunctions; ++i)
+	{
+		m_loadingFunctionFileTypes[i] = other.m_loadingFunctionFileTypes[i];
+		m_loadingFunctions[i] = std::move(other.m_loadingFunctions[i]);
+	}
+
 	m_destructorFunction = std::move(other.m_destructorFunction);
 	m_pathAllocator = std::move(other.m_pathAllocator);
 	m_assetAllocator = std::move(other.m_assetAllocator);
@@ -51,7 +59,15 @@ AssetManager::AssetContainer& AssetManager::AssetContainer::operator=(AssetConta
 	std::unique_lock rhsLock{ rhs.m_assetTypeMutex, std::defer_lock };
 	std::lock(lhsLock, rhsLock);
 
-	m_loadingFunction = std::move(rhs.m_loadingFunction);
+	m_numLoadingFunctions = rhs.m_numLoadingFunctions;
+	rhs.m_numLoadingFunctions = 0;
+
+	for (size_t i = 0; i < m_numLoadingFunctions; ++i)
+	{
+		m_loadingFunctionFileTypes[i] = rhs.m_loadingFunctionFileTypes[i];
+		m_loadingFunctions[i] = std::move(rhs.m_loadingFunctions[i]);
+	}
+
 	m_destructorFunction = std::move(rhs.m_destructorFunction);
 	m_pathAllocator = std::move(rhs.m_pathAllocator);
 	m_assetAllocator = std::move(rhs.m_assetAllocator);
@@ -61,12 +77,12 @@ AssetManager::AssetContainer& AssetManager::AssetContainer::operator=(AssetConta
 	return *this;
 }
 
-void AssetManager::UnregisterAssetTypeInternal(const char* const fileType)
+void AssetManager::UnregisterAssetTypeInternal(const size_t typeHash)
 {
 	std::unique_lock<std::shared_mutex> writeLock{ m_sharedMutex };
 
-	const auto assetContainerIter = m_assetsByFileType.Find(fileType);
-	AMP_FATAL_ASSERT(assetContainerIter != m_assetsByFileType.end(),
+	const auto assetContainerIter = m_assetsByTypeHash.Find(typeHash);
+	AMP_FATAL_ASSERT(assetContainerIter != m_assetsByTypeHash.end(),
 		"Cannot unregister an asset type that isn't registered.");
 
 	AssetContainer& assetContainer = assetContainerIter->second;
@@ -83,7 +99,7 @@ void AssetManager::UnregisterAssetTypeInternal(const char* const fileType)
 		"Cannot unregister an asset type that is still in use!");
 
 	// Remove the asset container from the asset type map.
-	m_assetsByFileType.TryRemove(fileType);
+	m_assetsByTypeHash.TryRemove(typeHash);
 }
 
 void AssetManager::DestroyUnreferencedAssets(AssetContainer& assetContainer)

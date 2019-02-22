@@ -15,8 +15,6 @@ namespace Renderer
 class Shader final
 {
 public:
-	static constexpr const char* k_fileType = ".spv";
-
 	static bool TryLoad(const File::Path& filePath, Shader* destination);
 
 	Shader(std::string&& binaryString, bgfx::ShaderHandle shaderHandle);

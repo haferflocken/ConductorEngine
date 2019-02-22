@@ -11,8 +11,6 @@ namespace Image
 class Pixel1Image final
 {
 public:
-	static constexpr const char* k_fileType = ".bmp";
-
 	static bool TryLoad(const File::Path& filePath, Pixel1Image* destination);
 
 	Pixel1Image() = default;

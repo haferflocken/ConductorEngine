@@ -8,7 +8,7 @@ namespace Renderer
 {
 void RegisterAssetTypes(Asset::AssetManager& assetManager)
 {
-	assetManager.RegisterAssetType<Shader>(Shader::TryLoad);
+	assetManager.RegisterAssetType<Shader>(".bin", Shader::TryLoad);
 }
 
 void UnregisterAssetTypes(Asset::AssetManager& assetManager)

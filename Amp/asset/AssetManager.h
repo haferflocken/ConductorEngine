@@ -7,11 +7,13 @@
 #include <dev/Dev.h>
 #include <file/Path.h>
 
+#include <array>
 #include <functional>
 #include <future>
 #include <mutex>
 #include <shared_mutex>
 #include <string_view>
+#include <typeinfo>
 
 namespace Asset
 {
@@ -31,7 +33,7 @@ public:
 	explicit AssetManager(const File::Path& assetDirectory)
 		: m_assetDirectory(assetDirectory)
 		, m_sharedMutex()
-		, m_assetsByFileType()
+		, m_assetsByTypeHash()
 	{}
 
 	~AssetManager() = default;
@@ -41,10 +43,10 @@ public:
 	template <typename TAsset>
 	using AssetLoadingFunction = std::function<bool(const File::Path&, TAsset*)>;
 
-	// Register an asset type. TAsset must define static constexpr const char* k_fileType that holds the file type
-	// the asset will be associated with. Only one asset type may correspond to each file type.
+	// Register an asset type. Only one asset type may correspond to each file extension, but an asset type can be
+	// registered multiple times with different file types.
 	template <typename TAsset>
-	void RegisterAssetType(AssetLoadingFunction<TAsset>&& loadFn);
+	void RegisterAssetType(const char* const fileType, AssetLoadingFunction<TAsset>&& loadFn);
 
 	// Unregister an asset type. This will fail if any assets for that type are referenced.
 	template <typename TAsset>
@@ -73,7 +75,10 @@ private:
 
 		std::mutex m_assetTypeMutex;
 
-		std::function<bool(const File::Path&, void*)> m_loadingFunction;
+		uint32_t m_numLoadingFunctions{ 0 };
+		std::array<const char*, 4> m_loadingFunctionFileTypes;
+		std::array<std::function<bool(const File::Path&, void*)>, 4> m_loadingFunctions;
+
 		AssetDestructor m_destructorFunction{ nullptr };
 
 		// Allocates fixed-size buffers for the paths of assets in this container.
@@ -88,7 +93,7 @@ private:
 		Collection::Vector<std::future<void>> m_loadingFutures;
 	};
 
-	void UnregisterAssetTypeInternal(const char* const fileType);
+	void UnregisterAssetTypeInternal(const size_t typeHash);
 	void DestroyUnreferencedAssets(AssetContainer& assetContainer);
 
 private:
@@ -97,8 +102,8 @@ private:
 
 	// Shared mutex used to prevent asset type registration during RequestAsset() or Update().
 	std::shared_mutex m_sharedMutex;
-	// The assets and assosciated data, keyed by file type.
-	Collection::VectorMap<const char*, AssetContainer> m_assetsByFileType;
+	// The assets and assosciated data, keyed by their type hash.
+	Collection::VectorMap<size_t, AssetContainer> m_assetsByTypeHash;
 };
 }
 
@@ -106,20 +111,26 @@ private:
 namespace Asset
 {
 template <typename TAsset>
-inline void AssetManager::RegisterAssetType(AssetLoadingFunction<TAsset>&& loadFn)
+inline void AssetManager::RegisterAssetType(const char* const fileType, AssetLoadingFunction<TAsset>&& loadFn)
 {
-	constexpr const char* const k_fileType = TAsset::k_fileType;
+	const size_t typeHash = typeid(TAsset).hash_code();
 	std::unique_lock<std::shared_mutex> writeLock{ m_sharedMutex };
 
-	AMP_FATAL_ASSERT(m_assetsByFileType.Find(k_fileType) == m_assetsByFileType.end(),
+	AMP_FATAL_ASSERT(m_assetsByTypeHash.Find(typeHash) == m_assetsByTypeHash.end(),
 		"An asset type may not be registered multiple times.");
 
-	AssetContainer& assetContainer = m_assetsByFileType[k_fileType];
-	assetContainer.m_loadingFunction =
+	AssetContainer& assetContainer = m_assetsByTypeHash[typeHash];
+	AMP_FATAL_ASSERT(assetContainer.m_numLoadingFunctions < assetContainer.m_loadingFunctions.size(),
+		"An asset may not be assosciated with more than %zu file tpes.", assetContainer.m_loadingFunctions.size());
+
+	assetContainer.m_loadingFunctionFileTypes[assetContainer.m_numLoadingFunctions] = fileType;
+	assetContainer.m_loadingFunctions[assetContainer.m_numLoadingFunctions] =
 		[loadingFunction = std::move(loadFn)](const File::Path& filePath, void* rawAsset) mutable -> bool
 	{
 		return loadingFunction(filePath, reinterpret_cast<TAsset*>(rawAsset));
 	};
+	++assetContainer.m_numLoadingFunctions;
+
 	assetContainer.m_destructorFunction = [](void* managedAsset)
 	{
 		reinterpret_cast<ManagedAsset<TAsset>*>(managedAsset)->m_asset.~TAsset();
@@ -131,17 +142,17 @@ inline void AssetManager::RegisterAssetType(AssetLoadingFunction<TAsset>&& loadF
 template <typename TAsset>
 inline void AssetManager::UnregisterAssetType()
 {
-	constexpr const char* const k_fileType = TAsset::k_fileType;
-	UnregisterAssetTypeInternal(k_fileType);
+	const size_t typeHash = typeid(TAsset).hash_code();
+	UnregisterAssetTypeInternal(typeHash);
 }
 
 template <typename TAsset>
 inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath, const LoadingMode loadingMode)
 {
-	constexpr const char* const k_fileType = TAsset::k_fileType;
+	const size_t typeHash = typeid(TAsset).hash_code();
 	std::shared_lock<std::shared_mutex> readLock{ m_sharedMutex };
 
-	AMP_FATAL_ASSERT(m_assetsByFileType.Find(k_fileType) != m_assetsByFileType.end(),
+	AMP_FATAL_ASSERT(m_assetsByTypeHash.Find(typeHash) != m_assetsByTypeHash.end(),
 		"Cannot load an asset of an unregistered type.");
 
 	const FilePathView filePathView{ filePath.native() };
@@ -152,7 +163,7 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 	}
 
 	// Obtain a lock on this asset type.
-	AssetContainer& assetContainer = m_assetsByFileType[k_fileType];
+	AssetContainer& assetContainer = m_assetsByTypeHash[typeHash];
 	std::lock_guard guard{ assetContainer.m_assetTypeMutex };
 
 	// If the asset has already been requested, just return it.
@@ -164,7 +175,29 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 		return AssetHandle<TAsset>(*managedAsset, managedAssetIter->first.data());
 	}
 
-	// The asset hasn't been requested before, so allocate memory for it and then load it asynchronously.
+	// The asset hasn't been loaded before, so check if there is a loading function for the given file type.
+	if (!filePath.has_extension())
+	{
+		AMP_LOG_WARNING("Cannot load an asset from a file with no extension.");
+		return AssetHandle<TAsset>();
+	}
+	const std::string extension = filePath.extension().string();
+	std::function<bool(const File::Path&, void*)> loadingFunction;
+	for (size_t i = 0, iEnd = assetContainer.m_numLoadingFunctions; i < iEnd; ++i)
+	{
+		if (extension == assetContainer.m_loadingFunctionFileTypes[i])
+		{
+			loadingFunction = assetContainer.m_loadingFunctions[i];
+			break;
+		}
+	}
+	if (!loadingFunction)
+	{
+		AMP_LOG_WARNING("No loading function found for extension [%s].", extension.c_str());
+		return AssetHandle<TAsset>();
+	}
+
+	// Allocate memory for the new asset and then load it asynchronously.
 	auto* const assetPath = reinterpret_cast<FilePathView::value_type*>(assetContainer.m_pathAllocator.Alloc());
 	memcpy(assetPath, filePathView.data(), filePathView.length() * sizeof(Asset::CharType));
 	assetPath[filePathView.length()] = '\0';
@@ -179,7 +212,7 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 	if (loadingMode == LoadingMode::Async)
 	{
 		assetContainer.m_loadingFutures.Add(std::async(std::launch::async,
-			[fullPath = m_assetDirectory / filePath, loadFn = assetContainer.m_loadingFunction, managedAsset]()
+			[fullPath = m_assetDirectory / filePath, loadFn = std::move(loadingFunction), managedAsset]()
 		{
 			// loadFn is a copy of the asset container's loading function so that a read-lock
 			// doesn't have to be maintained on m_sharedMutex while the asset loads.
@@ -195,7 +228,7 @@ inline AssetHandle<TAsset> AssetManager::RequestAsset(const File::Path& filePath
 	}
 	else
 	{
-		if (assetContainer.m_loadingFunction(m_assetDirectory / filePath, &managedAsset->m_asset))
+		if (loadingFunction(m_assetDirectory / filePath, &managedAsset->m_asset))
 		{
 			managedAsset->m_header.m_status = AssetStatus::Loaded;
 		}

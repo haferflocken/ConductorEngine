@@ -27,9 +27,9 @@ IGameData::IGameData(const File::Path& dataDirectory, const File::Path& userDire
 	, m_behaviourNodeFactory(Mem::MakeUnique<Behave::BehaviourNodeFactory>(*m_behaveASTInterpreter))
 {
 	// Register asset types.
-	m_assetManager.RegisterAssetType<Image::Pixel1Image>(&Image::Pixel1Image::TryLoad);
-	m_assetManager.RegisterAssetType<Mesh::TriangleMesh>(&Mesh::TriangleMesh::TryLoad);
-	m_assetManager.RegisterAssetType<Behave::BehaviourForest>(
+	m_assetManager.RegisterAssetType<Image::Pixel1Image>(".bmp", &Image::Pixel1Image::TryLoad);
+	m_assetManager.RegisterAssetType<Mesh::TriangleMesh>(".cms", &Mesh::TriangleMesh::TryLoad);
+	m_assetManager.RegisterAssetType<Behave::BehaviourForest>(".behave",
 		[&](const File::Path& filePath, Behave::BehaviourForest* destination)
 		{
 			return Behave::BehaviourForest::TryLoad(*m_behaviourNodeFactory, filePath, destination);

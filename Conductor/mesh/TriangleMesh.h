@@ -11,7 +11,6 @@ namespace Mesh
 class TriangleMesh
 {
 public:
-	static constexpr const char* k_fileType = ".cms";
 	static constexpr uint16_t k_invalidBoneIndex = UINT16_MAX;
 
 	static const TriangleMesh k_simpleQuad;

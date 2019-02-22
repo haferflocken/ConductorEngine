@@ -15,8 +15,6 @@ class BehaviourNodeFactory;
 class BehaviourForest final
 {
 public:
-	static constexpr const char* k_fileType = ".behave";
-
 	static bool TryLoad(const BehaviourNodeFactory& nodeFactory,
 		const File::Path& filePath,
 		BehaviourForest* destination);
