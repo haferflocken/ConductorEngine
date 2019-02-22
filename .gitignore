@@ -307,3 +307,6 @@ $RECYCLE.BIN/
 /VulkanRenderer/RudeBuild_VulkanRenderer.vcxproj
 /IslandGame/RudeBuild_IslandGame.vcxproj
 /glslang/RudeBuild_glslang.vcxproj
+/lib/fbx/libfbxsdk-mt.lib
+/lib/fbx/libxml2-mt.lib
+/lib/fbx/zlib-mt.lib
