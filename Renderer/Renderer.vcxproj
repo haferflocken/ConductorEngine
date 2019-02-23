@@ -98,6 +98,7 @@ $(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command
     <CustomBuild>
       <Message>Compiling shader %(Filename)</Message>
       <Outputs>$(SolutionDir)IslandGame\data\shaders\%(Filename).bin</Outputs>
+      <AdditionalInputs>$(SolutionDir)Renderer\data\shaders\varying.def.sc</AdditionalInputs>
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -151,6 +152,7 @@ $(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command
     <CustomBuild>
       <Message>Compiling shader %(Filename)</Message>
       <Outputs>$(SolutionDir)IslandGame\data\shaders\%(Filename).bin</Outputs>
+      <AdditionalInputs>$(SolutionDir)Renderer\data\shaders\varying.def.sc</AdditionalInputs>
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>

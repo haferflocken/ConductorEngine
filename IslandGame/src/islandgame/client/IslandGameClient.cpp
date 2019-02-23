@@ -102,7 +102,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		consoleTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, -0.25f, 0.5f);
 
 		// Create an inspector and attach it to the camera.
-		Condui::ConduiElement inspectorElement = Condui::MakeEntityInspector(
+		/*Condui::ConduiElement inspectorElement = Condui::MakeEntityInspector(
 			m_gameData.GetComponentReflector(),
 			m_entityManager,
 			player,
@@ -114,7 +114,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		m_entityManager.SetParentEntity(inspectorEntity, &cameraEntity);
 
 		auto& inspectorTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(inspectorEntity);
-		inspectorTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, 0.25f, 0.5f);
+		inspectorTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, 0.25f, 0.5f);*/
 	}
 
 	m_entityManager.Update(delta);
