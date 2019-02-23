@@ -11,7 +11,7 @@ const std::array<const char*, static_cast<size_t>(Mesh::VertexAttribute::Count)>
 	/* TextureCoords1 */ "TextureCoords1",
 	/* Colour0 */        "Colour0",
 	/* Colour1 */        "Colour1",
-	/* WeightGroup */    "WeightGroup",
+	/* BoneWeights */    "BoneWeights",
 };
 }
 

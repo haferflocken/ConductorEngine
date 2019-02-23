@@ -17,7 +17,6 @@ MeshSystem::MeshSystem(Asset::AssetManager& assetManager)
 	, m_staticMeshProgram(BGFX_INVALID_HANDLE)
 	, m_riggedMeshProgram(BGFX_INVALID_HANDLE)
 	, m_boneMatricesUniform(bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, k_maxBones))
-	, m_weightGroupsUniform(bgfx::createUniform("u_weightGroups", bgfx::UniformType::Vec4, (k_maxBones * k_maxWeightGroups) / 4))
 	, m_meshMetadata()
 {
 	const Shader* const fragmentShader = m_fragmentShader.TryGetAsset();
@@ -94,7 +93,7 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 		if (!bgfx::isValid(datum.m_program))
 		{
 			const Mesh::CompactVertexDeclaration& vertexDeclaration = mesh->GetVertexDeclaration();
-			datum.m_program = (vertexDeclaration.HasAttribute(Mesh::VertexAttribute::WeightGroup))
+			datum.m_program = (vertexDeclaration.HasAttribute(Mesh::VertexAttribute::BoneWeights))
 				? m_riggedMeshProgram : m_staticMeshProgram;
 		}
 	}
@@ -124,7 +123,7 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 			continue;
 		}
 
-		// Rigged meshes need their bones and weight groups as uniforms.
+		// Rigged meshes need their bones as a uniform.
 		if (datum.m_program.idx == m_riggedMeshProgram.idx)
 		{
 			// Memcpy to the stack so we don't over/underfill the uniform data.
@@ -134,17 +133,7 @@ void MeshSystem::Update(const Unit::Time::Millisecond delta,
 			memcpy(boneMatrices, meshComponent.m_boneToWorldMatrices.begin(),
 				std::min<size_t>(sizeof(boneMatrices), numBoneMatrixBytes));
 
-			float weightGroups[k_maxBones * k_maxWeightGroups];
-			memset(weightGroups, 0, sizeof(weightGroups));
-			
-			const size_t numWeightGroupBytes = mesh->GetWeightGroups().Size() * sizeof(float);
-			memcpy(weightGroups, mesh->GetWeightGroups().begin(),
-				std::min<size_t>(sizeof(weightGroups), numWeightGroupBytes));
-
 			encoder->setUniform(m_boneMatricesUniform, boneMatrices, k_maxBones);
-			// Divide by 4 because the weight groups are passed in as an array of Vector4.
-			static_assert((k_maxBones * k_maxWeightGroups) % 4 == 0);
-			encoder->setUniform(m_weightGroupsUniform, weightGroups, (k_maxBones * k_maxWeightGroups) / 4);
 		}
 
 		encoder->setTransform(transformComponent.m_modelToWorldMatrix.GetData());

@@ -35,7 +35,6 @@ public:
 
 private:
 	static constexpr uint16_t k_maxBones = 32;
-	static constexpr uint16_t k_maxWeightGroups = 32;
 
 	struct MeshDatum
 	{
@@ -61,7 +60,6 @@ private:
 	bgfx::ProgramHandle m_staticMeshProgram;
 	bgfx::ProgramHandle m_riggedMeshProgram;
 	bgfx::UniformHandle m_boneMatricesUniform;
-	bgfx::UniformHandle m_weightGroupsUniform;
 	Collection::VectorMap<Asset::AssetHandle<Mesh::TriangleMesh>, MeshDatum> m_meshMetadata;
 };
 }

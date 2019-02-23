@@ -10,7 +10,7 @@ namespace Internal_TriangleMesh
 {
 static constexpr const char k_magic[] = "!!!!!!!!!CONDUCTOR MESH";
 static constexpr const char k_channelSeparator[] = "!!!!";
-static constexpr const uint32_t k_version = 4;
+static constexpr const uint32_t k_version = 5;
 
 // The file header of mesh files. This must not contain any padding.
 struct FileHeader final
@@ -21,9 +21,8 @@ struct FileHeader final
 	uint32_t m_numVertices;
 	uint32_t m_numTriangleIndices;
 	uint32_t m_numBones;
-	uint32_t m_numWeightGroups;
 };
-static_assert(sizeof(FileHeader) == (sizeof(k_magic) + (sizeof(uint32_t) * 6)),
+static_assert(sizeof(FileHeader) == (sizeof(k_magic) + (sizeof(uint32_t) * 5)),
 	"The mesh file header must not contain padding!");
 }
 
@@ -104,10 +103,9 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 	const uint32_t expectedSizeOfTriangleIndexData = (header.m_numTriangleIndices * sizeof(uint16_t));
 	const uint32_t expectedSizeOfBoneTransforms = (header.m_numBones * sizeof(Math::Matrix4x4));
 	const uint32_t expectedSizeOfBoneParentIndices = (header.m_numBones * sizeof(uint16_t));
-	const uint32_t expectedSizeOfWeightGroups = (header.m_numBones * header.m_numWeightGroups * sizeof(float));
 
 	const int64_t expectedSizeOfPostHeaderData = expectedSizeOfVertexData + expectedSizeOfTriangleIndexData +
-		expectedSizeOfBoneTransforms + expectedSizeOfBoneParentIndices + expectedSizeOfWeightGroups;
+		expectedSizeOfBoneTransforms + expectedSizeOfBoneParentIndices;
 	if (numBytesLeftInFile != expectedSizeOfPostHeaderData)
 	{
 		return false;
@@ -148,7 +146,6 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 	// Read in data that is related to bones.
 	Collection::Vector<Math::Matrix4x4> boneTransforms;
 	Collection::Vector<uint16_t> boneParentIndices;
-	Collection::Vector<float> weightGroups;
 
 	if (header.m_numBones > 0)
 	{
@@ -161,11 +158,6 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 
 		boneParentIndices.Resize(header.m_numBones);
 		memcpy(boneParentIndices.begin(), rawBoneParentIndices, expectedSizeOfBoneParentIndices);
-
-		// Read in the weight groups.
-		const char* const rawWeightGroups = rawBoneParentIndices + expectedSizeOfBoneParentIndices;
-		weightGroups.Resize(header.m_numBones * header.m_numWeightGroups);
-		memcpy(weightGroups.begin(), rawWeightGroups, expectedSizeOfWeightGroups);
 	}
 
 	// Create the mesh.
@@ -174,8 +166,7 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 		std::move(vertexData),
 		std::move(triangleIndices),
 		std::move(boneTransforms),
-		std::move(boneParentIndices),
-		std::move(weightGroups));
+		std::move(boneParentIndices));
 
 	return true;
 }
@@ -196,7 +187,6 @@ void TriangleMesh::SaveToFile(const File::Path& filePath, const TriangleMesh& me
 	header.m_numVertices = mesh.GetVertexData().Size() / expandedVertexDeclaration.m_vertexSizeInBytes;
 	header.m_numTriangleIndices = mesh.GetTriangleIndices().Size();
 	header.m_numBones = mesh.GetBoneToParentTransforms().Size();
-	header.m_numWeightGroups = mesh.GetNumWeightGroups();
 
 	const char* const rawHeader = reinterpret_cast<const char*>(&header);
 	output.write(rawHeader, sizeof(FileHeader));
@@ -231,16 +221,12 @@ void TriangleMesh::SaveToFile(const File::Path& filePath, const TriangleMesh& me
 	const char* const rawTriangleIndices = reinterpret_cast<const char*>(&mesh.GetTriangleIndices().Front());
 	output.write(rawTriangleIndices, header.m_numTriangleIndices * sizeof(uint16_t));
 
-	// Write the bone data.
+	// Write the bone data and flush the output.
 	const char* const rawBoneTransforms = reinterpret_cast<const char*>(&mesh.GetBoneToParentTransforms().Front());
 	output.write(rawBoneTransforms, header.m_numBones * sizeof(Math::Matrix4x4));
 
 	const char* const rawBoneParentIndices = reinterpret_cast<const char*>(&mesh.GetBoneParentIndices().Front());
 	output.write(rawBoneParentIndices, header.m_numBones * sizeof(uint16_t));
-
-	// Write the weight groups and flush the output.
-	const char* const rawWeightGroups = reinterpret_cast<const char*>(&mesh.GetWeightGroups().Front());
-	output.write(rawWeightGroups, mesh.GetWeightGroups().Size() * sizeof(float));
 
 	output.flush();
 }
@@ -260,16 +246,12 @@ TriangleMesh::TriangleMesh(const CompactVertexDeclaration& vertexDeclaration,
 	Collection::Vector<uint8_t>&& vertexData,
 	Collection::Vector<uint16_t>&& triangleIndices,
 	Collection::Vector<Math::Matrix4x4>&& boneToParentTransforms,
-	Collection::Vector<uint16_t>&& boneParentIndices,
-	Collection::Vector<float>&& weightGroups)
+	Collection::Vector<uint16_t>&& boneParentIndices)
 	: m_vertexDeclaration(vertexDeclaration)
 	, m_vertexData(std::move(vertexData))
 	, m_triangleIndices(std::move(triangleIndices))
 	, m_boneToParentTransforms(std::move(boneToParentTransforms))
 	, m_boneParentIndices(std::move(boneParentIndices))
-	, m_weightGroups(std::move(weightGroups))
 {
-	AMP_ASSERT(m_boneToParentTransforms.IsEmpty() || (m_weightGroups.Size() % m_boneToParentTransforms.Size()) == 0,
-		"There must be an equal number of bytes per bone in m_weightGroups!");
 }
 }
