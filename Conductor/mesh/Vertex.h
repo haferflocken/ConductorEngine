@@ -80,7 +80,7 @@ inline constexpr Unit::ByteCount64 Mesh::GetAttributeSizeInBytes(const VertexAtt
 		/* TextureCoords1 */ Unit::ByteCount64(2 * sizeof(float)),
 		/* Colour0 */        Unit::ByteCount64(sizeof(uint32_t)),
 		/* Colour1 */        Unit::ByteCount64(sizeof(uint32_t)),
-		/* WeightGroup */    Unit::ByteCount64(sizeof(uint8_t)),
+		/* WeightGroup */    Unit::ByteCount64(sizeof(float)),
 	};
 	return k_attributeSizes[static_cast<size_t>(attribute)];
 }

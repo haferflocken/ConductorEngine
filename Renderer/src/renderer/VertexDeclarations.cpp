@@ -49,7 +49,7 @@ bgfx::VertexDecl Renderer::MakeBGFXVertexDecl(const Mesh::ExpandedVertexDeclarat
 		}
 		case Mesh::VertexAttribute::WeightGroup:
 		{
-			result.add(bgfx::Attrib::Weight, 1, bgfx::AttribType::Uint8, false, true);
+			result.add(bgfx::Attrib::Weight, 1, bgfx::AttribType::Float);
 			break;
 		}
 		default:
