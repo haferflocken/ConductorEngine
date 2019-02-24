@@ -1,5 +1,5 @@
-$input a_position, a_color0, a_weight
-$output v_color0
+$input a_position, a_texcoord0, a_weight
+$output v_texcoord0
 
 #include "bgfx_shader.sh"
 
@@ -11,10 +11,10 @@ uniform mat4 u_boneMatrices[CONDUCTOR_MAX_BONES];
 
 void main()
 {
-	float boneIndex0 = a_weight[0];
-	float boneRawWeight0 = a_weight[1];
-	float boneIndex1 = a_weight[2];
-	float boneRawWeight1 = a_weight[3];
+	int boneIndex0 = a_weight[0];
+	int boneRawWeight0 = a_weight[1];
+	int boneIndex1 = a_weight[2];
+	int boneRawWeight1 = a_weight[3];
 
 	float boneWeightSum = ((float)boneRawWeight0) + ((float)boneRawWeight1);
 	float boneWeight0 = boneRawWeight0 / boneWeightSum;
@@ -26,5 +26,5 @@ void main()
 	vec4 blendedPosition = (bonePos0 * boneWeight0) + (bonePos1 * boneWeight1);
 
 	gl_Position = mul(blendedPosition, u_viewProj);
-	v_color0 = a_color0;
+	v_texcoord0 = a_texcoord0;
 }

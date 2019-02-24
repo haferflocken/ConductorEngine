@@ -10,30 +10,30 @@ MeshSystem::MeshSystem(Asset::AssetManager& assetManager)
 	: SystemTempl()
 	, m_staticMeshVertexShader(assetManager.RequestAsset<Shader>(
 		File::MakePath("shaders\\vs_static_mesh.bin"), Asset::LoadingMode::Immediate))
+	, m_staticMeshFragmentShader(assetManager.RequestAsset<Shader>(
+		File::MakePath("shaders\\fs_static_mesh.bin"), Asset::LoadingMode::Immediate))
 	, m_riggedMeshVertexShader(assetManager.RequestAsset<Shader>(
 		File::MakePath("shaders\\vs_rigged_mesh.bin"), Asset::LoadingMode::Immediate))
-	, m_fragmentShader(assetManager.RequestAsset<Shader>(
-		File::MakePath("shaders\\fs_static_mesh.bin"), Asset::LoadingMode::Immediate))
+	, m_riggedMeshFragmentShader(assetManager.RequestAsset<Shader>(
+		File::MakePath("shaders\\fs_rigged_mesh.bin"), Asset::LoadingMode::Immediate))
 	, m_staticMeshProgram(BGFX_INVALID_HANDLE)
 	, m_riggedMeshProgram(BGFX_INVALID_HANDLE)
 	, m_boneMatricesUniform(bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, k_maxBones))
 	, m_meshMetadata()
 {
-	const Shader* const fragmentShader = m_fragmentShader.TryGetAsset();
-	if (fragmentShader != nullptr)
+	const Shader* const staticMeshVertexShader = m_staticMeshVertexShader.TryGetAsset();
+	const Shader* const staticMeshFragmentShader = m_staticMeshFragmentShader.TryGetAsset();
+	if (staticMeshVertexShader != nullptr && staticMeshFragmentShader != nullptr)
 	{
-		const Shader* const staticMeshVertexShader = m_staticMeshVertexShader.TryGetAsset();
-		if (staticMeshVertexShader != nullptr)
-		{
-			m_staticMeshProgram = bgfx::createProgram(
-				staticMeshVertexShader->GetShaderHandle(), fragmentShader->GetShaderHandle(), false);
-		}
-		const Shader* const riggedMeshVertexShader = m_riggedMeshVertexShader.TryGetAsset();
-		if (riggedMeshVertexShader != nullptr)
-		{
-			m_riggedMeshProgram = bgfx::createProgram(
-				riggedMeshVertexShader->GetShaderHandle(), fragmentShader->GetShaderHandle(), false);
-		}
+		m_staticMeshProgram = bgfx::createProgram(
+			staticMeshVertexShader->GetShaderHandle(), staticMeshFragmentShader->GetShaderHandle(), false);
+	}
+	const Shader* const riggedMeshVertexShader = m_riggedMeshVertexShader.TryGetAsset();
+	const Shader* const riggedMeshFragmentShader = m_riggedMeshFragmentShader.TryGetAsset();
+	if (riggedMeshVertexShader != nullptr && riggedMeshFragmentShader != nullptr)
+	{
+		m_riggedMeshProgram = bgfx::createProgram(
+			riggedMeshVertexShader->GetShaderHandle(), riggedMeshFragmentShader->GetShaderHandle(), false);
 	}
 }
 

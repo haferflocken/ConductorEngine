@@ -55,8 +55,9 @@ private:
 
 private:
 	Asset::AssetHandle<Shader> m_staticMeshVertexShader;
+	Asset::AssetHandle<Shader> m_staticMeshFragmentShader;
 	Asset::AssetHandle<Shader> m_riggedMeshVertexShader;
-	Asset::AssetHandle<Shader> m_fragmentShader;
+	Asset::AssetHandle<Shader> m_riggedMeshFragmentShader;
 	bgfx::ProgramHandle m_staticMeshProgram;
 	bgfx::ProgramHandle m_riggedMeshProgram;
 	bgfx::UniformHandle m_boneMatricesUniform;

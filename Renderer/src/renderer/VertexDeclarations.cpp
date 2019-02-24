@@ -49,7 +49,7 @@ bgfx::VertexDecl Renderer::MakeBGFXVertexDecl(const Mesh::ExpandedVertexDeclarat
 		}
 		case Mesh::VertexAttribute::BoneWeights:
 		{
-			result.add(bgfx::Attrib::Weight, 4, bgfx::AttribType::Uint8, false, true);
+			result.add(bgfx::Attrib::Weight, 4, bgfx::AttribType::Uint8, false);
 			break;
 		}
 		default:
