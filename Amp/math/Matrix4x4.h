@@ -38,15 +38,26 @@ public:
 
 	Matrix4x4 Transpose() const;
 
+	float CalcDeterminant() const;
+	Matrix4x4 CalcAdjugate() const;
+	Matrix4x4 CalcInverse() const;
+
 	Vector3 operator*(const Vector3& rhs) const;
 
 	Matrix4x4 operator*(const Matrix4x4& rhs) const;
 	Matrix4x4& operator*=(const Matrix4x4& rhs);
-	
+
+	Matrix4x4 operator*(const float rhs) const;
+	Matrix4x4& operator*=(const float rhs);
+
 private:
 	float m_matrix[16];
 };
+}
 
+// Inline implementations.
+namespace Math
+{
 inline Matrix4x4 Matrix4x4::MakeTranslation(const float x, const float y, const float z)
 {
 	Matrix4x4 result;
@@ -127,6 +138,116 @@ inline Matrix4x4 Matrix4x4::Transpose() const
 	return result;
 }
 
+inline float Matrix4x4::CalcDeterminant() const
+{
+	const float& a11 = m_matrix[0];
+	const float& a21 = m_matrix[1];
+	const float& a31 = m_matrix[2];
+	const float& a41 = m_matrix[3];
+
+	const float& a12 = m_matrix[4];
+	const float& a22 = m_matrix[5];
+	const float& a32 = m_matrix[6];
+	const float& a42 = m_matrix[7];
+
+	const float& a13 = m_matrix[8];
+	const float& a23 = m_matrix[9];
+	const float& a33 = m_matrix[10];
+	const float& a43 = m_matrix[11];
+
+	const float& a14 = m_matrix[12];
+	const float& a24 = m_matrix[13];
+	const float& a34 = m_matrix[14];
+	const float& a44 = m_matrix[15];
+
+	const float r0 = (a11 * a22 * a33 * a44) + (a11 * a23 * a34 * a42) + (a11 * a24 * a32 * a43);
+	const float r1 = -(a11 * a24 * a33 * a42) - (a11 * a23 * a32 * a44) - (a11 * a22 * a34 * a43);
+	const float r2 = -(a12 * a21 * a33 * a44) - (a13 * a21 * a34 * a42) - (a14 * a21 * a32 * a43);
+	const float r3 = (a14 * a21 * a33 * a42) + (a13 * a21 * a32 * a44) + (a12 * a21 * a34 * a43);
+
+	const float r4 = (a12 * a23 * a31 * a44) + (a13 * a24 * a31 * a42) + (a14 * a22 * a31 * a43);
+	const float r5 = -(a14 * a23 * a31 * a42) - (a13 * a22 * a31 * a44) - (a12 * a24 * a31 * a43);
+	const float r6 = -(a12 * a23 * a34 * a41) - (a13 * a24 * a32 * a41) - (a14 * a22 * a33 * a41);
+	const float r7 = (a14 * a23 * a32 * a41) + (a13 * a22 * a34 * a41) + (a12 * a24 * a33 * a41);
+
+	return r0 + r1 + r2 + r3 + r4 + r5 + r6 + r7;
+
+}
+
+inline Matrix4x4 Matrix4x4::CalcAdjugate() const
+{
+	const float& a11 = m_matrix[0];
+	const float& a21 = m_matrix[1];
+	const float& a31 = m_matrix[2];
+	const float& a41 = m_matrix[3];
+
+	const float& a12 = m_matrix[4];
+	const float& a22 = m_matrix[5];
+	const float& a32 = m_matrix[6];
+	const float& a42 = m_matrix[7];
+
+	const float& a13 = m_matrix[8];
+	const float& a23 = m_matrix[9];
+	const float& a33 = m_matrix[10];
+	const float& a43 = m_matrix[11];
+
+	const float& a14 = m_matrix[12];
+	const float& a24 = m_matrix[13];
+	const float& a34 = m_matrix[14];
+	const float& a44 = m_matrix[15];
+
+	Matrix4x4 result;
+	Vector4& column0 = result.GetColumn(0);
+	Vector4& column1 = result.GetColumn(1);
+	Vector4& column2 = result.GetColumn(2);
+	Vector4& column3 = result.GetColumn(3);
+
+	column0.x = (a22 * a33 * a44) + (a23 * a34 * a42) + (a24 * a32 * a43)
+		- (a24 * a33 * a42) - (a23 * a32 * a44) - (a22 * a34 * a43);
+	column1.x = -(a12 * a33 * a44) - (a13 * a34 * a42) - (a14 * a32 * a43)
+		+ (a14 * a33 * a42) + (a13 * a32 * a44) + (a12 * a34 * a43);
+	column2.x = (a12 * a23 * a44) + (a13 * a24 * a42) + (a14 * a22 * a43)
+		- (a14 * a23 * a42) - (a13 * a22 * a44) - (a12 * a24 * a43);
+	column3.x = -(a12 * a23 * a34) - (a13 * a24 * a32) - (a14 * a22 * a33)
+		+ (a14 * a23 * a32) + (a13 * a22 * a34) + (a12 * a24 * a33);
+
+	column0.y = -(a21 * a33 * a44) - (a23 * a34 * a41) - (a24 * a31 * a43)
+		+ (a24 * a33 * a41) + (a23 * a31 * a44) + (a21 * a34 * a43);
+	column1.y = (a11 * a33 * a44) + (a13 * a34 * a41) + (a14 * a31 * a43)
+		- (a14 * a33 * a41) - (a13 * a31 * a44) - (a11 * a34 * a43);
+	column2.y = -(a11 * a23 * a44) - (a13 * a24 * a41) - (a14 * a21 * a43)
+		+ (a14 * a23 * a41) + (a13 * a21 * a44) + (a11 * a24 * a43);
+	column3.y = (a11 * a23 * a34) + (a13 * a24 * a31) + (a14 * a21 * a33)
+		- (a14 * a23 * a31) - (a13 * a21 * a34) - (a11 * a24 * a33);
+
+	column0.z = (a21 * a32 * a44) + (a22 * a34 * a41) + (a24 * a31 * a42)
+		- (a24 * a32 * a41) - (a22 * a31 * a44) - (a21 * a34 * a42);
+	column1.z = -(a11 * a32 * a44) - (a12 * a34 * a41) - (a14 * a31 * a42)
+		+ (a14 * a32 * a41) + (a12 * a31 * a44) + (a11 * a34 * a42);
+	column2.z = (a11 * a22 * a44) + (a12 * a24 * a41) + (a14 * a21 * a42)
+		- (a14 * a22 * a41) - (a12 * a21 * a44) - (a11 * a24 * a42);
+	column3.z = -(a11 * a22 * a34) - (a12 * a24 * a31) - (a14 * a21 * a32)
+		+ (a14 * a22 * a31) + (a12 * a21 * a34) + (a11 * a24 * a32);
+
+	column0.w = -(a21 * a32 * a43) - (a22 * a33 * a41) - (a23 * a31 * a42)
+		+ (a23 * a32 * a41) + (a22 * a31 * a43) + (a21 * a33 * a42);
+	column1.w = (a11 * a32 * a43) + (a12 * a33 * a41) + (a13 * a31 * a42)
+		-  (a13 * a32 * a41) - (a12 * a31 * a43) - (a11 * a33 * a42);
+	column2.w = -(a11 * a22 * a43) - (a12 * a23 * a41) - (a13 * a21 * a42)
+		+ (a13 * a22 * a41) + (a12 * a21 * a43) + (a11 * a23 * a42);
+	column3.w = (a11 * a22 * a33) + (a12 * a23 * a31) + (a13 * a21 * a32)
+		- (a13 * a22 * a31) - (a12 * a21 * a33) - (a11 * a23 * a32);
+
+	return result;
+}
+
+inline Matrix4x4 Matrix4x4::CalcInverse() const
+{
+	const float determinant = CalcDeterminant();
+	const Matrix4x4 adjugateMatrix = CalcAdjugate();
+	return adjugateMatrix * (1.0f / determinant);
+}
+
 inline Vector3 Matrix4x4::operator*(const Vector3& rhs) const
 {
 	const float& row0X = m_matrix[0];
@@ -199,8 +320,24 @@ inline Matrix4x4 Matrix4x4::operator*(const Matrix4x4& rhs) const
 
 inline Matrix4x4& Matrix4x4::operator*=(const Matrix4x4& rhs)
 {
-	Matrix4x4 current = *this;
+	const Matrix4x4 current = *this;
 	*this = current * rhs;
+	return *this;
+}
+
+inline Matrix4x4 Matrix4x4::operator*(const float rhs) const
+{
+	Matrix4x4 result = *this;
+	result *= rhs;
+	return result;
+}
+
+inline Matrix4x4& Matrix4x4::operator*=(const float rhs)
+{
+	for (auto& v : m_matrix)
+	{
+		v *= rhs;
+	}
 	return *this;
 }
 }
