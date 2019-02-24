@@ -313,7 +313,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 	const uint32_t vertexBoneWeightsOffset =
 		(numSkins == 0) ? UINT32_MAX : expandedVertexDeclaration.m_attributeOffsets[2];
 
-	Collection::Vector<Math::Matrix4x4> boneToParentTransforms;
+	Collection::Vector<Math::Matrix4x4> boneAbsoluteTransforms;
 	Collection::Vector<uint16_t> boneParentIndices;
 	for (int nodeIndex = 0, numNodes = rootNode->GetChildCount(); nodeIndex < numNodes; ++nodeIndex)
 	{
@@ -374,15 +374,15 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			stack.RemoveLast();
 
 			const FbxSkeleton& skeletonNode = *static_cast<const FbxSkeleton*>(current.m_node->GetNodeAttribute());
-			const size_t boneIndex = boneToParentTransforms.Size();
+			const size_t boneIndex = boneAbsoluteTransforms.Size();
 
-			// Store the bone's transform from its parent.
-			Math::Matrix4x4& boneToParentTransform = boneToParentTransforms.Emplace();
-			const FbxAMatrix& localTransform = current.m_node->EvaluateLocalTransform();
+			// Store the bone's absolute transform; it will be converted to a relative transform later.
+			Math::Matrix4x4& boneAbsoluteTransform = boneAbsoluteTransforms.Emplace();
+			const FbxAMatrix& globalTransform = current.m_node->EvaluateGlobalTransform();
 			for (size_t columnIndex = 0; columnIndex < 4; ++columnIndex)
 			{
-				const FbxVector4& src = localTransform.GetColumn(static_cast<int>(columnIndex));
-				Math::Vector4& dest = boneToParentTransform.GetColumn(columnIndex);
+				const FbxVector4& src = globalTransform.GetColumn(static_cast<int>(columnIndex));
+				Math::Vector4& dest = boneAbsoluteTransform.GetColumn(columnIndex);
 				dest.x = static_cast<float>(src[0]);
 				dest.y = static_cast<float>(src[1]);
 				dest.z = static_cast<float>(src[2]);
@@ -452,6 +452,27 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 					stack.Add({ boneIndex, childNode });
 				}
 			}
+		}
+	}
+
+	// Convert the absolute bone transforms to relative transforms from each bone's parent.
+	Collection::Vector<Math::Matrix4x4> boneToParentTransforms;
+	boneToParentTransforms.Resize(boneAbsoluteTransforms.Size());
+	for (size_t i = 0, iEnd = boneAbsoluteTransforms.Size(); i < iEnd; ++i)
+	{
+		const uint16_t parentIndex = boneParentIndices[i];
+		const Math::Matrix4x4& boneAbsoluteTransform = boneAbsoluteTransforms[i];
+
+		Math::Matrix4x4& boneToParentTransform = boneToParentTransforms[i];
+		if (parentIndex == TriangleMesh::k_invalidBoneIndex)
+		{
+			boneToParentTransform = boneAbsoluteTransform;
+		}
+		else
+		{
+			const Math::Matrix4x4& parentAbsoluteTransform = boneAbsoluteTransforms[parentIndex];
+			const Math::Matrix4x4 parentInverse = parentAbsoluteTransform.CalcInverse();
+			boneToParentTransform = parentInverse * boneAbsoluteTransform;
 		}
 	}
 
