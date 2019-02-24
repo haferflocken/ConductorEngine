@@ -300,10 +300,13 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 	for (int i = 0; i < numPolygons; ++i)
 	{
 		const int numPolygonVertices = mesh->GetPolygonSize(i);
-		for (int j = 2; j < numPolygonVertices; ++j)
+		for (int j = 0; j < numPolygonVertices; j += 2)
 		{
-			triangleIndices.Add(mesh->GetPolygonVertex(i, j - 2));
-			triangleIndices.Add(mesh->GetPolygonVertex(i, j - 1));
+			const int j1 = (j + 1) % numPolygonVertices;
+			const int j2 = (j + 2) % numPolygonVertices;
+
+			triangleIndices.Add(mesh->GetPolygonVertex(i, j2));
+			triangleIndices.Add(mesh->GetPolygonVertex(i, j1));
 			triangleIndices.Add(mesh->GetPolygonVertex(i, j));
 		}
 	}
@@ -426,10 +429,13 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 
 					if (vertexBoneWeights.m_boneIndex0 == UINT8_MAX)
 					{
+						vertexBoneWeights.m_boneIndex0 = static_cast<uint8_t>(boneIndex);
 						vertexBoneWeights.m_boneWeight0 = static_cast<uint8_t>(controlPointWeight * UINT8_MAX);
+						vertexBoneWeights.m_boneWeight1 = 0;
 					}
 					else if (vertexBoneWeights.m_boneIndex1 == UINT8_MAX)
 					{
+						vertexBoneWeights.m_boneIndex1 = static_cast<uint8_t>(boneIndex);
 						vertexBoneWeights.m_boneWeight1 = static_cast<uint8_t>(controlPointWeight * UINT8_MAX);
 					}
 					else
