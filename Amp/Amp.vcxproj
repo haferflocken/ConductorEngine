@@ -158,6 +158,7 @@
     <ClInclude Include="json\JSONPrintVisitor.h" />
     <ClInclude Include="json\JSONTypes.h" />
     <ClInclude Include="math\Frustum.h" />
+    <ClInclude Include="math\MathConstants.h" />
     <ClInclude Include="math\Matrix4x4.h" />
     <ClInclude Include="math\Ray3.h" />
     <ClInclude Include="math\Vector2.h" />
