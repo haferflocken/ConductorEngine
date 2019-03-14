@@ -16,6 +16,7 @@ public:
 	static Matrix4x4 MakeRotateX(const float radians);
 	static Matrix4x4 MakeRotateY(const float radians);
 	static Matrix4x4 MakeRotateZ(const float radians);
+	static Matrix4x4 MakeRotateXYZ(const float xRadians, const float yRadians, const float zRadians);
 
 	// Identity matrix constructor.
 	Matrix4x4();
@@ -100,6 +101,11 @@ inline Matrix4x4 Matrix4x4::MakeRotateZ(const float radians)
 	result.m_matrix[4] = -result.m_matrix[1];
 	result.m_matrix[5] = result.m_matrix[0];
 	return result;
+}
+
+inline Matrix4x4 Matrix4x4::MakeRotateXYZ(const float xRadians, const float yRadians, const float zRadians)
+{
+	return MakeRotateX(xRadians) * MakeRotateY(yRadians) * MakeRotateZ(zRadians);
 }
 
 inline Matrix4x4::Matrix4x4()

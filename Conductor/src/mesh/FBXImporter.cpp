@@ -293,7 +293,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 	{
 		return false;
 	}
-	
+
 	// Convert the polygons into triangles.
 	Collection::Vector<uint16_t> triangleIndices;
 	const int numPolygons = mesh->GetPolygonCount();
@@ -316,7 +316,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 	const uint32_t vertexBoneWeightsOffset =
 		(numSkins == 0) ? UINT32_MAX : expandedVertexDeclaration.m_attributeOffsets[2];
 
-	Collection::Vector<Math::Matrix4x4> boneAbsoluteTransforms;
+	Collection::Vector<Math::Matrix4x4> boneToParentTransforms;
 	Collection::Vector<uint16_t> boneParentIndices;
 	for (int nodeIndex = 0, numNodes = rootNode->GetChildCount(); nodeIndex < numNodes; ++nodeIndex)
 	{
@@ -377,20 +377,29 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			stack.RemoveLast();
 
 			const FbxSkeleton& skeletonNode = *static_cast<const FbxSkeleton*>(current.m_node->GetNodeAttribute());
-			const size_t boneIndex = boneAbsoluteTransforms.Size();
+			const size_t boneIndex = boneToParentTransforms.Size();
 
-			// Store the bone's absolute transform; it will be converted to a relative transform later.
-			Math::Matrix4x4& boneAbsoluteTransform = boneAbsoluteTransforms.Emplace();
-			const FbxAMatrix& globalTransform = current.m_node->EvaluateGlobalTransform();
-			for (size_t columnIndex = 0; columnIndex < 4; ++columnIndex)
-			{
-				const FbxVector4& src = globalTransform.GetColumn(static_cast<int>(columnIndex));
-				Math::Vector4& dest = boneAbsoluteTransform.GetColumn(columnIndex);
-				dest.x = static_cast<float>(src[0]);
-				dest.y = static_cast<float>(src[1]);
-				dest.z = static_cast<float>(src[2]);
-				dest.w = static_cast<float>(src[3]);
-			}
+			// Store the bone's local transform.
+			Math::Matrix4x4& boneLocalTransform = boneToParentTransforms.Emplace();
+
+			const FbxDouble3 localTranslation = current.m_node->LclTranslation.Get();
+			const FbxDouble3 localRotation = current.m_node->LclRotation.Get();
+			const FbxDouble3 localScaling = current.m_node->LclScaling.Get();
+
+			const auto localTranslationMatrix = Math::Matrix4x4::MakeTranslation(
+				static_cast<float>(localTranslation[0]),
+				static_cast<float>(localTranslation[1]),
+				static_cast<float>(localTranslation[2]));
+			const auto localRotationMatrix = Math::Matrix4x4::MakeRotateXYZ(
+				static_cast<float>(localRotation[0]),
+				static_cast<float>(localRotation[1]),
+				static_cast<float>(localRotation[2]));
+			const auto localScalingMatrix = Math::Matrix4x4::MakeScale(
+				static_cast<float>(localScaling[0]),
+				static_cast<float>(localScaling[1]),
+				static_cast<float>(localScaling[2]));
+
+			boneLocalTransform = localTranslationMatrix * localRotationMatrix * localScalingMatrix;
 
 			// Store the index of the bone's parent.
 			boneParentIndices.Add(static_cast<uint16_t>(current.m_parentIndex));
@@ -412,7 +421,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 						AMP_LOG_WARNING("Vertex weights must be less than or equal to 1.");
 						continue;
 					}
-					
+
 					// Copy the existing bone weights, add the new bone weight in the right place, and then copy the
 					// bone weights back into the vertex.
 					uint8_t* const vertex = &vertexData[controlPointIndex * sizeOfVertex];
@@ -431,6 +440,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 					{
 						vertexBoneWeights.m_boneIndex0 = static_cast<uint8_t>(boneIndex);
 						vertexBoneWeights.m_boneWeight0 = static_cast<uint8_t>(controlPointWeight * UINT8_MAX);
+						vertexBoneWeights.m_boneIndex1 = static_cast<uint8_t>(boneIndex);
 						vertexBoneWeights.m_boneWeight1 = 0;
 					}
 					else if (vertexBoneWeights.m_boneIndex1 == UINT8_MAX)
@@ -460,28 +470,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			}
 		}
 	}
-
-	// Convert the absolute bone transforms to relative transforms from each bone's parent.
-	Collection::Vector<Math::Matrix4x4> boneToParentTransforms;
-	boneToParentTransforms.Resize(boneAbsoluteTransforms.Size());
-	for (size_t i = 0, iEnd = boneAbsoluteTransforms.Size(); i < iEnd; ++i)
-	{
-		const uint16_t parentIndex = boneParentIndices[i];
-		const Math::Matrix4x4& boneAbsoluteTransform = boneAbsoluteTransforms[i];
-
-		Math::Matrix4x4& boneToParentTransform = boneToParentTransforms[i];
-		if (parentIndex == TriangleMesh::k_invalidBoneIndex)
-		{
-			boneToParentTransform = boneAbsoluteTransform;
-		}
-		else
-		{
-			const Math::Matrix4x4& parentAbsoluteTransform = boneAbsoluteTransforms[parentIndex];
-			const Math::Matrix4x4 parentInverse = parentAbsoluteTransform.CalcInverse();
-			boneToParentTransform = parentInverse * boneAbsoluteTransform;
-		}
-	}
-
+	
 	destination = new (destination) Mesh::TriangleMesh(
 		vertexDeclaration,
 		std::move(vertexData),

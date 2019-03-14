@@ -12,6 +12,7 @@
 #include <mem/InspectorInfo.h>
 #include <mesh/MeshComponent.h>
 #include <mesh/SkeletonMatrixCollectionSystem.h>
+#include <mesh/SkeletonSystem.h>
 #include <renderer/CameraComponent.h>
 #include <scene/AnchorComponent.h>
 #include <scene/RelativeTransformSystem.h>
@@ -32,13 +33,15 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 		m_entityManager };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 
+	// SkeletonSystem produces an entity hierarchy which should happen before RelativeTransformSystem runs.
+	m_entityManager.RegisterSystem(Mem::MakeUnique<Mesh::SkeletonSystem>());
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::RelativeTransformSystem>());
 	// SkeletonMatrixCollectionSystem depends on the output of RelativeTransformSystem.
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Mesh::SkeletonMatrixCollectionSystem>());
 
-	const Mesh::TriangleMesh& cube = *gameData.GetAssetManager().RequestAsset<Mesh::TriangleMesh>(
-		File::MakePath("meshes/basic-cube.fbx"), Asset::LoadingMode::Immediate).TryGetAsset();
-	Mesh::TriangleMesh::SaveToFile(gameData.GetDataDirectory() / "meshes/cube-v5.cms", cube);
+	const Mesh::TriangleMesh& cubes = *gameData.GetAssetManager().RequestAsset<Mesh::TriangleMesh>(
+		File::MakePath("meshes/cubes.fbx"), Asset::LoadingMode::Immediate).TryGetAsset();
+	Mesh::TriangleMesh::SaveToFile(gameData.GetDataDirectory() / "meshes/cubes-v5.cms", cubes);
 }
 
 void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond delta)
@@ -53,6 +56,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		const auto playerComponents = { Scene::SceneTransformComponent::k_type,
 			Scene::AnchorComponent::k_type,
 			Mesh::MeshComponent::k_type,
+			Mesh::SkeletonRootComponent::k_type,
 			Input::InputComponent::k_type };
 
 		ECS::Entity& player = m_entityManager.CreateEntityWithComponents(
@@ -60,7 +64,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 
 		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
 		meshComponent.m_meshHandle =
-			assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/cube-v5.cms"));
+			assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/cubes-v5.cms"));
 
 		// Create a camera looking at the center of the scene.
 		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };
@@ -74,7 +78,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		const Math::Matrix4x4 cameraRotation = Math::Matrix4x4::MakeRotateX(0.5f);
 
 		cameraTransformComponent.m_modelToWorldMatrix = cameraRotation * cameraTranslation;
-
+		
 		// Create a console and attach it to the camera.
 		Collection::VectorMap<const char*, std::function<void(Condui::TextInputComponent&)>> commandMap;
 		commandMap["yellow"] = [](Condui::TextInputComponent& component)

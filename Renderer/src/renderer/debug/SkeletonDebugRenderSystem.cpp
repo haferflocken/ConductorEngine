@@ -41,7 +41,7 @@ void SkeletonDebugRenderSystem::Update(const Unit::Time::Millisecond delta,
 			if (parentIndex != Mesh::TriangleMesh::k_invalidBoneIndex)
 			{
 				const Math::Matrix4x4& parentTransform = meshComponent.m_boneToWorldMatrices[parentIndex];
-				// TODO draw a connection to the parent
+				// TODO(renderer) draw a connection to the parent
 			}
 		}
 	}
