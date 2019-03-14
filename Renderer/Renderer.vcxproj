@@ -157,6 +157,7 @@ $(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="renderer\AssetTypes.h" />
+    <ClInclude Include="renderer\debug\SkeletonDebugRenderSystem.h" />
     <ClInclude Include="renderer\CameraComponent.h" />
     <ClInclude Include="renderer\CameraSystem.h" />
     <ClInclude Include="renderer\PrimitiveRenderer.h" />
@@ -178,6 +179,7 @@ $(OutputPath)MatchingApplicator.exe --input %(Filename) --pattern fs.+ --command
     <ClCompile Include="src\renderer\PrimitiveRenderer.cpp" />
     <ClCompile Include="src\renderer\RenderInstance.cpp" />
     <ClCompile Include="src\renderer\Shader.cpp" />
+    <ClCompile Include="src\renderer\debug\SkeletonDebugRenderSystem.cpp" />
     <ClCompile Include="src\renderer\ui\ConduiTextDisplayRenderSystem.cpp" />
     <ClCompile Include="src\renderer\ui\ConduiTextInputRenderSystem.cpp" />
     <ClCompile Include="src\renderer\ui\TextRenderer.cpp" />

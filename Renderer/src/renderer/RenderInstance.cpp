@@ -12,6 +12,7 @@
 #include <input/InputMessage.h>
 
 #include <renderer/CameraSystem.h>
+#include <renderer/debug/SkeletonDebugRenderSystem.h>
 #include <renderer/FrameSignalSystem.h>
 #include <renderer/MeshSystem.h>
 #include <renderer/PrimitiveRenderer.h>
@@ -318,9 +319,12 @@ void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 {
 	using namespace Internal_RenderInstance;
 	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(m_sceneViewFrustum, k_width, k_height));
+
 	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>(m_assetManager));
+	entityManager.RegisterSystem(Mem::MakeUnique<Debug::SkeletonDebugRenderSystem>());
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextDisplayRenderSystem>(*m_textRenderer));
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextInputRenderSystem>(*m_textRenderer));
+
 	entityManager.RegisterSystem(Mem::MakeUnique<FrameSignalSystem>());
 }
 

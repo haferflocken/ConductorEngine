@@ -22,4 +22,11 @@ void DrawQuad(bgfx::Encoder& encoder,
 	const float width,
 	const float height,
 	const Image::ColourARGB colour);
+
+// Draws a pyramid centered at the transform from (-0.5, -0.5) to (0.5, 0.5).
+void DrawPyramid(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
+	const Math::Matrix4x4& transform,
+	const Math::Vector3& scale,
+	const Image::ColourARGB colour);
 }
