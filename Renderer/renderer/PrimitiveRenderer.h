@@ -29,4 +29,19 @@ void DrawPyramid(bgfx::Encoder& encoder,
 	const Math::Matrix4x4& transform,
 	const Math::Vector3& scale,
 	const Image::ColourARGB colour);
+
+// Draws a cube centered at the transform from (-0.5, -0.5) to (0.5, 0.5).
+void DrawCube(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
+	const Math::Matrix4x4& transform,
+	const Math::Vector3& scale,
+	const Image::ColourARGB colour);
+
+// Draws a pipe from the start position to the end position with the given radius.
+void DrawPipe(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
+	const Math::Vector3& startPos,
+	const Math::Vector3& endPos,
+	const float radius,
+	const Image::ColourARGB colour);
 }

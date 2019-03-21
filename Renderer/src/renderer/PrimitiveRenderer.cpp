@@ -16,7 +16,7 @@ class MeshBGFXBuffers final
 public:
 	MeshBGFXBuffers() = default;
 
-	MeshBGFXBuffers(const Mesh::TriangleMesh& mesh)
+	explicit MeshBGFXBuffers(const Mesh::TriangleMesh& mesh)
 		: m_vertexBufferHandle(bgfx::createVertexBuffer(
 			bgfx::makeRef(&mesh.GetVertexData().Front(), mesh.GetVertexData().Size()), k_posColourVertexDecl))
 		, m_indexBufferHandle(bgfx::createIndexBuffer(
@@ -58,13 +58,69 @@ const Mesh::TriangleMesh k_pyramidMesh{
 		{ 0.0f, 0.0f, 0.5f, 0xffffffff }}),
 	Collection::Vector<uint16_t>({ 0, 1, 2, /**/ 2, 1, 3, /**/ 1, 0, 4, /**/ 3, 1, 4, /**/ 2, 3, 4, /**/ 0, 2, 4 }) };
 
+const Mesh::TriangleMesh k_cubeMesh{
+	Collection::Vector<Mesh::PosColourVertex>({
+		{ -0.5f, -0.5f, -0.5f, 0xffffffff },
+		{ 0.5f, -0.5f, -0.5f, 0xffffffff },
+		{ -0.5f, 0.5f, -0.5f, 0xffffffff },
+		{ 0.5f, 0.5f, -0.5f, 0xffffffff },
+		/**/
+		{ -0.5f, -0.5f, 0.5f, 0xffffffff },
+		{ 0.5f, -0.5f, 0.5f, 0xffffffff },
+		{ -0.5f, 0.5f, 0.5f, 0xffffffff },
+		{ 0.5f, 0.5f, 0.5f, 0xffffffff }}),
+	Collection::Vector<uint16_t>({
+	/* Bottom */ 0, 1, 2, 2, 1, 3,
+	/* Side A */ 4, 1, 0, 1, 4, 5,
+	/* Side B */ 5, 3, 1, 3, 5, 7,
+	/* Side C */ 7, 2, 3, 2, 7, 6,
+	/* Side D */ 6, 0, 2, 0, 6, 4,
+	/* Top    */ 4, 6, 5, 6, 7, 5 }) };
+
+const Mesh::TriangleMesh k_pipeMesh{
+	Collection::Vector<Mesh::PosColourVertex>({
+		{ -1.0f, -1.0f, 0.0f, 0xffffffff },
+		{ 1.0f, -1.0f, 0.0f, 0xffffffff },
+		{ -1.0f, 1.0f, 0.0f, 0xffffffff },
+		{ 1.0f, 1.0f, 0.0f, 0xffffffff },
+		/**/
+		{ -1.0f, -1.0f, 1.0f, 0xffffffff },
+		{ 1.0f, -1.0f, 1.0f, 0xffffffff },
+		{ -1.0f, 1.0f, 1.0f, 0xffffffff },
+		{ 1.0f, 1.0f, 1.0f, 0xffffffff }}),
+	Collection::Vector<uint16_t>({
+	/* Bottom */ 0, 1, 2, 2, 1, 3,
+	/* Side A */ 4, 1, 0, 1, 4, 5,
+	/* Side B */ 5, 3, 1, 3, 5, 7,
+	/* Side C */ 7, 2, 3, 2, 7, 6,
+	/* Side D */ 6, 0, 2, 0, 6, 4,
+	/* Top    */ 4, 6, 5, 6, 7, 5 }) };
+
 MeshBGFXBuffers g_quadBuffers;
 MeshBGFXBuffers g_pyramidBuffers;
+MeshBGFXBuffers g_cubeBuffers;
+MeshBGFXBuffers g_pipeBuffers;
 
 Asset::AssetHandle<Shader> g_vertexShader;
 Asset::AssetHandle<Shader> g_fragmentShader;
 bgfx::ProgramHandle g_program = BGFX_INVALID_HANDLE;
 bgfx::UniformHandle g_colourUniform = BGFX_INVALID_HANDLE;
+
+void RenderPrimitive(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
+	const MeshBGFXBuffers& meshBuffers,
+	const Math::Matrix4x4& transform,
+	const Image::ColourARGB colour)
+{
+	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
+
+	encoder.setTransform(transform.GetData());
+	encoder.setVertexBuffer(0, meshBuffers.m_vertexBufferHandle);
+	encoder.setIndexBuffer(meshBuffers.m_indexBufferHandle);
+	encoder.setUniform(g_colourUniform, &floatColour);
+	encoder.setState(BGFX_STATE_DEFAULT);
+	encoder.submit(viewID, g_program);
+}
 }
 
 bool PrimitiveRenderer::Initialize(Asset::AssetManager& assetManager)
@@ -74,6 +130,8 @@ bool PrimitiveRenderer::Initialize(Asset::AssetManager& assetManager)
 	// Initialize the vertex and index buffers.
 	g_quadBuffers = MeshBGFXBuffers(k_quadMesh);
 	g_pyramidBuffers = MeshBGFXBuffers(k_pyramidMesh);
+	g_cubeBuffers = MeshBGFXBuffers(k_cubeMesh);
+	g_pipeBuffers = MeshBGFXBuffers(k_pipeMesh);
 
 	// Load the shader program.
 	g_vertexShader = assetManager.RequestAsset<Shader>(
@@ -109,6 +167,8 @@ void PrimitiveRenderer::Shutdown()
 	g_fragmentShader = Asset::AssetHandle<Shader>();
 	g_vertexShader = Asset::AssetHandle<Shader>();
 
+	g_pipeBuffers.DestroyBuffers();
+	g_cubeBuffers.DestroyBuffers();
 	g_pyramidBuffers.DestroyBuffers();
 	g_quadBuffers.DestroyBuffers();
 }
@@ -122,16 +182,8 @@ void PrimitiveRenderer::DrawQuad(bgfx::Encoder& encoder,
 {
 	using namespace Internal_PrimitiveRenderer;
 
-	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
-
 	const Math::Matrix4x4 m = transform * Math::Matrix4x4::MakeScale(width, height, 1.0f);
-
-	encoder.setTransform(m.GetData());
-	encoder.setVertexBuffer(0, g_quadBuffers.m_vertexBufferHandle);
-	encoder.setIndexBuffer(g_quadBuffers.m_indexBufferHandle);
-	encoder.setUniform(g_colourUniform, &floatColour);
-	encoder.setState(BGFX_STATE_DEFAULT);
-	encoder.submit(viewID, g_program);
+	RenderPrimitive(encoder, viewID, g_quadBuffers, m, colour);
 }
 
 void PrimitiveRenderer::DrawPyramid(bgfx::Encoder& encoder,
@@ -142,15 +194,47 @@ void PrimitiveRenderer::DrawPyramid(bgfx::Encoder& encoder,
 {
 	using namespace Internal_PrimitiveRenderer;
 
-	const Math::Vector4 floatColour = Math::Vector4(colour.r, colour.g, colour.b, colour.a) / UINT8_MAX;
+	const Math::Matrix4x4 m = transform * Math::Matrix4x4::MakeScale(scale.x, scale.y, scale.z);
+	RenderPrimitive(encoder, viewID, g_pyramidBuffers, m, colour);
+}
+
+void PrimitiveRenderer::DrawCube(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
+	const Math::Matrix4x4& transform,
+	const Math::Vector3& scale,
+	const Image::ColourARGB colour)
+{
+	using namespace Internal_PrimitiveRenderer;
 
 	const Math::Matrix4x4 m = transform * Math::Matrix4x4::MakeScale(scale.x, scale.y, scale.z);
+	RenderPrimitive(encoder, viewID, g_cubeBuffers, m, colour);
+}
 
-	encoder.setTransform(m.GetData());
-	encoder.setVertexBuffer(0, g_pyramidBuffers.m_vertexBufferHandle);
-	encoder.setIndexBuffer(g_pyramidBuffers.m_indexBufferHandle);
-	encoder.setUniform(g_colourUniform, &floatColour);
-	encoder.setState(BGFX_STATE_DEFAULT);
-	encoder.submit(viewID, g_program);
+void PrimitiveRenderer::DrawPipe(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
+	const Math::Vector3& startPos,
+	const Math::Vector3& endPos,
+	const float radius,
+	const Image::ColourARGB colour)
+{
+	using namespace Internal_PrimitiveRenderer;
+
+	const Math::Vector3 offset = endPos - startPos;
+	const float length = offset.Length();
+	if (length < 0.00001f)
+	{
+		return;
+	}
+	const Math::Vector3 direction = offset / length;
+
+	const Math::Vector3 upVector = (direction.Dot(Math::Vector3(0.0f, 1.0f, 0.0f)) < 0.99f)
+		? Math::Vector3(0.0f, 1.0f, 0.0f) : Math::Vector3(1.0f, 0.0f, 0.0f);
+
+	const auto translation = Math::Matrix4x4::MakeTranslation(startPos.x, startPos.y, startPos.z);
+	const auto orientation = Math::Matrix4x4::MakeOrientZAlong(upVector, direction);
+	const auto scale = Math::Matrix4x4::MakeScale(radius, radius, length);
+	const Math::Matrix4x4 m = translation * orientation * scale;
+
+	RenderPrimitive(encoder, viewID, g_pipeBuffers, m, colour);
 }
 }

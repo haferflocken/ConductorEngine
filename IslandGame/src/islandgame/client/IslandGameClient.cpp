@@ -9,6 +9,7 @@
 #include <condui/EntityInspector.h>
 #include <condui/TextInputComponent.h>
 #include <input/InputComponent.h>
+#include <math/MathConstants.h>
 #include <mem/InspectorInfo.h>
 #include <mesh/MeshComponent.h>
 #include <mesh/SkeletonMatrixCollectionSystem.h>
@@ -47,10 +48,9 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond delta)
 {
 	// TODO remove this
-	static bool isCameraCreated = false;
-	if (!isCameraCreated)
+	static Math::Matrix4x4* cameraTransform = nullptr;
+	if (cameraTransform == nullptr)
 	{
-		isCameraCreated = true;
 		Asset::AssetManager& assetManager = m_gameData.GetAssetManager();
 
 		const auto playerComponents = { Scene::SceneTransformComponent::k_type,
@@ -75,9 +75,10 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		auto& cameraTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
 
 		const Math::Matrix4x4 cameraTranslation = Math::Matrix4x4::MakeTranslation(0.0f, 0.0f, -5.0f);
-		const Math::Matrix4x4 cameraRotation = Math::Matrix4x4::MakeRotateX(0.5f);
+		const Math::Matrix4x4 cameraRotation = Math::Matrix4x4::MakeRotateXYZ(-0.5f, 0.5f, 0.0f);
 
 		cameraTransformComponent.m_modelToWorldMatrix = cameraRotation * cameraTranslation;
+		cameraTransform = &cameraTransformComponent.m_modelToWorldMatrix;
 		
 		// Create a console and attach it to the camera.
 		Collection::VectorMap<const char*, std::function<void(Condui::TextInputComponent&)>> commandMap;
@@ -121,5 +122,17 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		inspectorTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, 0.25f, 0.5f);*/
 	}
 
+	static float t = 0.0f;
+	static float conversionConstant = 0.0001f;
+	t += delta.GetN() * conversionConstant;
+	while (t >= 1.0f)
+	{
+		t -= 1.0f;
+	}
+	const float angle = t * MATH_PI * 2.0f;
+	const Math::Matrix4x4 cameraTranslation = Math::Matrix4x4::MakeTranslation(0.0f, 0.0f, -7.0f);
+	const Math::Matrix4x4 cameraRotation = Math::Matrix4x4::MakeRotateXYZ(0.0f, angle, 0.0f);
+	*cameraTransform = cameraRotation * cameraTranslation;
+	
 	m_entityManager.Update(delta);
 }

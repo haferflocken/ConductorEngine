@@ -34,14 +34,20 @@ void SkeletonDebugRenderSystem::Update(const Unit::Time::Millisecond delta,
 		{
 			const Math::Matrix4x4& boneTransform = meshComponent.m_boneToWorldMatrices[i];
 			
-			PrimitiveRenderer::DrawPyramid(
+			PrimitiveRenderer::DrawCube(
 				*encoder, k_sceneViewID, boneTransform, Math::Vector3(1.0f, 1.0f, 1.0f), Image::ColoursARBG::k_green);
 			
 			const uint16_t& parentIndex = boneParentIndices[i];
 			if (parentIndex != Mesh::TriangleMesh::k_invalidBoneIndex)
 			{
 				const Math::Matrix4x4& parentTransform = meshComponent.m_boneToWorldMatrices[parentIndex];
-				// TODO(renderer) draw a connection to the parent
+				PrimitiveRenderer::DrawPipe(
+					*encoder,
+					k_sceneViewID,
+					boneTransform.GetTranslation(),
+					parentTransform.GetTranslation(),
+					0.1f,
+					Image::ColoursARBG::k_red);
 			}
 		}
 	}

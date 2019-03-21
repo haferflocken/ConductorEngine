@@ -17,6 +17,7 @@ public:
 	static Matrix4x4 MakeRotateY(const float radians);
 	static Matrix4x4 MakeRotateZ(const float radians);
 	static Matrix4x4 MakeRotateXYZ(const float xRadians, const float yRadians, const float zRadians);
+	static Matrix4x4 MakeOrientZAlong(const Math::Vector3& up, const Math::Vector3& orientAlong);
 
 	// Identity matrix constructor.
 	Matrix4x4();
@@ -106,6 +107,31 @@ inline Matrix4x4 Matrix4x4::MakeRotateZ(const float radians)
 inline Matrix4x4 Matrix4x4::MakeRotateXYZ(const float xRadians, const float yRadians, const float zRadians)
 {
 	return MakeRotateX(xRadians) * MakeRotateY(yRadians) * MakeRotateZ(zRadians);
+}
+
+inline Matrix4x4 Matrix4x4::MakeOrientZAlong(const Math::Vector3& up, const Math::Vector3& orientAlong)
+{
+	Matrix4x4 result;
+
+	const Vector3 xAxis = up.Cross(orientAlong);
+	const Vector3 yAxis = orientAlong.Cross(xAxis);
+	
+	Vector4& xColumn = result.GetColumn(0);
+	xColumn.x = xAxis.x;
+	xColumn.y = xAxis.y;
+	xColumn.z = xAxis.z;
+
+	Vector4& yColumn = result.GetColumn(1);
+	yColumn.x = yAxis.x;
+	yColumn.y = yAxis.y;
+	yColumn.z = yAxis.z;
+
+	Vector4& zColumn = result.GetColumn(2);
+	zColumn.x = orientAlong.x;
+	zColumn.y = orientAlong.y;
+	zColumn.z = orientAlong.z;
+
+	return result;
 }
 
 inline Matrix4x4::Matrix4x4()
