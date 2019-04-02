@@ -58,6 +58,7 @@ TODO:
 		[x] Load this file format
 		[ ] The skeleton exists in the scene as an entity hierarchy, which means an entity with a skeleton mesh
 			has implicit children
+			[ ] Define how this works in a networked context
 		[ ] Import FBX files so they can be re-saved in this format
 		[ ] Render rigged meshes
 

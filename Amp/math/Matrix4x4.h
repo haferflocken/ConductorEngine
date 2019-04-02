@@ -106,7 +106,7 @@ inline Matrix4x4 Matrix4x4::MakeRotateZ(const float radians)
 
 inline Matrix4x4 Matrix4x4::MakeRotateXYZ(const float xRadians, const float yRadians, const float zRadians)
 {
-	return MakeRotateX(xRadians) * MakeRotateY(yRadians) * MakeRotateZ(zRadians);
+	return MakeRotateZ(zRadians) * MakeRotateY(yRadians) * MakeRotateX(xRadians);
 }
 
 inline Matrix4x4 Matrix4x4::MakeOrientZAlong(const Math::Vector3& up, const Math::Vector3& orientAlong)

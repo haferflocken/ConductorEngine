@@ -2,6 +2,7 @@
 
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
+#include <math/MathConstants.h>
 #include <mesh/TriangleMesh.h>
 
 #include <fbxsdk.h>
@@ -218,6 +219,18 @@ Collection::VectorMap<const FbxNode*, const FbxCluster*> GetBoneNodesToClusters(
 
 	return boneNodesToClusters;
 }
+
+void ConvertFBXMatrixToConductorMatrix(const FbxAMatrix& src, Math::Matrix4x4& dest)
+{
+	for (int columnIndex = 0; columnIndex < 4; ++columnIndex)
+	{
+		Math::Vector4& destColumn = dest.GetColumn(columnIndex);
+		destColumn.x = static_cast<float>(src.Get(columnIndex, 0));
+		destColumn.y = static_cast<float>(src.Get(columnIndex, 1));
+		destColumn.z = static_cast<float>(src.Get(columnIndex, 2));
+		destColumn.w = static_cast<float>(src.Get(columnIndex, 3));
+	}
+}
 }
 
 bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
@@ -318,6 +331,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 
 	Collection::Vector<Math::Matrix4x4> boneToParentTransforms;
 	Collection::Vector<uint16_t> boneParentIndices;
+	Collection::Vector<std::string> boneNames;
 	for (int nodeIndex = 0, numNodes = rootNode->GetChildCount(); nodeIndex < numNodes; ++nodeIndex)
 	{
 		FbxNode* const node = rootNode->GetChild(nodeIndex);
@@ -335,25 +349,30 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 		else if (attributeType == FbxNodeAttribute::eNull)
 		{
 			// Search for a skeleton node.
-			Collection::Vector<FbxNode*> searchStack;
-			searchStack.Add(node);
+			struct SearchEntry
+			{
+				FbxNode* m_parentNode;
+				FbxNode* m_node;
+			};
+			Collection::Vector<SearchEntry> searchStack;
+			searchStack.Add({ node, node });
 
 			while (!searchStack.IsEmpty())
 			{
-				FbxNode* const searchNode = searchStack.Back();
+				const SearchEntry searchEntry = searchStack.Back();
 				searchStack.RemoveLast();
 
-				if (searchNode->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+				if (searchEntry.m_node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
 				{
-					skeletonRootNode = searchNode;
+					skeletonRootNode = searchEntry.m_parentNode;
 					break;
 				}
 
-				const int numChildren = searchNode->GetChildCount();
+				const int numChildren = searchEntry.m_node->GetChildCount();
 				for (int childIndex = 0; childIndex < numChildren; ++childIndex)
 				{
-					FbxNode* const childNode = searchNode->GetChild(childIndex);
-					searchStack.Add(childNode);
+					FbxNode* const childNode = searchEntry.m_node->GetChild(childIndex);
+					searchStack.Add({ searchEntry.m_node, childNode });
 				}
 			}
 		}
@@ -376,33 +395,45 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			const StackElement current = stack.Back();
 			stack.RemoveLast();
 
-			const FbxSkeleton& skeletonNode = *static_cast<const FbxSkeleton*>(current.m_node->GetNodeAttribute());
 			const size_t boneIndex = boneToParentTransforms.Size();
+			
+			const FbxDouble3 localTranslation = current.m_node->LclTranslation.Get();
+
+			// Convert the rotation from degrees to radians.
+			const FbxDouble3 localRotation = current.m_node->LclRotation.Get();
+			const double localRotationX = localRotation[0] * MATH_PI / 180.0f;
+			const double localRotationY = localRotation[1] * MATH_PI / 180.0f;
+			const double localRotationZ = localRotation[2] * MATH_PI / 180.0f;
+
+			// Scale the root bone from centimetres to metres.
+			FbxDouble3 localScaling = current.m_node->LclScaling.Get();
+			if (current.m_parentIndex == TriangleMesh::k_invalidBoneIndex)
+			{
+				localScaling[0] *= 0.01;
+				localScaling[1] *= 0.01;
+				localScaling[2] *= 0.01;
+			}
 
 			// Store the bone's local transform.
-			Math::Matrix4x4& boneLocalTransform = boneToParentTransforms.Emplace();
-
-			const FbxDouble3 localTranslation = current.m_node->LclTranslation.Get();
-			const FbxDouble3 localRotation = current.m_node->LclRotation.Get();
-			const FbxDouble3 localScaling = current.m_node->LclScaling.Get();
-
 			const auto localTranslationMatrix = Math::Matrix4x4::MakeTranslation(
 				static_cast<float>(localTranslation[0]),
 				static_cast<float>(localTranslation[1]),
 				static_cast<float>(localTranslation[2]));
 			const auto localRotationMatrix = Math::Matrix4x4::MakeRotateXYZ(
-				static_cast<float>(localRotation[0]),
-				static_cast<float>(localRotation[1]),
-				static_cast<float>(localRotation[2]));
+				static_cast<float>(localRotationX),
+				static_cast<float>(localRotationY),
+				static_cast<float>(localRotationZ));
 			const auto localScalingMatrix = Math::Matrix4x4::MakeScale(
 				static_cast<float>(localScaling[0]),
 				static_cast<float>(localScaling[1]),
 				static_cast<float>(localScaling[2]));
 
-			boneLocalTransform = localTranslationMatrix * localRotationMatrix * localScalingMatrix;
+			Math::Matrix4x4& boneLocalTransform = boneToParentTransforms.Emplace();
+			boneLocalTransform = localScalingMatrix * localRotationMatrix * localTranslationMatrix;
 
-			// Store the index of the bone's parent.
+			// Store the index of the bone's parent and the bone's name.
 			boneParentIndices.Add(static_cast<uint16_t>(current.m_parentIndex));
+			boneNames.Emplace(current.m_node->GetName());
 
 			// Find the FbxCluster associated with the bone and copy its weights into its vertices.
 			const auto clusterIter = boneNodesToClusters.Find(current.m_node);
@@ -476,6 +507,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 		std::move(vertexData),
 		std::move(triangleIndices),
 		std::move(boneToParentTransforms),
-		std::move(boneParentIndices));
+		std::move(boneParentIndices),
+		std::move(boneNames));
 	return true;
 }

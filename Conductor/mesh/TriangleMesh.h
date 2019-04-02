@@ -24,7 +24,8 @@ public:
 		Collection::Vector<uint8_t>&& vertexData,
 		Collection::Vector<uint16_t>&& triangleIndices,
 		Collection::Vector<Math::Matrix4x4>&& boneToParentTransforms,
-		Collection::Vector<uint16_t>&& boneParentIndices);
+		Collection::Vector<uint16_t>&& boneParentIndices,
+		Collection::Vector<std::string>&& boneNames);
 
 	const CompactVertexDeclaration& GetVertexDeclaration() const { return m_vertexDeclaration; }
 	const Collection::Vector<uint8_t>& GetVertexData() const { return m_vertexData; }
@@ -32,6 +33,7 @@ public:
 
 	const Collection::Vector<Math::Matrix4x4>& GetBoneToParentTransforms() const { return m_boneToParentTransforms; }
 	const Collection::Vector<uint16_t>& GetBoneParentIndices() const { return m_boneParentIndices; }
+	const Collection::Vector<std::string>& GetBoneNames() const { return m_boneNames; }
 
 private:
 	CompactVertexDeclaration m_vertexDeclaration;
@@ -42,5 +44,7 @@ private:
 	Collection::Vector<Math::Matrix4x4> m_boneToParentTransforms;
 	// The index of each bone's parent bone. Has the same length as m_boneToParentTransforms.Size().
 	Collection::Vector<uint16_t> m_boneParentIndices;
+	// The name of each bone.
+	Collection::Vector<std::string> m_boneNames;
 };
 }

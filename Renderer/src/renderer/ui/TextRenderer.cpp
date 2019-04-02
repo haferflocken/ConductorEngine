@@ -4,6 +4,7 @@
 #include <asset/AssetManager.h>
 #include <image/Colour.h>
 #include <image/Pixel1Image.h>
+#include <math/Frustum.h>
 #include <math/Matrix4x4.h>
 #include <renderer/Shader.h>
 #include <mesh/Vertex.h>
@@ -12,8 +13,9 @@
 
 namespace Renderer::UI
 {
-TextRenderer::TextRenderer(uint16_t widthPixels, uint16_t heightPixels)
-	: m_widthPixels(widthPixels)
+TextRenderer::TextRenderer(const Math::Frustum& sceneViewFrustum, uint16_t widthPixels, uint16_t heightPixels)
+	: m_sceneViewFrustum(sceneViewFrustum)
+	, m_widthPixels(widthPixels)
 	, m_heightPixels(heightPixels)
 	, m_vertexShader()
 	, m_fragmentShader()
@@ -76,7 +78,7 @@ void TextRenderer::RequestFont(const Asset::AssetHandle<Image::Pixel1Image>& cod
 
 void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 	const bgfx::ViewId viewID,
-	const Math::Matrix4x4& uiTransform,
+	const Math::Matrix4x4& worldTransform,
 	const Image::ColourARGB colour,
 	const Asset::AssetHandle<Image::Pixel1Image>& codePage,
 	const char* const text,
@@ -136,7 +138,7 @@ void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 			SubmitCharacterQuad(encoder,
 				viewID,
 				font,
-				uiTransform,
+				worldTransform,
 				colour,
 				characterWidth,
 				characterHeight,
@@ -150,6 +152,19 @@ void TextRenderer::SubmitText(bgfx::Encoder& encoder,
 		}
 		previous = *c;
 	}
+}
+
+void TextRenderer::SubmitCameraFacingText(bgfx::Encoder& encoder,
+	const bgfx::ViewId viewID,
+	const Math::Vector3& position,
+	const Image::ColourARGB colour,
+	const Asset::AssetHandle<Image::Pixel1Image>& codePage,
+	const char* const text,
+	const float fontVerticalScale) const
+{
+	Math::Matrix4x4 worldTransform = m_sceneViewFrustum.m_frustumToWorldMatrix;
+	worldTransform.SetTranslation(position.x, position.y, position.z);
+	SubmitText(encoder, viewID, worldTransform, colour, codePage, text, fontVerticalScale);
 }
 
 TextRenderer::FontMeshDatum::FontMeshDatum()

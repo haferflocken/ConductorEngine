@@ -146,6 +146,7 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 	// Read in data that is related to bones.
 	Collection::Vector<Math::Matrix4x4> boneTransforms;
 	Collection::Vector<uint16_t> boneParentIndices;
+	Collection::Vector<std::string> boneNames;
 
 	if (header.m_numBones > 0)
 	{
@@ -158,6 +159,9 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 
 		boneParentIndices.Resize(header.m_numBones);
 		memcpy(boneParentIndices.begin(), rawBoneParentIndices, expectedSizeOfBoneParentIndices);
+
+		boneNames.Resize(header.m_numBones);
+		// TODO(mesh) save/load bone names
 	}
 
 	// Create the mesh.
@@ -166,7 +170,8 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 		std::move(vertexData),
 		std::move(triangleIndices),
 		std::move(boneTransforms),
-		std::move(boneParentIndices));
+		std::move(boneParentIndices),
+		std::move(boneNames));
 
 	return true;
 }
@@ -246,12 +251,14 @@ TriangleMesh::TriangleMesh(const CompactVertexDeclaration& vertexDeclaration,
 	Collection::Vector<uint8_t>&& vertexData,
 	Collection::Vector<uint16_t>&& triangleIndices,
 	Collection::Vector<Math::Matrix4x4>&& boneToParentTransforms,
-	Collection::Vector<uint16_t>&& boneParentIndices)
+	Collection::Vector<uint16_t>&& boneParentIndices,
+	Collection::Vector<std::string>&& boneNames)
 	: m_vertexDeclaration(vertexDeclaration)
 	, m_vertexData(std::move(vertexData))
 	, m_triangleIndices(std::move(triangleIndices))
 	, m_boneToParentTransforms(std::move(boneToParentTransforms))
 	, m_boneParentIndices(std::move(boneParentIndices))
+	, m_boneNames(std::move(boneNames))
 {
 }
 }

@@ -16,7 +16,13 @@ struct ColourARGB;
 class Pixel1Image;
 }
 
-namespace Math { class Matrix4x4; }
+namespace Math
+{
+class Frustum;
+class Matrix4x4;
+class Vector3;
+}
+
 namespace Mesh { struct PosColourVertex; }
 namespace Renderer { class Shader; }
 
@@ -28,7 +34,7 @@ namespace Renderer::UI
 class TextRenderer final
 {
 public:
-	TextRenderer(uint16_t widthPixels, uint16_t heightPixels);
+	TextRenderer(const Math::Frustum& sceneViewFrustum, uint16_t widthPixels, uint16_t heightPixels);
 	~TextRenderer();
 
 	// Load the shaders this TextRenderer needs. 
@@ -42,7 +48,15 @@ public:
 	// Submit text for rendering. This will silently fail if the font for the code page is unavailable.
 	void SubmitText(bgfx::Encoder& encoder,
 		const bgfx::ViewId viewID,
-		const Math::Matrix4x4& uiTransform,
+		const Math::Matrix4x4& worldTransform,
+		const Image::ColourARGB colour,
+		const Asset::AssetHandle<Image::Pixel1Image>& codePage,
+		const char* const text,
+		const float fontVerticalScale) const;
+
+	void SubmitCameraFacingText(bgfx::Encoder& encoder,
+		const bgfx::ViewId viewID,
+		const Math::Vector3& position,
 		const Image::ColourARGB colour,
 		const Asset::AssetHandle<Image::Pixel1Image>& codePage,
 		const char* const text,
@@ -81,6 +95,9 @@ private:
 		const int x,
 		const int y,
 		const char c) const;
+
+private:
+	const Math::Frustum& m_sceneViewFrustum;
 
 	uint16_t m_widthPixels;
 	uint16_t m_heightPixels;

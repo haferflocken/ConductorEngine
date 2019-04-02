@@ -216,7 +216,7 @@ RenderInstance::RenderInstance(
 	, m_messagesFromClient(messagesFromClient)
 	, m_inputToClientMessages(inputToClientMessages)
 	, m_textRenderer(Mem::MakeUnique<UI::TextRenderer>(
-		Internal_RenderInstance::k_width, Internal_RenderInstance::k_height))
+		m_sceneViewFrustum, Internal_RenderInstance::k_width, Internal_RenderInstance::k_height))
 {
 	using namespace Internal_RenderInstance;
 
@@ -321,7 +321,13 @@ void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(m_sceneViewFrustum, k_width, k_height));
 
 	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>(m_assetManager));
-	entityManager.RegisterSystem(Mem::MakeUnique<Debug::SkeletonDebugRenderSystem>());
+
+	entityManager.RegisterSystem(Mem::MakeUnique<Debug::SkeletonDebugRenderSystem>(
+		*m_textRenderer,
+		m_assetManager.RequestAsset<Image::Pixel1Image>(File::MakePath("fonts/Codepage-437-monochome.bmp")),
+		9,
+		16));
+
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextDisplayRenderSystem>(*m_textRenderer));
 	entityManager.RegisterSystem(Mem::MakeUnique<UI::TextInputRenderSystem>(*m_textRenderer));
 
