@@ -10,7 +10,7 @@ namespace Internal_TriangleMesh
 {
 static constexpr const char k_magic[] = "!!!!!!!!!CONDUCTOR MESH";
 static constexpr const char k_channelSeparator[] = "!!!!";
-static constexpr const uint32_t k_version = 5;
+static constexpr const uint32_t k_version = 6;
 
 // The file header of mesh files. This must not contain any padding.
 struct FileHeader final
@@ -21,8 +21,9 @@ struct FileHeader final
 	uint32_t m_numVertices;
 	uint32_t m_numTriangleIndices;
 	uint32_t m_numBones;
+	uint32_t m_numBoneNameBytes;
 };
-static_assert(sizeof(FileHeader) == (sizeof(k_magic) + (sizeof(uint32_t) * 5)),
+static_assert(sizeof(FileHeader) == (sizeof(k_magic) + (sizeof(uint32_t) * 6)),
 	"The mesh file header must not contain padding!");
 }
 
@@ -105,7 +106,7 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 	const uint32_t expectedSizeOfBoneParentIndices = (header.m_numBones * sizeof(uint16_t));
 
 	const int64_t expectedSizeOfPostHeaderData = expectedSizeOfVertexData + expectedSizeOfTriangleIndexData +
-		expectedSizeOfBoneTransforms + expectedSizeOfBoneParentIndices;
+		expectedSizeOfBoneTransforms + expectedSizeOfBoneParentIndices + header.m_numBoneNameBytes;
 	if (numBytesLeftInFile != expectedSizeOfPostHeaderData)
 	{
 		return false;
@@ -153,6 +154,7 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 		// Read in the bone data.
 		const char* const rawBoneTransforms = rawTriangleIndices + expectedSizeOfTriangleIndexData;
 		const char* const rawBoneParentIndices = rawBoneTransforms + expectedSizeOfBoneTransforms;
+		const char* const rawBoneNames = rawBoneParentIndices + expectedSizeOfBoneParentIndices;
 
 		boneTransforms.Resize(header.m_numBones);
 		memcpy(boneTransforms.begin(), rawBoneTransforms, expectedSizeOfBoneTransforms);
@@ -161,7 +163,17 @@ bool TriangleMesh::TryLoad(const File::Path& filePath, TriangleMesh* destination
 		memcpy(boneParentIndices.begin(), rawBoneParentIndices, expectedSizeOfBoneParentIndices);
 
 		boneNames.Resize(header.m_numBones);
-		// TODO(mesh) save/load bone names
+		const char* boneNameInputIter = rawBoneNames;
+		for (auto& boneName : boneNames)
+		{
+			for (; *boneNameInputIter != '\0'; ++boneNameInputIter)
+			{
+				const char c = *boneNameInputIter;
+				boneName.push_back(c);
+			}
+			// Advance past the null terminator.
+			++boneNameInputIter;
+		}
 	}
 
 	// Create the mesh.
@@ -192,6 +204,13 @@ void TriangleMesh::SaveToFile(const File::Path& filePath, const TriangleMesh& me
 	header.m_numVertices = mesh.GetVertexData().Size() / expandedVertexDeclaration.m_vertexSizeInBytes;
 	header.m_numTriangleIndices = mesh.GetTriangleIndices().Size();
 	header.m_numBones = mesh.GetBoneToParentTransforms().Size();
+
+	header.m_numBoneNameBytes = 0;
+	for (const auto& boneName : mesh.GetBoneNames())
+	{
+		header.m_numBoneNameBytes += static_cast<uint32_t>(boneName.length());
+		header.m_numBoneNameBytes += 1; // Add one for the null terminator.
+	}
 
 	const char* const rawHeader = reinterpret_cast<const char*>(&header);
 	output.write(rawHeader, sizeof(FileHeader));
@@ -226,13 +245,21 @@ void TriangleMesh::SaveToFile(const File::Path& filePath, const TriangleMesh& me
 	const char* const rawTriangleIndices = reinterpret_cast<const char*>(&mesh.GetTriangleIndices().Front());
 	output.write(rawTriangleIndices, header.m_numTriangleIndices * sizeof(uint16_t));
 
-	// Write the bone data and flush the output.
+	// Write the bone data.
 	const char* const rawBoneTransforms = reinterpret_cast<const char*>(&mesh.GetBoneToParentTransforms().Front());
 	output.write(rawBoneTransforms, header.m_numBones * sizeof(Math::Matrix4x4));
 
 	const char* const rawBoneParentIndices = reinterpret_cast<const char*>(&mesh.GetBoneParentIndices().Front());
 	output.write(rawBoneParentIndices, header.m_numBones * sizeof(uint16_t));
 
+	// Write the bone names, separated by null terminators.
+	for (const auto& boneName : mesh.GetBoneNames())
+	{
+		output.write(boneName.c_str(), boneName.length());
+		output.put('\0');
+	}
+
+	// Flush the output.
 	output.flush();
 }
 

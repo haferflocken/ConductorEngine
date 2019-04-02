@@ -42,7 +42,7 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 
 	const Mesh::TriangleMesh& cubes = *gameData.GetAssetManager().RequestAsset<Mesh::TriangleMesh>(
 		File::MakePath("meshes/cubes.fbx"), Asset::LoadingMode::Immediate).TryGetAsset();
-	Mesh::TriangleMesh::SaveToFile(gameData.GetDataDirectory() / "meshes/cubes-v5.cms", cubes);
+	Mesh::TriangleMesh::SaveToFile(gameData.GetDataDirectory() / "meshes/cubes-v6.cms", cubes);
 }
 
 void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond delta)
@@ -64,7 +64,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 
 		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
 		meshComponent.m_meshHandle =
-			assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/cubes-v5.cms"));
+			assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/cubes-v6.cms"));
 
 		// Create a camera looking at the center of the scene.
 		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };
