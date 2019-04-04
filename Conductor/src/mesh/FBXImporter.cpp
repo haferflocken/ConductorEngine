@@ -329,6 +329,8 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 	const uint32_t vertexBoneWeightsOffset =
 		(numSkins == 0) ? UINT32_MAX : expandedVertexDeclaration.m_attributeOffsets[2];
 
+	Collection::Vector<Math::Matrix4x4> boneGlobalTransforms;
+	Collection::Vector<Math::Matrix4x4> boneInverseGlobalTransforms;
 	Collection::Vector<Math::Matrix4x4> boneToParentTransforms;
 	Collection::Vector<uint16_t> boneParentIndices;
 	Collection::Vector<std::string> boneNames;
@@ -396,40 +398,27 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			stack.RemoveLast();
 
 			const size_t boneIndex = boneToParentTransforms.Size();
-			
-			const FbxDouble3 localTranslation = current.m_node->LclTranslation.Get();
 
-			// Convert the rotation from degrees to radians.
-			const FbxDouble3 localRotation = current.m_node->LclRotation.Get();
-			const double localRotationX = localRotation[0] * MATH_PI / 180.0f;
-			const double localRotationY = localRotation[1] * MATH_PI / 180.0f;
-			const double localRotationZ = localRotation[2] * MATH_PI / 180.0f;
-
-			// Scale the root bone from centimetres to metres.
-			FbxDouble3 localScaling = current.m_node->LclScaling.Get();
-			if (current.m_parentIndex == TriangleMesh::k_invalidBoneIndex)
+			if (current.m_parentIndex != TriangleMesh::k_invalidBoneIndex)
 			{
-				localScaling[0] *= 0.01;
-				localScaling[1] *= 0.01;
-				localScaling[2] *= 0.01;
+				Math::Matrix4x4 boneGlobalTransform;
+				ConvertFBXMatrixToConductorMatrix(
+					current.m_node->EvaluateGlobalTransform(FBXSDK_TIME_ZERO), boneGlobalTransform);
+
+				boneGlobalTransforms.Add(boneGlobalTransform);
+				boneInverseGlobalTransforms.Add(boneGlobalTransform.CalcInverse());
+
+				const Math::Matrix4x4& parentInverseTransform = boneInverseGlobalTransforms[current.m_parentIndex];
+				const Math::Matrix4x4 boneToParentTransform = parentInverseTransform * boneGlobalTransform;
+				boneToParentTransforms.Add(boneToParentTransform);
 			}
-
-			// Store the bone's local transform.
-			const auto localTranslationMatrix = Math::Matrix4x4::MakeTranslation(
-				static_cast<float>(localTranslation[0]),
-				static_cast<float>(localTranslation[1]),
-				static_cast<float>(localTranslation[2]));
-			const auto localRotationMatrix = Math::Matrix4x4::MakeRotateXYZ(
-				static_cast<float>(localRotationX),
-				static_cast<float>(localRotationY),
-				static_cast<float>(localRotationZ));
-			const auto localScalingMatrix = Math::Matrix4x4::MakeScale(
-				static_cast<float>(localScaling[0]),
-				static_cast<float>(localScaling[1]),
-				static_cast<float>(localScaling[2]));
-
-			Math::Matrix4x4& boneLocalTransform = boneToParentTransforms.Emplace();
-			boneLocalTransform = localScalingMatrix * localRotationMatrix * localTranslationMatrix;
+			else
+			{
+				boneGlobalTransforms.Emplace(Math::Matrix4x4::MakeScale(100.0f, 100.0f, 100.0f));
+				boneInverseGlobalTransforms.Emplace(Math::Matrix4x4::MakeScale(0.01f, 0.01f, 0.01f));
+				// Scale the root bone from centimetres to metres.
+				boneToParentTransforms.Emplace();
+			}
 
 			// Store the index of the bone's parent and the bone's name.
 			boneParentIndices.Add(static_cast<uint16_t>(current.m_parentIndex));
