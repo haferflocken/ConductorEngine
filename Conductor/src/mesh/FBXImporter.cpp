@@ -389,7 +389,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 				Math::Matrix4x4 boneGlobalTransform;
 				ConvertFBXMatrixToConductorMatrix(
 					current.m_node->EvaluateGlobalTransform(FBXSDK_TIME_ZERO), boneGlobalTransform);
-
+				
 				boneInverseGlobalTransforms.Add(boneGlobalTransform.CalcInverse());
 				
 				const Math::Matrix4x4& parentInverseTransform = boneInverseGlobalTransforms[current.m_parentIndex];
@@ -398,9 +398,16 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			}
 			else
 			{
-				boneInverseGlobalTransforms.Emplace(Math::Matrix4x4::MakeScale(0.01f, 0.01f, 0.01f));
+				Math::Matrix4x4 boneGlobalTransform;
+				ConvertFBXMatrixToConductorMatrix(
+					current.m_node->EvaluateGlobalTransform(FBXSDK_TIME_ZERO), boneGlobalTransform);
+
 				// Scale root bones from centimetres to metres.
-				boneToParentTransforms.Emplace();
+				const Math::Matrix4x4 centimetresToMetresScale = Math::Matrix4x4::MakeScale(0.01f, 0.01f, 0.01f);
+				const Math::Matrix4x4 scaledGlobalTransform = centimetresToMetresScale * boneGlobalTransform;
+
+				boneInverseGlobalTransforms.Add(boneGlobalTransform.CalcInverse());
+				boneToParentTransforms.Add(scaledGlobalTransform);
 			}
 			
 			// Store the index of the bone's parent and the bone's name.
