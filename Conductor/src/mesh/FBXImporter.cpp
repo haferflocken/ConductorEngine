@@ -329,7 +329,6 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 	const uint32_t vertexBoneWeightsOffset =
 		(numSkins == 0) ? UINT32_MAX : expandedVertexDeclaration.m_attributeOffsets[2];
 
-	Collection::Vector<Math::Matrix4x4> boneGlobalTransforms;
 	Collection::Vector<Math::Matrix4x4> boneInverseGlobalTransforms;
 	Collection::Vector<Math::Matrix4x4> boneToParentTransforms;
 	Collection::Vector<uint16_t> boneParentIndices;
@@ -339,47 +338,30 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 		FbxNode* const node = rootNode->GetChild(nodeIndex);
 		const FbxNodeAttribute::EType attributeType = node->GetNodeAttribute()->GetAttributeType();
 
-		FbxNode* skeletonRootNode = nullptr;
+		Collection::Vector<FbxNode*> skeletonRootNodes;
 		if (attributeType == FbxNodeAttribute::eSkeleton)
 		{
 			const FbxSkeleton& skeletonRoot = *static_cast<FbxSkeleton*>(node->GetNodeAttribute());
 			if (skeletonRoot.GetSkeletonType() == FbxSkeleton::eRoot)
 			{
-				skeletonRootNode = node;
+				skeletonRootNodes.Add(node);
 			}
 		}
 		else if (attributeType == FbxNodeAttribute::eNull)
 		{
-			// Search for a skeleton node.
-			struct SearchEntry
+			// Collect all skeleton nodes within this null node.
+			const int numChildren = node->GetChildCount();
+			for (int childIndex = 0; childIndex < numChildren; ++childIndex)
 			{
-				FbxNode* m_parentNode;
-				FbxNode* m_node;
-			};
-			Collection::Vector<SearchEntry> searchStack;
-			searchStack.Add({ node, node });
-
-			while (!searchStack.IsEmpty())
-			{
-				const SearchEntry searchEntry = searchStack.Back();
-				searchStack.RemoveLast();
-
-				if (searchEntry.m_node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+				FbxNode* const childNode = node->GetChild(childIndex);
+				if (childNode->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
 				{
-					skeletonRootNode = searchEntry.m_parentNode;
-					break;
-				}
-
-				const int numChildren = searchEntry.m_node->GetChildCount();
-				for (int childIndex = 0; childIndex < numChildren; ++childIndex)
-				{
-					FbxNode* const childNode = searchEntry.m_node->GetChild(childIndex);
-					searchStack.Add({ searchEntry.m_node, childNode });
+					skeletonRootNodes.Add(childNode);
 				}
 			}
 		}
 
-		if (skeletonRootNode == nullptr)
+		if (skeletonRootNodes.IsEmpty())
 		{
 			continue;
 		}
@@ -390,7 +372,10 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			FbxNode* m_node;
 		};
 		Collection::Vector<StackElement> stack;
-		stack.Add({ Mesh::TriangleMesh::k_invalidBoneIndex, skeletonRootNode });
+		for (auto& skeletonRootNode : skeletonRootNodes)
+		{
+			stack.Add({ Mesh::TriangleMesh::k_invalidBoneIndex, skeletonRootNode });
+		}
 
 		while (!stack.IsEmpty())
 		{
@@ -405,21 +390,19 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 				ConvertFBXMatrixToConductorMatrix(
 					current.m_node->EvaluateGlobalTransform(FBXSDK_TIME_ZERO), boneGlobalTransform);
 
-				boneGlobalTransforms.Add(boneGlobalTransform);
 				boneInverseGlobalTransforms.Add(boneGlobalTransform.CalcInverse());
-
+				
 				const Math::Matrix4x4& parentInverseTransform = boneInverseGlobalTransforms[current.m_parentIndex];
 				const Math::Matrix4x4 boneToParentTransform = parentInverseTransform * boneGlobalTransform;
 				boneToParentTransforms.Add(boneToParentTransform);
 			}
 			else
 			{
-				boneGlobalTransforms.Emplace(Math::Matrix4x4::MakeScale(100.0f, 100.0f, 100.0f));
 				boneInverseGlobalTransforms.Emplace(Math::Matrix4x4::MakeScale(0.01f, 0.01f, 0.01f));
-				// Scale the root bone from centimetres to metres.
+				// Scale root bones from centimetres to metres.
 				boneToParentTransforms.Emplace();
 			}
-
+			
 			// Store the index of the bone's parent and the bone's name.
 			boneParentIndices.Add(static_cast<uint16_t>(current.m_parentIndex));
 			boneNames.Emplace(current.m_node->GetName());
@@ -490,7 +473,7 @@ bool Mesh::TryImportFBX(const File::Path& filePath, TriangleMesh* destination)
 			}
 		}
 	}
-	
+
 	destination = new (destination) Mesh::TriangleMesh(
 		vertexDeclaration,
 		std::move(vertexData),
