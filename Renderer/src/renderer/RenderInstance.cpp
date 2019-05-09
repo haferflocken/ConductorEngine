@@ -320,7 +320,7 @@ void RenderInstance::RegisterSystems(ECS::EntityManager& entityManager)
 	using namespace Internal_RenderInstance;
 	entityManager.RegisterSystem(Mem::MakeUnique<CameraSystem>(m_sceneViewFrustum, k_width, k_height));
 
-	//entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>(m_assetManager));
+	entityManager.RegisterSystem(Mem::MakeUnique<MeshSystem>(m_assetManager));
 
 	entityManager.RegisterSystem(Mem::MakeUnique<Debug::SkeletonDebugRenderSystem>(
 		*m_textRenderer,
