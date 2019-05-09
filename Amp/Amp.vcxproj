@@ -146,6 +146,7 @@
     <ClInclude Include="collection\PolyStack.h" />
     <ClInclude Include="collection\ProgramParameters.h" />
     <ClInclude Include="collection\LinearBlockAllocator.h" />
+    <ClInclude Include="collection\RingBuffer.h" />
     <ClInclude Include="collection\Variant.h" />
     <ClInclude Include="collection\Vector.h" />
     <ClInclude Include="collection\VectorMap.h" />
