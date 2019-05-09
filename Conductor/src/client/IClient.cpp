@@ -11,7 +11,7 @@ IClient::IClient(Asset::AssetManager& assetManager,
 	ConnectedHost& connectedHost)
 	: m_connectedHost(connectedHost)
 	, m_inputStateManager(m_inputCallbackRegistry)
-	, m_entityManager(assetManager, componentReflector, false)
+	, m_entityManager(assetManager, componentReflector)
 {
 	// The InputSystem is present for all clients.
 	Input::InputSystem& inputSystem = m_entityManager.RegisterSystem(Mem::MakeUnique<Input::InputSystem>());
@@ -20,7 +20,7 @@ IClient::IClient(Asset::AssetManager& assetManager,
 
 void IClient::NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes)
 {
-	m_entityManager.ApplyDeltaTransmission(transmissionBytes);
+	// TODO(network) do something with a transmission
 }
 
 void IClient::NotifyOfInputMessage(const Input::InputMessage& message)

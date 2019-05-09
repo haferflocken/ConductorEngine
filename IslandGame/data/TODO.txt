@@ -12,9 +12,13 @@ TODO:
 
 [ ] ECS Improvements
 	[ ] Entities should be updated in hierarchy order.
-	[ ] Prevent entities from being serialized as both added and changed in a delta transmission
 	[ ] Correctly transmit and handle changes in the components on an entity
 	[ ] Handle entity ID collisions when applying a full serialization
+	[ ] Refactor ECS networking
+		[x] Remove networking code from the ECS namespace & isolate it in the Network namespace
+		[ ] Store a history of full-frame serializations and use it to create delta transmissions for specific clients
+		[ ] Track the transmissions each client is aware of
+		[ ] Apply transmissions to the client
 	
 [ ] Use UnboundedScene as a level format.
 	[x] New component & system that loads chunks around it: Scene::AnchorComponent

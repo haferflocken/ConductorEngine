@@ -63,29 +63,6 @@ void ECS::ComponentVector::Clear()
 	}
 }
 
-void ECS::ComponentVector::Copy(const ComponentVector& other)
-{
-	AMP_FATAL_ASSERT(m_componentType == other.m_componentType,
-		"ComponentVector::Copy() does not support changing component types.");
-	
-	Clear();
-
-	const auto* const transmissionFns = m_componentReflector->FindTransmissionFunctions(m_componentType);
-	AMP_FATAL_ASSERT(transmissionFns != nullptr, "ComponentVector::Copy() only supports networked component types.");
-	for (size_t i = 0, iEnd = other.m_keyLookup.GetNumBuckets(); i < iEnd; ++i)
-	{
-		const auto& bucketView = other.m_keyLookup.GetBucketViewAt(i);
-		for (size_t j = 0, jEnd = bucketView.m_keys.Size(); j < jEnd; ++j)
-		{
-			const ComponentID componentID = bucketView.m_keys[j];
-			const Component& component = *bucketView.m_values[j];
-			Component* const destination = reinterpret_cast<Component*>(m_allocator.Alloc());
-			transmissionFns->m_copyConstructFunction(destination, component);
-			m_keyLookup[destination->m_id] = destination;
-		}
-	}
-}
-
 ECS::Component* ECS::ComponentVector::Find(const ComponentID& key)
 {
 	const auto iter = m_keyLookup.Find(key);

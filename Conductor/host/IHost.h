@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ecs/EntityManager.h>
+#include <network/EntityTransmitter.h>
 
 namespace Client { struct ClientID; }
 
@@ -19,6 +20,7 @@ class IHost
 {
 protected:
 	ECS::EntityManager m_entityManager;
+	Network::EntityTransmitter m_entityTransmitter;
 	// The InputSystem is present on all hosts.
 	Input::InputSystem& m_inputSystem;
 
@@ -28,7 +30,8 @@ public:
 	void NotifyOfClientConnected(const Client::ClientID clientID, const Input::InputStateManager& inputStateManager);
 	void NotifyOfClientDisconnected(const Client::ClientID clientID);
 
-	Collection::Vector<uint8_t> SerializeECSUpdateTransmission();
+	void StoreECSFrame();
+	void SerializeECSUpdateTransmission(const Client::ClientID clientID, Collection::Vector<uint8_t>& outTransmission);
 
 	virtual void Update(const Unit::Time::Millisecond delta) = 0;
 };

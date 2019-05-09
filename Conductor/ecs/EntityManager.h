@@ -38,7 +38,7 @@ class System;
 class EntityManager final
 {
 public:
-	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector, bool transmitsState);
+	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector);
 	~EntityManager();
 
 	Entity& CreateEntityWithComponents(const Collection::ArrayView<const ComponentType>& componentTypes,
@@ -48,6 +48,7 @@ public:
 
 	void FullySerializeEntitiesAndComponents(const Collection::ArrayView<const Entity*>& entities,
 		SerializedEntitiesAndComponents& serialization) const;
+	void FullySerializeAllEntitiesAndComponents(SerializedEntitiesAndComponents& serialization) const;
 
 	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
@@ -73,13 +74,6 @@ public:
 
 	// Run the EntityManager one step.
 	void Update(const Unit::Time::Millisecond delta);
-
-	// Calculate a delta update transmission for the entitites in the manager.
-	// This is a delta since the last delta package was requested.
-	Collection::Vector<uint8_t> SerializeDeltaTransmission();
-
-	// Apply a delta update transmission to the entities in the manager.
-	ApplyDeltaTransmissionResult ApplyDeltaTransmission(const Collection::Vector<uint8_t>& transmissionBytes);
 
 private:
 	struct RegisteredSystem;
@@ -141,21 +135,6 @@ private:
 
 	// The components this manager owns on behalf of its entities, grouped by type.
 	Collection::VectorMap<ComponentType, ComponentVector> m_components{};
-
-	// The buffered state this manager stores in order to calculate delta updates for transmission.
-	// m_transmissionBuffers is null for managers that do not transmit state.
-	struct TransmissionBuffers
-	{
-		// Only components that are network-enabled have a buffered copy stored.
-		Collection::VectorMap<ComponentType, ComponentVector> m_bufferedComponents;
-
-		Collection::Vector<EntityID> m_entitiesAddedSinceLastTransmission;
-		Collection::Vector<EntityID> m_entitiesChangedSinceLastTransmission;
-		Collection::Vector<EntityID> m_entitiesRemovedSinceLastTransmission;
-		Collection::Vector<ComponentID> m_componentsAddedSinceLastTransmission;
-		Collection::Vector<ComponentID> m_componentsRemovedSinceLastTransmission;
-	};
-	Mem::UniquePtr<TransmissionBuffers> m_transmissionBuffers;
 
 	// The next entity ID that will be assigned.
 	EntityID m_nextEntityID{ 0 };

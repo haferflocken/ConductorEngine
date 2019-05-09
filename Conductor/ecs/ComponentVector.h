@@ -38,9 +38,6 @@ public:
 
 	void Clear();
 
-	// Copy is only supported on vectors of networked components.
-	void Copy(const ComponentVector& other);
-
 	ComponentType GetComponentType() const { return m_componentType; }
 
 	Component* Find(const ComponentID& key);

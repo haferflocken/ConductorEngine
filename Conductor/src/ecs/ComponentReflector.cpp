@@ -23,7 +23,6 @@ void ComponentReflector::RegisterComponentType(const char* const componentTypeNa
 	AMP_FATAL_ASSERT(m_componentSizesInBytes.Find(componentType) == m_componentSizesInBytes.end()
 		&& m_componentAlignmentsInBytes.Find(componentType) == m_componentAlignmentsInBytes.end()
 		&& m_mandatoryComponentFunctions.Find(componentType) == m_mandatoryComponentFunctions.end()
-		&& m_transmissionFunctions.Find(componentType) == m_transmissionFunctions.end()
 		&& m_componentInspectorInfoTypeHashes.Find(componentType) == m_componentInspectorInfoTypeHashes.end(),
 		"Attempted to register component type \"%s\", but it has already been registered.", componentTypeName);
 
@@ -129,11 +128,6 @@ void ComponentReflector::SwapComponents(Component& a, Component& b) const
 	iter->second.m_swapFunction(a, b);
 }
 
-bool ComponentReflector::IsNetworkedComponent(const ComponentType componentType) const
-{
-	return (m_transmissionFunctions.Find(componentType) != m_transmissionFunctions.end());
-}
-
 const ComponentReflector::MandatoryComponentFunctions& ECS::ComponentReflector::FindComponentFunctions(
 	const ComponentType componentType) const
 {
@@ -143,16 +137,5 @@ const ComponentReflector::MandatoryComponentFunctions& ECS::ComponentReflector::
 		Util::ReverseHash(componentType.GetTypeHash()));
 
 	return iter->second;
-}
-
-const ComponentReflector::TransmissionFunctions* ECS::ComponentReflector::FindTransmissionFunctions(
-	const ComponentType componentType) const
-{
-	const auto transmissionItr = m_transmissionFunctions.Find(componentType);
-	if (transmissionItr != m_transmissionFunctions.end())
-	{
-		return &transmissionItr->second;
-	}
-	return nullptr;
 }
 }

@@ -98,11 +98,16 @@ void HostWorld::HostThreadFunction()
 		m_host->Update(Unit::Time::Millisecond(deltaMs.count()));
 		m_lastUpdatePoint = nowPoint;
 
+		// Store a copy of the ECS state to use when transmitting ECS state.
+		m_host->StoreECSFrame();
+
 		// Transmit ECS state to clients. So long as the host implements the networked part of their game simulation
 		// using entities and components, this is all that needs to be sent.
-		const Collection::Vector<uint8_t> ecsUpdateTransmission = m_host->SerializeECSUpdateTransmission();
+		Collection::Vector<uint8_t> ecsUpdateTransmission;
 		for (auto& connectedClient : m_connectedClients)
 		{
+			ecsUpdateTransmission.Clear();
+			m_host->SerializeECSUpdateTransmission(connectedClient->GetClientID(), ecsUpdateTransmission);
 			connectedClient->TransmitECSUpdate(ecsUpdateTransmission);
 		}
 

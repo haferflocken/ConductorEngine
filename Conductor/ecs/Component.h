@@ -14,8 +14,6 @@ enum class ComponentBindingType
 	Normal,          // The component implements full serialization and deserialization.
 	Tag,             // The component cannot be instantiated, and therefore doesn't serialize or deserialize.
 	MemoryImaged,    // The component's serialization is performed automatically using memcpy.
-	NetworkedNormal, // The component is network synchronized. It implements full and delta serialization and deserialization.
-	NetworkedMemoryImaged // The component is network synchronized. Its serialization is performed automatically using memcpy.
 };
 
 /**

@@ -36,7 +36,7 @@ struct SerializedEntitiesAndComponents final
 	// The memory the serialized entities and their components are stored in.
 	Collection::Vector<uint8_t> m_bytes;
 	// Lists of views into m_bytes for serialized components of given types.
-	// Each component view is a FullSerializedComponentHeader followed by the number of bytes specified in the header.
+	// Each component view is a FullSerializedComponentHeader followed by the component's serialized representation.
 	Collection::VectorMap<ComponentType, Collection::Vector<SerializedByteView>> m_componentViews;
 	// A list of views into m_bytes for the serialized entities.
 	// Each entity view is a FullSerializedEntityHeader followed by a list of [component type, component unique id].
