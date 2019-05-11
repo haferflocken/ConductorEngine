@@ -3,10 +3,21 @@
 #include <mem/DeserializeLittleEndian.h>
 #include <mem/SerializeLittleEndian.h>
 
-#include <fstream>
+#include <ostream>
 
-void ECS::WriteSerializedEntitiesAndComponentsToFile(
-	const SerializedEntitiesAndComponents& serialization, std::ofstream& fileOutput)
+void ECS::WriteSerializedEntitiesAndComponentsTo(
+	const SerializedEntitiesAndComponents& serialization, std::ostream& fileOutput)
+{
+	WriteSerializedEntitiesAndComponentsTo(serialization,
+		[&](const void* data, size_t length)
+		{
+			fileOutput.write(reinterpret_cast<const char*>(data), length);
+		});
+}
+
+void ECS::WriteSerializedEntitiesAndComponentsTo(
+	const SerializedEntitiesAndComponents& serialization,
+	const std::function<void(const void*, size_t)>& outputFn)
 {
 	// Serialize the component views.
 	Collection::Vector<uint8_t> viewBytes;
@@ -40,15 +51,15 @@ void ECS::WriteSerializedEntitiesAndComponentsToFile(
 	memcpy(&viewBytes[entityViewsIndex], &serialization.m_entityViews.Front(), sizeOfEntityViews);
 
 	// Write the serialized views to the output.
-	fileOutput.write(reinterpret_cast<const char*>(&viewBytes.Front()), viewBytes.Size());
+	outputFn(&viewBytes.Front(), viewBytes.Size());
 
 	// Write the serialized entities and components to the output.
 	const uint32_t numBytes = serialization.m_bytes.Size();
-	fileOutput.write(reinterpret_cast<const char*>(&numBytes), sizeof(numBytes));
-	fileOutput.write(reinterpret_cast<const char*>(&serialization.m_bytes.Front()), serialization.m_bytes.Size());
+	outputFn(&numBytes, sizeof(numBytes));
+	outputFn(&serialization.m_bytes.Front(), serialization.m_bytes.Size());
 }
 
-bool ECS::TryReadSerializedEntitiesAndComponentsFromFile(
+bool ECS::TryReadSerializedEntitiesAndComponentsFrom(
 	Collection::ArrayView<const uint8_t> fileBytes, SerializedEntitiesAndComponents& serialization)
 {
 	// Read the component views.

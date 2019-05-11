@@ -4,6 +4,7 @@
 #include <ecs/ComponentType.h>
 #include <ecs/EntityID.h>
 
+#include <functional>
 #include <iosfwd>
 
 namespace ECS
@@ -43,10 +44,14 @@ struct SerializedEntitiesAndComponents final
 	Collection::Vector<SerializedByteView> m_entityViews;
 };
 
-// Read/write SerializedEntitiesAndComponents from/to files.
-void WriteSerializedEntitiesAndComponentsToFile(
-	const SerializedEntitiesAndComponents& serialization, std::ofstream& fileOutput);
-bool TryReadSerializedEntitiesAndComponentsFromFile(
+// Read/write SerializedEntitiesAndComponents from/to byte representations.
+void WriteSerializedEntitiesAndComponentsTo(
+	const SerializedEntitiesAndComponents& serialization,
+	std::ostream& fileOutput);
+void WriteSerializedEntitiesAndComponentsTo(
+	const SerializedEntitiesAndComponents& serialization,
+	const std::function<void(const void*, size_t)>& outputFn);
+bool TryReadSerializedEntitiesAndComponentsFrom(
 	Collection::ArrayView<const uint8_t> fileBytes,
 	SerializedEntitiesAndComponents& serialization);
 }

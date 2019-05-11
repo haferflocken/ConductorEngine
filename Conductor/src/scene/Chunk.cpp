@@ -26,7 +26,7 @@ void Scene::SaveInPlayChunk(const ChunkID chunkID,
 	entityManager.FullySerializeEntitiesAndComponents(entitiesToSerialize.GetView(), serialization);
 
 	// Write the serialization to the file.
-	ECS::WriteSerializedEntitiesAndComponentsToFile(serialization, fileOutput);
+	ECS::WriteSerializedEntitiesAndComponentsTo(serialization, fileOutput);
 }
 
 ECS::SerializedEntitiesAndComponents Scene::LoadChunkForPlay(const File::Path& sourcePath,
@@ -47,7 +47,7 @@ ECS::SerializedEntitiesAndComponents Scene::LoadChunkForPlay(const File::Path& s
 	const uint8_t* const bytes = reinterpret_cast<const uint8_t*>(rawChunk.data());
 
 	ECS::SerializedEntitiesAndComponents serialization;
-	if (!ECS::TryReadSerializedEntitiesAndComponentsFromFile({ bytes, rawChunk.size() }, serialization))
+	if (!ECS::TryReadSerializedEntitiesAndComponentsFrom({ bytes, rawChunk.size() }, serialization))
 	{
 		serialization = ECS::SerializedEntitiesAndComponents();
 	}
