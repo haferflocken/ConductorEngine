@@ -37,14 +37,27 @@ void FullySerializeEntitiesAndComponents(
 	const EntitiesView& entities,
 	SerializedEntitiesAndComponents& serialization)
 {
-	// Sort the components to serialize by type.
-	Collection::VectorMap<ComponentType, Collection::Vector<const Component*>> componentsToSerializeByType;
+	// Sort the components to serialize by type and ID.
+	struct ComponentIDWithPointer
+	{
+		ComponentID m_id;
+		const Component* m_component;
+	};
+	Collection::VectorMap<ComponentType, Collection::Vector<ComponentIDWithPointer>> componentsToSerializeByType;
 	for (const auto& entity : entities)
 	{
 		for (const auto& componentID : entity->GetComponentIDs())
 		{
-			componentsToSerializeByType[componentID.GetType()].Add(entityManager.FindComponent(componentID));
+			const Component* const component = entityManager.FindComponent(componentID);
+			componentsToSerializeByType[componentID.GetType()].Add({ componentID, component });
 		}
+	}
+
+	for (auto& entry : componentsToSerializeByType)
+	{
+		Collection::Vector<ComponentIDWithPointer>& components = entry.second;
+		std::sort(components.begin(), components.end(),
+			[](const auto& lhs, const auto& rhs) { return lhs.m_id < rhs.m_id; });
 	}
 
 	// Serialize the component data.
@@ -57,19 +70,20 @@ void FullySerializeEntitiesAndComponents(
 
 		auto& componentViews = serialization.m_componentViews[componentType];
 
-		for (const auto& component : components)
+		for (const auto& componentIDWithPointer : components)
 		{
+			const Component& component = *componentIDWithPointer.m_component;
 			const uint32_t componentViewBeginIndex = serialization.m_bytes.Size();
 
 			FullSerializedComponentHeader componentHeader;
-			componentHeader.m_uniqueID = component->m_id.GetUniqueID();
+			componentHeader.m_uniqueID = component.m_id.GetUniqueID();
 
 			serialization.m_bytes.Resize(serialization.m_bytes.Size() + FullSerializedComponentHeader::k_unpaddedSize);
 			memcpy(serialization.m_bytes.begin() + componentViewBeginIndex,
 				&componentHeader,
 				FullSerializedEntityHeader::k_unpaddedSize);
 
-			componentFunctions.m_fullSerializationFunction(*component, serialization.m_bytes);
+			componentFunctions.m_fullSerializationFunction(component, serialization.m_bytes);
 
 			componentViews.Add({ componentViewBeginIndex, serialization.m_bytes.Size() });
 		}

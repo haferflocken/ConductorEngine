@@ -126,10 +126,13 @@ void EntityTransmitter::SetLastSeenFrameForClient(const Client::ClientID clientI
 	entry->second = frameIndex;
 }
 
+// TODO(network) move this to SerializedEntitiesAndComponents.h/cpp
 void EntityTransmitter::TransmitFrame(
 	const Client::ClientID clientID,
 	Collection::Vector<uint8_t>& outTransmission) const
 {
+	using namespace Internal_EntityTransmitter;
+
 	// Fall back to a full transmission if there is no history or the client hasn't seen a frame yet.
 	const uint64_t lastSeenFrameIndex = m_lastSeenFramePerClient.Find(clientID)->second;
 	if (m_frameHistory.Size() == 0 || lastSeenFrameIndex == k_invalidFrameIndex)
@@ -151,7 +154,68 @@ void EntityTransmitter::TransmitFrame(
 	const ECS::SerializedEntitiesAndComponents& lastSeenFrame = m_frameHistory[historyIndex];
 	const ECS::SerializedEntitiesAndComponents& newestFrame = m_frameHistory.Newest();
 
-	// TODO(network) delta compress each component
+	// TODO(network) transmit the component views and entity views
+
+	// Component views in a SerializedEntitiesAndComponents are sorted by component ID, so we can iterate over the
+	// components in each type in each frame at the same time.
+	for (const auto& entry : newestFrame.m_componentViews)
+	{
+		const Collection::Vector<ECS::SerializedByteView>& newestComponentViews = entry.second;
+
+		const auto* const lastSeenEntryIter = lastSeenFrame.m_componentViews.Find(entry.first);
+		if (lastSeenEntryIter == nullptr)
+		{
+			// TODO(network) handle when there are no last seen components of this type
+			continue;
+		}
+
+		// Scan over the sorted component lists.
+		const Collection::Vector<ECS::SerializedByteView>& lastSeenComponentViews = lastSeenEntryIter->second;
+
+		const ECS::SerializedByteView* const lastSeenViewsEnd = lastSeenComponentViews.end();
+		const ECS::SerializedByteView* lastSeenViewIter = lastSeenComponentViews.begin();
+		for (const auto& newestView : newestComponentViews)
+		{
+			const auto& newestComponentHeader = *reinterpret_cast<const ECS::FullSerializedComponentHeader*>(
+				&newestFrame.m_bytes[newestView.m_beginIndex]);
+
+			// Scan forward over the last seen list while the last seen ID is less than the newest ID.
+			// Each component skipped is a component that was removed.
+			const auto* lastSeenComponentHeader = reinterpret_cast<const ECS::FullSerializedComponentHeader*>(
+				&lastSeenFrame.m_bytes[lastSeenViewIter->m_beginIndex]);
+			while (lastSeenComponentHeader->m_uniqueID < newestComponentHeader.m_uniqueID)
+			{
+				// TODO(network) transmit a removal marker
+
+				++lastSeenViewIter;
+				lastSeenComponentHeader = reinterpret_cast<const ECS::FullSerializedComponentHeader*>(
+					&lastSeenFrame.m_bytes[lastSeenViewIter->m_beginIndex]);
+			}
+
+			// If the IDs match, we can perform delta compression. If they don't, this is a new component.
+			if (lastSeenComponentHeader->m_uniqueID == newestComponentHeader.m_uniqueID)
+			{
+				// TODO(network) transmit a delta marker
+
+				const size_t lastSeenComponentSize = lastSeenViewIter->m_endIndex - lastSeenViewIter->m_beginIndex;
+				const size_t newestComponentSize = newestView.m_endIndex - newestView.m_beginIndex;
+
+				const uint8_t* const lastSeenComponentBytes = reinterpret_cast<const uint8_t*>(lastSeenComponentHeader);
+				const uint8_t* const newestComponentBytes = reinterpret_cast<const uint8_t*>(&newestComponentHeader);
+
+				DeltaCompress(
+					{ lastSeenComponentBytes, lastSeenComponentSize },
+					{ newestComponentBytes, newestComponentSize },
+					outTransmission);
+			}
+			else
+			{
+				// TODO(network) transmit a new component marker
+			}
+		}
+	}
+
+	// TODO(network) transmit the entity data
 }
 
 void EntityTransmitter::TransmitFullFrame(Collection::Vector<uint8_t>& outTransmission) const
