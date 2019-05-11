@@ -25,6 +25,10 @@ public:
 
 	size_t Size() const;
 
+	// Advances the buffer's indices as if an element was added to it. Returns the oldest element if the buffer is at
+	// capacity. Otherwise, returns an unused element.
+	T& AddRecycle();
+
 	// Add an element to the buffer, overwriting the oldest element if the buffer is at capacity.
 	void Add(const T& element);
 	void Add(T&& element);
@@ -74,18 +78,17 @@ inline size_t RingBuffer<T, S>::Size() const
 }
 
 template <typename T, size_t S>
-inline void RingBuffer<T, S>::Add(const T& element)
+inline T& RingBuffer<T, S>::AddRecycle()
 {
 	if (m_beginIndex == SIZE_MAX)
 	{
-		m_buffer[0] = element;
-
 		m_beginIndex = 0;
 		m_endIndex = 1;
+		return m_buffer[0];
 	}
 	else
 	{
-		m_buffer[m_endIndex] = element;
+		T& result = m_buffer[m_endIndex];
 
 		const size_t size = Size();
 		if (size >= k_capacity)
@@ -96,33 +99,23 @@ inline void RingBuffer<T, S>::Add(const T& element)
 
 		++m_endIndex;
 		m_endIndex %= k_capacity;
+
+		return result;
 	}
+}
+
+template <typename T, size_t S>
+inline void RingBuffer<T, S>::Add(const T& element)
+{
+	T& destination = AddRecycle();
+	destination = element;
 }
 
 template <typename T, size_t S>
 inline void RingBuffer<T, S>::Add(T&& element)
 {
-	if (m_beginIndex == SIZE_MAX)
-	{
-		m_buffer[0] = std::move(element);
-
-		m_beginIndex = 0;
-		m_endIndex = 1;
-	}
-	else
-	{
-		m_buffer[m_endIndex] = std::move(element);
-
-		const size_t size = Size();
-		if (size >= k_capacity)
-		{
-			++m_beginIndex;
-			m_beginIndex %= k_capacity;
-		}
-
-		++m_endIndex;
-		m_endIndex %= k_capacity;
-	}
+	T& destination = AddRecycle();
+	destination = std::move(element);
 }
 
 template <typename T, size_t S>
