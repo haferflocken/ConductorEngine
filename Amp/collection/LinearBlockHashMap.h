@@ -15,6 +15,14 @@ template <typename KeyType, typename ValueType, typename HashFn>
 class LinearBlockHashMap
 {
 public:
+	using MapType = HashMap<KeyType, ValueType*, HashFn>;
+	using KeyValueIterator = typename MapType::KeyValueIterator;
+	using ConstKeyValueIterator = typename MapType::ConstKeyValueIterator;
+	using KeyIterator = typename MapType::KeyIterator;
+	using ValueIterator = typename MapType::ValueIterator;
+	using ConstValueIterator = typename MapType::ConstValueIterator;
+
+public:
 	LinearBlockHashMap(HashFn&& hashFn, uint32_t numBucketsShift)
 		: m_allocator(Collection::LinearBlockAllocator::MakeFor<ValueType>())
 		, m_hashMap(std::move(hashFn), numBucketsShift)
@@ -39,6 +47,14 @@ public:
 	bool TryRemove(const KeyType& key, ValueType* outRemovedValue = nullptr);
 
 	bool IsEmpty() const { return m_allocator.IsEmpty(); }
+
+	IteratorView<KeyValueIterator> GetKeyValueView() { return m_hashMap.GetKeyValueView(); }
+	IteratorView<ConstKeyValueIterator> GetKeyValueView() const { return m_hashMap.GetKeyValueView(); }
+
+	IteratorView<KeyIterator> GetKeyView() const { return m_hashMap.GetKeyView(); }
+
+	IteratorView<ValueIterator> GetValueView() { return m_hashMap.GetValueView(); }
+	IteratorView<ConstValueIterator> GetValueView() const { return m_hashMap.GetValueView(); }
 
 private:
 	LinearBlockAllocator m_allocator;

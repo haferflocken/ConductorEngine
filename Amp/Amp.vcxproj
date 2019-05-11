@@ -139,6 +139,7 @@
     <ClInclude Include="collection\Heap.h" />
     <ClInclude Include="collection\IndexIterator.h" />
     <ClInclude Include="collection\IntegralRange.h" />
+    <ClInclude Include="collection\IteratorView.h" />
     <ClInclude Include="collection\LinearBlockHashMap.h" />
     <ClInclude Include="collection\LocklessQueue.h" />
     <ClInclude Include="collection\Pair.h" />
