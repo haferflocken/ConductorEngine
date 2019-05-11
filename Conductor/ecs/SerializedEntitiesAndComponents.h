@@ -52,6 +52,15 @@ void WriteSerializedEntitiesAndComponentsTo(
 	const SerializedEntitiesAndComponents& serialization,
 	const std::function<void(const void*, size_t)>& outputFn);
 bool TryReadSerializedEntitiesAndComponentsFrom(
-	Collection::ArrayView<const uint8_t> fileBytes,
-	SerializedEntitiesAndComponents& serialization);
+	const Collection::ArrayView<const uint8_t> fileBytes,
+	SerializedEntitiesAndComponents& outSerialization);
+
+void DeltaCompressSerializedEntitiesAndComponentsTo(
+	const SerializedEntitiesAndComponents& lastSeenFrame,
+	const SerializedEntitiesAndComponents& newestFrame,
+	Collection::Vector<uint8_t>& outBytes);
+bool TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
+	const SerializedEntitiesAndComponents& lastSeenFrame,
+	Collection::ArrayView<const uint8_t> deltaCompressedBytes,
+	SerializedEntitiesAndComponents& outDecompressedSerialization);
 }
