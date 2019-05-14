@@ -21,7 +21,8 @@ public:
 
 	static constexpr size_t sk_InvalidIndex = static_cast<size_t>(-1);
 
-	explicit Vector(const uint32_t initialCapacity = 8);
+	Vector();
+	explicit Vector(const uint32_t initialCapacity);
 	explicit Vector(std::initializer_list<T> initialElements);
 	explicit Vector(const ArrayView<const T>& initialElements);
 
@@ -99,6 +100,15 @@ private:
 	uint32_t m_capacity{ 0 };
 	uint32_t m_count{ 0 };
 };
+}
+
+// Inline implementations.
+namespace Collection
+{
+template <typename T>
+inline Vector<T>::Vector()
+	: Vector(8)
+{}
 
 template <typename T>
 inline Vector<T>::Vector(const uint32_t initialCapacity)
