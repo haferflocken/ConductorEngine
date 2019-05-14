@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ecs/EntityManager.h>
-#include <network/EntityTransmitter.h>
+#include <network/ECSTransmitter.h>
 
 namespace Client { struct ClientID; }
 
@@ -20,7 +20,7 @@ class IHost
 {
 protected:
 	ECS::EntityManager m_entityManager;
-	Network::EntityTransmitter m_entityTransmitter;
+	Network::ECSTransmitter m_ecsTransmitter;
 	// The InputSystem is present on all hosts.
 	Input::InputSystem& m_inputSystem;
 

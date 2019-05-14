@@ -1,16 +1,16 @@
-#include <network/EntityTransmitter.h>
+#include <network/ECSTransmitter.h>
 
 #include <mem/SerializeLittleEndian.h>
 #include <network/ECSTransmission.h>
 
 namespace Network
 {
-void EntityTransmitter::NotifyOfClientConnected(const Client::ClientID clientID)
+void ECSTransmitter::NotifyOfClientConnected(const Client::ClientID clientID)
 {
 	m_lastSeenFramePerClient[clientID] = k_invalidFrameIndex;
 }
 
-void EntityTransmitter::NotifyOfClientDisconnected(const Client::ClientID clientID)
+void ECSTransmitter::NotifyOfClientDisconnected(const Client::ClientID clientID)
 {
 	[[maybe_unused]] const bool removed = m_lastSeenFramePerClient.TryRemove(clientID);
 	AMP_FATAL_ASSERT(removed,
@@ -18,19 +18,19 @@ void EntityTransmitter::NotifyOfClientDisconnected(const Client::ClientID client
 		static_cast<uint32_t>(clientID.GetN()));
 }
 
-void EntityTransmitter::AddSerializedFrame(ECS::SerializedEntitiesAndComponents&& newFrame)
+void ECSTransmitter::AddSerializedFrame(ECS::SerializedEntitiesAndComponents&& newFrame)
 {
 	++m_frameIndex;
 	m_frameHistory.Add(std::move(newFrame));
 }
 
-void EntityTransmitter::SetLastSeenFrameForClient(const Client::ClientID clientID, uint64_t frameIndex)
+void ECSTransmitter::SetLastSeenFrameForClient(const Client::ClientID clientID, uint64_t frameIndex)
 {
 	auto* const entry = m_lastSeenFramePerClient.Find(clientID);
 	entry->second = frameIndex;
 }
 
-void EntityTransmitter::TransmitFrame(
+void ECSTransmitter::TransmitFrame(
 	const Client::ClientID clientID,
 	Collection::Vector<uint8_t>& outTransmission) const
 {
@@ -66,7 +66,7 @@ void EntityTransmitter::TransmitFrame(
 	ECS::DeltaCompressSerializedEntitiesAndComponentsTo(lastSeenFrame, newestFrame, outTransmission);
 }
 
-void EntityTransmitter::TransmitFullFrame(Collection::Vector<uint8_t>& outTransmission) const
+void ECSTransmitter::TransmitFullFrame(Collection::Vector<uint8_t>& outTransmission) const
 {
 	// Transmit the full frame marker so that the receiver knows to directly apply the data.
 	Mem::LittleEndian::Serialize(k_fullFrameMarker, outTransmission);

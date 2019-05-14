@@ -11,7 +11,7 @@ namespace Network
 /**
  * Transmits the state of entities and components based on what state connected clients are aware of.
  */
-class EntityTransmitter final
+class ECSTransmitter final
 {
 public:
 	void NotifyOfClientConnected(const Client::ClientID clientID);

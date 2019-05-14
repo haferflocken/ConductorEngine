@@ -185,7 +185,7 @@
     <ClCompile Include="src\mesh\Vertex.cpp" />
     <ClCompile Include="src\network\DeltaCompression.cpp" />
     <ClCompile Include="src\network\ECSReceiver.cpp" />
-    <ClCompile Include="src\network\EntityTransmitter.cpp" />
+    <ClCompile Include="src\network\ECSTransmitter.cpp" />
     <ClCompile Include="src\scene\AnchorComponent.cpp" />
     <ClCompile Include="src\scene\RelativeTransformSystem.cpp" />
     <ClCompile Include="src\scene\SceneAnchorSystem.cpp" />
@@ -264,7 +264,7 @@
     <ClInclude Include="network\DeltaCompression.h" />
     <ClInclude Include="network\ECSTransmission.h" />
     <ClInclude Include="network\ECSReceiver.h" />
-    <ClInclude Include="network\EntityTransmitter.h" />
+    <ClInclude Include="network\ECSTransmitter.h" />
     <ClInclude Include="scene\AnchorComponent.h" />
     <ClInclude Include="scene\RelativeTransformSystem.h" />
     <ClInclude Include="scene\SceneAnchorSystem.h" />
