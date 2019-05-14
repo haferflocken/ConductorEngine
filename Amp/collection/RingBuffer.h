@@ -34,9 +34,11 @@ public:
 	void Add(T&& element);
 
 	// Access the buffer by index. 0 is the oldest element.
+	T& operator[](size_t i);
 	const T& operator[](size_t i) const;
 
 	// Access the newest element of the buffer.
+	T& Newest();
 	const T& Newest() const;
 
 private:
@@ -119,11 +121,24 @@ inline void RingBuffer<T, S>::Add(T&& element)
 }
 
 template <typename T, size_t S>
+inline T& RingBuffer<T, S>::operator[](size_t i)
+{
+	return const_cast<T&>((*static_cast<const RingBuffer*>(this))[i]);
+}
+
+template <typename T, size_t S>
 inline const T& RingBuffer<T, S>::operator[](size_t i) const
 {
 	AMP_FATAL_ASSERT(i < Size(), "Index [%zu] is out of bounds!", i);
 	const size_t adjustedIndex = (m_beginIndex + i) % k_capacity;
 	return m_buffer[adjustedIndex];
+}
+
+
+template <typename T, size_t S>
+inline T& RingBuffer<T, S>::Newest()
+{
+	return const_cast<T&>(static_cast<const RingBuffer*>(this)->Newest());
 }
 
 template <typename T, size_t S>
