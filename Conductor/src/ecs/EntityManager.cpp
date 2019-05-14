@@ -20,16 +20,6 @@ namespace ECS
 {
 namespace Internal_EntityManager
 {
-enum class TransmissionSectionType : uint8_t
-{
-	ComponentsAdded = 0,
-	ComponentsRemoved,
-	ComponentsDeltaUpdate,
-	EntitiesAdded,
-	EntitiesRemoved,
-	EntitiesChanged,
-};
-
 template <typename EntitiesView>
 void FullySerializeEntitiesAndComponents(
 	const ECS::ComponentReflector& componentReflector,
