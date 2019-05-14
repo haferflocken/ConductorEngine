@@ -2,6 +2,7 @@
 
 #include <mem/DeserializeLittleEndian.h>
 #include <mem/SerializeLittleEndian.h>
+#include <network/DeltaCompression.h>
 
 #include <ostream>
 
@@ -144,101 +145,11 @@ bool ECS::TryReadSerializedEntitiesAndComponentsFrom(
 
 namespace Internal_SerializedEntitiesAndComponents
 {
-constexpr uint8_t k_unchangedSectionTypeID = 0x0F;
-constexpr uint8_t k_changedSectionTypeID = 0xF0;
-constexpr uint8_t k_trailingSectionTypeID = 0xAA;
-constexpr uint8_t k_maxSectionSize = UINT8_MAX;
+static const uint32_t k_componentViewsSectionMarker = 'CMPV';
+static const uint32_t k_entityViewsSectionMarker = 'ENTV';
 
-void DeltaCompress(
-	const Collection::ArrayView<const uint8_t>& lastSeenBytes,
-	const Collection::ArrayView<const uint8_t>& currentBytes,
-	Collection::Vector<uint8_t>& outCompressedBytes)
-{
-	// We delta compress by searching for runs of identical bytes. To encode this, the compressed bytes consist of three
-	// types of sections. A section begins with a two byte marker: a type and a size.
-
-	// An unchanged section's size indicates how many bytes to read from the previous transmission.
-	// An unchanged section ends immediately after its size; they are always 2 bytes.
-	// A changed section's size indicates how many bytes to read from the current transmission.
-	// A changed section ends size bytes after its marker.
-	// A trailing section's size indicates how many bytes to read from the current transmission.
-	// A trailing section ends size bytes after its marker.
-
-	// Find runs of identical bytes and encode them as unchanged sections. Encode all other bytes in the overlapping
-	// byte range as changed sections. Encode all bytes following the overlapping range in trailing sections.
-	const size_t minByteCount =
-		(lastSeenBytes.Size() < currentBytes.Size()) ? lastSeenBytes.Size() : currentBytes.Size();
-	size_t i = 0;
-	for (; i < minByteCount; /* CONTROLLED IN LOOP */)
-	{
-		const size_t rewindI = i;
-		for (size_t j = 0; j < k_maxSectionSize && i < minByteCount; ++j, ++i)
-		{
-			if (lastSeenBytes[i] != currentBytes[i])
-			{
-				break;
-			}
-		}
-		const size_t unchangedRunEnd = i;
-		const size_t unchangedRunLength = unchangedRunEnd - rewindI;
-		AMP_FATAL_ASSERT(unchangedRunLength <= k_maxSectionSize, "Sections can't exceed 256 bytes!");
-
-		// An unchanged run is only worth encoding if its longer than a section marker.
-		if (unchangedRunLength > 2)
-		{
-			outCompressedBytes.Add(k_unchangedSectionTypeID);
-			outCompressedBytes.Add(static_cast<uint8_t>(unchangedRunLength));
-			// i is already in the right place.
-			continue;
-		}
-
-		// Rewind i to the start of this iteration.
-		i = rewindI;
-
-		// Step i forward until the 4 bytes after i are identical.
-		bool foundNextUnchangedRun = false;
-		for (size_t j = 0; j < k_maxSectionSize && i < (minByteCount - 3); ++j, ++i)
-		{
-			if (memcmp(lastSeenBytes.begin() + i, currentBytes.begin() + i, 3) == 0)
-			{
-				foundNextUnchangedRun = true;
-				break;
-			}
-		}
-
-		// A changed run is only added if the next unchanged run was found. If we reached the end of the overlapping
-		// byte range, we just encode these bytes in a trailing section.
-		if (!foundNextUnchangedRun)
-		{
-			// Rewind i before adding the trailing section.
-			i = rewindI;
-			break;
-		}
-
-		const size_t changedRunEnd = i;
-		const size_t changedRunLength = changedRunEnd - rewindI;
-		AMP_FATAL_ASSERT(changedRunLength <= k_maxSectionSize, "Sections can't exceed 256 bytes!");
-
-		outCompressedBytes.Add(k_changedSectionTypeID);
-		outCompressedBytes.Add(static_cast<uint8_t>(changedRunLength));
-		outCompressedBytes.AddAll({ currentBytes.begin() + rewindI, changedRunLength });
-
-		// i is already in the right place.
-	}
-
-	// Add trailing sections to ensure we don't drop any bytes from outside the overlapping range.
-	while (i < currentBytes.Size())
-	{
-		const size_t remainingBytes = currentBytes.Size() - i;
-		const size_t sectionSize = (remainingBytes < k_maxSectionSize) ? remainingBytes : k_maxSectionSize;
-
-		outCompressedBytes.Add(k_trailingSectionTypeID);
-		outCompressedBytes.Add(static_cast<uint8_t>(sectionSize));
-		outCompressedBytes.AddAll({ currentBytes.begin() + i, sectionSize });
-
-		i += sectionSize;
-	}
-}
+static const uint32_t k_componentsSectionMarker = 'COMP';
+static const uint32_t k_entitiesSectionMarker = 'ENTI';
 }
 
 void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
@@ -248,13 +159,14 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 {
 	using namespace Internal_SerializedEntitiesAndComponents;
 
-	// Transmit the component views.
-	// TODO(network) section marker
+	// TODO(network) Transmit the component views.
+	Mem::LittleEndian::Serialize(k_componentViewsSectionMarker, outBytes);
 	{
 	}
 
 	// Transmit the entity views.
-	// TODO(network) section marker
+	Mem::LittleEndian::Serialize(k_entityViewsSectionMarker, outBytes);
+	Mem::LittleEndian::Serialize(static_cast<uint32_t>(newestFrame.m_entityViews.Size()), outBytes);
 	{
 		// TODO(network) evaluate whether or not this is a good way to transmit the entity views.
 		const size_t numLastSeenEntityViewsBytes = lastSeenFrame.m_entityViews.Size() * sizeof(ECS::SerializedByteView);
@@ -263,7 +175,7 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 		const auto lastSeenEntityViewsBytes = reinterpret_cast<const uint8_t*>(lastSeenFrame.m_entityViews.begin());
 		const auto newestEntityViewsBytes = reinterpret_cast<const uint8_t*>(newestFrame.m_entityViews.begin());
 
-		DeltaCompress(
+		Network::DeltaCompression::Compress(
 			{ lastSeenEntityViewsBytes, numLastSeenEntityViewsBytes },
 			{ newestEntityViewsBytes, numNewestEntityViewsBytes },
 			outBytes);
@@ -271,7 +183,7 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 
 	// Component views in a SerializedEntitiesAndComponents are sorted by component ID, so we can iterate over the
 	// components in each type in each frame at the same time.
-	// TODO(network) section marker
+	Mem::LittleEndian::Serialize(k_componentsSectionMarker, outBytes);
 	for (const auto& entry : newestFrame.m_componentViews)
 	{
 		const Collection::Vector<ECS::SerializedByteView>& newestComponentViews = entry.second;
@@ -319,7 +231,7 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 				const uint8_t* const lastSeenComponentBytes = reinterpret_cast<const uint8_t*>(lastSeenComponentHeader);
 				const uint8_t* const newestComponentBytes = reinterpret_cast<const uint8_t*>(&newestComponentHeader);
 
-				DeltaCompress(
+				Network::DeltaCompression::Compress(
 					{ lastSeenComponentBytes, lastSeenComponentSize },
 					{ newestComponentBytes, newestComponentSize },
 					outBytes);
@@ -331,8 +243,8 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 		}
 	}
 
-	// Transmit the entity data.
-	// TODO(network) section marker
+	// TODO(network) Transmit the entity data.
+	Mem::LittleEndian::Serialize(k_entitiesSectionMarker, outBytes);
 	{
 
 	}
@@ -340,7 +252,7 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 
 bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 	const SerializedEntitiesAndComponents& lastSeenFrame,
-	Collection::ArrayView<const uint8_t> deltaCompressedBytes,
+	const Collection::ArrayView<const uint8_t> deltaCompressedBytes,
 	SerializedEntitiesAndComponents& outDecompressedSerialization)
 {
 	// TODO(network) decompress

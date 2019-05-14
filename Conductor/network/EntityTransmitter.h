@@ -9,7 +9,7 @@
 namespace Network
 {
 /**
- * Tranmits the state of entities and components based on what state connected clients are aware of.
+ * Transmits the state of entities and components based on what state connected clients are aware of.
  */
 class EntityTransmitter final
 {
@@ -25,7 +25,6 @@ public:
 
 private:
 	static constexpr size_t k_historySize = 16;
-	static constexpr uint64_t k_invalidFrameIndex = UINT64_MAX;
 
 	uint64_t m_frameIndex{ 0 };
 

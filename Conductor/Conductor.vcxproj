@@ -183,6 +183,8 @@
     <ClCompile Include="src\mesh\SkeletonSystem.cpp" />
     <ClCompile Include="src\mesh\TriangleMesh.cpp" />
     <ClCompile Include="src\mesh\Vertex.cpp" />
+    <ClCompile Include="src\network\DeltaCompression.cpp" />
+    <ClCompile Include="src\network\ECSReceiver.cpp" />
     <ClCompile Include="src\network\EntityTransmitter.cpp" />
     <ClCompile Include="src\scene\AnchorComponent.cpp" />
     <ClCompile Include="src\scene\RelativeTransformSystem.cpp" />
@@ -259,6 +261,9 @@
     <ClInclude Include="mesh\SkeletonSystem.h" />
     <ClInclude Include="mesh\TriangleMesh.h" />
     <ClInclude Include="mesh\Vertex.h" />
+    <ClInclude Include="network\DeltaCompression.h" />
+    <ClInclude Include="network\ECSTransmission.h" />
+    <ClInclude Include="network\ECSReceiver.h" />
     <ClInclude Include="network\EntityTransmitter.h" />
     <ClInclude Include="scene\AnchorComponent.h" />
     <ClInclude Include="scene\RelativeTransformSystem.h" />

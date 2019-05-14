@@ -1,5 +1,8 @@
 #include <network/EntityTransmitter.h>
 
+#include <mem/SerializeLittleEndian.h>
+#include <network/ECSTransmission.h>
+
 namespace Network
 {
 void EntityTransmitter::NotifyOfClientConnected(const Client::ClientID clientID)
@@ -40,7 +43,7 @@ void EntityTransmitter::TransmitFrame(
 	}
 
 	// Fall back to a full transmission if there's not enough history to create a delta frame.
-	const uint64_t oldestStoredFrameIndex = m_frameIndex - m_frameHistory.Size() - 1;
+	const uint64_t oldestStoredFrameIndex = m_frameIndex - (m_frameHistory.Size() - 1);
 	if (lastSeenFrameIndex < oldestStoredFrameIndex)
 	{
 		TransmitFullFrame(outTransmission);
@@ -52,13 +55,25 @@ void EntityTransmitter::TransmitFrame(
 	const ECS::SerializedEntitiesAndComponents& lastSeenFrame = m_frameHistory[historyIndex];
 	const ECS::SerializedEntitiesAndComponents& newestFrame = m_frameHistory.Newest();
 
-	// TODO(network) delta frame marker
+	// Transmit the delta frame marker so that the receiver knows to decompress the data.
+	Mem::LittleEndian::Serialize(k_deltaFrameMarker, outTransmission);
+	
+	// Transmit the current frame index and the index of the frame this is compressed against.
+	Mem::LittleEndian::Serialize(m_frameIndex, outTransmission);
+	Mem::LittleEndian::Serialize(lastSeenFrameIndex, outTransmission);
+
+	// Create the delta transmission.
 	ECS::DeltaCompressSerializedEntitiesAndComponentsTo(lastSeenFrame, newestFrame, outTransmission);
 }
 
 void EntityTransmitter::TransmitFullFrame(Collection::Vector<uint8_t>& outTransmission) const
 {
-	// TODO(network) full frame marker
+	// Transmit the full frame marker so that the receiver knows to directly apply the data.
+	Mem::LittleEndian::Serialize(k_fullFrameMarker, outTransmission);
+
+	// Transmit the current frame index and create the full transmission.
+	Mem::LittleEndian::Serialize(m_frameIndex, outTransmission);
+
 	const ECS::SerializedEntitiesAndComponents& newestFrame = m_frameHistory.Newest();
 	ECS::WriteSerializedEntitiesAndComponentsTo(newestFrame,
 		[&](const void* data, size_t length)

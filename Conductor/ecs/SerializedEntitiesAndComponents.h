@@ -61,6 +61,6 @@ void DeltaCompressSerializedEntitiesAndComponentsTo(
 	Collection::Vector<uint8_t>& outBytes);
 bool TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 	const SerializedEntitiesAndComponents& lastSeenFrame,
-	Collection::ArrayView<const uint8_t> deltaCompressedBytes,
+	const Collection::ArrayView<const uint8_t> deltaCompressedBytes,
 	SerializedEntitiesAndComponents& outDecompressedSerialization);
 }
