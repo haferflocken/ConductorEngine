@@ -4,6 +4,7 @@
 #include <ecs/EntityManager.h>
 #include <input/CallbackRegistry.h>
 #include <input/InputStateManager.h>
+#include <network/ECSReceiver.h>
 
 #include <functional>
 
@@ -21,6 +22,7 @@ protected:
 	Input::CallbackRegistry m_inputCallbackRegistry{};
 	Input::InputStateManager m_inputStateManager;
 	ECS::EntityManager m_entityManager;
+	Network::ECSReceiver m_ecsReceiver;
 
 public:
 	IClient(Asset::AssetManager& assetManager, const ECS::ComponentReflector& componentReflector,

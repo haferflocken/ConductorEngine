@@ -28,20 +28,23 @@ struct SerializedByteView final
 	uint32_t m_beginIndex;
 	uint32_t m_endIndex;
 };
+struct SerializedBytesWithViews final
+{
+	Collection::Vector<uint8_t> m_bytes;
+	Collection::Vector<SerializedByteView> m_views;
+};
 
 /**
  * A serialized representation of a number of entities and their components.
  */
 struct SerializedEntitiesAndComponents final
 {
-	// The memory the serialized entities and their components are stored in.
-	Collection::Vector<uint8_t> m_bytes;
-	// Lists of views into m_bytes for serialized components of given types, sorted by component ID.
+	// Bytes and lists of views into them for serialized components of given types, sorted by component ID.
 	// Each component view is a FullSerializedComponentHeader followed by the component's serialized representation.
-	Collection::VectorMap<ComponentType, Collection::Vector<SerializedByteView>> m_componentViews;
-	// A list of views into m_bytes for the serialized entities.
+	Collection::VectorMap<ComponentType, SerializedBytesWithViews> m_components;
+	// Bytes and a list of views into them for the serialized entities, sorted by entity ID.
 	// Each entity view is a FullSerializedEntityHeader followed by a list of [component type, component unique id].
-	Collection::Vector<SerializedByteView> m_entityViews;
+	SerializedBytesWithViews m_entities;
 };
 
 // Read/write SerializedEntitiesAndComponents from/to byte representations.

@@ -20,6 +20,8 @@ namespace ECS
 {
 namespace Internal_EntityManager
 {
+// TODO(network) this should live in SerializedEntitiesAndComponents to consolidate all the serialization and
+//               deserialization code
 template <typename EntitiesView>
 void FullySerializeEntitiesAndComponents(
 	const ECS::ComponentReflector& componentReflector,
@@ -57,52 +59,76 @@ void FullySerializeEntitiesAndComponents(
 		const auto& components = entry.second;
 
 		const auto componentFunctions = componentReflector.FindComponentFunctions(componentType);
-
-		auto& componentViews = serialization.m_componentViews[componentType];
+		
+		auto& componentBytesAndViews = serialization.m_components[componentType];
+		auto& componentBytes = componentBytesAndViews.m_bytes;
+		auto& componentViews = componentBytesAndViews.m_views;
 
 		for (const auto& componentIDWithPointer : components)
 		{
 			const Component& component = *componentIDWithPointer.m_component;
-			const uint32_t componentViewBeginIndex = serialization.m_bytes.Size();
+			const uint32_t componentViewBeginIndex = componentBytes.Size();
 
 			FullSerializedComponentHeader componentHeader;
 			componentHeader.m_uniqueID = component.m_id.GetUniqueID();
 
-			serialization.m_bytes.Resize(serialization.m_bytes.Size() + FullSerializedComponentHeader::k_unpaddedSize);
-			memcpy(serialization.m_bytes.begin() + componentViewBeginIndex,
+			componentBytes.Resize(componentBytes.Size() + FullSerializedComponentHeader::k_unpaddedSize);
+			memcpy(componentBytes.begin() + componentViewBeginIndex,
 				&componentHeader,
 				FullSerializedEntityHeader::k_unpaddedSize);
 
-			componentFunctions.m_fullSerializationFunction(component, serialization.m_bytes);
+			componentFunctions.m_fullSerializationFunction(component, componentBytes);
 
-			componentViews.Add({ componentViewBeginIndex, serialization.m_bytes.Size() });
+			componentViews.Add({ componentViewBeginIndex, componentBytes.Size() });
 		}
 	}
 
-	// Serialize the entity data.
+	// Serialize the entity data to a sorted map to ensure the entities are output in sorted order.
+	Collection::VectorMap<EntityID, Collection::Vector<uint8_t>> serializedEntities;
+	size_t totalNumEntityBytes = 0;
 	for (const auto& entity : entities)
 	{
-		const uint32_t entityViewBeginIndex = serialization.m_bytes.Size();
-
 		FullSerializedEntityHeader entityHeader;
 		entityHeader.m_entityID = entity->GetID();
+
+		// We serialize the parent ID but not the child IDs because the child list will be reconstructed by the
+		// children of this entity.
 		if (entity->GetParent() != nullptr)
 		{
 			entityHeader.m_parentEntityID = entity->GetParent()->GetID();
 		}
 		entityHeader.m_numComponents = entity->GetComponentIDs().Size();
 
-		serialization.m_bytes.Resize(serialization.m_bytes.Size() + FullSerializedEntityHeader::k_unpaddedSize);
-		memcpy(serialization.m_bytes.begin() + entityViewBeginIndex,
-			&entityHeader,
-			FullSerializedEntityHeader::k_unpaddedSize);
+		const size_t numRequiredBytes =
+			FullSerializedEntityHeader::k_unpaddedSize + (entityHeader.m_numComponents * sizeof(ComponentID));
+
+		Collection::Vector<uint8_t>& entityBytes = serializedEntities[entity->GetID()];
+		entityBytes.EnsureCapacity(static_cast<uint32_t>(numRequiredBytes));
+		entityBytes.Resize(FullSerializedEntityHeader::k_unpaddedSize);
+		memcpy(entityBytes.begin(), &entityHeader, FullSerializedEntityHeader::k_unpaddedSize);
 
 		for (const auto& componentID : entity->GetComponentIDs())
 		{
-			Mem::LittleEndian::Serialize(componentID.GetUniqueID(), serialization.m_bytes);
+			Mem::LittleEndian::Serialize(componentID.GetUniqueID(), entityBytes);
 		}
 
-		serialization.m_entityViews.Add({ entityViewBeginIndex, serialization.m_bytes.Size() });
+		AMP_FATAL_ASSERT(entityBytes.Size() == numRequiredBytes, "");
+		totalNumEntityBytes += numRequiredBytes;
+	}
+
+	// Flatten the serialized entity data.
+	serialization.m_entities.m_bytes.EnsureCapacity(
+		static_cast<uint32_t>(serialization.m_entities.m_bytes.Size() + totalNumEntityBytes));
+	for (const auto& entry : serializedEntities)
+	{
+		const auto& entityBytes = entry.second;
+
+		SerializedByteView entityView;
+		entityView.m_beginIndex = serialization.m_entities.m_bytes.Size();
+		entityView.m_endIndex = entityView.m_beginIndex + entityBytes.Size();
+		serialization.m_entities.m_views.Add(entityView);
+
+		serialization.m_entities.m_bytes.AddAll(entityBytes.GetConstView());
 	}
 }
 }
@@ -167,7 +193,7 @@ Collection::Vector<Entity*> EntityManager::CreateEntitiesFromFullSerialization(
 	const SerializedEntitiesAndComponents& serialization)
 {
 	// Create all serialized components.
-	for (const auto& entry : serialization.m_componentViews)
+	for (const auto& entry : serialization.m_components)
 	{
 		ComponentVector* const componentVector = GetComponentVector(entry.first);
 		if (componentVector == nullptr)
@@ -177,9 +203,9 @@ Collection::Vector<Entity*> EntityManager::CreateEntitiesFromFullSerialization(
 
 		const auto componentFunctions = m_componentReflector.FindComponentFunctions(entry.first);
 
-		for (const auto& componentView : entry.second)
+		for (const auto& componentView : entry.second.m_views)
 		{
-			const uint8_t* const viewBytes = &serialization.m_bytes[componentView.m_beginIndex];
+			const uint8_t* const viewBytes = &entry.second.m_bytes[componentView.m_beginIndex];
 
 			FullSerializedComponentHeader header;
 			memcpy(&header, viewBytes, FullSerializedComponentHeader::k_unpaddedSize);
@@ -197,9 +223,9 @@ Collection::Vector<Entity*> EntityManager::CreateEntitiesFromFullSerialization(
 
 	// Create all serialized entities.
 	Collection::Vector<Entity*> newEntities;
-	for (const auto& entityView : serialization.m_entityViews)
+	for (const auto& entityView : serialization.m_entities.m_views)
 	{
-		const uint8_t* const viewBytes = &serialization.m_bytes[entityView.m_beginIndex];
+		const uint8_t* const viewBytes = &serialization.m_entities.m_bytes[entityView.m_beginIndex];
 		const size_t viewSizeInBytes = (entityView.m_endIndex - entityView.m_beginIndex);
 
 		FullSerializedEntityHeader header;

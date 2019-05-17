@@ -2,6 +2,8 @@
 
 #include <collection/ArrayView.h>
 #include <collection/Vector.h>
+#include <mem/DeserializeLittleEndian.h>
+#include <mem/SerializeLittleEndian.h>
 
 namespace Network
 {
@@ -11,6 +13,8 @@ constexpr uint8_t k_unchangedSectionTypeID = 0x0F;
 constexpr uint8_t k_changedSectionTypeID = 0xF0;
 constexpr uint8_t k_trailingSectionTypeID = 0xAA;
 constexpr uint8_t k_maxSectionSize = UINT8_MAX;
+
+constexpr uint8_t k_terminalMarker = 0xDD;
 }
 
 void DeltaCompression::Compress(
@@ -19,6 +23,9 @@ void DeltaCompression::Compress(
 	Collection::Vector<uint8_t>& outCompressedBytes)
 {
 	using namespace Internal_DeltaCompression;
+
+	// To decompress later, we need to know the size before compression.
+	Mem::LittleEndian::Serialize(static_cast<uint16_t>(currentBytes.Size()), outCompressedBytes);
 
 	// We delta compress by searching for runs of identical bytes. To encode this, the compressed bytes consist of three
 	// types of sections. A section begins with a two byte marker: a type and a size.
@@ -104,25 +111,45 @@ void DeltaCompression::Compress(
 
 		i += sectionSize;
 	}
+
+	// Write a terminator marker.
+	Mem::LittleEndian::Serialize(k_terminalMarker, outCompressedBytes);
 }
 
 bool DeltaCompression::TryDecompress(
 	const Collection::ArrayView<const uint8_t>& lastSeenBytes,
-	const Collection::ArrayView<const uint8_t>& compressedBytes,
-	Collection::Vector<uint8_t>& outDecompressedBytes)
+	const uint8_t*& compressedIter,
+	const uint8_t* const compressedBytesEnd,
+	Collection::ArrayView<uint8_t>& inOutDecompressedBytes)
 {
 	using namespace Internal_DeltaCompression;
+
+	// Before the compressed bytes is a uint16_t indicating the size before compression.
+	const auto maybeNumBytesBeforeCompression = Mem::LittleEndian::DeserializeUi16(compressedIter, compressedBytesEnd);
+	if (!maybeNumBytesBeforeCompression.second)
+	{
+		return false;
+	}
+	const uint16_t numBytesBeforeCompression = maybeNumBytesBeforeCompression.first;
+	if (numBytesBeforeCompression > inOutDecompressedBytes.Size())
+	{
+		AMP_LOG_ERROR("Insufficient capacity to perform delta-decompression.");
+		return false;
+	}
+	uint8_t* outIter = inOutDecompressedBytes.begin();
+	inOutDecompressedBytes = { outIter, numBytesBeforeCompression };
 
 	// Delta compressed bytes are divided into sections, each of which has a two byte header:
 	// a one byte section type ID and a one byte size.
 	const uint8_t* lastSeenIter = lastSeenBytes.begin();
 	const uint8_t* const lastSeenEnd = lastSeenBytes.end();
-
-	const uint8_t* compressedIter = compressedBytes.begin();
-	const uint8_t* const compressedEnd = compressedBytes.end();
-	while ((compressedIter + 1) < compressedEnd)
+	while ((compressedIter + 1) < compressedBytesEnd)
 	{
 		const uint8_t sectionTypeID = *(compressedIter++);
+		if (sectionTypeID == k_terminalMarker)
+		{
+			break;
+		}
 		const uint8_t sectionSizeInBytes = *(compressedIter++);
 
 		if (sectionTypeID == k_unchangedSectionTypeID)
@@ -133,18 +160,21 @@ bool DeltaCompression::TryDecompress(
 				return false;
 			}
 
-			outDecompressedBytes.AddAll({ lastSeenIter, sectionSizeInBytes });
+			memcpy(outIter, lastSeenIter, sectionSizeInBytes);
+			outIter += sectionSizeInBytes;
 			lastSeenIter += sectionSizeInBytes;
 		}
 		else if (sectionTypeID == k_changedSectionTypeID)
 		{
-			outDecompressedBytes.AddAll({ compressedIter, sectionSizeInBytes });
+			memcpy(outIter, compressedIter, sectionSizeInBytes);
+			outIter += sectionSizeInBytes;
 			lastSeenIter += sectionSizeInBytes;
 			compressedIter += sectionSizeInBytes;
 		}
 		else if (sectionTypeID == k_trailingSectionTypeID)
 		{
-			outDecompressedBytes.AddAll({ compressedIter, sectionSizeInBytes });
+			memcpy(outIter, compressedIter, sectionSizeInBytes);
+			outIter += sectionSizeInBytes;
 			compressedIter += sectionSizeInBytes;
 		}
 		else
@@ -156,10 +186,17 @@ bool DeltaCompression::TryDecompress(
 		}
 	}
 
-	if (compressedIter != compressedEnd)
+	// The loop above has a lookahead exit condition. If it ends due to that, ensure that it ended at a terminal marker.
+	// Otherwise, assert that it found a terminal marker.
+	if (compressedIter < compressedBytesEnd && (*compressedIter) != k_terminalMarker)
 	{
 		AMP_LOG_ERROR("Delta-decompression failed to consume the correct number of bytes.");
 		return false;
+	}
+	else
+	{
+		AMP_ASSERT(*(compressedIter - 1) == k_terminalMarker,
+			"The above loop should have exited after finding a terminal marker!");
 	}
 
 	return true;
