@@ -60,6 +60,7 @@ public:
 	Collection::ArrayView<const T> GetConstView() const { return { m_data, m_count }; }
 
 	void Resize(const uint32_t count, const T& defaultValue = T());
+	void EnsureCapacity(const uint32_t desiredCapacity);
 
 	void Add(const T& e);
 	void Add(T&& e);
@@ -89,8 +90,6 @@ public:
 	size_t Partition(std::function<bool(const T&)>&& fn);
 
 private:
-	void EnsureCapacity(const uint32_t desiredCapacity);
-
 	static T* Allocate(uint32_t numElements)
 	{
 		return static_cast<T*>(_aligned_malloc(numElements * Unit::AlignedSizeOf<T>(), alignof(T)));
