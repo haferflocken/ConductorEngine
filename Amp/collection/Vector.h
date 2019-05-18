@@ -89,6 +89,9 @@ public:
 	// The partition for "true" values comes before the partition for "false" values.
 	size_t Partition(std::function<bool(const T&)>&& fn);
 
+	bool operator==(const Vector& rhs) const;
+	bool operator!=(const Vector& rhs) const;
+
 private:
 	static T* Allocate(uint32_t numElements)
 	{
@@ -416,5 +419,28 @@ inline void Vector<T>::EnsureCapacity(const uint32_t desiredCapacity)
 		m_data = newData;
 		m_capacity = newCapacity;
 	}
+}
+
+template <typename T>
+inline bool Vector<T>::operator==(const Vector& rhs) const
+{
+	if (m_count != rhs.m_count)
+	{
+		return false;
+	}
+	for (size_t i = 0, iEnd = m_count; i < iEnd; ++i)
+	{
+		if ((*this)[i] != rhs[i])
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+template <typename T>
+inline bool Vector<T>::operator!=(const Vector& rhs) const
+{
+	return !(*this == rhs);
 }
 }
