@@ -513,7 +513,8 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 	const SerializedEntitiesAndComponents& lastSeenFrame,
 	const Collection::ArrayView<const uint8_t> deltaCompressedBytes,
-	SerializedEntitiesAndComponents& outDecompressedSerialization)
+	SerializedEntitiesAndComponents& outDecompressedSerialization,
+	RemovedEntitiesAndComponents& outRemovedEntitiesAndComponents)
 {
 	using namespace Internal_SerializedEntitiesAndComponents;
 	using namespace Mem::LittleEndian;
@@ -598,15 +599,15 @@ bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 				return false;
 			}
 
-			// TODO(network) do something with the removed component IDs
-			Collection::Vector<uint64_t> removedComponentIDs;
+			Collection::Vector<uint64_t>& outRemovedComponentIDs =
+				outRemovedEntitiesAndComponents.m_removedComponentIDs[componentType];
 			if (!TryDeltaDecompressSortedLists<ECS::FullSerializedComponentHeader, uint64_t>(
 				lastSeenEntryIter->second,
 				numComponents,
 				deltaCompressedIter,
 				deltaCompressedEnd,
 				outComponents,
-				removedComponentIDs))
+				outRemovedComponentIDs))
 			{
 				return false;
 			}
@@ -624,15 +625,13 @@ bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 	}
 	const uint32_t numEntities = maybeNumEntities.first;
 	
-	// TODO(network) do something with the removed entity IDs
-	Collection::Vector<uint32_t> removedEntityIDs;
 	if (!TryDeltaDecompressSortedLists<ECS::FullSerializedEntityHeader, uint32_t>(
 		lastSeenFrame.m_entities,
 		numEntities,
 		deltaCompressedIter,
 		deltaCompressedEnd,
 		outDecompressedSerialization.m_entities,
-		removedEntityIDs))
+		outRemovedEntitiesAndComponents.m_removedEntityIDs))
 	{
 		return false;
 	}

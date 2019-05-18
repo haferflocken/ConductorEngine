@@ -112,10 +112,12 @@ uint64_t ECSReceiver::TryReceiveDeltaFrameTransmission(const uint8_t* const fram
 	const size_t numFrameBytes = (frameEnd - frameIter);
 
 	ECS::SerializedEntitiesAndComponents decompressedFrame;
+	ECS::RemovedEntitiesAndComponents removedEntitiesAndComponents;
 	if (!ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 		previousFrameHistoryEntry.m_frame,
 		{ frameIter, numFrameBytes },
-		decompressedFrame))
+		decompressedFrame,
+		removedEntitiesAndComponents))
 	{
 		return k_invalidFrameIndex;
 	}

@@ -47,6 +47,15 @@ struct SerializedEntitiesAndComponents final
 	SerializedBytesWithViews m_entities;
 };
 
+/**
+ * A collection of entities and components that have been removed.
+ */
+struct RemovedEntitiesAndComponents final
+{
+	Collection::VectorMap<ComponentType, Collection::Vector<uint64_t>> m_removedComponentIDs;
+	Collection::Vector<uint32_t> m_removedEntityIDs;
+};
+
 // Read/write SerializedEntitiesAndComponents from/to byte representations.
 void WriteSerializedEntitiesAndComponentsTo(
 	const SerializedEntitiesAndComponents& serialization,
@@ -65,5 +74,6 @@ void DeltaCompressSerializedEntitiesAndComponentsTo(
 bool TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 	const SerializedEntitiesAndComponents& lastSeenFrame,
 	const Collection::ArrayView<const uint8_t> deltaCompressedBytes,
-	SerializedEntitiesAndComponents& outDecompressedSerialization);
+	SerializedEntitiesAndComponents& outDecompressedSerialization,
+	RemovedEntitiesAndComponents& outRemovedEntitiesAndComponents);
 }
