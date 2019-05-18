@@ -116,7 +116,12 @@ public: \
 		: m_buckets(const_cast<Collection::Vector<Bucket>*>(&buckets)) \
 		, m_bucketIndex(bucketIndex) \
 		, m_indexInBucket(0) \
-	{} \
+	{ \
+		while (m_bucketIndex < m_buckets->Size() && (*m_buckets)[m_bucketIndex].m_keys.IsEmpty()) \
+		{ \
+			++m_bucketIndex; \
+		} \
+	} \
 \
 	const TYPENAME& operator++() \
 	{ \
@@ -125,6 +130,10 @@ public: \
 		if (m_indexInBucket >= bucket.m_keys.Size()) \
 		{ \
 			++m_bucketIndex; \
+			while (m_bucketIndex < m_buckets->Size() && (*m_buckets)[m_bucketIndex].m_keys.IsEmpty()) \
+			{ \
+				++m_bucketIndex; \
+			} \
 			m_indexInBucket = 0; \
 		} \
 		return *this; \
@@ -194,7 +203,7 @@ public:
 
 	Value& operator*() const
 	{
-		const auto& bucket = (*m_buckets)[m_bucketIndex];
+		auto& bucket = (*m_buckets)[m_bucketIndex];
 		return bucket.m_values[m_indexInBucket];
 	}
 };
