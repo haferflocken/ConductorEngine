@@ -122,13 +122,14 @@ inline bool DeserializeString(const uint8_t*& bytes, const uint8_t* bytesEnd, ch
 
 	const uint16_t length = DeserializeUi16(bytes, bytesEnd).first;
 
-	if (bytes + length >= bytesEnd || length >= Capacity)
+	if (bytes + length > bytesEnd || length >= Capacity)
 	{
 		return false;
 	}
 
 	memcpy(outStr, bytes, length);
 	outStr[length] = '\0';
+	bytes += length;
 
 	return true;
 }
@@ -143,13 +144,14 @@ inline bool DeserializeString(const uint8_t*& bytes, const uint8_t* bytesEnd, wc
 
 	const uint16_t length = DeserializeUi16(bytes, bytesEnd).first;
 
-	if (bytes + (length * sizeof(wchar_t)) >= bytesEnd || length >= Capacity)
+	if (bytes + (length * sizeof(wchar_t)) > bytesEnd || length >= Capacity)
 	{
 		return false;
 	}
 
 	memcpy(outStr, bytes, length * sizeof(wchar_t));
 	outStr[length] = '\0';
+	bytes += length;
 
 	return true;
 }
