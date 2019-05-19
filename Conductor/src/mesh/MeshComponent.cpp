@@ -24,7 +24,7 @@ void MeshComponent::FullySerialize(const MeshComponent& component, Collection::V
 void MeshComponent::ApplyFullSerialization(
 	Asset::AssetManager& assetManager, MeshComponent& component, const uint8_t*& bytes, const uint8_t* bytesEnd)
 {
-	wchar_t assetPathBuffer[Asset::k_maxPathLength];
+	Asset::CharType assetPathBuffer[Asset::k_maxPathLength];
 	if (Mem::LittleEndian::DeserializeString(bytes, bytesEnd, assetPathBuffer))
 	{
 		component.m_meshHandle = assetManager.RequestAsset<TriangleMesh>(File::MakePath(assetPathBuffer));

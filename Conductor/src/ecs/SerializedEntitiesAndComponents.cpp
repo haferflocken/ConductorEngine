@@ -54,11 +54,12 @@ void ECS::WriteSerializedEntitiesAndComponentsTo(
 
 	for (const auto& entry : serialization.m_components)
 	{
+		// Writing the component type name needs to behave identically to Mem::LittleEndian::Serialize(const char*).
 		const char* const componentTypeName = Util::ReverseHash(entry.first.GetTypeHash());
-		const uint32_t componentTypeNameLength = static_cast<uint32_t>(strlen(componentTypeName));
+		const uint16_t componentTypeNameLength = static_cast<uint16_t>(strlen(componentTypeName));
 		outputFn(&componentTypeNameLength, sizeof(componentTypeNameLength));
 		outputFn(componentTypeName, componentTypeNameLength);
-
+		
 		const auto& components = entry.second;
 
 		const uint32_t numComponents = components.m_views.Size();

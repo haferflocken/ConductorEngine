@@ -31,7 +31,7 @@ void FullySerializeEntitiesAndComponents(
 	// Sort the components to serialize by type and ID.
 	struct ComponentIDWithPointer
 	{
-		ComponentID m_id;
+		uint64_t m_id;
 		const Component* m_component;
 	};
 	Collection::VectorMap<ComponentType, Collection::Vector<ComponentIDWithPointer>> componentsToSerializeByType;
@@ -40,7 +40,7 @@ void FullySerializeEntitiesAndComponents(
 		for (const auto& componentID : entity->GetComponentIDs())
 		{
 			const Component* const component = entityManager.FindComponent(componentID);
-			componentsToSerializeByType[componentID.GetType()].Add({ componentID, component });
+			componentsToSerializeByType[componentID.GetType()].Add({ componentID.GetUniqueID(), component });
 		}
 	}
 
@@ -74,7 +74,7 @@ void FullySerializeEntitiesAndComponents(
 			componentBytes.Resize(componentBytes.Size() + FullSerializedComponentHeader::k_unpaddedSize);
 			memcpy(componentBytes.begin() + componentViewBeginIndex,
 				&componentHeader,
-				FullSerializedEntityHeader::k_unpaddedSize);
+				FullSerializedComponentHeader::k_unpaddedSize);
 
 			componentFunctions.m_fullSerializationFunction(component, componentBytes);
 
@@ -99,6 +99,8 @@ void FullySerializeEntitiesAndComponents(
 			entityHeader.m_parentEntityID = entity->GetParent()->GetID();
 		}
 		entityHeader.m_numComponents = entity->GetComponentIDs().Size();
+		entityHeader.m_flags = entity->GetFlags();
+		entityHeader.m_layer = entity->GetLayer();
 
 		const size_t numRequiredBytes =
 			FullSerializedEntityHeader::k_unpaddedSize + (entityHeader.m_numComponents * sizeof(ComponentID));
@@ -129,8 +131,7 @@ void FullySerializeEntitiesAndComponents(
 			Mem::LittleEndian::Serialize(componentID.GetUniqueID(), serialization.m_entities.m_bytes);
 		}
 
-		entityHeader.m_flags = entity->GetFlags();
-		entityHeader.m_layer = entity->GetLayer();
+		serialization.m_entities.m_views.Add({ entityByteIndex, serialization.m_entities.m_bytes.Size() });
 	}
 }
 
@@ -357,7 +358,7 @@ void EntityManager::SetNetworkedEntitiesToFullSerialization(const SerializedEnti
 		const size_t viewSizeInBytes = (entityView.m_endIndex - entityView.m_beginIndex);
 
 		FullSerializedEntityHeader header;
-		memcpy(&header, viewBytes, FullSerializedComponentHeader::k_unpaddedSize);
+		memcpy(&header, viewBytes, FullSerializedEntityHeader::k_unpaddedSize);
 
 		const size_t numComponentIDBytes = header.m_numComponents * (sizeof(uint16_t) + sizeof(uint64_t));
 		if ((numComponentIDBytes + FullSerializedEntityHeader::k_unpaddedSize) > viewSizeInBytes)
@@ -398,7 +399,10 @@ void EntityManager::SetNetworkedEntitiesToFullSerialization(const SerializedEnti
 		entity->m_layer = header.m_layer;
 
 		Entity* const parentEntity = FindEntity(header.m_parentEntityID);
-		SetParentEntity(*entity, parentEntity);
+		if (entity->m_parent != parentEntity)
+		{
+			SetParentEntity(*entity, parentEntity);
+		}
 	}
 
 	// Delete all entities that weren't in the serialization.
