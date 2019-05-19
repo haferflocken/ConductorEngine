@@ -18,6 +18,8 @@ void CreateBoneEntities(
 	AMP_FATAL_ASSERT(boneToParentTransforms.Size() == boneParentIndices.Size(), "Bone count mismatch!");
 
 	const uint32_t numBones = boneToParentTransforms.Size();
+	const ECS::EntityFlags boneFlags = rootEntity.GetFlags();
+	const ECS::EntityLayer boneLayer = rootEntity.GetLayer();
 
 	// Create the bone entities and set their relative transforms.
 	Collection::Vector<ECS::Entity*> boneEntities;
@@ -31,7 +33,7 @@ void CreateBoneEntities(
 
 		const auto boneComponents = { Scene::SceneTransformComponent::k_type };
 		ECS::Entity& boneEntity = entityManager.CreateEntityWithComponents(
-			{ boneComponents.begin(), boneComponents.size() });
+			{ boneComponents.begin(), boneComponents.size() }, boneFlags, boneLayer);
 
 		auto& boneTransformComponent = *entityManager.FindComponent<Scene::SceneTransformComponent>(boneEntity);
 		boneTransformComponent.m_childToParentMatrix = boneToParentTransform;

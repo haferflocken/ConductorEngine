@@ -223,6 +223,8 @@
     <ClInclude Include="behave\nodes\RepeatNode.h" />
     <ClInclude Include="behave\parse\BehaveParsedTree.h" />
     <ClInclude Include="behave\parse\BehaviourTreeParser.h" />
+    <ClInclude Include="ecs\EntityFlags.h" />
+    <ClInclude Include="ecs\EntityLayer.h" />
     <ClInclude Include="ecs\SerializedEntitiesAndComponents.h" />
     <ClInclude Include="input\CallbackRegistry.h" />
     <ClInclude Include="input\InputComponent.h" />

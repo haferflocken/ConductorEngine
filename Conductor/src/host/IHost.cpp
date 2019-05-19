@@ -27,7 +27,13 @@ void IHost::NotifyOfClientDisconnected(const Client::ClientID clientID)
 void IHost::StoreECSFrame()
 {
 	ECS::SerializedEntitiesAndComponents serializedFrame;
-	m_entityManager.FullySerializeAllEntitiesAndComponents(serializedFrame);
+	m_entityManager.FullySerializeAllEntitiesAndComponentsMatchingFilter(
+		[](const ECS::Entity& entity)
+		{
+			return (entity.GetFlags() & ECS::EntityFlags::Networked) != ECS::EntityFlags::None;
+		},
+		serializedFrame);
+
 	m_ecsTransmitter.AddSerializedFrame(std::move(serializedFrame));
 }
 

@@ -25,7 +25,7 @@ void IClient::NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& t
 		m_ecsReceiver.TryReceiveFrameTransmission(transmissionBytes.GetConstView());
 	if (newFrame != nullptr)
 	{
-		// TODO(network) apply the new frame
+		m_entityManager.SetNetworkedEntitiesToFullSerialization(*newFrame);
 	}
 }
 

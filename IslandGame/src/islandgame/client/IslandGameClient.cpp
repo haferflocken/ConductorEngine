@@ -60,7 +60,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 			Input::InputComponent::k_type };
 
 		ECS::Entity& player = m_entityManager.CreateEntityWithComponents(
-			{ playerComponents.begin(), playerComponents.size() });
+			{ playerComponents.begin(), playerComponents.size() }, ECS::EntityFlags::None, ECS::EntityLayer());
 
 		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
 		meshComponent.m_meshHandle =
@@ -71,7 +71,7 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };
 
 		ECS::Entity& cameraEntity = m_entityManager.CreateEntityWithComponents(
-			{ cameraComponents.begin(), cameraComponents.size() });
+			{ cameraComponents.begin(), cameraComponents.size() }, ECS::EntityFlags::None, ECS::EntityLayer());
 
 		auto& cameraTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(cameraEntity);
 

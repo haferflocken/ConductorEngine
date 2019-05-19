@@ -7,6 +7,33 @@
 
 #include <ostream>
 
+ECS::SerializedBytesWithViews& ECS::SerializedEntitiesAndComponents::FindOrCreateComponentsEntry(
+	const ComponentType componentType)
+{
+	for (auto& entry : m_components)
+	{
+		if (entry.first == componentType)
+		{
+			return entry.second;
+		}
+	}
+	auto& result = m_components.Emplace(componentType, SerializedBytesWithViews());
+	return result.second;
+}
+
+const ECS::SerializedBytesWithViews* ECS::SerializedEntitiesAndComponents::FindComponentsEntry(
+	const ComponentType componentType) const
+{
+	for (auto& entry : m_components)
+	{
+		if (entry.first == componentType)
+		{
+			return &entry.second;
+		}
+	}
+	return nullptr;
+}
+
 void ECS::WriteSerializedEntitiesAndComponentsTo(
 	const SerializedEntitiesAndComponents& serialization, std::ostream& fileOutput)
 {
@@ -92,7 +119,7 @@ bool ECS::TryReadSerializedEntitiesAndComponentsFrom(
 			return false;
 		}
 
-		auto& components = outSerialization.m_components[ComponentType(componentTypeHash)];
+		auto& components = outSerialization.FindOrCreateComponentsEntry(ComponentType(componentTypeHash));
 
 		const uint32_t componentViewsIndex = components.m_views.Size();
 		components.m_views.Resize(componentViewsIndex + numComponents);
@@ -104,7 +131,7 @@ bool ECS::TryReadSerializedEntitiesAndComponentsFrom(
 		{
 			return false;
 		}
-		
+
 		const uint32_t numComponentBytes = maybeNumComponentBytes.first;
 		if ((iter + numComponentBytes) > iterEnd)
 		{
@@ -285,7 +312,8 @@ template <typename HeaderType, typename IDType>
 bool TryDeserializeID(const uint8_t*& deltaCompressedIter, const uint8_t* const deltaCompressedEnd, IDType& out);
 
 template <>
-bool TryDeserializeID<ECS::FullSerializedComponentHeader, uint64_t>(const uint8_t*& deltaCompressedIter, const uint8_t* const deltaCompressedEnd, uint64_t& out)
+bool TryDeserializeID<ECS::FullSerializedComponentHeader, uint64_t>(
+	const uint8_t*& deltaCompressedIter, const uint8_t* const deltaCompressedEnd, uint64_t& out)
 {
 	const auto maybeID = Mem::LittleEndian::DeserializeUi64(deltaCompressedIter, deltaCompressedEnd);
 	out = maybeID.first;
@@ -293,7 +321,8 @@ bool TryDeserializeID<ECS::FullSerializedComponentHeader, uint64_t>(const uint8_
 }
 
 template <>
-bool TryDeserializeID<ECS::FullSerializedEntityHeader, uint32_t>(const uint8_t*& deltaCompressedIter, const uint8_t* const deltaCompressedEnd, uint32_t& out)
+bool TryDeserializeID<ECS::FullSerializedEntityHeader, uint32_t>(
+	const uint8_t*& deltaCompressedIter, const uint8_t* const deltaCompressedEnd, uint32_t& out)
 {
 	const auto maybeID = Mem::LittleEndian::DeserializeUi32(deltaCompressedIter, deltaCompressedEnd);
 	out = maybeID.first;
@@ -466,8 +495,8 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 	for (const auto& entry : newestFrame.m_components)
 	{
 		// Transmit a marker indicating whether or not delta compression was used for this set of components.
-		const auto* const lastSeenEntryIter = lastSeenFrame.m_components.Find(entry.first);
-		if (lastSeenEntryIter == lastSeenFrame.m_components.end())
+		const auto* const lastSeenComponents = lastSeenFrame.FindComponentsEntry(entry.first);
+		if (lastSeenComponents == nullptr)
 		{
 			Mem::LittleEndian::Serialize(k_fullComponentsSectionMarker, outBytes);
 		}
@@ -485,7 +514,7 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 		Mem::LittleEndian::Serialize(static_cast<uint32_t>(newestComponentViews.Size()), outBytes);
 
 		// Fully transmit the component views and bytes when there are no last seen components.
-		if (lastSeenEntryIter == lastSeenFrame.m_components.end())
+		if (lastSeenComponents == nullptr)
 		{
 			const Collection::Vector<uint8_t>& newestComponentBytes = entry.second.m_bytes;
 			Mem::LittleEndian::Serialize(static_cast<uint32_t>(newestComponentBytes.Size()), outBytes);
@@ -496,7 +525,7 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 
 		// Delta compress the component views and bytes when there are last seen components.
 		DeltaCompressSortedLists<ECS::FullSerializedComponentHeader, uint64_t>(
-			lastSeenEntryIter->second, entry.second, outBytes);
+			*lastSeenComponents, entry.second, outBytes);
 	}
 
 	// TODO(network) handle component types that were removed entirely since the last seen frame
@@ -504,7 +533,7 @@ void ECS::DeltaCompressSerializedEntitiesAndComponentsTo(
 	// Transmit the entities.
 	Mem::LittleEndian::Serialize(k_entitiesSectionMarker, outBytes);
 	Mem::LittleEndian::Serialize(static_cast<uint32_t>(newestFrame.m_entities.m_views.Size()), outBytes);
-	
+
 	// Scan over the sorted entity lists to transmit the entity data.
 	DeltaCompressSortedLists<ECS::FullSerializedEntityHeader, uint32_t>(
 		lastSeenFrame.m_entities, newestFrame.m_entities, outBytes);
@@ -551,8 +580,8 @@ bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 			return false;
 		}
 		const ECS::ComponentType componentType{ Util::CalcHash(componentTypeBuffer) };
-		const auto* const lastSeenEntryIter = lastSeenFrame.m_components.Find(componentType);
-		auto& outComponents = outDecompressedSerialization.m_components[componentType];
+		const auto* const lastSeenComponents = lastSeenFrame.FindComponentsEntry(componentType);
+		auto& outComponents = outDecompressedSerialization.FindOrCreateComponentsEntry(componentType);
 
 		// Read the number of components of this type.
 		const auto maybeNumComponents = DeserializeUi32(deltaCompressedIter, deltaCompressedEnd);
@@ -565,7 +594,7 @@ bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 		// Decompress the components.
 		if (sectionMarker == k_fullComponentsSectionMarker)
 		{
-			if (lastSeenEntryIter != lastSeenFrame.m_components.end())
+			if (lastSeenComponents != nullptr)
 			{
 				return false;
 			}
@@ -594,7 +623,7 @@ bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 		else
 		{
 			AMP_FATAL_ASSERT(sectionMarker == k_deltaComponentsSectionMarker, "");
-			if (lastSeenEntryIter == lastSeenFrame.m_components.end())
+			if (lastSeenComponents == nullptr)
 			{
 				return false;
 			}
@@ -602,7 +631,7 @@ bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 			Collection::Vector<uint64_t>& outRemovedComponentIDs =
 				outRemovedEntitiesAndComponents.m_removedComponentIDs[componentType];
 			if (!TryDeltaDecompressSortedLists<ECS::FullSerializedComponentHeader, uint64_t>(
-				lastSeenEntryIter->second,
+				*lastSeenComponents,
 				numComponents,
 				deltaCompressedIter,
 				deltaCompressedEnd,
@@ -624,7 +653,7 @@ bool ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 		return false;
 	}
 	const uint32_t numEntities = maybeNumEntities.first;
-	
+
 	if (!TryDeltaDecompressSortedLists<ECS::FullSerializedEntityHeader, uint32_t>(
 		lastSeenFrame.m_entities,
 		numEntities,

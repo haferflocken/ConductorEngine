@@ -132,7 +132,10 @@ ECS::Entity& Condui::CreateConduiEntity(
 		[&](TextDisplayElement& textDisplayElement)
 		{
 			const auto componentTypes = { TextDisplayComponent::k_type, Scene::SceneTransformComponent::k_type };
-			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+			entity = &entityManager.CreateEntityWithComponents(
+				{ componentTypes.begin(), componentTypes.size() },
+				ECS::EntityFlags::None,
+				ECS::EntityLayers::k_conduiLayer);
 
 			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(*entity);
 
@@ -153,7 +156,10 @@ ECS::Entity& Condui::CreateConduiEntity(
 		[&](TextInputElement& textInputElement)
 		{
 			const auto componentTypes = { TextInputComponent::k_type, Scene::SceneTransformComponent::k_type };
-			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+			entity = &entityManager.CreateEntityWithComponents(
+				{ componentTypes.begin(), componentTypes.size() },
+				ECS::EntityFlags::None,
+				ECS::EntityLayers::k_conduiLayer);
 
 			auto& textInputComponent = *entityManager.FindComponent<TextInputComponent>(*entity);
 
@@ -181,7 +187,10 @@ ECS::Entity& Condui::CreateConduiEntity(
 				"There is an expected 1-to-1 relationship between elements in a panel and their relative transforms.");
 
 			const auto componentTypes = { Scene::SceneTransformComponent::k_type };
-			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+			entity = &entityManager.CreateEntityWithComponents(
+				{ componentTypes.begin(), componentTypes.size() },
+				ECS::EntityFlags::None,
+				ECS::EntityLayers::k_conduiLayer);
 
 			for (size_t i = 0, iEnd = panelElement.m_children.Size(); i < iEnd; ++i)
 			{
@@ -200,7 +209,10 @@ ECS::Entity& Condui::CreateConduiEntity(
 		[&](StackingPanelElement& stackingPanelElement)
 		{
 			const auto componentTypes = { Scene::SceneTransformComponent::k_type, StackingPanelComponent::k_type };
-			entity = &entityManager.CreateEntityWithComponents({ componentTypes.begin(), componentTypes.size() });
+			entity = &entityManager.CreateEntityWithComponents(
+				{ componentTypes.begin(), componentTypes.size() },
+				ECS::EntityFlags::None,
+				ECS::EntityLayers::k_conduiLayer);
 
 			float verticalOffset = 0.0f;
 			for (auto& childElement : stackingPanelElement.m_children)

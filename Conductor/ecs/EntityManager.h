@@ -41,14 +41,22 @@ public:
 	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector);
 	~EntityManager();
 
-	Entity& CreateEntityWithComponents(const Collection::ArrayView<const ComponentType>& componentTypes,
+	Entity& CreateEntityWithComponents(
+		const Collection::ArrayView<const ComponentType>& componentTypes,
+		const EntityFlags flags,
+		const EntityLayer layer,
 		const EntityID requestedID = EntityID());
+
 	Collection::Vector<Entity*> CreateEntitiesFromFullSerialization(
 		const SerializedEntitiesAndComponents& serialization);
+	void SetNetworkedEntitiesToFullSerialization(const SerializedEntitiesAndComponents& serialization);
 
-	void FullySerializeEntitiesAndComponents(const Collection::ArrayView<const Entity*>& entities,
+	void FullySerializeEntitiesAndComponents(
+		const Collection::ArrayView<const Entity*>& entities,
 		SerializedEntitiesAndComponents& serialization) const;
-	void FullySerializeAllEntitiesAndComponents(SerializedEntitiesAndComponents& serialization) const;
+	void FullySerializeAllEntitiesAndComponentsMatchingFilter(
+		const std::function<bool(const Entity&)>& filter,
+		SerializedEntitiesAndComponents& serialization) const;
 
 	void SetParentEntity(Entity& entity, Entity* parentEntity);
 	void DeleteEntities(const Collection::ArrayView<const EntityID>& entitiesToDelete);
