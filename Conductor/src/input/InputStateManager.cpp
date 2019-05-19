@@ -2,7 +2,8 @@
 
 #include <input/CallbackRegistry.h>
 #include <input/InputMessage.h>
-#include <mem/Serialize.h>
+#include <mem/DeserializeLittleEndian.h>
+#include <mem/SerializeLittleEndian.h>
 
 namespace Input
 {
@@ -54,14 +55,14 @@ Collection::Vector<uint8_t> InputStateManager::SerializeFullTransmission() const
 	Collection::Vector<uint8_t> outBytes;
 
 	const uint32_t numInputs = m_namedInputStateBuffers.Size();
-	Mem::Serialize(numInputs, outBytes);
+	Mem::LittleEndian::Serialize(numInputs, outBytes);
 
 	for (const auto& entry : m_namedInputStateBuffers)
 	{
 		const char* const inputName = Util::ReverseHash(entry.first);
 		const InputStateBuffer& inputStateBuffer = entry.second;
 
-		Mem::Serialize(inputName, outBytes);
+		Mem::LittleEndian::Serialize(inputName, outBytes);
 		outBytes.AddAll({ reinterpret_cast<const uint8_t*>(&inputStateBuffer), sizeof(InputStateBuffer) });
 	}
 
@@ -75,7 +76,7 @@ void InputStateManager::ApplyFullTransmission(const Collection::Vector<uint8_t>&
 	const uint8_t* iter = transmissionBytes.begin();
 	const uint8_t* const iterEnd = transmissionBytes.end();
 
-	const auto maybeNumInputs = Mem::DeserializeUi32(iter, iterEnd);
+	const auto maybeNumInputs = Mem::LittleEndian::DeserializeUi32(iter, iterEnd);
 	if (!maybeNumInputs.second)
 	{
 		return;
@@ -85,7 +86,7 @@ void InputStateManager::ApplyFullTransmission(const Collection::Vector<uint8_t>&
 	for (size_t i = 0; i < numInputs; ++i)
 	{
 		char nameBuffer[64];
-		if (!Mem::DeserializeString(iter, iterEnd, nameBuffer))
+		if (!Mem::LittleEndian::DeserializeString(iter, iterEnd, nameBuffer))
 		{
 			return;
 		}
