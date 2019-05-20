@@ -19,6 +19,15 @@ void ConnectedHost::Disconnect()
 	m_clientToHostMessages.TryPush(std::move(message));
 }
 
+void ConnectedHost::TransmitFrameAcknowledgement(const uint64_t frameIndex)
+{
+	auto message = MessageToHost::Make<MessageToHost_FrameAcknowledgement>(m_clientID);
+	auto& payload = message.Get<MessageToHost_FrameAcknowledgement>();
+	payload.m_frameIndex = frameIndex;
+
+	m_clientToHostMessages.TryPush(std::move(message));
+}
+
 void ConnectedHost::TransmitInputStates(Collection::Vector<uint8_t>&& inputStatesBytes)
 {
 	auto message = MessageToHost::Make<MessageToHost_InputStates>(m_clientID);

@@ -27,6 +27,7 @@ void IClient::NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& t
 	if (newFrame != nullptr)
 	{
 		m_entityManager.SetNetworkedEntitiesToFullSerialization(*newFrame);
+		m_connectedHost.TransmitFrameAcknowledgement(m_ecsReceiver.GetLastSeenFrameIndex());
 	}
 }
 

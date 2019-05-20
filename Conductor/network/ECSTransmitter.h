@@ -18,7 +18,7 @@ public:
 	void NotifyOfClientDisconnected(const Client::ClientID clientID);
 
 	void AddSerializedFrame(ECS::SerializedEntitiesAndComponents&& newFrame);
-	void SetLastSeenFrameForClient(const Client::ClientID clientID, uint64_t frameIndex);
+	void NotifyOfFrameAcknowledgement(const Client::ClientID clientID, uint64_t frameIndex);
 
 	void TransmitFrame(const Client::ClientID clientID, Collection::Vector<uint8_t>& outTransmission) const;
 	void TransmitFullFrame(Collection::Vector<uint8_t>& outTransmission) const;

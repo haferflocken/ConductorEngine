@@ -29,6 +29,7 @@ public:
 
 	void Disconnect();
 
+	void TransmitFrameAcknowledgement(const uint64_t frameIndex);
 	void TransmitInputStates(Collection::Vector<uint8_t>&& inputStatesBytes);
 };
 }

@@ -29,6 +29,7 @@ public:
 
 	void NotifyOfClientConnected(const Client::ClientID clientID, const Input::InputStateManager& inputStateManager);
 	void NotifyOfClientDisconnected(const Client::ClientID clientID);
+	void NotifyOfFrameAcknowledgement(const Client::ClientID clientID, const uint64_t frameIndex);
 
 	void StoreECSFrame();
 	void SerializeECSUpdateTransmission(const Client::ClientID clientID, Collection::Vector<uint8_t>& outTransmission);

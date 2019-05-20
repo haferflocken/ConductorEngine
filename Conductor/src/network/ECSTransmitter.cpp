@@ -24,10 +24,13 @@ void ECSTransmitter::AddSerializedFrame(ECS::SerializedEntitiesAndComponents&& n
 	m_frameHistory.Add(std::move(newFrame));
 }
 
-void ECSTransmitter::SetLastSeenFrameForClient(const Client::ClientID clientID, uint64_t frameIndex)
+void ECSTransmitter::NotifyOfFrameAcknowledgement(const Client::ClientID clientID, uint64_t frameIndex)
 {
 	auto* const entry = m_lastSeenFramePerClient.Find(clientID);
-	entry->second = frameIndex;
+	if (frameIndex > entry->second || entry->second == k_invalidFrameIndex)
+	{
+		entry->second = frameIndex;
+	}
 }
 
 void ECSTransmitter::TransmitFrame(

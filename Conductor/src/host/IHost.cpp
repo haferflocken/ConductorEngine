@@ -25,6 +25,11 @@ void IHost::NotifyOfClientDisconnected(const Client::ClientID clientID)
 	m_ecsTransmitter.NotifyOfClientDisconnected(clientID);
 }
 
+void IHost::NotifyOfFrameAcknowledgement(const Client::ClientID clientID, const uint64_t frameIndex)
+{
+	m_ecsTransmitter.NotifyOfFrameAcknowledgement(clientID, frameIndex);
+}
+
 void IHost::StoreECSFrame()
 {
 	ECS::SerializedEntitiesAndComponents serializedFrame;

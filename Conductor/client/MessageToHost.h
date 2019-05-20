@@ -15,6 +15,11 @@ struct MessageToHost_Connect final
 
 struct MessageToHost_Disconnect final {};
 
+struct MessageToHost_FrameAcknowledgement final
+{
+	uint64_t m_frameIndex;
+};
+
 struct MessageToHost_InputStates final
 {
 	Collection::Vector<uint8_t> m_bytes;
@@ -23,6 +28,7 @@ struct MessageToHost_InputStates final
 struct MessageToHost final : public Collection::Variant<
 	MessageToHost_Connect,
 	MessageToHost_Disconnect,
+	MessageToHost_FrameAcknowledgement,
 	MessageToHost_InputStates>
 {
 	template <typename T, typename... Args>

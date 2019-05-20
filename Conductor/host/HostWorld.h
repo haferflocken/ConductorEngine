@@ -57,6 +57,7 @@ private:
 	void ProcessMessageFromClient(Client::MessageToHost& message);
 
 	void NotifyOfClientDisconnected(const Client::ClientID clientID);
+	void NotifyOfFrameAcknowledgement(const Client::ClientID clientID, const uint64_t frameIndex);
 	void NotifyOfInputStateTransmission(const Client::ClientID clientID,
 		const Collection::Vector<uint8_t>& transmissionBytes);
 

@@ -98,8 +98,8 @@ uint64_t ECSReceiver::TryReceiveDeltaFrameTransmission(const uint8_t* const fram
 		return k_invalidFrameIndex;
 	}
 
-	const size_t historyIndex = static_cast<size_t>(newFrameIndex - oldestStoredFrameIndex);
-	const HistoryEntry& previousFrameHistoryEntry = m_frameHistory[historyIndex];
+	const size_t previousFrameHistoryIndex = static_cast<size_t>(m_frameIndex - oldestStoredFrameIndex);
+	const HistoryEntry& previousFrameHistoryEntry = m_frameHistory[previousFrameHistoryIndex];
 	if (!previousFrameHistoryEntry.m_isValid)
 	{
 		return k_invalidFrameIndex;

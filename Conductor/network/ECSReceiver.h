@@ -13,6 +13,8 @@ namespace Network
 class ECSReceiver final
 {
 public:
+	uint64_t GetLastSeenFrameIndex() const { return m_frameIndex; }
+
 	// Receives a frame transmission. Returns a pointer to the frame if the frame is newer than any known frame.
 	// Returns nullptr otherwise.
 	const ECS::SerializedEntitiesAndComponents* TryReceiveFrameTransmission(

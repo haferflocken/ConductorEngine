@@ -137,10 +137,23 @@ void HostWorld::ProcessMessageFromClient(Client::MessageToHost& message)
 		{
 			NotifyOfClientDisconnected(message.m_clientID);
 		},
+		[&](const Client::MessageToHost_FrameAcknowledgement& frameAckPayload)
+		{
+			NotifyOfFrameAcknowledgement(message.m_clientID, frameAckPayload.m_frameIndex);
+		},
 		[&](const Client::MessageToHost_InputStates& inputStatesPayload)
 		{
 			NotifyOfInputStateTransmission(message.m_clientID, inputStatesPayload.m_bytes);
 		});
+}
+
+void HostWorld::NotifyOfFrameAcknowledgement(const Client::ClientID clientID, const uint64_t frameIndex)
+{
+	while (m_hostLock.test_and_set(std::memory_order_acquire));
+
+	m_host->NotifyOfFrameAcknowledgement(clientID, frameIndex);
+
+	m_hostLock.clear(std::memory_order_release);
 }
 
 void HostWorld::NotifyOfInputStateTransmission(const Client::ClientID clientID,
