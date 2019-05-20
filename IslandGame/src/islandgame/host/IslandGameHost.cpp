@@ -2,9 +2,11 @@
 
 #include <islandgame/IslandGameData.h>
 
+#include <asset/AssetManager.h>
 #include <behave/BehaveContext.h>
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <input/InputSystem.h>
+#include <mesh/MeshComponent.h>
 #include <mesh/SkeletonMatrixCollectionSystem.h>
 #include <mesh/SkeletonSystem.h>
 #include <scene/RelativeTransformSystem.h>
@@ -46,5 +48,27 @@ IslandGame::Host::IslandGameHost::~IslandGameHost()
 
 void IslandGame::Host::IslandGameHost::Update(const Unit::Time::Millisecond delta)
 {
+	static bool s_needSpawn = true;
+	if (s_needSpawn)
+	{
+		s_needSpawn = false;
+		Asset::AssetManager& assetManager = m_gameData.GetAssetManager();
+
+		const auto playerComponents = { Scene::SceneTransformComponent::k_type,
+			Scene::AnchorComponent::k_type,
+			Mesh::MeshComponent::k_type,
+			Mesh::SkeletonRootComponent::k_type,
+			Input::InputComponent::k_type };
+
+		ECS::Entity& player = m_entityManager.CreateEntityWithComponents(
+			{ playerComponents.begin(), playerComponents.size() }, ECS::EntityFlags::Networked, ECS::EntityLayer());
+
+		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
+		meshComponent.m_meshHandle =
+			assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/offset-root-bone.fbx"));
+		//assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/cubes-v6.cms"));
+
+	}
+
 	m_entityManager.Update(delta);
 }

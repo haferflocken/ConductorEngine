@@ -6,7 +6,8 @@
 namespace Host
 {
 IHost::IHost(Asset::AssetManager& assetManager, const ECS::ComponentReflector& componentReflector)
-	: m_entityManager(assetManager, componentReflector)
+	// Entities and components the host creates begin their IDs at 0.
+	: m_entityManager(assetManager, componentReflector, ECS::EntityID(0), 0)
 	, m_ecsTransmitter()
 	, m_inputSystem(m_entityManager.RegisterSystem(Mem::MakeUnique<Input::InputSystem>()))
 {

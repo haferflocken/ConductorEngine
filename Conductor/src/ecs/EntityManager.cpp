@@ -166,10 +166,16 @@ void ReconstructComponentIDs(
 }
 }
 
-EntityManager::EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector)
+EntityManager::EntityManager(
+	Asset::AssetManager& assetManager,
+	const ComponentReflector& componentReflector,
+	const EntityID firstEntityID,
+	const uint64_t firstComponentID)
 	: m_assetManager(assetManager)
 	, m_componentReflector(componentReflector)
 	, m_entities(EntityIDHashFunctor(), 7)
+	, m_nextEntityID(firstEntityID)
+	, m_nextComponentID(firstComponentID)
 {
 }
 

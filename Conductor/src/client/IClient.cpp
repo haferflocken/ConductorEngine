@@ -11,7 +11,8 @@ IClient::IClient(Asset::AssetManager& assetManager,
 	ConnectedHost& connectedHost)
 	: m_connectedHost(connectedHost)
 	, m_inputStateManager(m_inputCallbackRegistry)
-	, m_entityManager(assetManager, componentReflector)
+	// Entities and components the client creates have their high bit set.
+	, m_entityManager(assetManager, componentReflector, ECS::EntityID(1ui32 << 31), 1ui64 << 63)
 	, m_ecsReceiver()
 {
 	// The InputSystem is present for all clients.

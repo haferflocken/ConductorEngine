@@ -34,8 +34,6 @@ IslandGame::Client::IslandGameClient::IslandGameClient(
 		m_entityManager };
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Behave::BehaviourTreeEvaluationSystem>(context));
 
-	// SkeletonSystem produces an entity hierarchy which should happen before RelativeTransformSystem runs.
-	m_entityManager.RegisterSystem(Mem::MakeUnique<Mesh::SkeletonSystem>());
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Scene::RelativeTransformSystem>());
 	// SkeletonMatrixCollectionSystem depends on the output of RelativeTransformSystem.
 	m_entityManager.RegisterSystem(Mem::MakeUnique<Mesh::SkeletonMatrixCollectionSystem>());
@@ -52,20 +50,6 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 	if (cameraTransform == nullptr)
 	{
 		Asset::AssetManager& assetManager = m_gameData.GetAssetManager();
-
-		const auto playerComponents = { Scene::SceneTransformComponent::k_type,
-			Scene::AnchorComponent::k_type,
-			Mesh::MeshComponent::k_type,
-			Mesh::SkeletonRootComponent::k_type,
-			Input::InputComponent::k_type };
-
-		ECS::Entity& player = m_entityManager.CreateEntityWithComponents(
-			{ playerComponents.begin(), playerComponents.size() }, ECS::EntityFlags::None, ECS::EntityLayer());
-
-		auto& meshComponent = *m_entityManager.FindComponent<Mesh::MeshComponent>(player);
-		meshComponent.m_meshHandle =
-			assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/offset-root-bone.fbx"));
-			//assetManager.RequestAsset<Mesh::TriangleMesh>(File::MakePath("meshes/cubes-v6.cms"));
 
 		// Create a camera looking at the center of the scene.
 		const auto cameraComponents = { Scene::SceneTransformComponent::k_type, Renderer::CameraComponent::k_type };

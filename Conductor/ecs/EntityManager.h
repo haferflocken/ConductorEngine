@@ -38,7 +38,10 @@ class System;
 class EntityManager final
 {
 public:
-	EntityManager(Asset::AssetManager& assetManager, const ComponentReflector& componentReflector);
+	EntityManager(Asset::AssetManager& assetManager,
+		const ComponentReflector& componentReflector,
+		const EntityID firstEntityID,
+		const uint64_t firstComponentID);
 	~EntityManager();
 
 	Entity& CreateEntityWithComponents(
@@ -148,7 +151,7 @@ private:
 	EntityID m_nextEntityID{ 0 };
 
 	// The next component ID that will be assigned.
-	size_t m_nextComponentID{ 0 };
+	uint64_t m_nextComponentID{ 0 };
 
 	// The systems that this entity manager is running, sorted into groups which can run concurrently.
 	Collection::Vector<RegisteredConcurrentSystemGroup> m_concurrentSystemGroups{};
