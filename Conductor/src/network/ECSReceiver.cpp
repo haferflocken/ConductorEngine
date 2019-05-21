@@ -4,6 +4,15 @@
 
 namespace Network
 {
+float ECSReceiver::GetLastSeenCompressionRatio() const
+{
+	if (m_frameHistory.Size() == 0)
+	{
+		return 1.0f;
+	}
+	return m_frameHistory.Newest().m_compressionRatio;
+}
+
 const ECS::SerializedEntitiesAndComponents* ECSReceiver::TryReceiveFrameTransmission(
 	const Collection::ArrayView<const uint8_t> transmissionBytes)
 {
@@ -67,7 +76,7 @@ uint64_t ECSReceiver::TryReceiveFullFrameTransmission(const uint8_t* const frame
 		return k_invalidFrameIndex;
 	}
 
-	StoreFrame(newFrameIndex, std::move(newFrame));
+	StoreFrame(newFrameIndex, 1.0f, std::move(newFrame));
 	return newFrameIndex;
 }
 
@@ -109,24 +118,38 @@ uint64_t ECSReceiver::TryReceiveDeltaFrameTransmission(const uint8_t* const fram
 	{
 		return k_invalidFrameIndex;
 	}
-	const size_t numFrameBytes = (frameEnd - frameIter);
+	const size_t numCompressedFrameBytes = (frameEnd - frameIter);
 
 	ECS::SerializedEntitiesAndComponents decompressedFrame;
 	ECS::RemovedEntitiesAndComponents removedEntitiesAndComponents;
 	if (!ECS::TryDeltaDecompressSerializedEntitiesAndComponentsFrom(
 		previousFrameHistoryEntry.m_frame,
-		{ frameIter, numFrameBytes },
+		{ frameIter, numCompressedFrameBytes },
 		decompressedFrame,
 		removedEntitiesAndComponents))
 	{
 		return k_invalidFrameIndex;
 	}
 
-	StoreFrame(newFrameIndex, std::move(decompressedFrame));
+	// Calculate the compression ratio of the frame.
+	size_t numDecompressedFrameBytes = 0;
+	for (const auto& entry : decompressedFrame.m_components)
+	{
+		numDecompressedFrameBytes += entry.second.m_bytes.Size();
+		numDecompressedFrameBytes += entry.second.m_views.Size() * sizeof(ECS::SerializedByteView);
+	}
+	numDecompressedFrameBytes += decompressedFrame.m_entities.m_bytes.Size();
+	numDecompressedFrameBytes += decompressedFrame.m_entities.m_views.Size() * sizeof(ECS::SerializedByteView);
+
+	const float compressionRatio =
+		static_cast<float>(numCompressedFrameBytes) / static_cast<float>(numDecompressedFrameBytes);
+
+	StoreFrame(newFrameIndex, compressionRatio, std::move(decompressedFrame));
 	return newFrameIndex;
 }
 
-void ECSReceiver::StoreFrame(uint64_t newFrameIndex, ECS::SerializedEntitiesAndComponents&& newFrame)
+void ECSReceiver::StoreFrame(
+	const uint64_t newFrameIndex, const float compressionRatio, ECS::SerializedEntitiesAndComponents&& newFrame)
 {
 	// If the history buffer is empty, add the frame to it.
 	if (m_frameIndex == k_invalidFrameIndex)
@@ -135,6 +158,7 @@ void ECSReceiver::StoreFrame(uint64_t newFrameIndex, ECS::SerializedEntitiesAndC
 
 		HistoryEntry& historyEntry = m_frameHistory.AddRecycle();
 		historyEntry.m_isValid = true;
+		historyEntry.m_compressionRatio = compressionRatio;
 		historyEntry.m_frame = std::move(newFrame);
 		return;
 	}
@@ -146,6 +170,7 @@ void ECSReceiver::StoreFrame(uint64_t newFrameIndex, ECS::SerializedEntitiesAndC
 	{
 		HistoryEntry& historyEntry = m_frameHistory[historyIndex];
 		historyEntry.m_isValid = true;
+		historyEntry.m_compressionRatio = compressionRatio;
 		historyEntry.m_frame = std::move(newFrame);
 		return;
 	}
@@ -161,6 +186,7 @@ void ECSReceiver::StoreFrame(uint64_t newFrameIndex, ECS::SerializedEntitiesAndC
 
 	HistoryEntry& historyEntry = m_frameHistory.Newest();
 	historyEntry.m_isValid = true;
+	historyEntry.m_compressionRatio = compressionRatio;
 	historyEntry.m_frame = std::move(newFrame);
 }
 }

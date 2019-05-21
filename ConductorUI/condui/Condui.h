@@ -26,11 +26,16 @@ struct ConduiElement;
 class TextInputComponent;
 
 /**
- * An element that displays a string.
+ * An element that displays a string. The string can be updated by a function.
  */
 struct TextDisplayElement final
 {
-	std::string m_string{};
+	using TextUpdateFunction = std::function<void(std::string&)>;
+
+	std::string m_initialString{};
+
+	// The function called to update this element's string.
+	TextUpdateFunction m_updateFunction;
 
 	// The bounds of the text display rectangle.
 	float m_width{ 1.0f };
@@ -128,6 +133,12 @@ public:
  */
 ConduiElement MakeTextDisplayElement(
 	const float width, const float height, const char* const str, const float textHeight);
+ConduiElement MakeTextDisplayElement(
+	const float width,
+	const float height,
+	const char* const str,
+	TextDisplayElement::TextUpdateFunction&& updateFunction,
+	const float textHeight);
 ConduiElement MakeTextInputElement(
 	const float width,
 	const float height,

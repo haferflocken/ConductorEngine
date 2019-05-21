@@ -14,6 +14,7 @@ class ECSReceiver final
 {
 public:
 	uint64_t GetLastSeenFrameIndex() const { return m_frameIndex; }
+	float GetLastSeenCompressionRatio() const;
 
 	// Receives a frame transmission. Returns a pointer to the frame if the frame is newer than any known frame.
 	// Returns nullptr otherwise.
@@ -24,6 +25,7 @@ private:
 	struct HistoryEntry
 	{
 		bool m_isValid{ false };
+		float m_compressionRatio{ 1.0f };
 		ECS::SerializedEntitiesAndComponents m_frame{};
 	};
 
@@ -33,7 +35,8 @@ private:
 	uint64_t TryReceiveFullFrameTransmission(const uint8_t* const frameBegin, const uint8_t* const frameEnd);
 	uint64_t TryReceiveDeltaFrameTransmission(const uint8_t* const frameBegin, const uint8_t* const frameEnd);
 
-	void StoreFrame(uint64_t newFrameIndex, ECS::SerializedEntitiesAndComponents&& newFrame);
+	void StoreFrame(
+		const uint64_t newFrameIndex, const float compressionRatio, ECS::SerializedEntitiesAndComponents&& newFrame);
 
 private:
 	uint64_t m_frameIndex{ k_invalidFrameIndex };

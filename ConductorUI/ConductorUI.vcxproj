@@ -131,6 +131,7 @@
     <ClInclude Include="condui\StackingPanelComponent.h" />
     <ClInclude Include="condui\StackingPanelSystem.h" />
     <ClInclude Include="condui\TextDisplayComponent.h" />
+    <ClInclude Include="condui\TextDisplayUpdateSystem.h" />
     <ClInclude Include="condui\TextInputComponent.h" />
     <ClInclude Include="condui\TextInputSystem.h" />
   </ItemGroup>
@@ -142,6 +143,7 @@
     <ClCompile Include="src\condui\StackingPanelComponent.cpp" />
     <ClCompile Include="src\condui\StackingPanelSystem.cpp" />
     <ClCompile Include="src\condui\TextDisplayComponent.cpp" />
+    <ClCompile Include="src\condui\TextDisplayUpdateSystem.cpp" />
     <ClCompile Include="src\condui\TextInputComponent.cpp" />
     <ClCompile Include="src\condui\TextInputSystem.cpp" />
   </ItemGroup>

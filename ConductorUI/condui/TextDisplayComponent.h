@@ -14,6 +14,8 @@ namespace Condui
 class TextDisplayComponent final : public ECS::Component
 {
 public:
+	using TextUpdateFunction = std::function<void(std::string&)>;
+
 	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "text_display_component";
 	static const ECS::ComponentType k_type;
@@ -32,6 +34,7 @@ public:
 	{}
 
 	std::string m_string{};
+	TextUpdateFunction m_stringUpdateFunction{};
 
 	Asset::AssetHandle<Image::Pixel1Image> m_codePage{};
 	uint16_t m_characterWidthPixels{ 0 };

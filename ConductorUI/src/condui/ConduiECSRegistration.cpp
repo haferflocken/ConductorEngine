@@ -3,6 +3,7 @@
 #include <condui/StackingPanelComponent.h>
 #include <condui/StackingPanelSystem.h>
 #include <condui/TextDisplayComponent.h>
+#include <condui/TextDisplayUpdateSystem.h>
 #include <condui/TextInputComponent.h>
 #include <condui/TextInputSystem.h>
 
@@ -21,5 +22,6 @@ void Condui::RegisterSystems(ECS::EntityManager& entityManager,
 	Input::CallbackRegistry& callbackRegistry)
 {
 	entityManager.RegisterSystem(Mem::MakeUnique<StackingPanelSystem>());
+	entityManager.RegisterSystem(Mem::MakeUnique<TextDisplayUpdateSystem>());
 	entityManager.RegisterSystem(Mem::MakeUnique<TextInputSystem>(sceneViewFrustum, callbackRegistry));
 }

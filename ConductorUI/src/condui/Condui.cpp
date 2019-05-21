@@ -29,10 +29,21 @@ float Condui::ConduiElement::GetHeight() const
 Condui::ConduiElement Condui::MakeTextDisplayElement(
 	const float width, const float height, const char* const str, const float textHeight)
 {
+	return MakeTextDisplayElement(width, height, str, {}, textHeight);
+}
+
+Condui::ConduiElement Condui::MakeTextDisplayElement(
+	const float width,
+	const float height,
+	const char* const str,
+	TextDisplayElement::TextUpdateFunction&& updateFunction,
+	const float textHeight)
+{
 	auto element = ConduiElement::Make<TextDisplayElement>();
 	TextDisplayElement& textDisplayElement = element.Get<TextDisplayElement>();
 
-	textDisplayElement.m_string = str;
+	textDisplayElement.m_initialString = str;
+	textDisplayElement.m_updateFunction = std::move(updateFunction);
 	textDisplayElement.m_width = width;
 	textDisplayElement.m_height = height;
 	textDisplayElement.m_textHeight = textHeight;
@@ -139,7 +150,8 @@ ECS::Entity& Condui::CreateConduiEntity(
 
 			auto& textDisplayComponent = *entityManager.FindComponent<TextDisplayComponent>(*entity);
 
-			textDisplayComponent.m_string = std::move(textDisplayElement.m_string);
+			textDisplayComponent.m_string = std::move(textDisplayElement.m_initialString);
+			textDisplayComponent.m_stringUpdateFunction = std::move(textDisplayElement.m_updateFunction);
 
 			if (font != nullptr)
 			{

@@ -91,6 +91,25 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		auto& consoleTransformComponent = *m_entityManager.FindComponent<Scene::SceneTransformComponent>(consoleEntity);
 		consoleTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, -0.25f, 0.5f);
 
+		// Create a display for the network compression ratio and attach it to the camera.
+		Condui::ConduiElement networkCompressionViewElement = Condui::MakeTextDisplayElement(
+			0.1f,
+			0.025f,
+			"Pending",
+			[this](std::string& displayString)
+			{
+				const float compressionRatio = m_ecsReceiver.GetLastSeenCompressionRatio();
+				displayString = std::to_string(compressionRatio);
+			},
+			0.025f);
+		ECS::Entity& networkCompressionViewEntity = Condui::CreateConduiEntity(
+			m_entityManager, std::move(networkCompressionViewElement), &fontInfo);
+		m_entityManager.SetParentEntity(networkCompressionViewEntity, &cameraEntity);
+
+		auto& networkCompressionViewTransformComponent =
+			*m_entityManager.FindComponent<Scene::SceneTransformComponent>(networkCompressionViewEntity);
+		networkCompressionViewTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, 0.25f, 0.5f);
+
 		// Create an inspector and attach it to the camera.
 		/*Condui::ConduiElement inspectorElement = Condui::MakeEntityInspector(
 			m_gameData.GetComponentReflector(),
