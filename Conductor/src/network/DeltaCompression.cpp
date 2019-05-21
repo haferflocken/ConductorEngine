@@ -188,7 +188,7 @@ bool DeltaCompression::TryDecompress(
 
 	// The loop above has a lookahead exit condition. If it ends due to that, ensure that it ended at a terminal marker.
 	// Otherwise, assert that it found a terminal marker.
-	if (compressedIter < compressedBytesEnd && (*compressedIter) != k_terminalMarker)
+	if (compressedIter < compressedBytesEnd && (*compressedIter - 1) != k_terminalMarker)
 	{
 		AMP_LOG_ERROR("Delta-decompression failed to consume the correct number of bytes.");
 		return false;
