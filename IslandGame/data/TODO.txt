@@ -10,15 +10,17 @@ TODO:
 	[ ] Style sheets
 	[ ] Improve text rendering using textured quads
 
+[ ] Instrumented profiler
+
 [ ] ECS Improvements
-	[ ] Entities should be updated in hierarchy order.
-	[ ] Correctly transmit and handle changes in the components on an entity
-	[ ] Handle entity ID collisions when applying a full serialization
-	[ ] Refactor ECS networking
+	[ ] Entities should be updated in hierarchy order
+	[x] Correctly transmit and handle changes in the components on an entity
+	[x] Refactor ECS networking
 		[x] Remove networking code from the ECS namespace & isolate it in the Network namespace
-		[ ] Store a history of full-frame serializations and use it to create delta transmissions for specific clients
-		[ ] Track the transmissions each client is aware of
-		[ ] Apply transmissions to the client
+		[x] Store a history of full-frame serializations and use it to create delta transmissions for specific clients
+		[x] Track the transmissions each client is aware of
+		[x] Apply transmissions to the client
+		[x] Prevent entity ID collisions between clients & host
 	
 [ ] Use UnboundedScene as a level format.
 	[x] New component & system that loads chunks around it: Scene::AnchorComponent
@@ -45,6 +47,7 @@ TODO:
 	[ ] Nested scene support
 		[ ] Allow scenes to be included in other scenes in a read-only way
 		[ ] Allow overrides on entities of nested scenes
+	[ ] Prevent conflicts between client, host, and scene entity IDs
 
 [ ] Input
 	[ ] Set InputComponent ClientID so that transmission works
@@ -62,7 +65,7 @@ TODO:
 		[x] Load this file format
 		[ ] The skeleton exists in the scene as an entity hierarchy, which means an entity with a skeleton mesh
 			has implicit children
-			[ ] Define how this works in a networked context
+			[x] In a networked context, the host is responsible for instantiating this hierarchy
 		[ ] Import FBX files so they can be re-saved in this format
 		[ ] Render rigged meshes
 
