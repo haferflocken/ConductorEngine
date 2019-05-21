@@ -9,6 +9,8 @@ namespace Network
 {
 namespace Internal_DeltaCompression
 {
+constexpr uint16_t k_identicalBytesMarker = UINT16_MAX;
+
 constexpr uint8_t k_unchangedSectionTypeID = 0x0F;
 constexpr uint8_t k_changedSectionTypeID = 0xF0;
 constexpr uint8_t k_trailingSectionTypeID = 0xAA;
@@ -23,6 +25,14 @@ void DeltaCompression::Compress(
 	Collection::Vector<uint8_t>& outCompressedBytes)
 {
 	using namespace Internal_DeltaCompression;
+
+	// If the last seen bytes are identical to the current bytes, all we serialize is k_identicalBytesMarker.
+	if (lastSeenBytes.Size() == currentBytes.Size()
+		&& memcmp(lastSeenBytes.begin(), currentBytes.begin(), currentBytes.Size()) == 0)
+	{
+		Mem::LittleEndian::Serialize(k_identicalBytesMarker, outCompressedBytes);
+		return;
+	}
 
 	// To decompress later, we need to know the size before compression.
 	Mem::LittleEndian::Serialize(static_cast<uint16_t>(currentBytes.Size()), outCompressedBytes);
@@ -124,13 +134,28 @@ bool DeltaCompression::TryDecompress(
 {
 	using namespace Internal_DeltaCompression;
 
-	// Before the compressed bytes is a uint16_t indicating the size before compression.
-	const auto maybeNumBytesBeforeCompression = Mem::LittleEndian::DeserializeUi16(compressedIter, compressedBytesEnd);
-	if (!maybeNumBytesBeforeCompression.second)
+	// The first two bytes are either k_identicalBytesMarker or the size before compression.
+	const auto maybeFirstTwoBytes = Mem::LittleEndian::DeserializeUi16(compressedIter, compressedBytesEnd);
+	if (!maybeFirstTwoBytes.second)
 	{
 		return false;
 	}
-	const uint16_t numBytesBeforeCompression = maybeNumBytesBeforeCompression.first;
+
+	// If the first two bytes are k_identicalBytesMarker, the decompressed bytes are the lastSeenBytes.
+	if (maybeFirstTwoBytes.first == k_identicalBytesMarker)
+	{
+		if (lastSeenBytes.Size() > inOutDecompressedBytes.Size())
+		{
+			AMP_LOG_ERROR("Insufficient capacity to copy lastSeenBytes.");
+			return false;
+		}
+		memcpy(inOutDecompressedBytes.begin(), lastSeenBytes.begin(), lastSeenBytes.Size());
+		inOutDecompressedBytes = { inOutDecompressedBytes.begin(), lastSeenBytes.Size() };
+		return true;
+	}
+
+	// Decompress in sections.
+	const uint16_t numBytesBeforeCompression = maybeFirstTwoBytes.first;
 	if (numBytesBeforeCompression > inOutDecompressedBytes.Size())
 	{
 		AMP_LOG_ERROR("Insufficient capacity to perform delta-decompression.");
