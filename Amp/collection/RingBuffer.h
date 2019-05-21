@@ -93,7 +93,7 @@ inline T& RingBuffer<T, S>::AddRecycle()
 		T& result = m_buffer[m_endIndex];
 
 		const size_t size = Size();
-		if (size >= k_capacity)
+		if (size >= (k_capacity - 1))
 		{
 			++m_beginIndex;
 			m_beginIndex %= k_capacity;

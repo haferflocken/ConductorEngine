@@ -143,9 +143,10 @@ bool DeltaCompression::TryDecompress(
 	// a one byte section type ID and a one byte size.
 	const uint8_t* lastSeenIter = lastSeenBytes.begin();
 	const uint8_t* const lastSeenEnd = lastSeenBytes.end();
+	uint8_t sectionTypeID = k_terminalMarker;
 	while ((compressedIter + 1) < compressedBytesEnd)
 	{
-		const uint8_t sectionTypeID = *(compressedIter++);
+		sectionTypeID = *(compressedIter++);
 		if (sectionTypeID == k_terminalMarker)
 		{
 			break;
@@ -188,7 +189,7 @@ bool DeltaCompression::TryDecompress(
 
 	// The loop above has a lookahead exit condition. If it ends due to that, ensure that it ended at a terminal marker.
 	// Otherwise, assert that it found a terminal marker.
-	if (compressedIter < compressedBytesEnd && (*compressedIter - 1) != k_terminalMarker)
+	if (compressedIter < compressedBytesEnd && sectionTypeID != k_terminalMarker)
 	{
 		AMP_LOG_ERROR("Delta-decompression failed to consume the correct number of bytes.");
 		return false;

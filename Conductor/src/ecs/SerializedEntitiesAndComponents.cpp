@@ -378,12 +378,12 @@ bool TryDeltaDecompressSortedLists(
 		}
 
 		// Read the marker and the element ID.
-		auto maybeElementMarker = Mem::LittleEndian::DeserializeUi32(deltaCompressedIter, deltaCompressedEnd);
+		auto maybeElementMarker = Mem::LittleEndian::DeserializeUi8(deltaCompressedIter, deltaCompressedEnd);
 		if (!maybeElementMarker.second)
 		{
 			return false;
 		}
-		const uint32_t elementMarker = maybeElementMarker.first;
+		const uint8_t elementMarker = maybeElementMarker.first;
 
 		IDType newestElementID;
 		if (!TryDeserializeID<HeaderType, IDType>(deltaCompressedIter, deltaCompressedEnd, newestElementID))
