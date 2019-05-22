@@ -2,7 +2,6 @@
 
 #include <collection/ArrayView.h>
 #include <collection/IteratorView.h>
-#include <collection/Pair.h>
 #include <collection/Vector.h>
 
 namespace Collection
@@ -18,6 +17,13 @@ struct HashMapBucket
 	Collection::Vector<ValueType> m_values;
 };
 
+template <typename KeyType, typename ValueType>
+struct HashMapKeyValuePair
+{
+	const KeyType& key;
+	ValueType& value;
+};
+
 /**
  * A key-value map with constant-time (amortized) access.
  * The provided HashFn must be:
@@ -31,8 +37,8 @@ class HashMap
 {
 public:
 	using Bucket = HashMapBucket<KeyType, ValueType>;
-	using KeyValueIterator = HashMapKeyValueIterator<Bucket, Collection::Pair<const KeyType&, ValueType&>>;
-	using ConstKeyValueIterator = HashMapKeyValueIterator<Bucket, Collection::Pair<const KeyType&, const ValueType&>>;
+	using KeyValueIterator = HashMapKeyValueIterator<Bucket, HashMapKeyValuePair<KeyType, ValueType>>;
+	using ConstKeyValueIterator = HashMapKeyValueIterator<Bucket, HashMapKeyValuePair<KeyType, const ValueType>>;
 	using KeyIterator = HashMapKeyIterator<Bucket, const KeyType&>;
 	using ValueIterator = HashMapValueIterator<Bucket, ValueType>;
 	using ConstValueIterator = HashMapValueIterator<Bucket, const ValueType>;
@@ -173,8 +179,8 @@ public:
 
 	KeyValuePair operator*() const
 	{
-		const auto& bucket = (*m_buckets)[m_bucketIndex];
-		return KeyValuePair(bucket.m_keys[m_indexInBucket], bucket.m_values[m_indexInBucket]);
+		auto& bucket = (*m_buckets)[m_bucketIndex];
+		return KeyValuePair{ bucket.m_keys[m_indexInBucket], bucket.m_values[m_indexInBucket] };
 	}
 };
 
@@ -188,7 +194,7 @@ public:
 
 	KeyRef operator*() const
 	{
-		const auto& bucket = (*m_buckets)[m_bucketIndex];
+		auto& bucket = (*m_buckets)[m_bucketIndex];
 		return bucket.m_keys[m_indexInBucket];
 	}
 };
