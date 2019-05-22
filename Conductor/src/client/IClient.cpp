@@ -1,6 +1,7 @@
 #include <client/IClient.h>
 
 #include <client/ConnectedHost.h>
+#include <dev/Profiler.h>
 #include <input/InputMessage.h>
 #include <input/InputSystem.h>
 
@@ -22,6 +23,8 @@ IClient::IClient(Asset::AssetManager& assetManager,
 
 void IClient::NotifyOfECSUpdateTransmission(const Collection::Vector<uint8_t>& transmissionBytes)
 {
+	AMP_PROFILE_SCOPE();
+
 	const ECS::SerializedEntitiesAndComponents* const newFrame =
 		m_ecsReceiver.TryReceiveFrameTransmission(transmissionBytes.GetConstView());
 	if (newFrame != nullptr)

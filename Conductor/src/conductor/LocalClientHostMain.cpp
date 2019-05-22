@@ -4,6 +4,7 @@
 #include <client/ConnectedHost.h>
 #include <client/MessageToRenderInstance.h>
 #include <collection/LocklessQueue.h>
+#include <dev/Profiler.h>
 #include <host/ConnectedClient.h>
 #include <host/HostNetworkWorld.h>
 #include <host/HostWorld.h>
@@ -19,6 +20,8 @@ Conductor::ApplicationErrorCode Conductor::LocalClientHostMain(
 	Client::ClientWorld::ClientFactory&& clientFactory,
 	Host::HostWorld::HostFactory&& hostFactory)
 {
+	AMP_INIT_PROFILER();
+
 	// Initialize asset types, register component types, and load game data.
 	Mem::UniquePtr<IGameData> gameData = gameDataFactory(assetManager, dataDirectory, userDirectory);
 

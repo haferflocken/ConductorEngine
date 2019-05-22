@@ -171,6 +171,7 @@
     <ClInclude Include="mem\SerializeBigEndian.h" />
     <ClInclude Include="mem\SerializeLittleEndian.h" />
     <ClInclude Include="mem\UniquePtr.h" />
+    <ClInclude Include="dev\Profiler.h" />
     <ClInclude Include="traits\IsMemCopyAFullCopy.h" />
     <ClInclude Include="unit\CountUnits.h" />
     <ClInclude Include="unit\DistanceUnits.h" />
@@ -186,6 +187,7 @@
     <ClCompile Include="src\assets\RecordSchemaField.cpp" />
     <ClCompile Include="src\collection\HashMap.cpp" />
     <ClCompile Include="src\dev\Dev.cpp" />
+    <ClCompile Include="src\dev\Profiler.cpp" />
     <ClCompile Include="src\file\FullFileReader.cpp" />
     <ClCompile Include="src\file\JSONReader.cpp" />
     <ClCompile Include="src\image\Pixel1Image.cpp" />

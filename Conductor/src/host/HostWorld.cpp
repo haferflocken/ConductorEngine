@@ -3,6 +3,7 @@
 #include <client/MessageToHost.h>
 #include <collection/LocklessQueue.h>
 #include <dev/Dev.h>
+#include <dev/Profiler.h>
 #include <host/ConnectedClient.h>
 #include <host/IHost.h>
 
@@ -82,6 +83,8 @@ void HostWorld::HostThreadFunction()
 
 	while (m_hostThreadStatus == HostThreadStatus::Running)
 	{
+		AMP_PROFILE_SCOPE();
+
 		// Process pending input from the network.
 		Client::MessageToHost message;
 		while (m_networkInputQueue.TryPop(message))

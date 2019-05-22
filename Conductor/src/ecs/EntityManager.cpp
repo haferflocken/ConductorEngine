@@ -9,6 +9,7 @@
 #include <ecs/System.h>
 
 #include <collection/ArrayView.h>
+#include <dev/Profiler.h>
 #include <mem/DeserializeLittleEndian.h>
 #include <mem/SerializeLittleEndian.h>
 
@@ -753,6 +754,8 @@ void EntityManager::RemoveECSPointersFromSystems(Entity& entity)
 
 void EntityManager::Update(const Unit::Time::Millisecond delta)
 {
+	AMP_PROFILE_SCOPE();
+
 	// Update the concurrent system groups.
 	for (auto& concurrentGroup : m_concurrentSystemGroups)
 	{

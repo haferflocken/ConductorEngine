@@ -65,9 +65,8 @@
 #define AMP_FATAL_ASSERT(...)
 #endif
 
-class Dev
+namespace Dev
 {
-public:
 	enum class MessageType
 	{
 		Info = 0,
@@ -77,10 +76,6 @@ public:
 		Count
 	};
 
-	static void SetOutputFor(const MessageType messageType, std::ostream& ostream);
-
-	static void PrintMessage(const MessageType messageType, const char* const message);
-
-private:
-	static std::ostream* s_outputByMessageType[static_cast<size_t>(MessageType::Count)];
+	void SetOutputFor(const MessageType messageType, std::ostream& ostream);
+	void PrintMessage(const MessageType messageType, const char* const message);
 };

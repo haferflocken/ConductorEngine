@@ -3,10 +3,10 @@
 #include <client/ConnectedHost.h>
 #include <client/IClient.h>
 #include <client/IRenderInstance.h>
-#include <input/InputMessage.h>
-
 #include <collection/LocklessQueue.h>
 #include <dev/Dev.h>
+#include <dev/Profiler.h>
+#include <input/InputMessage.h>
 #include <host/MessageToClient.h>
 
 Client::ClientWorld::ClientWorld(const Conductor::IGameData& gameData,
@@ -59,6 +59,8 @@ void Client::ClientWorld::ClientThreadFunction()
 
 	while (m_clientThreadStatus == ClientThreadStatus::Running)
 	{
+		AMP_PROFILE_SCOPE();
+
 		// Process pending input from the network.
 		{
 			Host::MessageToClient message;

@@ -1,6 +1,7 @@
 #include <host/IHost.h>
 
 #include <client/ClientID.h>
+#include <dev/Profiler.h>
 #include <input/InputSystem.h>
 
 namespace Host
@@ -32,6 +33,8 @@ void IHost::NotifyOfFrameAcknowledgement(const Client::ClientID clientID, const 
 
 void IHost::StoreECSFrame()
 {
+	AMP_PROFILE_SCOPE();
+
 	ECS::SerializedEntitiesAndComponents serializedFrame;
 	m_entityManager.FullySerializeAllEntitiesAndComponentsMatchingFilter(
 		[](const ECS::Entity& entity)

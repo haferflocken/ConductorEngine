@@ -6,6 +6,7 @@
 #include <client/MessageToRenderInstance.h>
 #include <client/ClientNetworkWorld.h>
 #include <collection/LocklessQueue.h>
+#include <dev/Profiler.h>
 #include <input/InputMessage.h>
 #include <network/Socket.h>
 
@@ -20,6 +21,8 @@ Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
 	GameDataFactory&& gameDataFactory,
 	Client::ClientWorld::ClientFactory&& clientFactory)
 {
+	AMP_INIT_PROFILER();
+
 	// Initialize the network socket API.
 	if (!Network::TryInitializeSocketAPI())
 	{
