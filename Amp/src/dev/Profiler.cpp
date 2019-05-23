@@ -2,6 +2,9 @@
 
 #include <collection/LinearBlockHashMap.h>
 #include <collection/LocklessQueue.h>
+#include <mem/UniquePtr.h>
+
+#include <array>
 
 namespace Internal_Profiler
 {
@@ -67,9 +70,12 @@ public:
 	FrameRecordMap()
 		: m_currentFrameID(0)
 		, m_currentDepth(1)
-		, m_frameRecords(4096)
+		, m_numRecordsInLastBlock(1)
+		, m_frameRecordBlocks(32)
 	{
-		Dev::FrameRecord& rootRecord = m_frameRecords.Emplace();
+		m_frameRecordBlocks.Add(Mem::MakeUnique<FrameRecordBlock>());
+		FrameRecordBlock& block = *m_frameRecordBlocks.Back();
+		Dev::FrameRecord& rootRecord = block.front();
 		rootRecord.m_parentFrameID = 0;
 		rootRecord.m_beginPoint = 0;
 		rootRecord.m_durationNanoseconds = UINT64_MAX;
@@ -79,12 +85,12 @@ public:
 
 	void PushFrame(uint64_t frameID, uint64_t beginPoint, const char* name)
 	{
-		AMP_ASSERT(frameID == m_frameRecords.Size(), "");
+		AMP_ASSERT(frameID == GetNumFrameRecords(), "");
 
 		const uint64_t parentFrameID = m_currentFrameID;
 		m_currentFrameID = frameID;
 
-		Dev::FrameRecord& frameRecord = m_frameRecords.Emplace();
+		Dev::FrameRecord& frameRecord = CreateFrameRecord();
 		frameRecord.m_parentFrameID = parentFrameID;
 		frameRecord.m_beginPoint = beginPoint;
 		frameRecord.m_durationNanoseconds = UINT64_MAX;
@@ -97,18 +103,53 @@ public:
 	void PopFrame(uint64_t frameID, uint64_t endPoint)
 	{
 		AMP_ASSERT(frameID == m_currentFrameID, "");
-		Dev::FrameRecord& frameRecord = m_frameRecords[frameID];
+		Dev::FrameRecord& frameRecord = GetFrameRecord(frameID);
 		frameRecord.m_durationNanoseconds = endPoint - frameRecord.m_beginPoint;
 
 		m_currentFrameID = frameRecord.m_parentFrameID;
 		--m_currentDepth;
 	}
 
+	Dev::FrameRecord& GetFrameRecord(uint64_t frameID)
+	{
+		const size_t blockIndex = frameID / k_frameRecordBlockSize;
+		const size_t indexInBlock = frameID % k_frameRecordBlockSize;
+		FrameRecordBlock& block = *m_frameRecordBlocks[blockIndex];
+		return block[indexInBlock];
+	}
+
+	uint32_t GetNumFrameRecords() const
+	{
+		return (m_frameRecordBlocks.Size() - 1) * k_frameRecordBlockSize + m_numRecordsInLastBlock;
+	}
+
+private:
+	static constexpr size_t k_frameRecordBlockSize = 4096;
+	using FrameRecordBlock = std::array<Dev::FrameRecord, k_frameRecordBlockSize>;
+
+	Dev::FrameRecord& CreateFrameRecord()
+	{
+		if (m_numRecordsInLastBlock < k_frameRecordBlockSize)
+		{
+			const uint32_t indexInBlock = m_numRecordsInLastBlock;
+			++m_numRecordsInLastBlock;
+			FrameRecordBlock& block = *m_frameRecordBlocks.Back();
+			return block[indexInBlock];
+		}
+
+		m_numRecordsInLastBlock = 1;
+		m_frameRecordBlocks.Add(Mem::MakeUnique<FrameRecordBlock>());
+		FrameRecordBlock& block = *m_frameRecordBlocks.Back();
+		return block.front();
+	}
+
 private:
 	uint64_t m_currentFrameID;
 	uint64_t m_currentDepth;
-	// Because frame IDs increment upwards from 0, 
-	Collection::Vector<Dev::FrameRecord> m_frameRecords;
+	// Because frame IDs increment upwards from 0, we can use them as indices.
+	// We allocate frame records in blocks of 4096 that don't move around to avoid copying them.
+	uint32_t m_numRecordsInLastBlock;
+	Collection::Vector<Mem::UniquePtr<FrameRecordBlock>> m_frameRecordBlocks; 
 };
 
 
