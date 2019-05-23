@@ -140,12 +140,12 @@
     <ClCompile Include="src\condui\ConduiECSRegistration.cpp" />
     <ClCompile Include="src\condui\ConduiInspector.cpp" />
     <ClCompile Include="src\condui\EntityInspector.cpp" />
-    <ClCompile Include="src\condui\StackingPanelComponent.cpp" />
-    <ClCompile Include="src\condui\StackingPanelSystem.cpp" />
-    <ClCompile Include="src\condui\TextDisplayComponent.cpp" />
-    <ClCompile Include="src\condui\TextDisplayUpdateSystem.cpp" />
-    <ClCompile Include="src\condui\TextInputComponent.cpp" />
-    <ClCompile Include="src\condui\TextInputSystem.cpp" />
+    <ClCompile Include="src\condui\components\StackingPanelComponent.cpp" />
+    <ClCompile Include="src\condui\systems\StackingPanelSystem.cpp" />
+    <ClCompile Include="src\condui\components\TextDisplayComponent.cpp" />
+    <ClCompile Include="src\condui\systems\TextDisplayUpdateSystem.cpp" />
+    <ClCompile Include="src\condui\components\TextInputComponent.cpp" />
+    <ClCompile Include="src\condui\systems\TextInputSystem.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
