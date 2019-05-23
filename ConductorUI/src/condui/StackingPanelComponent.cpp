@@ -1,4 +1,4 @@
-#include <condui/StackingPanelComponent.h>
+#include <condui/components/StackingPanelComponent.h>
 
 #include <mem/InspectorInfo.h>
 

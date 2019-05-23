@@ -1,6 +1,6 @@
 #pragma once
 
-#include <condui/TextDisplayComponent.h>
+#include <condui/components/TextDisplayComponent.h>
 #include <ecs/System.h>
 #include <scene/SceneTransformComponent.h>
 

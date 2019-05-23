@@ -1,4 +1,4 @@
-#include <condui/TextDisplayComponent.h>
+#include <condui/components/TextDisplayComponent.h>
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>

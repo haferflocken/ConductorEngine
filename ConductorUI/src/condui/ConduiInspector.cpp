@@ -1,7 +1,7 @@
 #include <condui/ConduiInspector.h>
 
 #include <dev/Dev.h>
-#include <condui/TextInputComponent.h>
+#include <condui/components/TextInputComponent.h>
 #include <math/Matrix4x4.h>
 #include <math/Vector2.h>
 #include <mem/InspectorInfo.h>

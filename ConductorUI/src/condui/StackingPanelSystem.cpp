@@ -1,4 +1,4 @@
-#include <condui/StackingPanelSystem.h>
+#include <condui/systems/StackingPanelSystem.h>
 
 #include <ecs/EntityManager.h>
 

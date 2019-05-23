@@ -128,12 +128,12 @@
     <ClInclude Include="condui\ConduiECSRegistration.h" />
     <ClInclude Include="condui\ConduiInspector.h" />
     <ClInclude Include="condui\EntityInspector.h" />
-    <ClInclude Include="condui\StackingPanelComponent.h" />
-    <ClInclude Include="condui\StackingPanelSystem.h" />
-    <ClInclude Include="condui\TextDisplayComponent.h" />
-    <ClInclude Include="condui\TextDisplayUpdateSystem.h" />
-    <ClInclude Include="condui\TextInputComponent.h" />
-    <ClInclude Include="condui\TextInputSystem.h" />
+    <ClInclude Include="condui\components\StackingPanelComponent.h" />
+    <ClInclude Include="condui\systems\StackingPanelSystem.h" />
+    <ClInclude Include="condui\components\TextDisplayComponent.h" />
+    <ClInclude Include="condui\systems\TextDisplayUpdateSystem.h" />
+    <ClInclude Include="condui\components\TextInputComponent.h" />
+    <ClInclude Include="condui\systems\TextInputSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\condui\Condui.cpp" />

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <condui/StackingPanelComponent.h>
+#include <condui/components/StackingPanelComponent.h>
 #include <ecs/Entity.h>
 #include <ecs/System.h>
 #include <scene/SceneTransformComponent.h>

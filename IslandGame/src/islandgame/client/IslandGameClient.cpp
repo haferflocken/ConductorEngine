@@ -7,7 +7,7 @@
 #include <behave/BehaviourTreeEvaluationSystem.h>
 #include <condui/Condui.h>
 #include <condui/EntityInspector.h>
-#include <condui/TextInputComponent.h>
+#include <condui/components/TextInputComponent.h>
 #include <input/InputComponent.h>
 #include <math/MathConstants.h>
 #include <mem/InspectorInfo.h>

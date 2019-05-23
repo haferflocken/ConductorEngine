@@ -1,6 +1,6 @@
 #pragma once
 
-#include <condui/TextInputComponent.h>
+#include <condui/components/TextInputComponent.h>
 #include <ecs/System.h>
 #include <math/Vector2.h>
 #include <scene/SceneTransformComponent.h>

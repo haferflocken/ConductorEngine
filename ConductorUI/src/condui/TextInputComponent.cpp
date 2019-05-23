@@ -1,4 +1,4 @@
-#include <condui/TextInputComponent.h>
+#include <condui/components/TextInputComponent.h>
 
 #include <asset/AssetManager.h>
 #include <ecs/ComponentVector.h>

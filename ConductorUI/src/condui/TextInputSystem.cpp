@@ -1,4 +1,4 @@
-#include <condui/TextInputSystem.h>
+#include <condui/systems/TextInputSystem.h>
 
 #include <ecs/EntityID.h>
 #include <input/CallbackRegistry.h>

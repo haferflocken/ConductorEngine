@@ -1,4 +1,4 @@
-#include <condui/TextDisplayUpdateSystem.h>
+#include <condui/systems/TextDisplayUpdateSystem.h>
 
 namespace Condui
 {

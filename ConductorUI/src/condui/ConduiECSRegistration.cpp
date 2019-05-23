@@ -1,11 +1,11 @@
 #include <condui/ConduiECSRegistration.h>
 
-#include <condui/StackingPanelComponent.h>
-#include <condui/StackingPanelSystem.h>
-#include <condui/TextDisplayComponent.h>
-#include <condui/TextDisplayUpdateSystem.h>
-#include <condui/TextInputComponent.h>
-#include <condui/TextInputSystem.h>
+#include <condui/components/StackingPanelComponent.h>
+#include <condui/systems/StackingPanelSystem.h>
+#include <condui/components/TextDisplayComponent.h>
+#include <condui/systems/TextDisplayUpdateSystem.h>
+#include <condui/components/TextInputComponent.h>
+#include <condui/systems/TextInputSystem.h>
 
 #include <ecs/ComponentReflector.h>
 #include <ecs/EntityManager.h>

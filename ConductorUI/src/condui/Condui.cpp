@@ -1,8 +1,8 @@
 #include <condui/Condui.h>
 
-#include <condui/StackingPanelComponent.h>
-#include <condui/TextDisplayComponent.h>
-#include <condui/TextInputComponent.h>
+#include <condui/components/StackingPanelComponent.h>
+#include <condui/components/TextDisplayComponent.h>
+#include <condui/components/TextInputComponent.h>
 #include <ecs/EntityManager.h>
 #include <scene/SceneTransformComponent.h>
 
