@@ -1,12 +1,10 @@
 #pragma once
 
-#include <asset/AssetHandle.h>
 #include <collection/Pair.h>
 #include <collection/Variant.h>
 #include <collection/Vector.h>
 #include <collection/VectorMap.h>
 #include <image/Colour.h>
-#include <image/Pixel1Image.h>
 #include <math/Matrix4x4.h>
 #include <mem/UniquePtr.h>
 #include <util/StringHash.h>
@@ -23,6 +21,7 @@ class EntityManager;
 namespace Condui
 {
 struct ConduiElement;
+struct FontInfo;
 class TextInputComponent;
 
 /**
@@ -165,12 +164,5 @@ ConduiElement MakeTextInputCommandElement(
 /**
  * Functions to actualize a ConduiElement as an ECS::Entity. These consume the ConduiElement.
  */
-struct FontInfo
-{
-	Asset::AssetHandle<Image::Pixel1Image> m_codePage;
-	uint16_t m_characterWidthPixels;
-	uint16_t m_characterHeightPixels;
-	Image::ColourARGB m_textColour;
-};
 ECS::Entity& CreateConduiEntity(ECS::EntityManager& entityManager, ConduiElement&& element, const FontInfo* font);
 }

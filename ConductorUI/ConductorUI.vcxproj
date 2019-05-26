@@ -124,11 +124,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="profilerui\ProfilerRootComponent.h" />
+    <ClInclude Include="profilerui\ProfilerThreadComponent.h" />
     <ClInclude Include="condui\Condui.h" />
     <ClInclude Include="condui\ConduiECSRegistration.h" />
     <ClInclude Include="condui\ConduiInspector.h" />
+    <ClInclude Include="profilerui\ProfilerUI.h" />
     <ClInclude Include="condui\EntityInspector.h" />
     <ClInclude Include="condui\components\StackingPanelComponent.h" />
+    <ClInclude Include="condui\FontInfo.h" />
+    <ClInclude Include="profilerui\ProfilerRootSystem.h" />
+    <ClInclude Include="profilerui\ProfilerThreadSystem.h" />
     <ClInclude Include="condui\systems\StackingPanelSystem.h" />
     <ClInclude Include="condui\components\TextDisplayComponent.h" />
     <ClInclude Include="condui\systems\TextDisplayUpdateSystem.h" />
@@ -136,11 +142,16 @@
     <ClInclude Include="condui\systems\TextInputSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\profilerui\ProfilerRootComponent.cpp" />
+    <ClCompile Include="src\profilerui\ProfilerThreadComponent.cpp" />
     <ClCompile Include="src\condui\Condui.cpp" />
     <ClCompile Include="src\condui\ConduiECSRegistration.cpp" />
     <ClCompile Include="src\condui\ConduiInspector.cpp" />
+    <ClCompile Include="src\profilerui\ProfilerThreadSystem.cpp" />
+    <ClCompile Include="src\profilerui\ProfilerUI.cpp" />
     <ClCompile Include="src\condui\EntityInspector.cpp" />
     <ClCompile Include="src\condui\components\StackingPanelComponent.cpp" />
+    <ClCompile Include="src\profilerui\ProfilerRootSystem.cpp" />
     <ClCompile Include="src\condui\systems\StackingPanelSystem.cpp" />
     <ClCompile Include="src\condui\components\TextDisplayComponent.cpp" />
     <ClCompile Include="src\condui\systems\TextDisplayUpdateSystem.cpp" />

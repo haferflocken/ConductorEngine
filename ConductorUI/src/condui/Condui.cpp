@@ -3,6 +3,7 @@
 #include <condui/components/StackingPanelComponent.h>
 #include <condui/components/TextDisplayComponent.h>
 #include <condui/components/TextInputComponent.h>
+#include <condui/FontInfo.h>
 #include <ecs/EntityManager.h>
 #include <scene/SceneTransformComponent.h>
 

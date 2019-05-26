@@ -1,7 +1,5 @@
 #include <condui/components/TextInputComponent.h>
 
-#include <asset/AssetManager.h>
-#include <ecs/ComponentVector.h>
 #include <mem/InspectorInfo.h>
 
 namespace Condui
