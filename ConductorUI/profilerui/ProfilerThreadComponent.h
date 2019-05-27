@@ -1,5 +1,6 @@
 #pragma once
 
+#include <condui/FontInfo.h>
 #include <ecs/Component.h>
 
 namespace ProfilerUI
@@ -28,5 +29,9 @@ public:
 	{}
 
 	uint64_t m_profilerThreadID{ UINT64_MAX };
+	uint64_t m_nextFrameRecordID{ 1 };
+
+	Condui::FontInfo m_fontInfo;
+	float m_textHeight;
 };
 }

@@ -10,8 +10,8 @@ namespace ProfilerUI
  * The ProfilerThreadSystem creates and maintains Condui entities to show profiling data for a thread.
  */
 class ProfilerThreadSystem final : public ECS::SystemTempl<
-	Util::TypeList<ProfilerThreadComponent>,
-	Util::TypeList<ECS::Entity>>
+	Util::TypeList<>,
+	Util::TypeList<ProfilerThreadComponent, ECS::Entity>>
 {
 public:
 	ProfilerThreadSystem() = default;

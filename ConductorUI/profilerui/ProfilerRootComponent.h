@@ -1,35 +1,40 @@
 #pragma once
 
 #include <asset/AssetHandle.h>
+#include <condui/FontInfo.h>
 #include <ecs/Component.h>
-#include <image/Colour.h>
-#include <image/Pixel1Image.h>
 
 namespace ProfilerUI
 {
 /**
  * An entity with a ProfilerRootComponent maintains child entities with ProfilerThreadComponents for each thread that
- * is profiled. ProfilerRootComponent is a tag component and is therefore never instantiated.
+ * is profiled.
  */
 class ProfilerRootComponent final : public ECS::Component
 {
 public:
-	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Tag;
+	static constexpr ECS::ComponentBindingType k_bindingType = ECS::ComponentBindingType::Normal;
 	static constexpr const char* k_typeName = "profiler_root_component";
 	static const ECS::ComponentType k_type;
 	static const Mem::InspectorInfoTypeHash k_inspectorInfoTypeHash;
 
-	ProfilerRootComponent() = delete;
+	static void FullySerialize(const ProfilerRootComponent& component, Collection::Vector<uint8_t>& outBytes);
 
-	Asset::AssetHandle<Image::Pixel1Image> m_codePage{};
-	uint16_t m_characterWidthPixels{ 0 };
-	uint16_t m_characterHeightPixels{ 0 };
+	static void ApplyFullSerialization(Asset::AssetManager& assetManager,
+		ProfilerRootComponent& component,
+		const uint8_t*& bytes,
+		const uint8_t* bytesEnd);
+
+public:
+	explicit ProfilerRootComponent(const ECS::ComponentID id)
+		: Component(id)
+	{}
+
+	Condui::FontInfo m_fontInfo;
+	Image::ColourARGB m_backgroundColour{ Image::ColoursARBG::k_cyan };
 
 	float m_width{ 1.0f };
 	float m_height{ 1.0f };
 	float m_textHeight{ 1.0f };
-
-	Image::ColourARGB m_textColour{ Image::ColoursARBG::k_black };
-	Image::ColourARGB m_backgroundColour{ Image::ColoursARBG::k_cyan };
 };
 }

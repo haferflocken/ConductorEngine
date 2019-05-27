@@ -65,6 +65,7 @@ uint64_t g_nextProfilerRegistryID = 0;
 std::mutex g_profilerRegistryMutex;
 
 std::thread g_profilerThread;
+uint64_t g_profilerTimeEpoch = UINT64_MAX;
 bool g_shouldRunProfilerThread = false;
 
 // Transform the thread-local event queues into frame records.
@@ -164,6 +165,7 @@ FrameRecordMap::FrameRecordMap()
 {
 	m_frameRecordBlocks.Add(Mem::MakeUnique<FrameRecordBlock>());
 	FrameRecordBlock& block = *m_frameRecordBlocks.Back();
+
 	FrameRecord& rootRecord = block.front();
 	rootRecord.m_parentFrameID = 0;
 	rootRecord.m_beginPoint = 0;
@@ -212,6 +214,7 @@ void FrameRecordMap::PopFrame(uint64_t frameID, uint64_t endPoint)
 	AMP_ASSERT(frameID == m_currentFrameID, "");
 	FrameRecord& frameRecord = GetFrameRecord(frameID);
 	frameRecord.m_durationNanoseconds = endPoint - frameRecord.m_beginPoint;
+	frameRecord.m_beginPoint -= Internal_Profiler::g_profilerTimeEpoch;
 
 	m_currentFrameID = frameRecord.m_parentFrameID;
 	--m_currentDepth;
@@ -236,6 +239,9 @@ FrameRecordMap::FrameRecord& FrameRecordMap::CreateFrameRecord()
 ScopedProfilerThread::ScopedProfilerThread()
 {
 	using namespace Internal_Profiler;
+	const std::chrono::nanoseconds time = std::chrono::steady_clock::now().time_since_epoch();
+
+	g_profilerTimeEpoch = time.count();
 	g_shouldRunProfilerThread = true;
 	g_profilerThread = std::thread(&ProfilerThreadFunction);
 }

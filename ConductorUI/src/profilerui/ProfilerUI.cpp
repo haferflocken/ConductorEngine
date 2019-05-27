@@ -6,16 +6,14 @@
 #include <scene/SceneTransformComponent.h>
 
 ECS::Entity& ProfilerUI::CreateProfilerEntity(ECS::EntityManager& entityManager,
-	const float width, const float height, const float textHeight, const Condui::FontInfo* font)
+	const float width, const float height, const float textHeight, const Condui::FontInfo& font)
 {
 	const auto componentTypes = { Scene::SceneTransformComponent::k_type, ProfilerRootComponent::k_type };
 	ECS::Entity& profilerRootEntity = entityManager.CreateEntityWithComponents(
 		{ componentTypes.begin(), componentTypes.size() }, ECS::EntityFlags::None, ECS::EntityLayers::k_conduiLayer);
 
 	auto& profilerRootComponent = *entityManager.FindComponent<ProfilerRootComponent>(profilerRootEntity);
-	profilerRootComponent.m_codePage = font->m_codePage;
-	profilerRootComponent.m_characterWidthPixels = font->m_characterWidthPixels;
-	profilerRootComponent.m_characterHeightPixels = font->m_characterHeightPixels;
+	profilerRootComponent.m_fontInfo = font;
 
 	profilerRootComponent.m_width = width;
 	profilerRootComponent.m_height = height;

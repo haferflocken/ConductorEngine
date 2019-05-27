@@ -13,6 +13,7 @@ void ProfilerRootSystem::Update(
 	const Collection::ArrayView<ECSGroupType>& ecsGroups,
 	Collection::Vector<std::function<void(ECS::EntityManager&)>>& deferredFunctions) const
 {
+#if AMP_PROFILING_ENABLED == 1
 	// There's no need to defer a function if the function will do nothing.
 	if (ecsGroups.Size() > 0)
 	{
@@ -20,14 +21,17 @@ void ProfilerRootSystem::Update(
 		deferredFunctions.Add(
 			[this, ecsGroups](ECS::EntityManager& entityManager) { DeferredUpdate(entityManager, ecsGroups); });
 	}
+#endif
 }
 
 void ProfilerRootSystem::DeferredUpdate(
 	ECS::EntityManager& entityManager,
 	const Collection::ArrayView<ECSGroupType>& ecsGroups) const
 {
+#if AMP_PROFILING_ENABLED == 1
 	// This system only operates on the first entity it matches.
 	auto& entity = ecsGroups[0].Get<ECS::Entity>();
+	const auto& profilerRootComponent = ecsGroups[0].Get<const ProfilerRootComponent>();
 	
 	Collection::Vector<uint64_t> existingThreadIDs(static_cast<uint32_t>(entity.GetChildren().Size()));
 	for (auto& child : entity.GetChildren())
@@ -59,6 +63,9 @@ void ProfilerRootSystem::DeferredUpdate(
 
 			auto& childComponent = *entityManager.FindComponent<ProfilerThreadComponent>(childEntity);
 			childComponent.m_profilerThreadID = profilerThreadID;
+			childComponent.m_fontInfo = profilerRootComponent.m_fontInfo;
+			childComponent.m_textHeight = profilerRootComponent.m_textHeight;
 		});
+#endif
 }
 }

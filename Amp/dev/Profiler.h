@@ -26,6 +26,7 @@ class FrameRecordMap;
 uint64_t PushFrame(const char* const name, const uint64_t beginNanoseconds);
 // Pop the current frame and restore the previous one.
 void PopFrame(const uint64_t endNanoseconds, const uint64_t previousFrameID);
+
 // Iterate over the frame record maps. fn is called with (profiler thread ID, frame record map).
 // This is the only mechanism to access profiling data.
 void ForEachFrameRecordMap(const std::function<void(uint64_t, const FrameRecordMap&)>& fn);

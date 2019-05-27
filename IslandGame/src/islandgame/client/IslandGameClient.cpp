@@ -15,6 +15,7 @@
 #include <mesh/MeshComponent.h>
 #include <mesh/SkeletonMatrixCollectionSystem.h>
 #include <mesh/SkeletonSystem.h>
+#include <profilerui/ProfilerUI.h>
 #include <renderer/CameraComponent.h>
 #include <scene/AnchorComponent.h>
 #include <scene/RelativeTransformSystem.h>
@@ -110,6 +111,14 @@ void IslandGame::Client::IslandGameClient::Update(const Unit::Time::Millisecond 
 		auto& networkCompressionViewTransformComponent =
 			*m_entityManager.FindComponent<Scene::SceneTransformComponent>(networkCompressionViewEntity);
 		networkCompressionViewTransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, 0.25f, 0.5f);
+
+		// Create a profiler UI and attach it to the camera.
+		ECS::Entity& profilerUIEntity = ProfilerUI::CreateProfilerEntity(m_entityManager, 0.5f, 0.5f, 0.025f, fontInfo);
+		m_entityManager.SetParentEntity(profilerUIEntity, &cameraEntity);
+
+		auto& profilerUITransformComponent =
+			*m_entityManager.FindComponent<Scene::SceneTransformComponent>(profilerUIEntity);
+		profilerUITransformComponent.m_childToParentMatrix.SetTranslation(-0.25f, 0.25f, 0.5f);
 
 		// Create an inspector and attach it to the camera.
 		/*Condui::ConduiElement inspectorElement = Condui::MakeEntityInspector(
