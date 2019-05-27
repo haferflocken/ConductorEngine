@@ -10,8 +10,6 @@ TODO:
 	[ ] Style sheets
 	[ ] Improve text rendering using textured quads
 
-[ ] Instrumented profiler
-
 [ ] ECS Improvements
 	[ ] Entities should be updated in hierarchy order
 	[x] Correctly transmit and handle changes in the components on an entity
