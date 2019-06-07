@@ -142,7 +142,7 @@ int main(const int argc, const char* argv[])
 	}
 	else
 	{
-		std::cerr << "Missing application mode parameter: -client hostName or -host" << std::endl;
+		std::cerr << "Missing application mode parameter: -client hostName or -host hostPort" << std::endl;
 		return static_cast<int>(Conductor::ApplicationErrorCode::MissingApplicationMode);
 	}
 

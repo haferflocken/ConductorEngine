@@ -1,6 +1,8 @@
 #include <host/HostNetworkWorld.h>
 
 #include <client/ConnectedHost.h>
+#include <mem/DeserializeLittleEndian.h>
+#include <mem/SerializeLittleEndian.h>
 
 Host::HostNetworkWorld::HostNetworkWorld(const char* listenerPort)
 	: m_listenerSocket(Network::CreateAndBindListenerSocket(listenerPort))
@@ -91,7 +93,32 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 			const Client::ClientID clientID = entry.first;
 			Mem::UniquePtr<NetworkConnectedClient>& networkConnectedClient = entry.second;
 
-			// TODO(network) Receive any pending data from the client.
+			// Receive any pending data from the client.
+			if (clientID != k_localClientID)
+			{
+				uint8_t inboundBuffer[4096];
+				Collection::ArrayView<uint8_t> inboundBufferView{ inboundBuffer, sizeof(inboundBuffer) };
+				
+				size_t numBytesReceived = networkConnectedClient->m_clientSocket.Receive(inboundBufferView);
+				while (numBytesReceived != 0)
+				{
+					Client::MessageToHost messageFromClient;
+					if (TryReceiveMessageFromClient(
+						{ inboundBuffer, numBytesReceived },
+						clientID,
+						*networkConnectedClient,
+						messageFromClient))
+					{
+						// TODO(network) should there be separate queues for each client?
+						if (!m_clientToHostMessageQueue.TryPush(std::move(messageFromClient)))
+						{
+							// TODO(network)
+							break;
+						}
+					}
+					numBytesReceived = networkConnectedClient->m_clientSocket.Receive(inboundBufferView);
+				}
+			}
 
 			// TODO(network) Process client to host messages, including disconnection messages.
 			
@@ -106,7 +133,11 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 					disconnectedClientIDs.Add(clientID);
 				}
 
-				// TODO(network) transmit the message over the network
+				// Messages to the local client are exchanged via shared thread-safe queue and don't use a socket.
+				if (clientID != k_localClientID)
+				{
+					TransmitMessageToClient(messageToClient, *networkConnectedClient);
+				}
 			}
 		}
 
@@ -118,4 +149,103 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 
 		std::this_thread::yield();
 	}
+}
+
+bool Host::HostNetworkWorld::TryReceiveMessageFromClient(
+	const Collection::ArrayView<const uint8_t>& bytes,
+	const Client::ClientID expectedClientID,
+	NetworkConnectedClient& networkConnectedClient,
+	Client::MessageToHost& outMessage) const
+{
+	const uint8_t* bytesIter = bytes.begin();
+	const uint8_t* const bytesEnd = bytes.end();
+
+	const auto maybeClientID = Mem::LittleEndian::DeserializeUi16(bytesIter, bytesEnd);
+	const auto maybeTag = Mem::LittleEndian::DeserializeUi16(bytesIter, bytesEnd);
+	if (maybeClientID.second == false || maybeTag.second == false)
+	{
+		return false;
+	}
+	const Client::ClientID clientID{ maybeClientID.first };
+	const uint16_t tag = maybeTag.first;
+
+	if (clientID != expectedClientID)
+	{
+		AMP_LOG_WARNING("Received a message with client ID [%u] on socket for client [%u]",
+			clientID.GetN(), expectedClientID.GetN());
+		return false;
+	}
+
+	switch (tag)
+	{
+	case 0: // MessageToHost_Connect
+	{
+		// Construct a MessageToHost_Connect with a pointer to the message queue for the client.
+		// This is part of the abstraction that makes HostNetworkWorld optional.
+		outMessage = Client::MessageToHost::Make<Client::MessageToHost_Connect>(clientID);
+		auto& payload = outMessage.Get<0>();
+		payload.m_hostToClientMessages = &networkConnectedClient.m_hostToClientMessageQueue;
+		return true;
+	}
+	case 1: // MessageToHost_Disconnect
+	{
+		return true;
+	}
+	case 2: // MessageToHost_FrameAcknowledgement
+	{
+		const auto maybeFrameIndex = Mem::LittleEndian::DeserializeUi64(bytesIter, bytesEnd);
+		if (maybeFrameIndex.second == false)
+		{
+			return false;
+		}
+
+		outMessage = Client::MessageToHost::Make<Client::MessageToHost_FrameAcknowledgement>(clientID);
+		auto& payload = outMessage.Get<2>();
+		payload.m_frameIndex = maybeFrameIndex.first;
+		return true;
+	}
+	case 3: // MessageToHost_InputStates
+	{
+		const auto maybeNumBytes = Mem::LittleEndian::DeserializeUi32(bytesIter, bytesEnd);
+		if (maybeNumBytes.second == false || (bytesIter + maybeNumBytes.first) > bytesEnd)
+		{
+			return false;
+		}
+		const uint32_t numBytes = maybeNumBytes.first;
+
+		outMessage = Client::MessageToHost::Make<Client::MessageToHost_InputStates>(clientID);
+		auto& payload = outMessage.Get<3>();
+		payload.m_bytes.Resize(numBytes);
+		memcpy(payload.m_bytes.begin(), bytesIter, numBytes);
+		bytesIter += numBytes;
+		return true;
+	}
+	default:
+	{
+		AMP_LOG_WARNING("Received message from client [%u] with unknown tag [%u].", clientID.GetN(), tag);
+		return false;
+	}
+	}
+}
+
+void Host::HostNetworkWorld::TransmitMessageToClient(
+	const Host::MessageToClient& message, NetworkConnectedClient& networkConnectedClient)
+{
+	Collection::Vector<uint8_t> transmissionBuffer(4096);
+
+	const uint64_t sequenceNumber = networkConnectedClient.m_nextSequenceNumber++;
+	Mem::LittleEndian::Serialize(sequenceNumber, transmissionBuffer);
+
+	const uint16_t tag = static_cast<uint16_t>(message.GetTag());
+	Mem::LittleEndian::Serialize(tag, transmissionBuffer);
+
+	message.Match(
+		[](const NotifyOfHostDisconnected_MessageToClient&) {},
+		[&](const ECSUpdate_MessageToClient& payload)
+		{
+			Mem::LittleEndian::Serialize(static_cast<uint32_t>(payload.m_bytes.Size()), transmissionBuffer);
+			transmissionBuffer.AddAll(payload.m_bytes.GetConstView());
+		});
+
+	networkConnectedClient.m_clientSocket.Send(transmissionBuffer.GetConstView());
 }

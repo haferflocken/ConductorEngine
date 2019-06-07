@@ -32,6 +32,11 @@ public:
 private:
 	void NetworkThreadFunction();
 
+	bool TryReceiveMessageFromHost(
+		const Collection::ArrayView<const uint8_t>& bytes, Host::MessageToClient& outMessage) const;
+	void TransmitMessageToHost(const Client::MessageToHost& message);
+
+private:
 	Network::Socket m_socket;
 
 	ClientID m_clientID{};

@@ -43,10 +43,21 @@ private:
 	{
 		Collection::LocklessQueue<Host::MessageToClient> m_hostToClientMessageQueue{ k_outboundMessageCapacityPerClient };
 		Network::Socket m_clientSocket{};
+		uint64_t m_nextSequenceNumber{ 0 };
 	};
 
 	void NetworkThreadFunction();
 
+	bool TryReceiveMessageFromClient(
+		const Collection::ArrayView<const uint8_t>& bytes,
+		const Client::ClientID expectedClientID,
+		NetworkConnectedClient& networkConnectedClient,
+		Client::MessageToHost& outMessage) const;
+	void TransmitMessageToClient(
+		const Host::MessageToClient& message,
+		NetworkConnectedClient& networkConnectedClient);
+
+private:
 	Network::Socket m_listenerSocket;
 
 	Collection::LocklessQueue<std::string> m_consoleMessageQueue{ k_consoleMessageCapacity };

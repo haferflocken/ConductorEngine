@@ -107,6 +107,8 @@ struct InputMessage final : public Collection::Variant<
 {
 	using Variant::Variant;
 
+	InputMessage() = default;
+
 	InputMessage(Variant&& v)
 		: Variant(std::move(v))
 	{}

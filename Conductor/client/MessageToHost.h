@@ -10,6 +10,7 @@ namespace Client
 {
 struct MessageToHost_Connect final
 {
+	// m_hostToClientMessages is not actually transmitted, but it is used in host code to link HostWorld and HostNetworkWorld.
 	Collection::LocklessQueue<Host::MessageToClient>* m_hostToClientMessages{ nullptr };
 };
 
@@ -38,6 +39,8 @@ struct MessageToHost final : public Collection::Variant<
 	}
 
 	using Variant::Variant;
+
+	MessageToHost() = default;
 	
 	MessageToHost(const Client::ClientID clientID, Variant&& v)
 		: Variant(std::move(v))

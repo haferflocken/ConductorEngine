@@ -27,8 +27,29 @@ void Network::ShutdownSocketAPI()
 
 struct Network::Socket::SocketImpl
 {
+	SocketImpl() = default;
+
+	explicit SocketImpl(SOCKET platformSocket)
+		: m_platformSocket(platformSocket)
+		, m_maxMessageBytes(0)
+	{
+		DWORD maxMessageSize;
+		int sizeOfMaxMessageSize = sizeof(maxMessageSize);
+		const int errorCode = getsockopt(
+			m_platformSocket,
+			SOL_SOCKET,
+			SO_MAX_MSG_SIZE,
+			reinterpret_cast<char*>(&maxMessageSize),
+			&sizeOfMaxMessageSize);
+		if (errorCode != SOCKET_ERROR)
+		{
+			m_maxMessageBytes = static_cast<size_t>(maxMessageSize);
+		}
+	}
+
 	// Winsock socket.
 	SOCKET m_platformSocket{ INVALID_SOCKET };
+	size_t m_maxMessageBytes{ 0 };
 };
 
 Network::Socket::Socket()
@@ -68,7 +89,7 @@ bool Network::Socket::TryListen()
 	{
 		AMP_LOG_ERROR("listen() failed with error code [%d].", WSAGetLastError());
 		closesocket(m_impl->m_platformSocket);
-		m_impl->m_platformSocket = INVALID_SOCKET; 
+		*m_impl = SocketImpl(); 
 		return false;
 	}
 	return true;
@@ -86,7 +107,7 @@ Network::Socket Network::Socket::Accept()
 	
 	// Return the platform specific socket wrapped in a platform agnostic way.
 	Socket outSocket;
-	outSocket.GetImpl().m_platformSocket = clientSocket;
+	(*outSocket.m_impl) = SocketImpl(clientSocket);
 	return outSocket;
 }
 
@@ -122,7 +143,48 @@ size_t Network::Socket::AcceptPendingConnections(Socket* outSockets, const size_
 void Network::Socket::Close()
 {
 	closesocket(m_impl->m_platformSocket);
-	m_impl->m_platformSocket = INVALID_SOCKET;
+	*m_impl = SocketImpl();
+}
+
+void Network::Socket::Send(const Collection::ArrayView<const uint8_t>& bytes)
+{
+	if (bytes.Size() > m_impl->m_maxMessageBytes)
+	{
+		AMP_LOG_ERROR("Can't send message of size [%zu] because it exceeds maximum size [%zu].",
+			bytes.Size(), m_impl->m_maxMessageBytes);
+		return;
+	}
+
+	const int numBytesSent = send(
+		m_impl->m_platformSocket,
+		reinterpret_cast<const char*>(bytes.begin()),
+		static_cast<int>(bytes.Size()),
+		0);
+	if (numBytesSent == SOCKET_ERROR)
+	{
+		AMP_LOG_ERROR("send() failed with error code [%d].", WSAGetLastError());
+		return;
+	}
+	if (numBytesSent != bytes.Size())
+	{
+		AMP_LOG_ERROR("Socket::Send() didn't send all the bytes it was given!");
+		return;
+	}
+}
+
+size_t Network::Socket::Receive(Collection::ArrayView<uint8_t>& outBytes)
+{
+	const int numBytesReceived = recv(
+		m_impl->m_platformSocket,
+		reinterpret_cast<char*>(outBytes.begin()),
+		static_cast<int>(outBytes.Size()),
+		0);
+	if (numBytesReceived == SOCKET_ERROR)
+	{
+		AMP_LOG_ERROR("recv() failed with error code [%d].", WSAGetLastError());
+		return 0;
+	}
+	return static_cast<size_t>(numBytesReceived);
 }
 
 Network::Socket Network::CreateAndBindListenerSocket(const char* port)
@@ -166,7 +228,7 @@ Network::Socket Network::CreateAndBindListenerSocket(const char* port)
 
 	// Return the platform specific socket wrapped in a platform agnostic way.
 	Socket outSocket;
-	outSocket.GetImpl().m_platformSocket = listenerSocket;
+	outSocket.GetImpl() = Socket::SocketImpl(listenerSocket);
 	return outSocket;
 }
 
@@ -213,6 +275,6 @@ Network::Socket Network::CreateConnectedSocket(const char* hostName, const char*
 	
 	// Return the platform specific socket wrapped in a platform agnostic way.
 	Socket outSocket;
-	outSocket.GetImpl().m_platformSocket = connectSocket;
+	outSocket.GetImpl() = Socket::SocketImpl(connectSocket);
 	return outSocket;
 }

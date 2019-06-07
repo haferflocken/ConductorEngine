@@ -52,6 +52,9 @@ TODO:
 	[ ] Save/load default input mapping and user input mapping
 	[ ] Mouse wheel input
 
+[ ] Networking
+	[ ] Socket needs to be able to send and receive data.
+
 [ ] Meshes
 	[x] Load static meshes
 	[ ] Implement the following mesh format
