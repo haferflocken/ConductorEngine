@@ -174,6 +174,25 @@ void Network::Socket::Send(const Collection::ArrayView<const uint8_t>& bytes)
 
 size_t Network::Socket::Receive(Collection::ArrayView<uint8_t>& outBytes)
 {
+	fd_set toRead;
+	toRead.fd_count = 1;
+	toRead.fd_array[0] = m_impl->m_platformSocket;
+
+	TIMEVAL timeOut;
+	timeOut.tv_sec = 0;
+	timeOut.tv_usec = 100;
+
+	const int selectResult = select(0, &toRead, nullptr, nullptr, &timeOut);
+	if (selectResult == 0)
+	{
+		return 0;
+	}
+	if (selectResult == SOCKET_ERROR)
+	{
+		AMP_LOG_ERROR("select() failed with error code [%d].", WSAGetLastError());
+		return 0;
+	}
+
 	const int numBytesReceived = recv(
 		m_impl->m_platformSocket,
 		reinterpret_cast<char*>(outBytes.begin()),

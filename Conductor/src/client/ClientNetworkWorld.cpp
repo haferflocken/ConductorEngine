@@ -8,11 +8,37 @@ Client::ClientNetworkWorld::ClientNetworkWorld(const char* hostName, const char*
 {
 	if (m_socket.IsValid())
 	{
-		// TODO(network) Get the client ID from the host.
+		// Get the client ID from the host.
+		uint8_t inboundBuffer[4096];
+		Collection::ArrayView<uint8_t> inboundBufferView{ inboundBuffer, sizeof(inboundBuffer) };
 
-		// Start the network thread after getting the client ID because
-		// the network thread runs until the client ID is invalid.
-		m_networkThread = std::thread(&ClientNetworkWorld::NetworkThreadFunction, this);
+		size_t numBytesReceived = m_socket.Receive(inboundBufferView);
+		while (true)
+		{
+			Host::MessageToClient messageFromHost;
+			if (TryReceiveMessageFromHost({ inboundBuffer, numBytesReceived }, messageFromHost))
+			{
+				if (messageFromHost.Is<Host::NotifyOfHostConnected_MessageToClient>())
+				{
+					m_clientID = messageFromHost.Get<Host::NotifyOfHostConnected_MessageToClient>().m_clientID;
+					break;
+				}
+				// It's possible for messages to arrive out of order, so keep any other messages we encounter.
+				else if (!m_hostToClientMessages.TryPush(std::move(messageFromHost)))
+				{
+					// If we fill the entire inbound message queue without receiving our client ID, we almost certainly
+					// aren't going to get one.
+					break;
+				}
+			}
+			numBytesReceived = m_socket.Receive(inboundBufferView);
+		}
+
+		// Start the network thread only if we receive the client ID because it runs until the client ID is invalid.
+		if (m_clientID.IsValid())
+		{
+			m_networkThread = std::thread(&ClientNetworkWorld::NetworkThreadFunction, this);
+		}
 	}
 }
 
@@ -85,12 +111,25 @@ bool Client::ClientNetworkWorld::TryReceiveMessageFromHost(
 
 	switch (tag)
 	{
-	case 0: // NotifyOfHostDisconnected_MessageToClient
+	case 0: // NotifyOfHostConnected_MessageToClient
+	{
+		const auto maybeClientID = Mem::LittleEndian::DeserializeUi16(bytesIter, bytesEnd);
+		if (maybeClientID.second == false)
+		{
+			return false;
+		}
+
+		outMessage = Host::MessageToClient::Make<Host::NotifyOfHostConnected_MessageToClient>();
+		Host::NotifyOfHostConnected_MessageToClient& payload = outMessage.Get<0>();
+		payload.m_clientID = ClientID(maybeClientID.first);
+		return true;
+	}
+	case 1: // NotifyOfHostDisconnected_MessageToClient
 	{
 		outMessage = Host::MessageToClient::Make<Host::NotifyOfHostDisconnected_MessageToClient>();
 		return true;
 	}
-	case 1: // ECSUpdate_MessageToClient
+	case 2: // ECSUpdate_MessageToClient
 	{
 		const auto maybeNumBytes = Mem::LittleEndian::DeserializeUi32(bytesIter, bytesEnd);
 		if (maybeNumBytes.second == false || (bytesIter + maybeNumBytes.first) > bytesEnd)
@@ -100,7 +139,7 @@ bool Client::ClientNetworkWorld::TryReceiveMessageFromHost(
 		const uint32_t numBytes = maybeNumBytes.first;
 
 		outMessage = Host::MessageToClient::Make<Host::ECSUpdate_MessageToClient>();
-		auto& payload = outMessage.Get<1>();
+		Host::ECSUpdate_MessageToClient& payload = outMessage.Get<2>();
 		payload.m_bytes.Resize(numBytes);
 		memcpy(payload.m_bytes.begin(), bytesIter, numBytes);
 		bytesIter += numBytes;

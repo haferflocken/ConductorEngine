@@ -84,6 +84,11 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 			Mem::UniquePtr<NetworkConnectedClient>& networkConnectedClient = m_networkConnectedClients[clientID];
 			networkConnectedClient = Mem::MakeUnique<NetworkConnectedClient>();
 			networkConnectedClient->m_clientSocket = std::move(newClientSockets[i]);
+
+			auto& message = Host::MessageToClient::Make<NotifyOfHostConnected_MessageToClient>();
+			auto& payload = message.Get<NotifyOfHostConnected_MessageToClient>();
+			payload.m_clientID = clientID;
+			networkConnectedClient->m_hostToClientMessageQueue.TryPush(std::move(message));
 		}
 
 		// Process the network connected clients.
@@ -183,7 +188,7 @@ bool Host::HostNetworkWorld::TryReceiveMessageFromClient(
 		// Construct a MessageToHost_Connect with a pointer to the message queue for the client.
 		// This is part of the abstraction that makes HostNetworkWorld optional.
 		outMessage = Client::MessageToHost::Make<Client::MessageToHost_Connect>(clientID);
-		auto& payload = outMessage.Get<0>();
+		Client::MessageToHost_Connect& payload = outMessage.Get<0>();
 		payload.m_hostToClientMessages = &networkConnectedClient.m_hostToClientMessageQueue;
 		return true;
 	}
@@ -200,7 +205,7 @@ bool Host::HostNetworkWorld::TryReceiveMessageFromClient(
 		}
 
 		outMessage = Client::MessageToHost::Make<Client::MessageToHost_FrameAcknowledgement>(clientID);
-		auto& payload = outMessage.Get<2>();
+		Client::MessageToHost_FrameAcknowledgement& payload = outMessage.Get<2>();
 		payload.m_frameIndex = maybeFrameIndex.first;
 		return true;
 	}
@@ -214,7 +219,7 @@ bool Host::HostNetworkWorld::TryReceiveMessageFromClient(
 		const uint32_t numBytes = maybeNumBytes.first;
 
 		outMessage = Client::MessageToHost::Make<Client::MessageToHost_InputStates>(clientID);
-		auto& payload = outMessage.Get<3>();
+		Client::MessageToHost_InputStates& payload = outMessage.Get<3>();
 		payload.m_bytes.Resize(numBytes);
 		memcpy(payload.m_bytes.begin(), bytesIter, numBytes);
 		bytesIter += numBytes;
@@ -240,6 +245,10 @@ void Host::HostNetworkWorld::TransmitMessageToClient(
 	Mem::LittleEndian::Serialize(tag, transmissionBuffer);
 
 	message.Match(
+		[&](const NotifyOfHostConnected_MessageToClient& payload)
+		{
+			Mem::LittleEndian::Serialize(payload.m_clientID.GetN(), transmissionBuffer);
+		},
 		[](const NotifyOfHostDisconnected_MessageToClient&) {},
 		[&](const ECSUpdate_MessageToClient& payload)
 		{

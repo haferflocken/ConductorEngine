@@ -39,6 +39,7 @@ void Client::ClientWorld::RequestShutdown()
 void Client::ClientWorld::NotifyOfHostConnected(Mem::UniquePtr<ConnectedHost>&& connectedHost)
 {
 	AMP_FATAL_ASSERT(m_connectedHost == nullptr, "TODO disconnect");
+	AMP_FATAL_ASSERT(connectedHost->GetClientID().IsValid(), "Can't be connected to a host with an invalid ClientID!");
 	m_connectedHost = std::move(connectedHost);
 
 	m_clientThread = std::thread(&ClientWorld::ClientThreadFunction, this);
@@ -100,6 +101,10 @@ void Client::ClientWorld::ClientThreadFunction()
 void Client::ClientWorld::ProcessMessageFromHost(Host::MessageToClient& message)
 {
 	message.Match(
+		[](Host::NotifyOfHostConnected_MessageToClient& hostConnectedPayload)
+		{
+			// TODO(network)
+		},
 		[this](Host::NotifyOfHostDisconnected_MessageToClient& hostDisconnectedPayload)
 		{
 			NotifyOfHostDisconnected();
