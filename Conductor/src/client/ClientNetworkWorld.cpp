@@ -13,7 +13,7 @@ Client::ClientNetworkWorld::ClientNetworkWorld(const char* hostName, const char*
 		Collection::ArrayView<uint8_t> inboundBufferView{ inboundBuffer, sizeof(inboundBuffer) };
 
 		size_t numBytesReceived = m_socket.Receive(inboundBufferView);
-		while (true)
+		while (m_socket.IsValid())
 		{
 			Host::MessageToClient messageFromHost;
 			if (TryReceiveMessageFromHost({ inboundBuffer, numBytesReceived }, messageFromHost))
@@ -58,11 +58,11 @@ void Client::ClientNetworkWorld::NetworkThreadFunction()
 	while (m_clientID.IsValid())
 	{
 		// Receive any pending data from the host.
-		uint8_t inboundBuffer[4096];
+		uint8_t inboundBuffer[UINT16_MAX];
 		Collection::ArrayView<uint8_t> inboundBufferView{ inboundBuffer, sizeof(inboundBuffer) };
 
 		size_t numBytesReceived = m_socket.Receive(inboundBufferView);
-		while (numBytesReceived != 0)
+		while (m_socket.IsValid() && numBytesReceived != 0)
 		{
 			Host::MessageToClient messageFromHost;
 			if (TryReceiveMessageFromHost({ inboundBuffer, numBytesReceived }, messageFromHost))
@@ -78,7 +78,7 @@ void Client::ClientNetworkWorld::NetworkThreadFunction()
 
 		// Transmit client messages to the host.
 		Client::MessageToHost messageToHost;
-		while (m_clientToHostMessages.TryPop(messageToHost))
+		while (m_socket.IsValid() && m_clientToHostMessages.TryPop(messageToHost))
 		{
 			if (messageToHost.Is<Client::MessageToHost_Disconnect>())
 			{
@@ -86,6 +86,14 @@ void Client::ClientNetworkWorld::NetworkThreadFunction()
 			}
 
 			TransmitMessageToHost(messageToHost);
+		}
+
+		// If the socket is no longer valid, we are no longer a client.
+		if (!m_socket.IsValid())
+		{
+			m_hostToClientMessages.TryPush(
+				Host::MessageToClient::Make<Host::NotifyOfHostDisconnected_MessageToClient>());
+			break;
 		}
 
 		std::this_thread::yield();
@@ -96,6 +104,8 @@ bool Client::ClientNetworkWorld::TryReceiveMessageFromHost(
 	const Collection::ArrayView<const uint8_t>& bytes,
 	Host::MessageToClient& outMessage) const
 {
+	AMP_LOG("Received [%zu] bytes from host.", bytes.Size());
+
 	const uint8_t* bytesIter = bytes.begin();
 	const uint8_t* const bytesEnd = bytes.end();
 
@@ -175,5 +185,6 @@ void Client::ClientNetworkWorld::TransmitMessageToHost(const Client::MessageToHo
 			transmissionBuffer.AddAll(payload.m_bytes.GetConstView());
 		});
 
+	AMP_LOG("Sending [%u] bytes to host.", transmissionBuffer.Size());
 	m_socket.Send(transmissionBuffer.GetConstView());
 }

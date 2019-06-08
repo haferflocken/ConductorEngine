@@ -105,7 +105,7 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 				Collection::ArrayView<uint8_t> inboundBufferView{ inboundBuffer, sizeof(inboundBuffer) };
 				
 				size_t numBytesReceived = networkConnectedClient->m_clientSocket.Receive(inboundBufferView);
-				while (numBytesReceived != 0)
+				while (networkConnectedClient->m_clientSocket.IsValid() && numBytesReceived != 0)
 				{
 					Client::MessageToHost messageFromClient;
 					if (TryReceiveMessageFromClient(
@@ -122,6 +122,13 @@ void Host::HostNetworkWorld::NetworkThreadFunction()
 						}
 					}
 					numBytesReceived = networkConnectedClient->m_clientSocket.Receive(inboundBufferView);
+				}
+
+				// If the socket is no longer valid, this client is no longer valid.
+				if (!networkConnectedClient->m_clientSocket.IsValid())
+				{
+					disconnectedClientIDs.Add(clientID);
+					continue;
 				}
 			}
 
@@ -162,6 +169,8 @@ bool Host::HostNetworkWorld::TryReceiveMessageFromClient(
 	NetworkConnectedClient& networkConnectedClient,
 	Client::MessageToHost& outMessage) const
 {
+	AMP_LOG("Received [%zu] bytes from client.", bytes.Size());
+
 	const uint8_t* bytesIter = bytes.begin();
 	const uint8_t* const bytesEnd = bytes.end();
 
@@ -256,5 +265,6 @@ void Host::HostNetworkWorld::TransmitMessageToClient(
 			transmissionBuffer.AddAll(payload.m_bytes.GetConstView());
 		});
 
+	AMP_LOG("Sending [%u] bytes to client.", transmissionBuffer.Size());
 	networkConnectedClient.m_clientSocket.Send(transmissionBuffer.GetConstView());
 }

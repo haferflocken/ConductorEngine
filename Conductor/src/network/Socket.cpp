@@ -7,6 +7,51 @@
 #include <ws2tcpip.h>
 #pragma comment (lib, "Ws2_32.lib")
 
+namespace Internal_Socket
+{
+void LogWinsockError(const char* message, int errorCode)
+{
+#define LOGSOCKERR(ERRSTR) AMP_LOG("%s%s", message, ERRSTR); break
+	switch (errorCode)
+	{
+	case WSA_INVALID_HANDLE:	LOGSOCKERR("WSA_INVALID_HANDLE");
+	case WSA_NOT_ENOUGH_MEMORY:	LOGSOCKERR("WSA_NOT_ENOUGH_MEMORY");
+	case WSA_INVALID_PARAMETER:	LOGSOCKERR("WSA_INVALID_PARAMETER");
+	case WSA_OPERATION_ABORTED:	LOGSOCKERR("WSA_OPERATION_ABORTED");
+	case WSA_IO_INCOMPLETE:		LOGSOCKERR("WSA_IO_INCOMPLETE");
+	case WSA_IO_PENDING:		LOGSOCKERR("WSA_IO_PENDING");
+	case WSAEINTR:				LOGSOCKERR("WSAEINTR");
+	case WSAEBADF:				LOGSOCKERR("WSAEBADF");
+	case WSAEACCES:				LOGSOCKERR("WSAEACCES");
+	case WSAEFAULT:				LOGSOCKERR("WSAEFAULT");
+	case WSAEINVAL:				LOGSOCKERR("WSAEINVAL");
+	case WSAEMFILE:				LOGSOCKERR("WSAEMFILE");
+	case WSAEWOULDBLOCK:		LOGSOCKERR("WSAEWOULDBLOCK");
+	case WSAEINPROGRESS:		LOGSOCKERR("WSAEINPROGRESS");
+	case WSAEALREADY:			LOGSOCKERR("WSAEALREADY");
+	case WSAENOTSOCK:			LOGSOCKERR("WSAENOTSOCK");
+	case WSAEDESTADDRREQ:		LOGSOCKERR("WSAEDESTADDRREQ");
+	case WSAEMSGSIZE:			LOGSOCKERR("WSAEMSGSIZE");
+	case WSAEPROTOTYPE:			LOGSOCKERR("WSAEPROTOTYPE");
+	case WSAENOPROTOOPT:		LOGSOCKERR("WSAENOPROTOOPT");
+	case WSAEPROTONOSUPPORT:	LOGSOCKERR("WSAEPROTONOSUPPORT");
+	case WSAESOCKTNOSUPPORT:	LOGSOCKERR("WSAESOCKTNOSUPPORT");
+	case WSAEOPNOTSUPP:			LOGSOCKERR("WSAEOPNOTSUPP");
+	case WSAEPFNOSUPPORT:		LOGSOCKERR("WSAEPFNOSUPPORT");
+	case WSAEAFNOSUPPORT:		LOGSOCKERR("WSAEAFNOSUPPORT");
+	case WSAEADDRINUSE:			LOGSOCKERR("WSAEADDRINUSE");
+	case WSAEADDRNOTAVAIL:		LOGSOCKERR("WSAEADDRNOTAVAIL");
+	case WSAENETDOWN:			LOGSOCKERR("WSAENETDOWN");
+	case WSAENETUNREACH:		LOGSOCKERR("WSAENETUNREACH");
+	case WSAENETRESET:			LOGSOCKERR("WSAENETRESET");
+	case WSAECONNABORTED:		LOGSOCKERR("WSAECONNABORTED");
+	case WSAECONNRESET:			LOGSOCKERR("WSAECONNRESET");
+	default:					AMP_LOG("%sEC[%d]", message, errorCode); break;
+	}
+#undef LOGSOCKERR
+}
+}
+
 bool Network::TryInitializeSocketAPI()
 {
 	WSAData wsaData;
@@ -148,6 +193,8 @@ void Network::Socket::Close()
 
 void Network::Socket::Send(const Collection::ArrayView<const uint8_t>& bytes)
 {
+	AMP_FATAL_ASSERT(IsValid(), "Can't send from an invalid socket!");
+
 	if (bytes.Size() > m_impl->m_maxMessageBytes)
 	{
 		AMP_LOG_ERROR("Can't send message of size [%zu] because it exceeds maximum size [%zu].",
@@ -162,7 +209,8 @@ void Network::Socket::Send(const Collection::ArrayView<const uint8_t>& bytes)
 		0);
 	if (numBytesSent == SOCKET_ERROR)
 	{
-		AMP_LOG_ERROR("send() failed with error code [%d].", WSAGetLastError());
+		Internal_Socket::LogWinsockError("send() failed: ", WSAGetLastError());
+		Close();
 		return;
 	}
 	if (numBytesSent != bytes.Size())
@@ -174,6 +222,8 @@ void Network::Socket::Send(const Collection::ArrayView<const uint8_t>& bytes)
 
 size_t Network::Socket::Receive(Collection::ArrayView<uint8_t>& outBytes)
 {
+	AMP_FATAL_ASSERT(IsValid(), "Can't receive on an invalid socket!");
+
 	fd_set toRead;
 	toRead.fd_count = 1;
 	toRead.fd_array[0] = m_impl->m_platformSocket;
@@ -189,7 +239,8 @@ size_t Network::Socket::Receive(Collection::ArrayView<uint8_t>& outBytes)
 	}
 	if (selectResult == SOCKET_ERROR)
 	{
-		AMP_LOG_ERROR("select() failed with error code [%d].", WSAGetLastError());
+		Internal_Socket::LogWinsockError("select() failed: ", WSAGetLastError());
+		Close();
 		return 0;
 	}
 
@@ -200,7 +251,8 @@ size_t Network::Socket::Receive(Collection::ArrayView<uint8_t>& outBytes)
 		0);
 	if (numBytesReceived == SOCKET_ERROR)
 	{
-		AMP_LOG_ERROR("recv() failed with error code [%d].", WSAGetLastError());
+		Internal_Socket::LogWinsockError("recv() failed: ", WSAGetLastError());
+		Close();
 		return 0;
 	}
 	return static_cast<size_t>(numBytesReceived);

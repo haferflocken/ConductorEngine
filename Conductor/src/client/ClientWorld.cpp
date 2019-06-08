@@ -58,6 +58,9 @@ void Client::ClientWorld::ClientThreadFunction()
 	m_renderInstance.RegisterSystems(m_client->GetEntityManager());
 	m_lastUpdatePoint = std::chrono::steady_clock::now();
 
+	// Acknowledge the connection to the host.
+	m_connectedHost->Connect(nullptr);
+
 	while (m_clientThreadStatus == ClientThreadStatus::Running)
 	{
 		// Process pending input from the network.
