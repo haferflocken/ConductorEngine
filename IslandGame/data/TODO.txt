@@ -53,7 +53,8 @@ TODO:
 	[ ] Mouse wheel input
 
 [ ] Networking
-	[ ] Socket needs to be able to send and receive data.
+	[x] Socket needs to be able to send and receive data.
+	[ ] Socket wrapper which breaks up messages into multiple packets and reconstructs them.
 
 [ ] Meshes
 	[x] Load static meshes
