@@ -6,12 +6,9 @@
 #include <conductor/IGameData.h>
 #include <file/Path.h>
 
-namespace Collection { class ProgramParameters; }
-
 namespace Conductor
 {
 ApplicationErrorCode RemoteClientMain(
-	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
 	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,

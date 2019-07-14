@@ -7,7 +7,6 @@
 #include <iostream>
 
 Conductor::ApplicationErrorCode Conductor::HostMain(
-	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
 	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,

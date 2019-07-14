@@ -10,7 +10,6 @@
 #include <network/Socket.h>
 
 Conductor::ApplicationErrorCode Conductor::RemoteClientMain(
-	const Collection::ProgramParameters& params,
 	const File::Path& dataDirectory,
 	const File::Path& userDirectory,
 	Asset::AssetManager& assetManager,

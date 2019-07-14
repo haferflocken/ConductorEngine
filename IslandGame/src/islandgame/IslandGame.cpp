@@ -178,7 +178,7 @@ int Internal_IslandGame::ClientMain(
 	// Otherwise, connect to a remote host.
 	if (strcmp(hostParam.c_str(), "newhost") == 0)
 	{
-		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(params, dataDirectory, userDirectory,
+		const Conductor::ApplicationErrorCode errorCode = Conductor::LocalClientHostMain(dataDirectory, userDirectory,
 			assetManager, MakeRenderInstanceFactory(), MakeGameDataFactory(), &MakeClient, MakeHostFactory());
 		return static_cast<int>(errorCode);
 	}
@@ -194,7 +194,7 @@ int Internal_IslandGame::ClientMain(
 		const char* const hostName = hostParam.c_str();
 		const char* const hostPort = hostName + portStartIndex + 1;
 
-		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(params, dataDirectory, userDirectory,
+		const Conductor::ApplicationErrorCode errorCode = Conductor::RemoteClientMain(dataDirectory, userDirectory,
 			assetManager, hostName, hostPort, MakeRenderInstanceFactory(), MakeGameDataFactory(), &MakeClient);
 		return static_cast<int>(errorCode);
 	}
@@ -216,7 +216,7 @@ int Internal_IslandGame::HostMain(
 	}
 
 	// Run the host.
-	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(params, dataDirectory, userDirectory,
+	const Conductor::ApplicationErrorCode errorCode = Conductor::HostMain(dataDirectory, userDirectory,
 		assetManager, port.c_str(), MakeGameDataFactory(), MakeHostFactory());
 	return static_cast<int>(errorCode);
 }
