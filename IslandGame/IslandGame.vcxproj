@@ -18,10 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="RunClientAndConnectLocal.bat" />
-    <None Include="RunHost.bat" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B10E866F-4BC6-4394-9145-639C15AD0195}</ProjectGuid>
     <RootNamespace>IslandGame</RootNamespace>
