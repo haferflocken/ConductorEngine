@@ -11,12 +11,12 @@
 
 namespace Client { struct MessageToHost; }
 namespace Collection { template <typename T> class LocklessQueue; }
-namespace Conductor { class IGameData; }
+namespace Conductor { class GameData; }
 
 namespace Host
 {
 class ConnectedClient;
-class IHost;
+class HostInstance;
 
 /**
  * HostWorld runs a headless game simulation which clients can connect to and interact with.
@@ -24,11 +24,8 @@ class IHost;
 class HostWorld final
 {
 public:
-	using HostFactory = std::function<Mem::UniquePtr<IHost>(const Conductor::IGameData&)>;
-
-	HostWorld(const Conductor::IGameData& gameData,
-		Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
-		HostFactory&& hostFactory);
+	HostWorld(const Conductor::GameData& gameData,
+		Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue);
 
 	HostWorld() = delete;
 	HostWorld(const HostWorld&) = delete;
@@ -61,10 +58,9 @@ private:
 	void NotifyOfInputStateTransmission(const Client::ClientID clientID,
 		const Collection::Vector<uint8_t>& transmissionBytes);
 
-	const Conductor::IGameData& m_gameData;
+	const Conductor::GameData& m_gameData;
 	Collection::LocklessQueue<Client::MessageToHost>& m_networkInputQueue;
-	HostFactory m_hostFactory;
-	Mem::UniquePtr<IHost> m_host{};
+	Mem::UniquePtr<HostInstance> m_host{};
 	std::atomic_flag m_hostLock{};
 
 	std::chrono::steady_clock::time_point m_lastUpdatePoint;

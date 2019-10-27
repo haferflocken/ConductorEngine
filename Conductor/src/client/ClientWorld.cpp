@@ -1,7 +1,8 @@
 #include <client/ClientWorld.h>
 
+#include <conductor/GameData.h>
 #include <client/ConnectedHost.h>
-#include <client/IClient.h>
+#include <client/ClientInstance.h>
 #include <client/IRenderInstance.h>
 #include <input/InputMessage.h>
 
@@ -9,16 +10,12 @@
 #include <dev/Dev.h>
 #include <host/MessageToClient.h>
 
-Client::ClientWorld::ClientWorld(const Conductor::IGameData& gameData,
-	IRenderInstance& renderInstance,
+Client::ClientWorld::ClientWorld(const Conductor::GameData& gameData,
 	Collection::LocklessQueue<Input::InputMessage>& inputMessages,
-	Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue,
-	ClientFactory&& clientFactory)
+	Collection::LocklessQueue<Host::MessageToClient>& networkInputQueue)
 	: m_gameData(gameData)
-	, m_renderInstance(renderInstance)
 	, m_inputMessages(inputMessages)
 	, m_networkInputQueue(networkInputQueue)
-	, m_clientFactory(std::move(clientFactory))
 	, m_lastUpdatePoint()
 {}
 
@@ -53,9 +50,7 @@ void Client::ClientWorld::NotifyOfHostDisconnected()
 void Client::ClientWorld::ClientThreadFunction()
 {
 	m_clientThreadStatus = ClientThreadStatus::Running;
-	m_renderInstance.InitOnClientThread();
-	m_client = m_clientFactory(m_gameData, m_renderInstance.GetSceneViewFrustum(), *m_connectedHost);
-	m_renderInstance.RegisterSystems(m_client->GetEntityManager());
+	m_client = Mem::MakeUnique<ClientInstance>(m_gameData, *m_connectedHost);
 	m_lastUpdatePoint = std::chrono::steady_clock::now();
 
 	// Acknowledge the connection to the host.
@@ -96,7 +91,6 @@ void Client::ClientWorld::ClientThreadFunction()
 	}
 
 	m_client.Reset();
-	m_renderInstance.ShutdownOnClientThread();
 	m_connectedHost.Reset();
 	m_clientThreadStatus = ClientThreadStatus::Stopped;
 }

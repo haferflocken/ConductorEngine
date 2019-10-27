@@ -2,18 +2,17 @@
 
 #include <client/MessageToHost.h>
 #include <collection/LocklessQueue.h>
+#include <conductor/GameData.h>
 #include <dev/Dev.h>
 #include <host/ConnectedClient.h>
-#include <host/IHost.h>
+#include <host/HostInstance.h>
 
 namespace Host
 {
-HostWorld::HostWorld(const Conductor::IGameData& gameData,
-	Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue,
-	HostFactory&& hostFactory)
+HostWorld::HostWorld(const Conductor::GameData& gameData,
+	Collection::LocklessQueue<Client::MessageToHost>& networkInputQueue)
 	: m_gameData(gameData)
 	, m_networkInputQueue(networkInputQueue)
-	, m_hostFactory(std::move(hostFactory))
 	, m_lastUpdatePoint()
 {
 	// Acquire the host lock before the host thread is created because the host thread will release it once
@@ -74,7 +73,7 @@ void HostWorld::NotifyOfClientDisconnected(const Client::ClientID clientID)
 void HostWorld::HostThreadFunction()
 {
 	m_hostThreadStatus = HostThreadStatus::Running;
-	m_host = m_hostFactory(m_gameData);
+	m_host = Mem::MakeUnique<HostInstance>(m_gameData);
 	m_lastUpdatePoint = std::chrono::steady_clock::now();
 
 	// Unlock the host. It was locked in the HostWorld constructor.
