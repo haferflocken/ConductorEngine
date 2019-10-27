@@ -107,14 +107,14 @@ extern "C"
 	// - Shut down the asset/type system
 	// - Register an asset type?
 	// - Register a component type?
-	ConductorState* Conductor_CreateCore(const char* dataDirectory, const char* userDirectory)
+	DLL_EXPORT ConductorState* Conductor_CreateCore(const char* dataDirectory, const char* userDirectory)
 	{
 		auto* conductorState = new ConductorState(dataDirectory, userDirectory);
 
 		return conductorState;
 	}
 
-	void Conductor_DestroyCore(ConductorState* conductorState)
+	DLL_EXPORT void Conductor_DestroyCore(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::None)
 		{
@@ -127,7 +127,7 @@ extern "C"
 	// Shut down a combination client/host
 	// Check if the combination client/host is still running
 
-	void Conductor_CreateLocalClientHost(ConductorState* conductorState)
+	DLL_EXPORT void Conductor_CreateLocalClientHost(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::None)
 		{
@@ -145,7 +145,7 @@ extern "C"
 		conductorState->modeState = modeState;
 	}
 
-	void Conductor_DestroyLocalClientHost(ConductorState* conductorState)
+	DLL_EXPORT void Conductor_DestroyLocalClientHost(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::LocalClientHost)
 		{
@@ -158,7 +158,7 @@ extern "C"
 		conductorState->modeState = nullptr;
 	}
 
-	bool Conductor_IsLocalClientHostRunning(ConductorState* conductorState)
+	DLL_EXPORT bool Conductor_IsLocalClientHostRunning(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::LocalClientHost)
 		{
@@ -172,7 +172,7 @@ extern "C"
 	// Shut down a host
 	// Send a console input to the host (allows control over most host aspects)
 
-	void Conductor_CreateHost(ConductorState* conductorState, const char* port)
+	DLL_EXPORT void Conductor_CreateHost(ConductorState* conductorState, const char* port)
 	{
 		// Initialize the network socket API.
 		if (!Network::TryInitializeSocketAPI())
@@ -195,7 +195,7 @@ extern "C"
 		conductorState->modeState = modeState;
 	}
 
-	void Conductor_DestroyHost(ConductorState* conductorState)
+	DLL_EXPORT void Conductor_DestroyHost(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::Host)
 		{
@@ -211,7 +211,7 @@ extern "C"
 		Network::ShutdownSocketAPI();
 	}
 
-	bool Conductor_IsHostRunning(ConductorState* conductorState)
+	DLL_EXPORT bool Conductor_IsHostRunning(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::Host)
 		{
@@ -221,7 +221,7 @@ extern "C"
 		return modeState->hostNetworkWorld.IsRunning();
 	}
 
-	void Conductor_NotifyHostOfConsoleInput(ConductorState* conductorState, const char* input)
+	DLL_EXPORT void Conductor_NotifyHostOfConsoleInput(ConductorState* conductorState, const char* input)
 	{
 		auto* modeState = static_cast<HostState*>(conductorState->modeState);
 		if (conductorState->mode != ConductorMode::Host || !modeState->hostNetworkWorld.IsRunning())
@@ -236,7 +236,7 @@ extern "C"
 	// Shut down a remote client
 	// Check if remote client is still running
 
-	void Conductor_CreateRemoteClient(ConductorState* conductorState, const char* hostName, const char* hostPort)
+	DLL_EXPORT void Conductor_CreateRemoteClient(ConductorState* conductorState, const char* hostName, const char* hostPort)
 	{
 		// Initialize the network socket API.
 		if (!Network::TryInitializeSocketAPI())
@@ -263,7 +263,7 @@ extern "C"
 		conductorState->modeState = modeState;
 	}
 
-	void Conductor_DestroyRemoteClient(ConductorState* conductorState)
+	DLL_EXPORT void Conductor_DestroyRemoteClient(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::RemoteClient)
 		{
@@ -279,7 +279,7 @@ extern "C"
 		Network::ShutdownSocketAPI();
 	}
 
-	bool Conductor_IsRemoteClientRunning(ConductorState* conductorState)
+	DLL_EXPORT bool Conductor_IsRemoteClientRunning(ConductorState* conductorState)
 	{
 		if (conductorState->mode != ConductorMode::RemoteClient)
 		{
